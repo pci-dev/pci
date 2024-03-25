@@ -196,75 +196,94 @@
     {{pass}}
   {{pass}}
 
+
+{{if 'articleAbstract' in locals() or 'articleKeywords' in locals():}}
+    {{if 'translations' in locals() and len(translations) > 0:}}
+      <h3>Abstract</h3>
+      <div id="icon-translations">
+      {{for lang, translation in translations.items():}}
+          <div
+            style="margin: 15px 10px 0px 0px; display: inline;"
+            {{if not printable:}}
+            onclick="checkPanel('#menu-5-{{=lang}}','#icon-menu-5-{{=lang}}')"
+              class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+            {{else:}}
+              class="pci2-flex-row pci2-flex-center"
+            {{pass}}
+          >
+            <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
+              >{{=Lang.get_lang_by_code(lang).value.code.upper()}}</b
+            >
+            {{if not printable:}}
+              <i id="icon-menu-5-{{=lang}}" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
+            {{pass}}
+          </div>
+      {{pass}}
+    </div>
+    <div id="menu-translations">
+    {{for lang, translation in translations.items():}}
+        {{if not printable:}}
+        <div id="menu-5-{{=lang}}" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+          {{=translation.get('automated', '')}}
+          {{=translation.get('title', '')}}
+          {{=translation.get('abstract', '')}}
+          {{=translation.get('keywords', '')}}
+        </div>
+      {{else:}}
+        <div id="menu-5-{{=lang}}" class="pci2-abstract-div" style="margin-top: 15px;">
+          {{=translation.get('automated', '')}}
+          {{=translation.get('title', '')}}
+          {{=translation.get('abstract', '')}}
+          {{=translation.get('keywords', '')}}
+        </div>
+      {{pass}}
+    {{pass}}
+    </div>
+  {{else:}}
+      <div
+      style="margin:  15px 0 0px;"
+      {{if not printable:}}
+      onclick="checkPanel('#menu-5','#icon-menu-5')"
+        class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+      {{else:}}
+        class="pci2-flex-row pci2-flex-center"
+      {{pass}}
+    >
+      <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}>
+          Abstract
+      </b
+      >
+      <hr
+        style="margin: 0 10px;"
+        class="pci2-main-color-hr pci2-flex-grow"
+      />
+      {{if not printable:}}
+        <i id="icon-menu-5" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
+      {{pass}}
+    </div>
+
+    {{if not printable:}}
+      <div id="menu-5" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+        <h3>{{=articleTitle}}</h3>
+    {{else:}}
+      <div id="menu-5" class="pci2-abstract-div" style="margin-top: 15px;">
+        {{=articleTitle}}
+    {{pass}}
+
+        {{if 'articleAbstract' in locals():}}
+        {{=articleAbstract}}
+        {{pass}}
+        {{if isRecommended and 'articleKeywords' in locals():}}
+          <i>{{=articleKeywords}}</i>
+        {{pass}}
+      </div>
+  {{pass}}
+{{pass}}  
+
+
+
+{{if 'translations' in locals():}}
   
-
-{{if 'articleAbstract' in locals():}}
-  <div
-    style="margin:  15px 0 0px;"
-    {{if not printable:}}
-    onclick="checkPanel('#menu-5','#icon-menu-5')"
-      class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
-    {{else:}}
-      class="pci2-flex-row pci2-flex-center"
-    {{pass}}
-  >
-    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
-      >Abstract</b
-    >
-    <hr
-      style="margin: 0 10px;"
-      class="pci2-main-color-hr pci2-flex-grow"
-    />
-    {{if not printable:}}
-      <i id="icon-menu-5" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
-    {{pass}}
-  </div>
-
-  {{if not printable:}}
-    <div id="menu-5" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
-      {{=articleAbstract}}
-    </div>
-  {{else:}}
-    <div id="menu-5" class="pci2-abstract-div" style="margin-top: 15px;">
-      {{=articleAbstract}}
-    </div>
-  {{pass}}
-
-{{pass}}
-
-
-{{if 'articleKeywords' in locals() and isRecommended:}}
-  <div
-    style="margin:  15px 0 0px;"
-    {{if not printable:}}
-    onclick="checkPanel('#menu-6','#icon-menu-6')"
-      class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
-    {{else:}}
-      class="pci2-flex-row pci2-flex-center"
-    {{pass}}
-  >
-    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
-      >Keywords</b
-    >
-    <hr
-      style="margin: 0 10px;"
-      class="pci2-main-color-hr pci2-flex-grow"
-    />
-    {{if not printable:}}
-      <i id="icon-menu-6" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate"></i>
-    {{pass}}
-  </div>
-
-  {{if not printable:}}
-    <div id="menu-6" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
-      {{=articleKeywords}}
-    </div>
-  {{else:}}
-    <div id="menu-6" class="pci2-abstract-div" style="margin-top: 15px;">
-      {{=articleKeywords}}
-    </div>
-  {{pass}}
-
 {{pass}}
 
 

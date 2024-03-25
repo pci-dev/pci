@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from typing import cast
+from typing import Literal, cast
 import datetime
 
 from app_modules.helper import *
 from app_modules import emailing
 from app_components import app_forms
-from models.article import is_scheduled_submission
+from gluon.http import HTTP, redirect
+from models.article import Article, ArticleStatus, is_scheduled_submission
+from models.recommendation import RecommendationState
 
 from models.review import Review, ReviewState
+from models.user import User
 
 
 
@@ -62,53 +65,61 @@ def del_contributor():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender"))
 def do_accept_new_article_to_recommend():
-    theUser = db.auth_user[auth.user_id]
+    current_user_id = int(auth.user_id)
+    current_user = User.get_by_id(current_user_id)
+    if not current_user:
+        raise HTTP(404, "404: " + T("User not found"))
+    
     if "ethics_approved" in request.vars:
-        theUser.ethical_code_approved = True
-        theUser.update_record()
-    if not (theUser.ethical_code_approved):
+        current_user.ethical_code_approved = True
+        current_user.update_record()
+    if not (current_user.ethical_code_approved):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     if "no_conflict_of_interest" not in request.vars:
         raise HTTP(403, "403: " + T("Forbidden"))
-    noConflict = request.vars["no_conflict_of_interest"]
-    if noConflict != "yes":
+    no_conflict = cast(Literal['yes', 'no'], request.vars["no_conflict_of_interest"])
+    if no_conflict != "yes":
         raise HTTP(403, "403: " + T("Forbidden"))
 
-    articleId = request.vars["articleId"]
-    article = db.t_articles[articleId]
+    article_id = int(request.vars["articleId"])
+    article = Article.get_by_id(db, article_id)
+    if not article:
+        raise HTTP(404, "404: " + T("Article not found"))
 
-    if article.status == "Awaiting consideration":
-        recommId = db.t_recommendations.insert(article_id=articleId, recommender_id=auth.user_id, doi=article.doi, recommendation_state="Ongoing", no_conflict_of_interest=True, ms_version=article.ms_version)
+    if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
+        recommendation_id = db.t_recommendations.insert(article_id=article_id, recommender_id=current_user_id, doi=article.doi, recommendation_state=RecommendationState.ONGOING.value, no_conflict_of_interest=True, ms_version=article.ms_version)
         db.commit()
-        article = db.t_articles[articleId]  # reload due to trigger!
-        article.status = "Under consideration"
+        article = Article.get_by_id(db, article_id)  # reload due to trigger!
+        if not article:
+            raise HTTP(404, "404: " + T("Article not found"))
+        article.status = ArticleStatus.UNDER_CONSIDERATION.value
         article.update_record()
         if is_scheduled_submission(article):
             emailing.create_reminders_for_submitter_scheduled_submission(session, auth, db, article)
-        redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
+        redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
     else:
-        if article.status == "Under consideration":
-            lastRecomm = db((db.t_recommendations.article_id == articleId) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
-            if lastRecomm is not None and lastRecomm.id is not None:
-                recommId = lastRecomm.id
-                reviewersListSel = db((db.t_reviews.recommendation_id == recommId) & (db.t_reviews.reviewer_id == db.auth_user.id)).select(
+        if article.status == ArticleStatus.UNDER_CONSIDERATION.value:
+            last_recommendation = db((db.t_recommendations.article_id == article_id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
+            if last_recommendation is not None and last_recommendation.id is not None:
+                recommendation_id = last_recommendation.id
+                reviewers_list_selection = db((db.t_reviews.recommendation_id == recommendation_id) & (db.t_reviews.reviewer_id == db.auth_user.id)).select(
                     db.t_reviews.id, db.t_reviews.review_state, db.auth_user.id
                 )
-                if len(reviewersListSel) == 0:
-                    redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommId)))
+                if len(reviewers_list_selection) == 0:
+                    redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
                 else:
-                    print("Bug (reviewersListSel) : " + reviewersListSel)
+                    print("Bug (reviewersListSel) : " + reviewers_list_selection)
                     session.flash = T("Article no more available", lazy=False)
-                    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
+                    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
             else:
-                print("Bug (lastRecomm) : " + lastRecomm)
+                print("Bug (lastRecomm) : " + last_recommendation)
                 session.flash = T("Article no more available", lazy=False)
-                redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
+                redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
         else:
             print("Bug (articleStatus) : " + article.status)
             session.flash = T("Article no more available", lazy=False)
-            redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
+            redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
 
 
 ######################################################################################################################################################################

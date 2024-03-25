@@ -2,6 +2,7 @@
 
 import gc
 import os
+from typing import Dict, Union
 import pytz, datetime
 from re import sub, match
 from copy import deepcopy
@@ -25,6 +26,7 @@ from gluon.sqlhtml import *
 from app_modules import common_small_html
 from app_modules import common_tools
 from app_modules.common_small_html import md_to_html
+from app_modules.lang import Lang
 from models.article import Article
 
 
@@ -268,7 +270,9 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
             ("printableClass", printableClass),
             ("pciRRactivated", pciRRactivated),
             ("articleStage", articleStage),
-            ("isRecommended", isRecommended)
+            ("isRecommended", isRecommended),
+            ("translations", _get_article_translation(article)),
+            ("Lang", Lang)
         ]
     )
     if article.data_doi and policy_2():
@@ -312,6 +316,44 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
                 SPAN(current.T(button_text), _class="btn btn-success"),
                 _href=article.doi_of_published_article, _target="blank"))])
     return XML(response.render("components/article_infos_card.html", articleContent))
+
+
+def _get_article_translation(article: Article):
+    translations: Dict[str, Dict[str, Union[XML, DIV]]] = {}
+
+    if article.translated_title:
+        for translated_title in article.translated_title:
+            if not translated_title['public']:
+                continue
+            translations[translated_title['lang']] = dict(title=H3(translated_title['content']))
+
+    if article.translated_abstract:
+        for translated_abstract in article.translated_abstract:
+            if not translated_abstract['public']:
+                continue
+            lang = translated_abstract['lang']
+            translations.setdefault(lang, {})['abstract'] = XML(translated_abstract['content'])
+            if translated_abstract['automated']:
+                translations[lang]['automated'] = I('This is an automatically generated version. The authors and PCI decline all responsibility concerning its content')
+            else:
+                translations[lang]['automated'] = I('This is an author-verified version. The authors endorse the responsibility for its content.')
+            
+    if article.translated_keywords:
+        for translated_keywords in article.translated_keywords:
+            if not translated_keywords['public']:
+                continue
+            lang = translated_keywords['lang']
+            translations.setdefault(lang, {})['keywords'] = I(translated_keywords['content'])
+
+    if len(translations) > 0:
+        en = {Lang.EN.value.code: dict(title=H3(article.title or ""), abstract=XML(article.abstract or ""), keywords=I(article.keywords or ""))}
+        langs = list(translations.keys())
+        langs.sort()
+        translations = {lang: translations[lang] for lang in langs}
+        return {**en, **translations}
+    else:
+        return translations
+
 
 def make_article_source(article):
     if pciRRactivated:

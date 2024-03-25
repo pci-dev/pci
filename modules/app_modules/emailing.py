@@ -106,7 +106,7 @@ def send_test_mail(session, auth, db, userId):
 
 ######################################################################################################################################################################
 # Send email to the requester (if any)
-def send_to_submitter(session, auth, db, articleId, newStatus, response):
+def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
     print("send_to_submitter")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -120,6 +120,7 @@ def send_to_submitter(session, auth, db, articleId, newStatus, response):
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
         mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["editTranslationLink"] = URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
         recomm = db((db.t_recommendations.article_id == article.id)).select().last()
         recomm_id = None

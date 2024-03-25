@@ -39,6 +39,8 @@ from app_modules import emailing_vars
 from app_modules import hypothesis
 from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
+from app_modules.article_translator import ArticleTranslator
+
 from models.group import Group, Role
 from models.review import Review
 
@@ -1098,6 +1100,7 @@ def edit_article():
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True, extra_fields = manager_label + manager_fields,)
+    ArticleTranslator.add_edit_translation_buttons(art, form)
     try:
         article_version = int(art.ms_version)
     except:
@@ -1115,6 +1118,9 @@ def edit_article():
             app_forms.checklist_validation(form)
 
     if form.process(onvalidation=onvalidation).accepted:
+        if form.vars.abstract != art.abstract or form.vars.title != art.title or form.vars.keywords != art.keywords:
+            ArticleTranslator.launch_article_translation_for_default_langs_process(art.id, True)
+
         if form.vars.doi != art.doi:
             lastRecomm = db.get_last_recomm(art.id)
             if lastRecomm is not None:

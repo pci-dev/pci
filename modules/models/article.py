@@ -1,12 +1,17 @@
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Optional as _, cast
+from typing import Any, List, Optional as _, cast, TypedDict
+from gluon.tools import Auth
+from models.group import Role
 from pydal.objects import Row
 from pydal import DAL
 from gluon.contrib.appconfig import AppConfig
 from gluon import current
 
 from models.recommendation import Recommendation
+
+from app_modules.lang import Lang
 
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -27,6 +32,23 @@ class ArticleStatus(Enum):
     PRE_REVISION = 'Pre-revision'
     SCHEDULED_SUBMISSION_PENDING = 'Scheduled submission pending'
     SCHEDULED_SUBMISSION_UNDER_CONSIDERATION = 'Scheduled submission under consideration'
+
+@dataclass
+class TranslatedFieldDict(TypedDict):
+    lang: str
+    content: str
+    automated: bool
+    public: _[bool]
+
+
+class TranslatedFieldType(Enum):
+    ABSTRACT = 'translated_abstract'
+    TITLE = 'translated_title'
+    KEYWORDS = 'translated_keywords'
+
+    @staticmethod
+    def get_corresponding_english_field(translated_field: 'TranslatedFieldType'):
+        return translated_field.name.lower()
 
 
 class Article(Row):
@@ -77,11 +99,83 @@ class Article(Row):
     article_year: _[int]
     is_scheduled: bool
     manager_authors: _[str]
+    translated_abstract: _[List[TranslatedFieldDict]]
+    translated_title: _[List[TranslatedFieldDict]]
+    translated_keywords: _[List[TranslatedFieldDict]]
 
 
     @staticmethod
     def get_by_id(db: DAL, id: int):
         return cast(_[Article], db.t_articles[id])
+    
+
+    @staticmethod
+    def add_or_update_translation(article: 'Article', field: TranslatedFieldType, new_translation: TranslatedFieldDict):
+        lang = Lang.get_lang_by_code(new_translation['lang'])
+        translations = getattr(article, field.value)
+
+        if translations:
+            current_translation = Article.get_translation(article,  field, lang)
+            if current_translation:
+                if current_translation['automated'] or not new_translation['automated']:
+                    current_translation['content'] = new_translation['content']
+                    current_translation['automated'] = new_translation['automated']
+                if new_translation['public'] != None: 
+                    current_translation['public'] = new_translation['public']
+            else:
+                translations.append(new_translation)
+        else:
+            if new_translation['public'] == None:
+                new_translation['public'] = False
+            setattr(article, field.value, [new_translation])
+
+        article.update_record()
+
+
+    @staticmethod
+    def delete_translation(article: 'Article', field: TranslatedFieldType, lang: Lang):
+        translations: _[List[TranslatedFieldDict]] = getattr(article, field.value)
+        if not translations:
+            return
+        
+        index_to_remove: _[int] = None
+        for i in range(0, len(translations)):
+            translation = translations[i]
+            if translation['lang'] == lang.value.code:
+                index_to_remove = i
+                break
+
+        if index_to_remove != None:
+            translations.pop(index_to_remove)
+            article.update_record()
+        
+
+    @staticmethod
+    def get_translation(article: 'Article', field: TranslatedFieldType, lang: Lang):
+        translations: _[List[TranslatedFieldDict]] = getattr(article, field.value)
+        if not translations:
+            return None
+        
+        for translation in translations:
+            if translation['lang'] == lang.value.code:
+                return translation
+            
+    
+    @staticmethod
+    def get_all_translations(article: 'Article', field: TranslatedFieldType):
+        return cast(_[List[TranslatedFieldDict]], getattr(article, field.value))
+            
+
+    @staticmethod
+    def already_translated(article: 'Article', field: TranslatedFieldType, lang: Lang, manual: bool = False):
+        translation = Article.get_translation(article, field, lang)
+        if not translation:
+            return False
+        
+        if manual:
+            return not translation['automated']
+        
+        return True
 
 
     @staticmethod
@@ -98,6 +192,20 @@ class Article(Row):
         else:
             recommendations = db(db.t_recommendations.article_id == article_id).select()
         return cast(List[Recommendation], recommendations)
+    
+
+    @staticmethod
+    def current_user_has_edit_translation_right(article: 'Article'):
+        auth = cast(Auth, current.auth)
+        is_author = bool(article.user_id == auth.user_id) \
+                                and article.status not in (ArticleStatus.PENDING.value,
+                                                        ArticleStatus.PRE_SUBMISSION.value,
+                                                        ArticleStatus.REJECTED.value,
+                                                        ArticleStatus.RECOMMENDED.value,
+                                                        ArticleStatus.NOT_CONSIDERED.value,
+                                                        ArticleStatus.CANCELLED.value)
+        is_admin = bool(auth.has_membership(role=Role.ADMINISTRATOR.value))
+        return is_author or is_admin
 
 
 def is_scheduled_submission(article: Article) -> bool:
