@@ -204,7 +204,7 @@ class COARNotifier:
         if not article.coar_notification_id: return
         if article.coar_notification_closed: return
 
-        send_ack(self, "Accept", article)
+        send_ack(self, "TentativeAccept", article)
 
     def send_acknowledge_and_reject(self, article):
         if not article.coar_notification_id: return
@@ -224,14 +224,7 @@ class COARNotifier:
         direction: typing.Literal["Inbound", "Outbound"],
     ) -> None:
         """Records a notification in the database for logging purposes.
-
-        body can either be a JSON-LD-style dictionary, or a json string.
         """
-        if isinstance(body, dict):
-            pass
-        else:
-            bb = body.read()
-            body = json.loads(bb)
 
         inbox_url = body \
                 ["target" if direction == "Outbound" else "origin"] \
@@ -239,7 +232,7 @@ class COARNotifier:
 
         self.db.t_coar_notification.insert(
             created=datetime.datetime.now(tz=datetime.timezone.utc),
-            rdf_type=get_notification_type(body),
+            rdf_type=body["type"],
             body=json.dumps(body),
             direction=direction,
             inbox_url=inbox_url,
@@ -249,14 +242,14 @@ class COARNotifier:
 
 #
 
-def send_ack(self, typ: typing.Literal["Accept", "Reject"], article):
+def send_ack(self, typ: typing.Literal["TentativeAccept", "Reject"], article):
     origin_req = get_origin_request(article)
     if not origin_req: return
 
     target_inbox = origin_req["origin"]["inbox"]
     origin_object = origin_req["object"]["id"]
     notification = {
-          "type": f"Tentative{typ}",
+          "type": typ,
           "object": {
             "id": article.coar_notification_id,
             "object": origin_object,
@@ -283,10 +276,6 @@ def get_origin_request(article):
     db = current.db
     req = db(db.t_coar_notification.coar_id == article.coar_notification_id).select().first()
     return json.loads(req.body) if req else None
-
-
-def get_notification_type(body):
-    return " ".join(body["type"])
 
 
 def get_target_inbox(article):

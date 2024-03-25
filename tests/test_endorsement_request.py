@@ -58,7 +58,7 @@ request_endorsement = """
     "id": "https://hal.inrae.fr/hal-02630042",
     "ietf:cite-as": "https://hal.inrae.fr/hal-02630042v1",
     "type": "sorg:AboutPage",
-    "url": {
+    "ietf:item": {
       "id": "https://hal.inrae.fr/hal-02630042v1/file/Bourguet%20Lieux%20Communs%202016.pdf",
       "mediaType": "application/pdf",
       "type": [
@@ -69,12 +69,12 @@ request_endorsement = """
   },
   "origin": {
     "id": "https://research-organisation.org/repository",
-    "inbox": "http://localhost:8000/coar_notify/inbox/",
+    "inbox": "http://localhost:8000/pci/coar_notify/inbox/",
     "type": "Service"
   },
   "target": {
     "id": "https://overlay-journal.com/system",
-    "inbox": "http://localhost:8000/coar_notify/inbox/",
+    "inbox": "http://localhost:8000/pci/coar_notify/inbox/",
     "type": "Service"
   },
   "type": [
@@ -149,7 +149,7 @@ acknowledge_and_reject = """
     "name": "Some Organisation",
     "type": "Organization"
   },
-  "type": "TentativeReject"
+  "type": "Reject"
 }
 """
 

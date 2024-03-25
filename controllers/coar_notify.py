@@ -1,5 +1,3 @@
-import cgi
-import http
 import typing
 import json
 import requests
@@ -7,80 +5,101 @@ import requests
 from app_modules.helper import *
 from app_modules.coar_notify import COARNotifier
 from app_modules import emailing
+from http import HTTPStatus
 from gluon import current
 
 
 if typing.TYPE_CHECKING:
     from gluon import HTTP, request, response
 
-accepted_media_types = {
-    "application/ld+json": "json-ld",
-}
 
-
-@auth.requires(auth.has_membership(role="administrator"))
 def index():
     if not current.coar.enabled:
         return "COAR notifications for PCI (disabled)"
 
-    ensure_trailing_slash()
+    if request.method == 'HEAD':
+        add_describedby_header(response)
+        return ""
 
     text = show_coar_status()
-    text += "\n"
-    text += show_coar_requests()
+
+    if auth.has_membership(role="administrator"):
+        ensure_trailing_slash()
+        text += "\n"
+        text += show_coar_requests()
 
     return text .strip().replace('\n', '\n<br/>')
 
 
+##
+## the inbox (at /coar_notify/inbox)
+##
+
 def inbox():
+    accepted_media_types = [
+        "application/ld+json",
+    ]
+    allowed_methods = [
+            "POST",
+            "HEAD",
+            "OPTIONS",
+    ]
     coar_notifier = current.coar
 
     if not coar_notifier.enabled:
-        raise HTTP(status=http.HTTPStatus.NOT_FOUND.value)
+        fail(status=HTTPStatus.NOT_FOUND)
 
-    if request.method == "OPTIONS":
-        response.headers.update(
-            {
-                "Allow": ", ".join(["POST", "OPTIONS"]),
-                "Accept-Post": ", ".join(accepted_media_types),
-            }
-        )
-        return ""
-
-    elif request.method == "GET":
-        raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
+    if request.method == "GET":
+        fail(status=HTTPStatus.FORBIDDEN, message=
+                f"Allowed methods: {', '.join(allowed_methods)}")
 
     elif request.method == "POST":
-        if current.isRR: raise HTTP(status=http.HTTPStatus.FORBIDDEN.value)
 
         if not is_coar_whitelisted(request.env.remote_addr):
-            raise HTTP(
-                    http.HTTPStatus.FORBIDDEN.value,
+            fail(status=HTTPStatus.FORBIDDEN, message=
                     f"not whitelisted: {request.env.remote_addr}")
 
-        content_type, content_type_options = cgi.parse_header(
-            request.env.content_type or ""
-        )
-        if content_type not in accepted_media_types:
-            raise HTTP(
-                http.HTTPStatus.UNSUPPORTED_MEDIA_TYPE.value,
+        if not request.env.content_type in accepted_media_types:
+            fail(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, message=
                 f"Content-Type must be one of {', '.join(accepted_media_types)}",
             )
 
         request.body.seek(0)
         body = request.body.read()
 
-        validate_request(body, content_type, coar_notifier)
-        process_request(json.loads(body))
+        try:
+            body = json.loads(body)
 
-        db_id = get_db_id(json.loads(body)["id"])
-        response.headers['Location'] = URL("coar_notify", f"show?id={db_id}", scheme=True)
-        return HTTP(status=http.HTTPStatus.CREATED.value)
+            record_request(body)
+            process_request(body)
+
+        except HTTP as e:
+            raise e
+        except json.JSONDecodeError as e:
+            fail(f"Invalid JSON: {e}")
+        except Exception as e:
+            fail(f"{e.__class__.__name__}: {e}")
+
+        response.headers['Location'] = URL(
+            "coar_notify", "show", vars={"coar_id":body['id']}, scheme=True)
+        return HTTP(status=HTTPStatus.CREATED.value)
+
+    elif request.method == "HEAD":
+        add_describedby_header(response)
+        return ""
+
+    elif request.method == "OPTIONS":
+        response.headers.update(
+            {
+                "Allow": ", ".join(allowed_methods),
+                "Accept-Post": ", ".join(accepted_media_types),
+            }
+        )
+        return ""
 
     else:
-        raise HTTP(
-            http.HTTPStatus.METHOD_NOT_ALLOWED.value,
-            **{ "Allow": ", ".join(["POST", "OPTIONS"]) },
+        fail(status=HTTPStatus.METHOD_NOT_ALLOWED,
+            Allow=", ".join(allowed_methods),
         )
 
 
@@ -89,11 +108,6 @@ def is_coar_whitelisted(host):
         if host == entry.split(" ")[0]:
             return True
     return False
-
-
-def get_db_id(coar_id):
-    return db(db.t_coar_notification.coar_id == coar_id).select(
-            db.t_coar_notification.id).first().id
 
 
 def process_request(req):
@@ -106,17 +120,9 @@ def process_request(req):
     if type(req_type) is list: req_type = " ".join(req_type)
 
     if req_type not in request_handlers:
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body=f"request.type: unsupported type '{req_type}'")
-    try:
-        request_handlers[req_type](req)
-    except HTTP as e:
-        raise e
-    except Exception as e:
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body=f"exception: {e}")
+        fail(f"request.type: unsupported type '{req_type}'")
+
+    request_handlers[req_type](req)
 
 
 def request_endorsement(req):
@@ -125,14 +131,10 @@ def request_endorsement(req):
     coar_req_id = req["id"]
 
     if not user_email.startswith("mailto:"):
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body="actor.id must be a 'mailto:' url")
+        fail("actor.id must be a 'mailto:' url")
 
     if get_article_by_coar_req_id(coar_req_id):
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body=f"already exists: request .id='{coar_req_id}'")
+        fail(f"already exists: request.id='{coar_req_id}'")
 
     user_email = user_email.replace("mailto:", "")
     user = db(db.auth_user.email.lower() == user_email.lower()).select().first()
@@ -152,19 +154,16 @@ def request_endorsement(req):
 
 def handle_resubmission(req, user):
     context = req["context"]
-    if not "id" in context: raise HTTP(
-            status=http.HTTPStatus.BAD_REQUEST.value,
-            body=f"no context.id")
+    if not "id" in context:
+        fail("no context.id")
 
     context_id = context["id"]
     article = update_resubmitted_article(req, context_id)
 
-    if not article: raise HTTP(
-            status=http.HTTPStatus.BAD_REQUEST.value,
-            body=f"no matching article for context.id='{context_id}'")
-    if article.status != 'Awaiting revision': raise HTTP(
-            status=http.HTTPStatus.BAD_REQUEST.value,
-            body=f"not awaiting revision: article.id='{article.id}'")
+    if not article:
+        fail(f"no matching article for context.id='{context_id}'")
+    if article.status != 'Awaiting revision':
+        fail(f"not awaiting revision: article.id='{article.id}'")
 
     return article
 
@@ -174,9 +173,7 @@ def cancel_endorsement(req):
 
     article = get_article_by_coar_req_id(coar_req_id)
     if not article:
-        raise HTTP(
-                status=http.HTTPStatus.BAD_REQUEST.value,
-                body=f"no such offer: object.id='{coar_req_id}'")
+        fail(f"no such offer: object.id='{coar_req_id}'")
 
     article.status = "Cancelled"
     article.update_record()
@@ -237,15 +234,11 @@ def update_resubmitted_article(req, context):
     return article
 
 
-def validate_request(body, content_type, coar_notifier):
-        try:
-            coar_notifier.record_notification(
-                body=json.loads(body),
+def record_request(body):
+    current.coar.record_notification(
+                body=body,
                 direction="Inbound",
             )
-        except Exception as e:
-            raise HTTP(status=http.HTTPStatus.BAD_REQUEST.value,
-                        body=f"{e.__class__.__name__}: {e}")
 
 
 def get_article_by_coar_req_id(coar_req_id):
@@ -351,6 +344,14 @@ def retry(func, url):
     raise Exception(f"{func}: too many retries ({_})")
 
 
+def fail(message=None, status=HTTPStatus.BAD_REQUEST, **headers):
+    raise HTTP(status=status.value, body=message, **headers)
+
+
+##
+## inbox/outbox display (page /coar_notify)
+##
+
 def show_coar_status():
     coar_notifier = current.coar
 
@@ -395,18 +396,14 @@ def show_coar_requests():
 
 
 def show():
+    req_id = request.vars.id or request.vars.coar_id
     try:
-        req_id = request.vars.id
-        int(req_id)
+        req = db(
+            db.t_coar_notification.id == req_id   if req_id.isdigit() else
+            db.t_coar_notification.coar_id == req_id
+        ).select()
     except:
-        raise HTTP(400, "usage: ?id=&lt;coar request id (int)&gt;")
-
-    req = db(
-            db.t_coar_notification.id == req_id
-    ).select()
-
-    if not req:
-        raise HTTP(400, "error: no such coar request. id=" + req_id)
+        raise HTTP(400, f"error: no such coar request, id={req_id}")
 
     req_body = req[0].body
     req_json = json.loads(req_body)
@@ -430,6 +427,7 @@ def get_type(body):
     coar_types = [
             "Endorsement", "Review",
             "Reject", "Accept",
+            "Undo",
     ]
     for t in coar_types:
         if body.find("://purl.org/coar/notify_vocabulary/" + t) > 0:
@@ -437,6 +435,8 @@ def get_type(body):
         if body.find(f'"coar-notify:{t}Action"') > 0:
             return t
         if body.find(f'"type": "Tentative{t}"') > 0:
+            return t
+        if body.find(f'"type": "{t}"') > 0:
             return t
 
 
@@ -482,3 +482,61 @@ errors = {
     524: "inbox read timeout",
     525: "inbox ssl handshake failed",
 }
+
+
+##
+## system description (proposal)
+##
+
+def system_description():
+    response.headers['Content-Type'] = 'application/json'
+    resp_json = {
+        "takes": {
+                "Offer.EndorsementAction": {
+                        "yields": [
+                                "TentativeAccept",
+                                "Reject",
+                        ],
+                        "returns": [
+                                "201:CREATED",
+                                "400:BAD_REQUEST",
+                        ],
+                },
+                "Undo": {
+                        "yields": [
+                        ],
+                        "returns": [
+                                "201:CREATED",
+                                "400:BAD_REQUEST",
+                        ],
+                },
+        },
+        "gives": {
+                "Announce.EndorsementAction": {
+                        "after": [
+                                "Offer.EndorsementAction",
+                                "spontaneous",
+                        ],
+                        "time-frame": "1-2 months",
+                },
+                "Announce.ReviewAction": {
+                        "after": [
+                                "Offer.EndorsementAction",
+                                "spontaneous",
+                        ],
+                        "time-frame": "1-2 months",
+                },
+        },
+        "access-control": {
+            "inbox.POST": "whitelisted IP",
+            "inbox.READ": "none",
+        },
+    }
+    return json.dumps(resp_json, indent=4)
+
+
+def add_describedby_header(response):
+    response.headers.update({
+        "link": '<' + URL("coar_notify", "system_description", scheme=True) + '>' +
+        '; rel="describedby"; type="application/json"'
+    })

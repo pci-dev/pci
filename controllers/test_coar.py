@@ -85,7 +85,7 @@ request_endorsement = """
     "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-01153368",
     "ietf:cite-as": "https://hal.halpreprod.archives-ouvertes.fr/hal-01153368v2",
     "type": "sorg:AboutPage",
-    "url": {
+    "ietf:item": {
       "id": "https://hal.halpreprod.archives-ouvertes.fr/hal-01153368v2/file/ArditiLobrySariDispersal.pdf",
       "mediaType": "application/pdf",
       "type": [
@@ -175,7 +175,7 @@ acknowledge_and_reject = """
     "name": "Some Organisation",
     "type": "Organization"
   },
-  "type": "TentativeReject"
+  "type": "Reject"
 }
 """
 
