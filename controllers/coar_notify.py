@@ -50,11 +50,10 @@ def inbox():
         fail(status=HTTPStatus.NOT_FOUND)
 
     if request.method == "GET":
-        fail(status=HTTPStatus.FORBIDDEN)
+        fail(status=HTTPStatus.FORBIDDEN, message=
+                f"Allowed methods: {', '.join(allowed_methods)}")
 
     elif request.method == "POST":
-        if current.isRR:
-            fail(status=HTTPStatus.FORBIDDEN)
 
         if not is_coar_whitelisted(request.env.remote_addr):
             fail(status=HTTPStatus.FORBIDDEN, message=
