@@ -114,11 +114,8 @@ def index():
     """
     .split()): t_articles[field].readable = False
 
-    # discard "params" in urls e.g. /view/about/ethics (crashes grid)
-    from gluon.storage import List
-    request.args = List()
-
-    original_grid = SQLFORM.grid(
+    try:
+      original_grid = SQLFORM.grid(
         (t_articles.status == "Recommended"),
         maxtextlength=250,
         paginate=10,
@@ -145,6 +142,8 @@ def index():
         orderby=~t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
+    except:
+        raise HTTP(418, "I'm a teapot")
 
 
     integer_fields = ['v_article.article_year']
@@ -344,7 +343,7 @@ def user():
 
 def intercept_reset_password_login(_next=request.vars._next):
     from urllib.parse import parse_qs
-    key = parse_qs(_next).get("key")
+    key = parse_qs(str(_next)).get("key")
     key = key[0] if key else None
 
     if not key: return
@@ -812,14 +811,11 @@ def stream_pdf():
     table_file_field = match_regex.group(2)
 
     row = db(db[table_name][table_file_field] == filename).select().first()
-
-    if not row:
-        raise HTTP(404, "404: " + T("Unavailable"))
-
     table_file_data_field = table_file_field + "_data"
-
-    file_data_bytes = row[table_file_data_field]
-
+    try:
+        file_data_bytes = row[table_file_data_field]
+    except:
+        raise HTTP(404, "404: " + T("Unavailable"))
 
     try:
         # create temp file
