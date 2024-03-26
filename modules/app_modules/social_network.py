@@ -79,7 +79,7 @@ class SocialNetwork(metaclass=ABCMeta):
 
 
     def __get_reviewers_name(self, article_id: int) -> str:
-        reviews = Review.get_by_article_id_and_state(self._db, article_id, ReviewState.REVIEW_COMPLETED)
+        reviews = Review.get_by_article_id_and_state(article_id, ReviewState.REVIEW_COMPLETED)
         nb_anonymous = 0
         names: List[str] = []
         user_id: List[int] = []

@@ -1094,7 +1094,7 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
                         )
                 
                 if new_round or new_stage:
-                    current_reviewers = Review.get_by_recommendation_id(db, recommendation.id)
+                    current_reviewers = Review.get_by_recommendation_id(recommendation.id)
                     for current_reviewer in current_reviewers:
                         current_reviewers_ids.append(current_reviewer.reviewer_id)
                     html = LI(
@@ -1250,7 +1250,7 @@ def reviewers():
                     reviewer_box.append(H5(B(action_text)))
                     suggested_reviewers_by_reviewers.append(reviewer_box)
         
-        reviewersListSel = Review.get_by_recommendation_id(db, recommId, db.t_reviews.id)
+        reviewersListSel = Review.get_by_recommendation_id(recommId, db.t_reviews.id)
         selfFlag = False
         selfFlagCancelled = False
         reviewersList, reviewersIds = _edit_reviewers(reviewersListSel, recomm)

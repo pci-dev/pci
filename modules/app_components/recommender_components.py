@@ -29,9 +29,9 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
     if manager_coauthor: return DIV(STRONG(current.T('Since you are a coauthor of this article,'),BR(),STRONG('you cannot see the review process.')))
 
     recommendation_round = Recommendation.get_current_round_number(db, recommendation)
-    reviews = Review.get_by_recommendation_id(db, recommendation.id, order_by=~db.t_reviews.last_change)
-    nb_unfinished_reviews = Review.get_unfinished_reviews(db, recommendation)
-    is_recommender_also_reviewer = Review.is_reviewer_also_recommender(db, recommendation)
+    reviews = Review.get_by_recommendation_id(recommendation.id, order_by=~db.t_reviews.last_change)
+    nb_unfinished_reviews = Review.get_unfinished_reviews(recommendation)
+    is_recommender_also_reviewer = Review.is_reviewer_also_recommender(recommendation)
 
     allowed_to_see_reviews = True
     if (nb_unfinished_reviews > 0) and is_recommender_also_reviewer:
