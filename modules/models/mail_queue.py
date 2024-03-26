@@ -4,7 +4,7 @@ import re
 from typing import List, Optional as _, cast
 from models.review import Review
 from pydal.objects import Row
-from pydal import DAL
+from gluon import current
 
 
 class MailQueue(Row):
@@ -29,7 +29,8 @@ class MailQueue(Row):
 
 
     @staticmethod
-    def get_mail_by_id(db: DAL, id: int):
+    def get_mail_by_id(id: int):
+        db = current.db
         return cast(_[MailQueue], db.mail_queue[id])
     
 
@@ -46,7 +47,8 @@ class MailQueue(Row):
         
     
     @staticmethod
-    def get_by_review_for_recommender(db: DAL, hastag_template: str, recommender_mail: str, review: Review):
+    def get_by_review_for_recommender(hastag_template: str, recommender_mail: str, review: Review):
+        db = current.db
         mails = db(
             (db.mail_queue.dest_mail_address == recommender_mail) &
             (db.mail_queue.mail_template_hashtag == hastag_template) &
