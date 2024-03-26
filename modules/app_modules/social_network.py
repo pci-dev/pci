@@ -66,7 +66,7 @@ class SocialNetwork(metaclass=ABCMeta):
 
 
     def __get_recommenders_names(self, db: DAL, recommendation: Recommendation):
-        press_reviews = Recommendation.get_co_recommenders(db, recommendation.id)
+        press_reviews = Recommendation.get_co_recommenders(recommendation.id)
         names: List[str] = [self.__get_user_name(recommendation.recommender_id)]
         for press_review in press_reviews:
             if not press_review.contributor_id:

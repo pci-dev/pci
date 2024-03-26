@@ -4,7 +4,6 @@ from enum import Enum
 from typing import List, Optional as _, cast
 from models.press_reviews import PressReview
 from pydal.objects import Row
-from pydal import DAL
 from gluon import current
 
 class RecommendationState(Enum):
@@ -48,18 +47,21 @@ class Recommendation(Row):
         return cast(_[Recommendation], db.t_recommendations[id])
     
     @staticmethod
-    def get_by_article_id(db: DAL, article_id: int):
+    def get_by_article_id(article_id: int):
+        db = current.db
         return cast(List[Recommendation], db(db.t_recommendations.article_id == article_id).select())
 
 
     @staticmethod
-    def get_co_recommenders(db: DAL, recommendation_id: int):
+    def get_co_recommenders(recommendation_id: int):
+        db = current.db
         return cast(List[PressReview], db((db.t_recommendations.id == recommendation_id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id))\
             .select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id))
 
 
     @staticmethod
-    def get_current_round_number(db: DAL, recommendation: Recommendation):
+    def get_current_round_number(recommendation: Recommendation):
+        db = current.db
         return cast(int, db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count())
     
 

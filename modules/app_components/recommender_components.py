@@ -28,7 +28,7 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
     if manager_coauthor: return DIV(STRONG(current.T('Since you are a coauthor of this article,'),BR(),STRONG('you cannot see the review process.')))
 
-    recommendation_round = Recommendation.get_current_round_number(db, recommendation)
+    recommendation_round = Recommendation.get_current_round_number(recommendation)
     reviews = Review.get_by_recommendation_id(recommendation.id, order_by=~db.t_reviews.last_change)
     nb_unfinished_reviews = Review.get_unfinished_reviews(recommendation)
     is_recommender_also_reviewer = Review.is_reviewer_also_recommender(recommendation)
