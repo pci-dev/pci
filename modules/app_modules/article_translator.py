@@ -175,8 +175,9 @@ class ArticleTranslator(Translator):
 
         if public != None:
             cmd.append(str(public))
-        
-        subprocess.Popen(cmd)
+
+        p = subprocess.Popen(cmd)
+        del p
 
     
     @staticmethod

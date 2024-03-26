@@ -136,14 +136,14 @@ def _shell(command):
 
 def _run(command):
   try:
-    return "".join(
-        Popen(
+      with Popen(
             shlex.split(command),
             cwd=request.folder,
             stdout=PIPE,
             stderr=STDOUT,
             encoding="utf-8",
-        )
+        ) as p:
+          return "".join(p
         .stdout
         .readlines()
     )
