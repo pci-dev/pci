@@ -344,7 +344,7 @@ def user():
 
 def intercept_reset_password_login(_next=request.vars._next):
     from urllib.parse import parse_qs
-    key = parse_qs(_next).get("key")
+    key = parse_qs(str(_next)).get("key")
     key = key[0] if key else None
 
     if not key: return
