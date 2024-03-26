@@ -1001,7 +1001,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     if not review:
         emailing_tools.getFlashMessage(session, reports)
         return
@@ -1742,7 +1742,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
 
     reports = []
 
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     if not review:
         emailing_tools.getFlashMessage(session, reports)
         return
@@ -2561,7 +2561,7 @@ def reviewLink(**kwargs):
 
 ######################################################################################################################################################################
 def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
@@ -2615,7 +2615,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
 
 ######################################################################################################################################################################
 def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
@@ -2684,7 +2684,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
@@ -2736,7 +2736,7 @@ def getScheduledReviewDueDate(article):
 def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
@@ -2772,7 +2772,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
