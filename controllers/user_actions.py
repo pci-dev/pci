@@ -280,7 +280,7 @@ def accept_review_confirmed(): # no auth required
         redirect(URL('default','index'))
         return
     
-    review = Review.get_by_id(db, review_id)
+    review = Review.get_by_id(review_id)
     if not review:
         session.flash = current.T('No review found')
         redirect(URL('default','index'))
@@ -314,7 +314,7 @@ def send_suggestion_page():
         redirect(URL('default','index'))
         return
     
-    review = Review.get_by_id(db, review_id)
+    review = Review.get_by_id(review_id)
     if not review:
         session.flash = current.T('No review found')
         redirect(URL('default','index'))

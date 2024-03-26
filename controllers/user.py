@@ -1450,7 +1450,7 @@ def edit_review():
         redirect(URL('default','index'))
     reviewId = int(request.vars["reviewId"])
 
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     if review is None:
         session.flash = "404: " + T("Unavailable")
         redirect(URL('default','index'))

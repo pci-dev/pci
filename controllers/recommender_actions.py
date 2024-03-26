@@ -689,7 +689,7 @@ def accept_new_delay_to_reviewing():
         redirect(URL('default','index'))
         return
 
-    review = Review.get_by_id(db, review_id)
+    review = Review.get_by_id(review_id)
     if not review:
         session.flash = T("Review not found")
         redirect(URL('default','index'))
@@ -712,7 +712,7 @@ def decline_new_delay_to_reviewing():
         redirect(URL('default','index'))
         return
 
-    review = Review.get_by_id(db, review_id)
+    review = Review.get_by_id(review_id)
     if not review:
         session.flash = T("Review not found")
         redirect(URL('default','index'))
@@ -763,7 +763,7 @@ def change_review_due_date():
         redirect(URL('default','index'))
         return
     
-    review = Review.get_by_id(db, review_id)
+    review = Review.get_by_id(review_id)
     if not review:
         session.flash = T("Review not found")
         redirect(URL('default','index'))

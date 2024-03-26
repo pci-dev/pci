@@ -57,7 +57,8 @@ class Review(Row):
 
 
     @staticmethod
-    def get_by_id(db: DAL, id: int):
+    def get_by_id(id: int):
+        db = current.db
         return cast(_[Review], db.t_reviews[id])
 
 
