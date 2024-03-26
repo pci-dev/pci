@@ -163,7 +163,7 @@ def recommendations():
         recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(auth, db, response, art, printable)
         myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
 
-        reviews = Review.get_all_active_reviews(db, db.get_last_recomm(art.id), auth.user_id)
+        reviews = Review.get_all_active_reviews(db.get_last_recomm(art.id), auth.user_id)
         for review in reviews:
             if review.review_state == ReviewState.AWAITING_REVIEW.value:
                 response.flash = common_small_html.write_edit_upload_review_button(review.id)
