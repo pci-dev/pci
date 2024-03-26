@@ -25,7 +25,7 @@ def index():
 def post_form():
 
     article_id = cast(int, request.vars.article_id)
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
 
     if not article:
         session.flash = current.T(f'No article found.')

@@ -1011,7 +1011,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
         emailing_tools.getFlashMessage(session, reports)
         return
     
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         emailing_tools.getFlashMessage(session, reports)
         return
@@ -1752,7 +1752,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         emailing_tools.getFlashMessage(session, reports)
         return
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         emailing_tools.getFlashMessage(session, reports)
         return
@@ -2563,7 +2563,7 @@ def reviewLink(**kwargs):
 def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -2617,7 +2617,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
 def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -2686,7 +2686,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -2738,7 +2738,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -2774,7 +2774,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
 
     review = Review.get_by_id(db, reviewId)
     recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -3332,7 +3332,7 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     if not recommendation:
         return
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
     
@@ -3407,7 +3407,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     if not recommendation:
         return
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
     
@@ -3475,7 +3475,7 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     if not recommendation:
         return
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
     

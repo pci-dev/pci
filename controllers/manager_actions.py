@@ -263,7 +263,7 @@ def set_not_considered():
         redirect(request.env.http_referer, client_side=True)
     message = cast(str, request.vars['message'])
 
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         session.flash = auth.not_authorized()
         return redirect(request.env.http_referer, client_side=True)
@@ -288,7 +288,7 @@ def set_not_considered():
 @auth.requires(auth.has_membership(role="manager"))
 def get_not_considered_dialog():
     article_id = int(request.vars["articleId"])
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         session.flash = auth.not_authorized()
         return redirect(request.env.http_referer, client_side=True)

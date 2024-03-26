@@ -1,7 +1,5 @@
 import argparse
 
-from gluon import current
-
 from models.article import Article
 from app_modules.article_translator import ArticleTranslator
 
@@ -21,7 +19,7 @@ if __name__ == '__main__':
     force = bool(args.force)
     public = None if args.public == None else bool(args.public)
     
-    article = Article.get_by_id(current.db, article_id)
+    article = Article.get_by_id(article_id)
 
     if not article:
         raise Exception('Article not found')

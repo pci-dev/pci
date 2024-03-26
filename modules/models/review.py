@@ -165,7 +165,7 @@ class Review(Row):
         if not recommendation:
             return None
         
-        article = Article.get_by_id(db, recommendation.article_id)
+        article = Article.get_by_id(recommendation.article_id)
         if not article:
             return None
         
