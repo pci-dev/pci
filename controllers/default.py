@@ -812,14 +812,11 @@ def stream_pdf():
     table_file_field = match_regex.group(2)
 
     row = db(db[table_name][table_file_field] == filename).select().first()
-
-    if not row:
-        raise HTTP(404, "404: " + T("Unavailable"))
-
     table_file_data_field = table_file_field + "_data"
-
-    file_data_bytes = row[table_file_data_field]
-
+    try:
+        file_data_bytes = row[table_file_data_field]
+    except:
+        raise HTTP(404, "404: " + T("Unavailable"))
 
     try:
         # create temp file
