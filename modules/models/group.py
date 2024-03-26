@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional as _, cast
 from pydal.objects import Row
-from pydal import DAL
+from gluon import current
 
 
 class Role(Enum):
@@ -18,7 +18,8 @@ class Group(Row):
 
 
     @staticmethod
-    def get_by_role(db: DAL, role: 'Role'):
+    def get_by_role(role: 'Role'):
+        db = current.db
         return cast(_[Group], db(db.auth_group.role == role.value).select().first())
 
 
