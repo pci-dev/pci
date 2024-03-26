@@ -1,7 +1,6 @@
 from typing import cast, List
 from models.group import Role
 from pydal.objects import Row
-from pydal import DAL
 from gluon import current
 
 
@@ -12,7 +11,8 @@ class Membership(Row):
 
     
     @staticmethod
-    def get_all(db: DAL, roles: List[Role] = []):
+    def get_all(roles: List[Role] = []):
+        db = current.db
         if len(roles) == 0:
             return cast(List[Membership], db(db.auth_membership).select())
         
@@ -25,7 +25,8 @@ class Membership(Row):
     
 
     @staticmethod
-    def get_by_user_id(db: DAL, user_id: int, roles: List[Role] = []):
+    def get_by_user_id(user_id: int, roles: List[Role] = []):
+        db = current.db
         if len(roles) == 0:
             return cast(List[Membership], db(db.auth_membership.user_id == user_id).select())
 
@@ -38,8 +39,8 @@ class Membership(Row):
     
 
     @staticmethod
-    def has_membership(db: DAL, user_id: int, roles: List[Role] = []):
-        membership = Membership.get_by_user_id(db, user_id, roles)
+    def has_membership(user_id: int, roles: List[Role] = []):
+        membership = Membership.get_by_user_id(user_id, roles)
         return len(membership) > 0
     
     @staticmethod

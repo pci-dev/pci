@@ -100,7 +100,7 @@ def impersonate_users():
         db.auth_user.email
     ]
 
-    memberships = Membership.get_all(db, [Role.ADMINISTRATOR, Role.DEVELOPER, Role.MANAGER])
+    memberships = Membership.get_all([Role.ADMINISTRATOR, Role.DEVELOPER, Role.MANAGER])
     user_id_with_role: List[int] = []
     for membership in memberships:
         user_id_with_role.append(membership.user_id)
@@ -147,7 +147,7 @@ def impersonate():
         session.flash = e
         return redirect(URL('default','index'))
 
-    if Membership.has_membership(db, user_id, [Role.ADMINISTRATOR, Role.DEVELOPER, Role.MANAGER]):
+    if Membership.has_membership(user_id, [Role.ADMINISTRATOR, Role.DEVELOPER, Role.MANAGER]):
         session.flash = "You can't impersonate this user"
         return redirect(URL('default','index'))
     
