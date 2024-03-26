@@ -1584,7 +1584,7 @@ def email_for_registered_reviewer():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     
-    recommendation = Recommendation.get_by_id(db, recommendation_id)
+    recommendation = Recommendation.get_by_id(recommendation_id)
     if not recommendation:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1753,7 +1753,7 @@ def email_for_new_reviewer():
     response.view = "default/myLayout.html"
     recommendation_id = request.vars["recommId"]
     new_stage = convert_string(request.vars["new_stage"])
-    recommendation = Recommendation.get_by_id(db, recommendation_id)
+    recommendation = Recommendation.get_by_id(recommendation_id)
 
     if not recommendation:
         session.flash = auth.not_authorized()

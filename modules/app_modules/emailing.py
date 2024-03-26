@@ -1006,7 +1006,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
         emailing_tools.getFlashMessage(session, reports)
         return
     
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         emailing_tools.getFlashMessage(session, reports)
         return
@@ -1747,7 +1747,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         emailing_tools.getFlashMessage(session, reports)
         return
 
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         emailing_tools.getFlashMessage(session, reports)
         return
@@ -2562,7 +2562,7 @@ def reviewLink(**kwargs):
 ######################################################################################################################################################################
 def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
     review = Review.get_by_id(reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
@@ -2616,7 +2616,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
 ######################################################################################################################################################################
 def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
     review = Review.get_by_id(reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
@@ -2685,7 +2685,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
@@ -2737,7 +2737,7 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
@@ -2773,7 +2773,7 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
@@ -3328,7 +3328,7 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         return
 
@@ -3403,7 +3403,7 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         return
 
@@ -3471,7 +3471,7 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         return
 

@@ -162,7 +162,7 @@ class Review(Row):
 
     @staticmethod
     def get_due_date_from_scheduled_submission_date(db: DAL, review: Review):
-        recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+        recommendation = Recommendation.get_by_id(review.recommendation_id)
         if not recommendation:
             return None
         

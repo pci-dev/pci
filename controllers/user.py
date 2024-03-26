@@ -1455,7 +1455,7 @@ def edit_review():
         session.flash = "404: " + T("Unavailable")
         redirect(URL('default','index'))
 
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
     if recomm is None:
         session.flash = "404: " + T("Unavailable")
         redirect(URL('default','index'))

@@ -617,7 +617,7 @@ def invitation_to_review():
         redirect(URL('default','index'))
         return
     
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation or not recommendation.article_id:
         session.flash = current.T('No recommendation found')
         redirect(URL('default','index'))

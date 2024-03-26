@@ -43,7 +43,8 @@ class Recommendation(Row):
 
 
     @staticmethod
-    def get_by_id(db: DAL, id: int):
+    def get_by_id(id: int):
+        db = current.db
         return cast(_[Recommendation], db.t_recommendations[id])
     
     @staticmethod
