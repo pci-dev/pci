@@ -115,12 +115,12 @@ class SocialNetwork(metaclass=ABCMeta):
 
 
     def get_posts_from_db(self, article_id: int, recommendation_id: int):
-        return Post.get_posts_from_db(self._db, self._table_name, article_id, recommendation_id)
+        return Post.get_posts_from_db(self._table_name, article_id, recommendation_id)
     
 
     def has_already_posted(self, article_id: int, recommendation_id: int):
-        return Post.has_already_posted(self._db, self._table_name, article_id, recommendation_id)
+        return Post.has_already_posted(self._table_name, article_id, recommendation_id)
     
 
     def _save_posts_in_db(self, post: Post):
-        return Post.save_posts_in_db(self._db, self._table_name, post)
+        return Post.save_posts_in_db(self._table_name, post)
