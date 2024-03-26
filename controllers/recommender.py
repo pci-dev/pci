@@ -2806,7 +2806,7 @@ def verify_co_authorship():
     if has_recommender:
         recommenders = [{"group" : "recommender", "name" : user.recommender} for user in has_recommender]
     if has_co_recommenders:
-        recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(recommender.contributor_id)} for user in has_co_recommenders]
+        recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(user.contributor_id)} for user in has_co_recommenders]
     if has_reviewers:
         recommenders += common_small_html.group_reviewers(has_reviewers)
   
