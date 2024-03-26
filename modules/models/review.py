@@ -275,3 +275,37 @@ class Review(Row):
             return
         
         return User.get_name(reviewer)
+    
+
+    @staticmethod
+    def get_reviewers_name(article_id: int) -> str:
+        db = current.db
+        reviews = Review.get_by_article_id_and_state(db, article_id, ReviewState.REVIEW_COMPLETED)
+        nb_anonymous = 0
+        names: List[str] = []
+        user_id: List[int] = []
+        for review in reviews:
+            if not review.anonymously and review.reviewer_id not in user_id:
+                reviewer_name = Review.get_reviewer_name(review)
+                if reviewer_name:
+                    names.append(reviewer_name)
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
+        
+        user_id.clear()
+
+        for review in reviews:
+            if review.anonymously and review.reviewer_id not in user_id:
+                nb_anonymous += 1
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
+        
+        if (nb_anonymous > 0):
+            anonymous = str(nb_anonymous) + ' anonymous reviewer'
+            if (nb_anonymous > 1):
+                anonymous += 's'
+            names.append(anonymous)
+            
+        formatted_names = ', '.join(names)
+
+        return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1] 

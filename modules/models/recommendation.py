@@ -3,6 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional as _, cast
 from models.press_reviews import PressReview
+from models.user import User
 from pydal.objects import Row
 from gluon import current
 
@@ -76,3 +77,27 @@ class Recommendation(Row):
                 states_values.append(recommendation_state.value)
             reco = cast(List[Recommendation], db((db.t_recommendations.recommendation_state.belongs(states_values))).select())
             return reco
+
+
+    @staticmethod
+    def get_last_pdf(recommendation_id: int) -> _[PDF]:
+        db = current.db
+        return db(db.t_pdf.recommendation_id == recommendation_id).select().last() 
+
+
+    @staticmethod
+    def get_recommenders_names(recommendation: Recommendation):
+        db = current.db
+        press_reviews = Recommendation.get_co_recommenders(db, recommendation.id)
+        names: List[str] = []
+        recommender_name = User.get_name_by_id(recommendation.recommender_id)
+        if recommender_name:
+            names.append(recommender_name)
+        for press_review in press_reviews:
+            if not press_review.contributor_id:
+                continue
+            contributor_name = User.get_name_by_id(press_review.contributor_id)
+            if contributor_name and contributor_name not in names:
+                names.append(contributor_name)
+        formatted_names = ', '.join(names)
+        return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1] 
