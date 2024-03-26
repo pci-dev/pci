@@ -3113,7 +3113,7 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId, forc
 
         else:
             if review:
-                MailQueue.get_by_review_for_recommender(db, hashtag_template, recomm_mail, review).delete()
+                MailQueue.get_by_review_for_recommender(hashtag_template, recomm_mail, review).delete()
             else:
                 db(
                     (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)
@@ -3457,7 +3457,7 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
     mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
 
     mail_vars["message"] = ''
-    conditional_recommender_acceptation_review_mail = MailQueue.get_mail_by_id(db, conditional_recommender_acceptation_review_mail_id)
+    conditional_recommender_acceptation_review_mail = MailQueue.get_mail_by_id(conditional_recommender_acceptation_review_mail_id)
     if conditional_recommender_acceptation_review_mail:
         mail_vars["message"] = MailQueue.get_mail_content(conditional_recommender_acceptation_review_mail)
     
