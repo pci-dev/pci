@@ -160,7 +160,7 @@ def impersonate():
         return redirect(URL('default','index'))
     
     if not auth.has_permission('impersonate', db.auth_user, user_id):
-        manager_group = Group.get_by_role(db, Role.MANAGER)
+        manager_group = Group.get_by_role(Role.MANAGER)
         if manager_group:
             auth.add_permission(manager_group.id, 'impersonate', db.auth_user, user_id)
         else:
