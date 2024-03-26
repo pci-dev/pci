@@ -21,7 +21,7 @@ pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request, recommendation: Recommendation):
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         return None
 

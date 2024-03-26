@@ -83,14 +83,14 @@ def do_accept_new_article_to_recommend():
         raise HTTP(403, "403: " + T("Forbidden"))
 
     article_id = int(request.vars["articleId"])
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         raise HTTP(404, "404: " + T("Article not found"))
 
     if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
         recommendation_id = db.t_recommendations.insert(article_id=article_id, recommender_id=current_user_id, doi=article.doi, recommendation_state=RecommendationState.ONGOING.value, no_conflict_of_interest=True, ms_version=article.ms_version)
         db.commit()
-        article = Article.get_by_id(db, article_id)  # reload due to trigger!
+        article = Article.get_by_id(article_id)  # reload due to trigger!
         if not article:
             raise HTTP(404, "404: " + T("Article not found"))
         article.status = ArticleStatus.UNDER_CONSIDERATION.value

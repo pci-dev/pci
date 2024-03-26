@@ -158,7 +158,7 @@ def get_managers(db):
 
 
 def get_exclude_suggested_recommender(auth: Auth, db: DAL, article_id: int) -> List[int]:
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         return []
     

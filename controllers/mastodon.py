@@ -31,7 +31,7 @@ def index() -> Union[Dict[str, Any], None]:
 def post_form():
 
     article_id = cast(int, request.vars.article_id)
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     recommendation = cast(Recommendation, db.get_last_recomm(article))
 
     if not article:

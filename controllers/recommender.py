@@ -1597,7 +1597,7 @@ def email_for_registered_reviewer():
         
     recomm_round = db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count()
     
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1765,7 +1765,7 @@ def email_for_new_reviewer():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)

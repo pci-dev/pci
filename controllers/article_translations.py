@@ -38,7 +38,7 @@ def edit_article_translations():
         session.flash = "Translated field not found"
         return redirect(URL('default','index'))
 
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         session.flash = "Article not found"
         return redirect(URL('default','index'))
@@ -72,7 +72,7 @@ def edit_article_translations():
 def edit_all_article_translations():
     article_id = int(request.vars["article_id"])
 
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         session.flash = "Article not found"
         return redirect(URL('default','index'))
@@ -106,7 +106,7 @@ def add_or_edit_article_fields_translations():
     keywords = str(request.vars["keywords"] or '')
     public = bool(request.vars["public"])
 
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         response.flash = "Article not found"
         return
@@ -144,7 +144,7 @@ def add_or_edit_article_field_translation():
     translation = str(request.vars["translation"] or '')
     public = bool(request.vars["public"])
 
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         response.flash = "Article not found"
         return
@@ -229,7 +229,7 @@ def delete_translation():
         response.flash = "Translated field not found"
         return
 
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         response.flash = "Article not found"
         return
@@ -246,7 +246,7 @@ def delete_all_translation():
     article_id = int(request.vars["article_id"])
     lang = Lang.get_lang_by_code(request.vars["lang"])
 
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         response.flash = "Article not found"
         return

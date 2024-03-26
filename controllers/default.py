@@ -623,7 +623,7 @@ def invitation_to_review():
         redirect(URL('default','index'))
         return
     
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         session.flash = current.T('No article found')
         redirect(URL('default','index'))
@@ -725,7 +725,7 @@ def invitation_to_review_acceptation():
         session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
 
         review = Review.get_by_id(db, review_id)
-        article = Article.get_by_id(db, article_id)
+        article = Article.get_by_id(article_id)
         if review and article:
             if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
                 url_vars = dict(reviewId=review_id, _next=URL(c="user_actions", f="suggestion_sent_page"))

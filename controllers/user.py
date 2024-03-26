@@ -1460,7 +1460,7 @@ def edit_review():
         session.flash = "404: " + T("Unavailable")
         redirect(URL('default','index'))
 
-    art = Article.get_by_id(db, recomm.article_id)
+    art = Article.get_by_id(recomm.article_id)
 
     survey: Optional[ReportSurvey] = None
     if pciRRactivated:
