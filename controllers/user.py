@@ -1464,7 +1464,7 @@ def edit_review():
 
     survey: Optional[ReportSurvey] = None
     if pciRRactivated:
-        survey = ReportSurvey.get_merged_report_survey(db, recomm.article_id)
+        survey = ReportSurvey.get_merged_report_survey(recomm.article_id)
 
     # Check if article have correct status
     if review.reviewer_id != auth.user_id or review.review_state != "Awaiting review" or art.status != "Under consideration":

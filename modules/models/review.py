@@ -173,7 +173,7 @@ class Review(Row):
         if not is_scheduled_submission(article):
             return None
         
-        report_survey = ReportSurvey.get_by_article(db, article.id)
+        report_survey = ReportSurvey.get_by_article(article.id)
 
         if report_survey and report_survey.q10:
             review_start_date = report_survey.q10 + timedelta(days=7)

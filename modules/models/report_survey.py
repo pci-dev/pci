@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional as _, cast
 from models.article import Article
 from pydal.objects import Row
-from pydal import DAL
+from gluon import current
 
 class ReportSurvey(Row):
     id: int
@@ -55,17 +55,19 @@ class ReportSurvey(Row):
 
 
     @staticmethod
-    def get_by_article(db: DAL, article_id: int):
+    def get_by_article(article_id: int):
+        db = current.db
         return cast(_[ReportSurvey], db(db.t_report_survey.article_id == article_id).select().last())
     
 
     @staticmethod
-    def get_merged_report_survey(db: DAL, article: Article):
+    def get_merged_report_survey(article: Article):
+        db = current.db
         if not article.art_stage_1_id:
-            return ReportSurvey.get_by_article(db, article.id)
+            return ReportSurvey.get_by_article(article.id)
         
-        report_survey_stage_1 = ReportSurvey.get_by_article(db, article.art_stage_1_id)
-        report_survey_stage_2 = ReportSurvey.get_by_article(db, article.id)
+        report_survey_stage_1 = ReportSurvey.get_by_article(article.art_stage_1_id)
+        report_survey_stage_2 = ReportSurvey.get_by_article(article.id)
 
         for attr in vars(report_survey_stage_2):
             value_attr_report_survey_stage_1 = getattr(report_survey_stage_1, attr)
