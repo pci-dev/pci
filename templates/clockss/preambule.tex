@@ -1,0 +1,162 @@
+%%%%%%%%%%TO FORMAT A PREPRINT%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[margin=1in]{geometry}
+
+\usepackage{marginnote}
+\usepackage{setspace}
+\usepackage{ifthen}
+\usepackage{pdflscape}
+\reversemarginpar  % sets margin notes to the left
+\usepackage{lipsum} % Required to insert dummy text
+\usepackage{calc}
+\usepackage{siunitx}
+\usepackage{lineno}
+\usepackage{titlesec}
+\usepackage{indentfirst}
+\usepackage{amsmath}
+\usepackage{amssymb}
+%\usepackage[none]{hyphenat} % use only if there is a problem
+% Use Unicode characters
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+% Clean citations with biblatex
+%\usepackage[
+%backend=biber,
+%natbib=true,
+%sortcites=true,
+%defernumbers=true,
+%style=authoryear,
+%citestyle=authoryear-comp,
+%maxnames=99,
+%maxcitenames=2,
+%uniquename=init,
+%giveninits=true,
+%terseinits=true,
+%url=false
+%]{biblatex}
+%\DeclareNameAlias{default}{family-given}
+%\renewcommand*{\revsdnamepunct}{} % no comma between family and given names
+%\renewbibmacro{in:}{%
+%  \ifentrytype{article}{}{\printtext{\bibstring{in}\intitlepunct}}} % remove 'In:' before journal name
+%\DeclareFieldFormat[article]{pages}{#1} % remove pp.
+%\AtEveryBibitem{\ifentrytype{article}{\clearfield{number}}{}} % don't print issue numbers
+%\DeclareFieldFormat[article, inbook, incollection, inproceedings, misc, thesis, unpublished]{title}{#1} % title without quotes
+%\usepackage{csquotes}
+%\RequirePackage[english]{babel} % must be called after biblatex
+%\addbibresource{sample.bib}
+%\DeclareBibliographyCategory{ignore}
+%\addtocategory{ignore}{recommendation} % adding recommendation to 'ignore' category so that it does not appear in the References
+% Clickable references. Use \url{www.example.com} or \href{www.example.com}{description} to add a clicky url
+%\usepackage{nameref}
+%\urlstyle{same}
+
+
+%\DeclareFieldFormat{doi}{\url{https://doi.org/#1}}
+
+% Include figures
+\usepackage{graphbox}  % loads graphicx ppackage with extended options for vertical alignment of figures
+% Line numbers
+%\usepackage[right]{lineno}
+% Improve typesetting in LaTex
+\usepackage{microtype}
+\DisableLigatures[f]{encoding = *, family = * }
+% Text layout and font (Open Sans)
+\setlength{\parindent}{0.4cm}
+\linespread{1.2}
+\RequirePackage[default,scale=0.90]{opensans}
+% Defining document colors
+\usepackage{xcolor}
+\definecolor{darkgray}{HTML}{808080}
+\definecolor{mediumgray}{HTML}{6D6E70}
+\definecolor{ligthgray}{HTML}{d9d9d9}
+\definecolor{pciblue}{HTML}{74adca}
+\definecolor{opengreen}{HTML}{77933c}
+% Use adjustwidth environment to exceed text width
+\usepackage{changepage}
+% Adjust caption style
+\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,singlelinecheck=off]{caption}
+\usepackage[pdfborder={0 0 0},   
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue]{hyperref}  % sets link border to white
+
+
+% Headers and footers
+
+% Headers and footers
+\usepackage{fancyhdr}  % custom headers/footers
+\pagestyle{fancy}  % enables customization of headers/footers
+\fancyhfoffset[L]{0.5cm}  % offsets header and footer to the left to include margin
+%\ifnum\thepage=1 \setlength{\headheight}{120pt}\else\fi
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+% full logo on first page, then no logo on subsequent pages 
+\lhead{\ifnum\thepage=1 \includegraphics[width=13.5cm]{\logoname}\else \fi}  
+\chead{}
+\rhead{}
+\cfoot{\thepage}
+\rfoot{}
+% End Headers and footers
+
+% DOI's
+\newcommand{\DOIlink}{\href{https://doi.org/\DOI}{https://doi.org/\DOI}}
+\newcommand{\DOIrecommendationlink}{\href{https://doi.org/\DOIrecommendation}{https://doi.org/\DOIrecommendation}}
+
+
+
+%which logo to display
+\ifthenelse{\equal{\PCI}{Peer Community In Zoology}}{\newcommand{\logoname}{logo_PDF_zool.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Ecology}}{\newcommand{\logoname}{logo_PDF_ecology.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Evolutionary Biology}}{\newcommand{\logoname}{logo_PDF_evolbiol.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Animal Science}}{\newcommand{\logoname}{logo_PDF_animsci.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Archaeology}}{\newcommand{\logoname}{logo_PDF_archaeo.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Forest and Wood Sciences}}{\newcommand{\logoname}{logo_PDF_fws.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Genomics}}{\newcommand{\logoname}{logo_PDF_genomics.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Mathematical and Computational Biology}}{\newcommand{\logoname}{logo_PDF_mcb.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Network Science}}{\newcommand{\logoname}{logo_PDF_networksci.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Paleontology}}{\newcommand{\logoname}{logo_PDF_paleo.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Neuroscience}}{\newcommand{\logoname}{logo_PDF_neuro.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Ecotoxicology and Environmental Chemistry}}{\newcommand{\logoname}{logo_PDF_ecotoxenvchem.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Infections}}{\newcommand{\logoname}{logo_PDF_infections.jpg}}{}
+\ifthenelse{\equal{\PCI}{Peer Community In Registered Reports}}{\newcommand{\logoname}{logo_PDF_rr.jpg}}{}
+
+\newcommand{\beginingpreprint}{
+
+\vspace*{0.5cm}
+\begin{flushleft}
+\baselineskip=100pt
+
+{\Huge
+\fontseries{sb}\selectfont{\preprinttitle}}
+\end{flushleft}
+\vspace*{0.25cm}
+\begin{flushleft}
+\Large
+A recommendation by {\color{pciblue}{\recommender}} based on the peer reviews by {\reviewers} of the article:
+\fcolorbox{lightgray}{lightgray}{
+\parbox{\textwidth - 2\fboxsep}{
+\centering\large{\selectfont{\citeaspreprint}}\\
+}}
+\vspace*{0.5cm}
+
+\small{\textbf{Cite the recommendation as:}}\\
+\small{\citeas}
+\vspace*{0.5cm}
+
+\textbf{\large{\textsc{Recommendation text}}}
+\end{flushleft}
+
+\recomtext\\
+
+\textbf{\emph{References: }}
+\begin{flushleft}
+\references
+\end{flushleft}
+
+}
+
+
+
