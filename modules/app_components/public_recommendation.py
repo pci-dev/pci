@@ -3,8 +3,8 @@
 import gc
 import os
 from typing import List
-from app_modules.lang import Lang
 from models.article import Article
+from models.recommendation import Recommendation
 import pytz, datetime
 from re import sub, match
 from copy import deepcopy
@@ -74,8 +74,6 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             urlArticle = URL(c="articles", f="rec", vars=dict(id=art_st_2.id))
             stage2List.append(common_small_html.mkRepresentArticleLightLinked(auth, db, art_st_2.id, urlArticle))
 
-    citeNum = ""
-    citeRef = None
     if finalRecomm.recommendation_doi:
         recomm_altmetric = XML(
             """
@@ -84,38 +82,8 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
             % sub(r"doi: *", "", finalRecomm.recommendation_doi)
         )
 
-        citeNumSearch = re.search("([0-9]+$)", finalRecomm.recommendation_doi, re.IGNORECASE)
-        if citeNumSearch:
-            citeNum = citeNumSearch.group(1)
-        citeRef = common_small_html.mkDOI(finalRecomm.recommendation_doi)
 
-    if citeRef:
-        citeUrl = citeRef
-    else:
-        citeUrl = URL(c="articles", f="rec", vars=dict(id=art.id), host=host, scheme=scheme, port=port)
-        citeRef = A(citeUrl, _href=citeUrl)
-
-    recommAuthors = common_small_html.getRecommAndReviewAuthors(
-                        auth, db, article=art,
-                        with_reviewers=False, linked=False,
-                        host=host, port=port, scheme=scheme,
-                        recomm=finalRecomm, this_recomm_only=True,
-                        citation=True)
-    cite = DIV(
-        SPAN(
-            B("Cite this recommendation as:", _class="pci2-main-color-text"),
-            BR(),
-            SPAN(recommAuthors),
-            " ",
-            finalRecomm.last_change.strftime("(%Y)"),
-            " ",
-            md_to_html(finalRecomm.recommendation_title),
-            ". ",
-            I(myconf.take("app.description") + ", " + (citeNum or "") + ". "),
-            citeRef,
-        ),
-        _class="pci-citation",
-    )
+    cite = common_small_html.build_citation(art, finalRecomm)
 
     info = DIV(
         SPAN(
@@ -199,7 +167,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
     )
 
     # Get METADATA (see next function)
-    recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfUrl, citeNum, scheme, host, port)
+    recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfUrl, Recommendation.get_doi_id(finalRecomm), scheme, host, port)
     dublin_core = _dublinc_core_meta_tag(art)
 
     headerHtml = XML(response.render("components/last_recommendation.html", headerContent))

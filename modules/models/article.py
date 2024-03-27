@@ -87,7 +87,7 @@ class Article(Row):
     record_id_version: _[str]
     has_manager_in_authors: _[bool]
     results_based_on_data: _[str]
-    data_doi: _[str]
+    data_doi: _[List[str]]
     scripts_used_for_result: _[str]
     scripts_doi: _[str]
     codes_used_in_study: _[str]
