@@ -187,6 +187,7 @@ for_search = article_infocard_for_search_screens().__dict__
 ######################################################################################################################################################################
 def getArticleInfosCard(auth, db, response, article: Article, printable,
         with_cover_letter=True,
+        with_version=True,
         submittedBy=True,
         abstract=True,
         keywords=False,
@@ -257,7 +258,7 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
     articleContent = dict()
     articleContent.update(
         [
-            ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if article.ms_version else ""),
+            ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if with_version and article.ms_version else ""),
             ("articleSource", I(make_article_source(article) if isRecommended else "")),
             ("articleId", article.id),
             ("articleImg", article_img),
