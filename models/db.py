@@ -614,6 +614,9 @@ db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
 db.t_articles._after_update.append(lambda s, f: setPublishedDoi(s, f))
 
 def setPublishedDoi(s, f):
+    if current.session.disable_trigger_setPublishedDoi:
+        return
+    
     if "status" in f:
         o = s.select().first()
         if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):

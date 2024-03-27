@@ -21,7 +21,7 @@ def missing_default_lang(article: Article, field: TranslatedFieldType):
     return False
 
 
-if __name__ == "__main__":
+def main():
     articles_to_translate = Article.get_by_status([
         ArticleStatus.RECOMMENDED,
         ArticleStatus.AWAITING_CONSIDERATION,
@@ -50,3 +50,9 @@ if __name__ == "__main__":
         print('-> Added!')
         sleep(1)
         i += 1
+
+
+if __name__ == "__main__":
+    current.session.disable_trigger_setPublishedDoi = True
+    main()
+    current.session.disable_trigger_setPublishedDoi = None
