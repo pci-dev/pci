@@ -155,12 +155,12 @@ class HtmlToLatex:
         tree: ... = lxml.html.parse(StringIO(html), parser=html_parser) # type: ignore
         root = tree.getroot() 
         selectors = self._get_selectors(root, self._selectors)
-        out = self._element2latex(root, {}, selectors)
+        out = self._element_to_latex(root, {}, selectors)
         out = re.sub(r"^\s+|\s+$", "", out, flags=re.UNICODE)
         return out
 
 
-    def _element2latex(self, el: ..., cascading_style: Dict[str, Any] = {}, selectors: Dict[str, Any] = {}):
+    def _element_to_latex(self, el: ..., cascading_style: Dict[str, Any] = {}, selectors: Dict[str, Any] = {}):
         result: list[str] = []
         heads: list[Any] = []
         tails: list[Any] = []
@@ -226,7 +226,7 @@ class HtmlToLatex:
                     text = re.sub(r[0], r[1], text)
                 result.append(text)
             for child in el:
-                result.append(self._element2latex(child, cascading_style, selectors))
+                result.append(self._element_to_latex(child, cascading_style, selectors))
                 if child.tail:
                     text = self._modify_characters(child, child.tail)
                     r = self.replacements_tail.get(el, None)
@@ -246,7 +246,9 @@ class HtmlToLatex:
             string = re.sub('[ ]+', ' ', string)
 
         if 'math-tex' not in el.attrib.get('class', ''):
-            string = self._convertLaTeXSpecialChars(string)
+            string = self._convert_LaTeX_special_chars(string)
+        else:
+            string = self._fix_math_annotation(string)
         
         s = list(string)
         for i, char in enumerate(s):
@@ -264,7 +266,7 @@ class HtmlToLatex:
         return string
     
 
-    def _convertLaTeXSpecialChars(self, string: str):
+    def _convert_LaTeX_special_chars(self, string: str):
         string = string \
             .replace("&#", "&@-HASH-") \
             .replace("{", "\\{").replace("}", "\\}") \
@@ -273,6 +275,13 @@ class HtmlToLatex:
             .replace("%", "\\%").replace("~", "\\textasciitilde{}") \
             .replace("_", "\\_").replace("^", "\\textasciicircum{}") \
             .replace("@-HASH-", "#").replace("&", "\\&")
+        return string
+
+
+    def _fix_math_annotation(self, string: str):
+        string = re.sub(r"\\\(\s*\\begin{equation}", r"\\begin{equation}", string)
+        string = re.sub(r"\\end\{equation\}\s*\\\)", r"\\end{equation}", string)
+        string = re.sub(r"\\\(|\\\)", "$", string)
         return string
 
 
