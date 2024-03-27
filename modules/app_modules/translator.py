@@ -48,6 +48,10 @@ class Translator:
             try:
                 engine = self._translators[i]
                 data_translated = engine.translate(text)
+
+                if is_html(text) and not is_html(data_translated):
+                    raw_text = is_html(text).flatten()
+                    data_translated = engine.translate(raw_text)
             except Exception as e:
                 print(e)
                 continue
@@ -93,3 +97,11 @@ class Translator:
                     break
         
         return supported_langs
+
+
+def is_html(text: str):
+    from gluon import TAG
+    try:
+        return TAG(text)
+    except:
+        return None
