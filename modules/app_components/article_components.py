@@ -258,7 +258,8 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
     articleContent = dict()
     articleContent.update(
         [
-            ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if with_version and article.ms_version else ""),
+            ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version)
+                if with_version and article.ms_version else ""),
             ("articleSource", I(make_article_source(article) if isRecommended else "")),
             ("articleId", article.id),
             ("articleImg", article_img),
