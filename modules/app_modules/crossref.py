@@ -1,12 +1,14 @@
+from models.recommendation import Recommendation
 import requests
 import re
 from time import sleep
 
+from pydal import DAL
 from gluon.html import TAG
 from app_modules.common_small_html import md_to_html
 
 
-def init_conf(db):
+def init_conf(db: DAL):
 
  class pci:
     host = db.cfg.host
@@ -124,7 +126,7 @@ def get_recommendation_doi(recomm):
     return ref or f"{pci.doi}.1"+str(recomm.article_id).zfill(5)
 
 
-def crossref_xml(recomm):
+def crossref_xml(recomm: Recommendation):
     article = db.t_articles[recomm.article_id]
 
     recomm_url = f"{pci.url}/articles/rec?id={article.id}"
