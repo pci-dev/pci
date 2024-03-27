@@ -1,6 +1,7 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime
 from enum import Enum
+import re
 from typing import List, Optional as _, cast
 from models.pdf import PDF
 from models.press_reviews import PressReview
@@ -101,3 +102,10 @@ class Recommendation(Row):
                 names.append(contributor_name)
         formatted_names = ', '.join(names)
         return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1] 
+
+
+    @staticmethod
+    def get_doi_id(recommendation: Recommendation):
+        regex = re.search("([0-9]+$)", recommendation.recommendation_doi or "", re.IGNORECASE)
+        if regex:
+            return regex.group(1)

@@ -38,6 +38,10 @@ from gluon import current
 
 myconf = AppConfig(reload=True)
 
+scheme = myconf.take("alerts.scheme")
+host = myconf.take("alerts.host")
+port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
@@ -880,6 +884,46 @@ def getRecommAndReviewAuthors(auth: Auth,
                     whoDidIt.append(current.T("%d anonymous reviewer") % (na))
 
     return whoDidIt
+
+#########################
+
+def build_citation(article: Article, final_recommendation: Recommendation, with_header: bool = True):
+    auth = current.auth
+    db = current.db
+
+    recommendation_authors = getRecommAndReviewAuthors(
+                        auth, db, article=article,
+                        with_reviewers=False, linked=False,
+                        host=host, port=port, scheme=scheme,
+                        recomm=final_recommendation, this_recomm_only=True,
+                        citation=True)
+    
+    if final_recommendation.recommendation_doi:
+        cite_ref = mkDOI(final_recommendation.recommendation_doi)
+
+    if cite_ref:
+        cite_url = cite_ref
+    else:
+        cite_url = URL(c="articles", f="rec", vars=dict(id=article.id), host=host, scheme=scheme, port=port)
+        cite_ref = A(cite_url, _href=cite_url)
+
+    cite = DIV(
+        SPAN(
+            B("Cite this recommendation as:", _class="pci2-main-color-text") if with_header else "",
+            BR() if with_header else "",
+            SPAN(recommendation_authors),
+            " ",
+            final_recommendation.last_change.strftime("(%Y)"),
+            " ",
+            md_to_html(final_recommendation.recommendation_title),
+            ". ",
+            I(myconf.take("app.description") + ", " + (Recommendation.get_doi_id(final_recommendation) or "") + ". "),
+            cite_ref,
+        ),
+        _class="pci-citation",
+    )
+
+    return cite
 
 
 ######################################################################################################################################################################
