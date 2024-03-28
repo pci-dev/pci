@@ -1,0 +1,8 @@
+#!/bin/sh
+
+cd $(dirname "$0")/..
+pci=$(basename `pwd`)
+cd $(realpath .)/../..
+python web2py.py --no-banner \
+	-M -S $pci \
+	-R applications/$pci/utils/translate_all_articles.py
