@@ -44,11 +44,16 @@ def main():
 
     i = 1
     for article in articles_to_translate:
-        print(f"{i}/{nb_articles_to_translate} Traduction for article ID {article.id}: {article.title}", end="")
-        ArticleTranslator.run_article_translation_for_default_langs(article, public=True)
-        current.db.commit()
-        print('-> Added!')
-        sleep(1)
+        print(f"{i}/{nb_articles_to_translate} Translations for article ID {article.id}: {article.title}",
+                end="", flush=True)
+        try:
+            ArticleTranslator.run_article_translation_for_default_langs(article, public=True)
+            current.db.commit()
+            print('-> Added!', flush=True)
+            sleep(1)
+        except:
+            print(f'-> Error: {i}/{nb_articles_to_translate} article ID {article.id}', flush=True)
+
         i += 1
 
 
