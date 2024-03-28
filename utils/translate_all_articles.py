@@ -44,7 +44,8 @@ def main():
 
     i = 1
     for article in articles_to_translate:
-        print(f"{i}/{nb_articles_to_translate} Traduction for article ID {article.id}: {article.title}", end="")
+        print(f"{i}/{nb_articles_to_translate} Translations for article ID {article.id}: {article.title}",
+                end="", flush=True)
         ArticleTranslator.run_article_translation_for_default_langs(article, public=True)
         current.db.commit()
         print('-> Added!')
