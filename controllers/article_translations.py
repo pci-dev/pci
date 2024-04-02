@@ -1,5 +1,6 @@
 from enum import Enum
 import html
+import re
 from typing import List, Optional, cast
 from gluon import current
 from gluon.contrib.appconfig import AppConfig
@@ -193,7 +194,8 @@ def _add_or_edit_field_translation(article: Article, translated_field: Translate
         if exists_translation:
             old_content = html.unescape(existing_translation["content"])
             new_content = html.unescape(translation)
-            automated = AddNewLanguageAction.CHECK != action and old_content == new_content
+            
+            automated = AddNewLanguageAction.CHECK != action and _is_same_content(old_content, new_content)
         else:
             automated = False
         
@@ -217,6 +219,17 @@ def _add_or_edit_field_translation(article: Article, translated_field: Translate
         response.flash = f"Translation in {lang.value.english_name} added"
 
     return translation_value
+
+
+def _is_same_content(old_content: str, new_content: str):
+    old_content = old_content.replace(r'\r', '')
+    new_content = new_content.replace(r'\r', '')
+
+    new_content = re.sub(r'^<p>|<\/p>$', '', new_content)
+    old_content = re.sub(r'^<p>|<\/p>$', '', old_content)
+
+    return old_content == new_content
+
 
 
 @auth.requires_login()
