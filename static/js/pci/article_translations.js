@@ -386,11 +386,13 @@ function isSameContent(intialValue, newValue) {
         return intialValue === newValue
     }
 
-    let oldContent = intialValue?.replace('\\r', '');
-    let newContent = newValue?.replace('\\r', '');
+    let oldContent = intialValue?.replace('\r', '')
+    ?.replace('&nbsp;', '')
+    ?.replace(/(<([^>]+)>)/g, '');
 
-    oldContent = oldContent.replace(/^<p>|<\/p>$/ig, '');
-    newContent = newContent.replace(/^<p>|<\/p>$/ig, '');
+    let newContent = newValue?.replace('\r', '')
+    ?.replace('&nbsp;', '')
+    ?.replace(/(<([^>]+)>)/g, '');
 
     return oldContent === newContent;
 }
