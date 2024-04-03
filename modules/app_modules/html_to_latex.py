@@ -8,7 +8,7 @@ import cssutils
 import re
 
 
-hyperlinks: Optional[str] = None
+hyperlinks: Optional[str] = 'hyperref'
 replacements_head: Dict[str, Any] = {}
 replacements_tail: Dict[str, Any] = {}
 
