@@ -17,6 +17,10 @@ span.sub-text {
   transition: 0.3s;
 }
 
+.pci2-main-color {
+  color: #3eaede !important;
+}
+
 .pci2-hover-main-color .glyphicon {
   color: #3eaede !important;
 }

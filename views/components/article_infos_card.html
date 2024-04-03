@@ -199,7 +199,7 @@
 
 {{if 'articleAbstract' in locals() or 'articleKeywords' in locals():}}
     {{if 'translations' in locals() and len(translations) > 0:}}
-      <h3>Abstract</h3>
+      <h3 class="pci2-main-color" style="margin: 10px 0 5px 0">Abstract</h3>
       <div id="icon-translations">
       {{for lang, translation in translations.items():}}
           <div

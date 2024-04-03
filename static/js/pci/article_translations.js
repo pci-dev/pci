@@ -360,22 +360,41 @@ function isModifiedInput(inputId) {
     const el = document.getElementById(inputId);
 
     const lang = getLangFromFieldId(inputId);
-    let intial_value = el.getAttribute('initial');
+    let intialValue = el.getAttribute('initial');
     const editButton = document.querySelector(`#translation-${lang} .lang-form-save-all-button`);
     const isTextarea = el.tagName === 'TEXTAREA';
     const isCheckbox = el.type === 'checkbox';
+    let newValue;
 
     if (isTextarea) {
-        new_value = tinymce.get(inputId)?.getContent();
+        newValue = tinymce.get(inputId)?.getContent();
     }
     else if (isCheckbox) {
-        intial_value = el?.hasAttribute('checked');
-        new_value = el?.checked;
+        intialValue = el?.hasAttribute('checked');
+        newValue = el?.checked;
     } else {
-        new_value = el.value;
+        newValue = el.value;
     }
 
-    return intial_value !== new_value;
+    return !isSameContent(intialValue, newValue)
+}
+
+
+function isSameContent(intialValue, newValue) {
+
+    if (typeof intialValue !== 'string' || typeof newValue !== 'string') {
+        return intialValue === newValue
+    }
+
+    let oldContent = intialValue?.replace('\r', '')
+    ?.replace('&nbsp;', '')
+    ?.replace(/(<([^>]+)>)/g, '');
+
+    let newContent = newValue?.replace('\r', '')
+    ?.replace('&nbsp;', '')
+    ?.replace(/(<([^>]+)>)/g, '');
+
+    return oldContent === newContent;
 }
 
 
