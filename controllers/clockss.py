@@ -22,7 +22,7 @@ def post_form():
     if not article_id:
         return error("article_id: no such parameter")
     
-    article = Article.get_by_id(db, article_id)
+    article = Article.get_by_id(article_id)
     if not article:
         return error("article: no such article")
     
