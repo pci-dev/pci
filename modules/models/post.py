@@ -1,9 +1,9 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from typing import List, Optional as _, cast
-from pydal import DAL
 from pydal.objects import Row
 from enum import Enum
 from pydal.objects import Table
+from gluon import current
 
 
 class PostTable(Enum):
@@ -31,18 +31,20 @@ class Post(Row):
 
 
     @staticmethod
-    def get_posts_from_db(db: DAL, table_name: PostTable, article_id: int, recommendation_id: int):
+    def get_posts_from_db(table_name: PostTable, article_id: int, recommendation_id: int):
+        db = current.db
         table = cast(Post, db[table_name.value])
         return cast(List[Post], db((table.article_id == article_id) & (table.recommendation_id == recommendation_id)).select(orderby=table.thread_position, distinct=table.thread_position))
 
 
     @staticmethod
-    def has_already_posted(db: DAL, table_name: PostTable, article_id: int, recommendation_id: int) -> bool:
-        return len(Post.get_posts_from_db(db, table_name, article_id, recommendation_id)) > 0
+    def has_already_posted(table_name: PostTable, article_id: int, recommendation_id: int) -> bool:
+        return len(Post.get_posts_from_db(table_name, article_id, recommendation_id)) > 0
 
 
     @staticmethod
-    def save_posts_in_db(db: DAL, table_name: PostTable, post: Post) -> int:
+    def save_posts_in_db(table_name: PostTable, post: Post) -> int:
+        db = current.db
         table = cast(Table, db[table_name.value])
         id = cast(int, table.insert(post_id=post.post_id, # À changer
                         text_content=post.text_content,

@@ -1001,17 +1001,17 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     if not review:
         emailing_tools.getFlashMessage(session, reports)
         return
     
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         emailing_tools.getFlashMessage(session, reports)
         return
     
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         emailing_tools.getFlashMessage(session, reports)
         return
@@ -1742,17 +1742,17 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
 
     reports = []
 
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     if not review:
         emailing_tools.getFlashMessage(session, reports)
         return
 
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         emailing_tools.getFlashMessage(session, reports)
         return
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         emailing_tools.getFlashMessage(session, reports)
         return
@@ -2561,9 +2561,9 @@ def reviewLink(**kwargs):
 
 ######################################################################################################################################################################
 def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
-    review = Review.get_by_id(db, reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    review = Review.get_by_id(reviewId)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -2615,9 +2615,9 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
 
 ######################################################################################################################################################################
 def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
-    review = Review.get_by_id(db, reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    review = Review.get_by_id(reviewId)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -2684,9 +2684,9 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    review = Review.get_by_id(db, reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    review = Review.get_by_id(reviewId)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -2736,9 +2736,9 @@ def getScheduledReviewDueDate(article):
 def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    review = Review.get_by_id(db, reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    review = Review.get_by_id(reviewId)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -2772,9 +2772,9 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    review = Review.get_by_id(db, reviewId)
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
-    article = Article.get_by_id(db, recomm.article_id)
+    review = Review.get_by_id(reviewId)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
+    article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
     if review and recomm and article and reviewer:
@@ -3113,7 +3113,7 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId, forc
 
         else:
             if review:
-                MailQueue.get_by_review_for_recommender(db, hashtag_template, recomm_mail, review).delete()
+                MailQueue.get_by_review_for_recommender(hashtag_template, recomm_mail, review).delete()
             else:
                 db(
                     (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)
@@ -3328,11 +3328,11 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         return
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
     
@@ -3403,11 +3403,11 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         return
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
     
@@ -3457,7 +3457,7 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
     mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
 
     mail_vars["message"] = ''
-    conditional_recommender_acceptation_review_mail = MailQueue.get_mail_by_id(db, conditional_recommender_acceptation_review_mail_id)
+    conditional_recommender_acceptation_review_mail = MailQueue.get_mail_by_id(conditional_recommender_acceptation_review_mail_id)
     if conditional_recommender_acceptation_review_mail:
         mail_vars["message"] = MailQueue.get_mail_content(conditional_recommender_acceptation_review_mail)
     
@@ -3471,11 +3471,11 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         return
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
     

@@ -611,19 +611,19 @@ def invitation_to_review():
         return
     
     reviewId = int(request.vars['reviewId'])
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     if not review or not review.recommendation_id:
         session.flash = current.T('No review found')
         redirect(URL('default','index'))
         return
     
-    recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation or not recommendation.article_id:
         session.flash = current.T('No recommendation found')
         redirect(URL('default','index'))
         return
     
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         session.flash = current.T('No article found')
         redirect(URL('default','index'))
@@ -724,8 +724,8 @@ def invitation_to_review_acceptation():
         url_vars = dict(reviewId=review_id, _next=URL(c="user", f="recommendations", vars=dict(articleId=article_id)))
         session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
 
-        review = Review.get_by_id(db, review_id)
-        article = Article.get_by_id(db, article_id)
+        review = Review.get_by_id(review_id)
+        article = Article.get_by_id(article_id)
         if review and article:
             if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
                 url_vars = dict(reviewId=review_id, _next=URL(c="user_actions", f="suggestion_sent_page"))

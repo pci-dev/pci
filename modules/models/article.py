@@ -5,7 +5,6 @@ from typing import Any, List, Optional as _, cast, TypedDict
 from gluon.tools import Auth
 from models.group import Role
 from pydal.objects import Row
-from pydal import DAL
 from gluon.contrib.appconfig import AppConfig
 from gluon import current
 
@@ -109,7 +108,8 @@ class Article(Row):
 
 
     @staticmethod
-    def get_by_id(db: DAL, id: int):
+    def get_by_id(id: int):
+        db = current.db
         return cast(_[Article], db.t_articles[id])
     
 

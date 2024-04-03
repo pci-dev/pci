@@ -163,7 +163,7 @@ def recommendations():
         recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(auth, db, response, art, printable)
         myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
 
-        reviews = Review.get_all_active_reviews(db, db.get_last_recomm(art.id), auth.user_id)
+        reviews = Review.get_all_active_reviews(db.get_last_recomm(art.id), auth.user_id)
         for review in reviews:
             if review.review_state == ReviewState.AWAITING_REVIEW.value:
                 response.flash = common_small_html.write_edit_upload_review_button(review.id)
@@ -1450,21 +1450,21 @@ def edit_review():
         redirect(URL('default','index'))
     reviewId = int(request.vars["reviewId"])
 
-    review = Review.get_by_id(db, reviewId)
+    review = Review.get_by_id(reviewId)
     if review is None:
         session.flash = "404: " + T("Unavailable")
         redirect(URL('default','index'))
 
-    recomm = Recommendation.get_by_id(db, review.recommendation_id)
+    recomm = Recommendation.get_by_id(review.recommendation_id)
     if recomm is None:
         session.flash = "404: " + T("Unavailable")
         redirect(URL('default','index'))
 
-    art = Article.get_by_id(db, recomm.article_id)
+    art = Article.get_by_id(recomm.article_id)
 
     survey: Optional[ReportSurvey] = None
     if pciRRactivated:
-        survey = ReportSurvey.get_merged_report_survey(db, recomm.article_id)
+        survey = ReportSurvey.get_merged_report_survey(recomm.article_id)
 
     # Check if article have correct status
     if review.reviewer_id != auth.user_id or review.review_state != "Awaiting review" or art.status != "Under consideration":

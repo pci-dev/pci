@@ -1094,7 +1094,7 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
                         )
                 
                 if new_round or new_stage:
-                    current_reviewers = Review.get_by_recommendation_id(db, recommendation.id)
+                    current_reviewers = Review.get_by_recommendation_id(recommendation.id)
                     for current_reviewer in current_reviewers:
                         current_reviewers_ids.append(current_reviewer.reviewer_id)
                     html = LI(
@@ -1250,7 +1250,7 @@ def reviewers():
                     reviewer_box.append(H5(B(action_text)))
                     suggested_reviewers_by_reviewers.append(reviewer_box)
         
-        reviewersListSel = Review.get_by_recommendation_id(db, recommId, db.t_reviews.id)
+        reviewersListSel = Review.get_by_recommendation_id(recommId, db.t_reviews.id)
         selfFlag = False
         selfFlagCancelled = False
         reviewersList, reviewersIds = _edit_reviewers(reviewersListSel, recomm)
@@ -1584,7 +1584,7 @@ def email_for_registered_reviewer():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     
-    recommendation = Recommendation.get_by_id(db, recommendation_id)
+    recommendation = Recommendation.get_by_id(recommendation_id)
     if not recommendation:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1597,7 +1597,7 @@ def email_for_registered_reviewer():
         
     recomm_round = db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count()
     
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1753,7 +1753,7 @@ def email_for_new_reviewer():
     response.view = "default/myLayout.html"
     recommendation_id = request.vars["recommId"]
     new_stage = convert_string(request.vars["new_stage"])
-    recommendation = Recommendation.get_by_id(db, recommendation_id)
+    recommendation = Recommendation.get_by_id(recommendation_id)
 
     if not recommendation:
         session.flash = auth.not_authorized()
@@ -1765,7 +1765,7 @@ def email_for_new_reviewer():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    article = Article.get_by_id(db, recommendation.article_id)
+    article = Article.get_by_id(recommendation.article_id)
     if not article:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)

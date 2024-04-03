@@ -8,7 +8,6 @@ from models.recommendation import Recommendation
 from models.report_survey import ReportSurvey
 from models.user import User
 from pydal.objects import Row, Rows
-from pydal import DAL
 from gluon import current
 
 class ReviewDuration(Enum):
@@ -57,12 +56,14 @@ class Review(Row):
 
 
     @staticmethod
-    def get_by_id(db: DAL, id: int):
+    def get_by_id(id: int):
+        db = current.db
         return cast(_[Review], db.t_reviews[id])
 
 
     @staticmethod
-    def get_by_recommendation_id(db: DAL, id: int, order_by: _[Any] = None):
+    def get_by_recommendation_id(id: int, order_by: _[Any] = None):
+        db = current.db
         if order_by:
             return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select(orderby=order_by))
         else:
@@ -70,14 +71,16 @@ class Review(Row):
     
 
     @staticmethod
-    def get_by_article_id_and_state(db: DAL, article_id: int, state: ReviewState):
+    def get_by_article_id_and_state(article_id: int, state: ReviewState):
+        db = current.db
         recommendations_id = cast(Rows, db(db.t_recommendations.article_id == article_id).select(db.t_recommendations.id))
         reviews = cast(List[Review],db((db.t_reviews.review_state == state.value) & (db.t_reviews.recommendation_id).belongs(recommendations_id)).select())
         return reviews
     
     
     @staticmethod
-    def get_all_active_reviews(db: DAL, recommendation_id: int, user_id: int):
+    def get_all_active_reviews(recommendation_id: int, user_id: int):
+        db = current.db
         reviews = db((db.t_reviews.recommendation_id == recommendation_id) & (db.t_reviews.reviewer_id == user_id) & (db.t_reviews.review_state != ReviewState.DECLINED_MANUALLY.value) & (db.t_reviews.review_state != ReviewState.DECLINED.value) & (db.t_reviews.review_state != ReviewState.CANCELLED.value)).select(
             orderby=db.t_reviews.id
         )
@@ -118,12 +121,14 @@ class Review(Row):
 
 
     @staticmethod
-    def get_unfinished_reviews(db: DAL, recommendation: Recommendation):
+    def get_unfinished_reviews(recommendation: Recommendation):
+        db = current.db
         return cast(int, db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs(ReviewState.AWAITING_RESPONSE.value, ReviewState.AWAITING_REVIEW.value))).count())
 
 
     @staticmethod
-    def is_reviewer_also_recommender(db: DAL, recommendation: Recommendation):
+    def is_reviewer_also_recommender(recommendation: Recommendation):
+        db = current.db
         return cast(bool, db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.reviewer_id == recommendation.recommender_id)).count() == 1)
 
 
@@ -136,13 +141,14 @@ class Review(Row):
     
 
     @staticmethod
-    def get_due_date(db: DAL, review: Review):
+    def get_due_date(review: Review):
+        db = current.db
         if review.due_date:
             return review.due_date
         
         due_date: _[datetime] = None
         if current.isRR:
-            due_date = Review.get_due_date_from_scheduled_submission_date(db, review)
+            due_date = Review.get_due_date_from_scheduled_submission_date(review)
         
         if not due_date:
             due_date = Review.get_due_date_from_review_duration(review)
@@ -160,19 +166,19 @@ class Review(Row):
         
 
     @staticmethod
-    def get_due_date_from_scheduled_submission_date(db: DAL, review: Review):
-        recommendation = Recommendation.get_by_id(db, review.recommendation_id)
+    def get_due_date_from_scheduled_submission_date(review: Review):
+        recommendation = Recommendation.get_by_id(review.recommendation_id)
         if not recommendation:
             return None
         
-        article = Article.get_by_id(db, recommendation.article_id)
+        article = Article.get_by_id(recommendation.article_id)
         if not article:
             return None
         
         if not is_scheduled_submission(article):
             return None
         
-        report_survey = ReportSurvey.get_by_article(db, article.id)
+        report_survey = ReportSurvey.get_by_article(article.id)
 
         if report_survey and report_survey.q10:
             review_start_date = report_survey.q10 + timedelta(days=7)
@@ -241,7 +247,8 @@ class Review(Row):
     
 
     @staticmethod
-    def get_all_by_user(db: DAL, reviewer_id: int, reviews_states: List[ReviewState] = []):
+    def get_all_by_user(reviewer_id: int, reviews_states: List[ReviewState] = []):
+        db = current.db
         if len(reviews_states) == 0:
             result = db((db.t_reviews.reviewer_id == db.auth_user.id) & (db.t_reviews.reviewer_id == reviewer_id)).select(db.t_reviews.ALL, orderby=db.auth_user.last_name|db.auth_user.first_name)
         else:
@@ -255,7 +262,7 @@ class Review(Row):
     @staticmethod
     def change_reviews_state(reviewer_id: int, reviews_states: List[ReviewState], new_review_state: ReviewState):
         db = current.db
-        reviews = Review.get_all_by_user(db, reviewer_id, reviews_states)
+        reviews = Review.get_all_by_user(reviewer_id, reviews_states)
         for review in reviews:
             Review.set_review_status(review, new_review_state)
         return reviews
@@ -268,3 +275,37 @@ class Review(Row):
             return
         
         return User.get_name(reviewer)
+    
+
+    @staticmethod
+    def get_reviewers_name(article_id: int) -> str:
+        db = current.db
+        reviews = Review.get_by_article_id_and_state(db, article_id, ReviewState.REVIEW_COMPLETED)
+        nb_anonymous = 0
+        names: List[str] = []
+        user_id: List[int] = []
+        for review in reviews:
+            if not review.anonymously and review.reviewer_id not in user_id:
+                reviewer_name = Review.get_reviewer_name(review)
+                if reviewer_name:
+                    names.append(reviewer_name)
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
+        
+        user_id.clear()
+
+        for review in reviews:
+            if review.anonymously and review.reviewer_id not in user_id:
+                nb_anonymous += 1
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
+        
+        if (nb_anonymous > 0):
+            anonymous = str(nb_anonymous) + ' anonymous reviewer'
+            if (nb_anonymous > 1):
+                anonymous += 's'
+            names.append(anonymous)
+            
+        formatted_names = ', '.join(names)
+
+        return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1] 

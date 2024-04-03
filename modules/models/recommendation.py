@@ -3,8 +3,8 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional as _, cast
 from models.press_reviews import PressReview
+from models.user import User
 from pydal.objects import Row
-from pydal import DAL
 from gluon import current
 
 class RecommendationState(Enum):
@@ -43,22 +43,26 @@ class Recommendation(Row):
 
 
     @staticmethod
-    def get_by_id(db: DAL, id: int):
+    def get_by_id(id: int):
+        db = current.db
         return cast(_[Recommendation], db.t_recommendations[id])
     
     @staticmethod
-    def get_by_article_id(db: DAL, article_id: int):
+    def get_by_article_id(article_id: int):
+        db = current.db
         return cast(List[Recommendation], db(db.t_recommendations.article_id == article_id).select())
 
 
     @staticmethod
-    def get_co_recommenders(db: DAL, recommendation_id: int):
+    def get_co_recommenders(recommendation_id: int):
+        db = current.db
         return cast(List[PressReview], db((db.t_recommendations.id == recommendation_id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id))\
             .select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id))
 
 
     @staticmethod
-    def get_current_round_number(db: DAL, recommendation: Recommendation):
+    def get_current_round_number(recommendation: Recommendation):
+        db = current.db
         return cast(int, db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count())
     
 
@@ -73,3 +77,27 @@ class Recommendation(Row):
                 states_values.append(recommendation_state.value)
             reco = cast(List[Recommendation], db((db.t_recommendations.recommendation_state.belongs(states_values))).select())
             return reco
+
+
+    @staticmethod
+    def get_last_pdf(recommendation_id: int) -> _[PDF]:
+        db = current.db
+        return db(db.t_pdf.recommendation_id == recommendation_id).select().last() 
+
+
+    @staticmethod
+    def get_recommenders_names(recommendation: Recommendation):
+        db = current.db
+        press_reviews = Recommendation.get_co_recommenders(db, recommendation.id)
+        names: List[str] = []
+        recommender_name = User.get_name_by_id(recommendation.recommender_id)
+        if recommender_name:
+            names.append(recommender_name)
+        for press_review in press_reviews:
+            if not press_review.contributor_id:
+                continue
+            contributor_name = User.get_name_by_id(press_review.contributor_id)
+            if contributor_name and contributor_name not in names:
+                names.append(contributor_name)
+        formatted_names = ', '.join(names)
+        return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1] 

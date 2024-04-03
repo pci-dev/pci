@@ -507,7 +507,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             reviewVars = dict(
                 id=review.id,
                 review_duration=review.review_duration.lower(),
-                due_date=Review.get_due_date(db, review),
+                due_date=Review.get_due_date(review),
                 showInvitationButtons=False,
                 showReviewRequest=False,
                 showPendingAskForReview=False,
