@@ -792,6 +792,9 @@ def download():
     allows downloading of uploaded files
     http://..../[app]/default/download/[filename]
     """
+    if not request.args:
+        raise HTTP(404, "404: " + T("Unavailable"))
+
     if request.args[0].endswith(".pdf"):
         redirect(URL("default", "stream_pdf", args=request.args[0]))
     else:
