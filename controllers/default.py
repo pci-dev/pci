@@ -745,8 +745,11 @@ def invitation_to_review_acceptation():
     if user and auth.user_id:
         redirect(session._reset_password_redirect)
 
-    form = auth.reset_password(session._reset_password_redirect)
-    
+    try:
+        form = auth.reset_password(session._reset_password_redirect)
+    except UnboundLocalError: # web2py/gluon/tools.py", line 3444, in reset_password
+        raise HTTP(404, f"no user found for params={request.vars}")
+
     titleIcon = "user"
     pageTitle = cast(str, T("Create account"))
     customText = CENTER(
