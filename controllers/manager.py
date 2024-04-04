@@ -749,6 +749,7 @@ def manage_recommendations():
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#ManageRecommendationsTitle"),
         content=myContents,
+        bottomContent=common_small_html.suggested_recommender_list(art.id),
         grid=grid,
         deleteFileButtonsScript=common_tools.get_script("add_delete_file_buttons_manager.js"),
         absoluteButtonScript=common_tools.absoluteButtonScript,
