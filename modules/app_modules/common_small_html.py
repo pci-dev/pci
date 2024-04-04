@@ -26,6 +26,7 @@ from models.recommendation import Recommendation
 from models.press_reviews import PressReview
 from models.review import Review, ReviewState
 from models.user import User
+from models.suggested_recommender import SuggestedRecommender
 from pydal import DAL
 
 from app_modules.helper import getText
@@ -1204,3 +1205,22 @@ def unsubscribe_checkbox():
     html.append(common_tools.get_script('unsubscribe.js'))
     html.append(confirmationDialog('You are about to permanently delete your account, are you sure?', URL('default', 'unsubscribe', user_signature=True)))
     return html
+
+####################################################################################
+
+def suggested_recommender_list(article_id: int):
+    suggested_recommenders = SuggestedRecommender.get_suggested_recommender_by_article(article_id)
+    if not suggested_recommenders or len(suggested_recommenders) == 0:
+        return
+    
+    suggested_recommenders_html = DIV(_style="margin-top: 20px")
+    suggested_recommenders_html.append(H2(I(_class="glyphicon glyphicon-user", _style="margin-right: 10px;"), 'Suggested recommenders', 
+                                          _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center"))
+
+    recommender_list = UL()
+    for suggested_recommender in suggested_recommenders:
+        name_with_mail = mkUserWithMail(current.auth, current.db, suggested_recommender.suggested_recommender_id)
+        recommender_list.append(LI(name_with_mail))
+    suggested_recommenders_html.append(recommender_list)
+
+    return suggested_recommenders_html
