@@ -112,7 +112,7 @@ class ClockssUpload:
         for variable_name, variable_value in simple_variables.items():
             template = self._replace_var_in_template(variable_name, variable_value, template)
 
-        template = self._replace_list_reference_in_template('ARTICLE_DATA_DOI', self._article.data_doi, template)
+        template = self._replace_list_references_in_template('ARTICLE_DATA_DOI', template)
         template = self._replace_recommendation_process('RECOMMENDATION_PROCESS', template)
 
         return template
@@ -179,14 +179,22 @@ class ClockssUpload:
         return template.replace(f"[[{var_title.upper()}]]", content)
     
 
-    def _replace_list_reference_in_template(self, var_title: str, var_content: Optional[List[Any]], template: str):
-        if var_content is None or len(var_content) == 0:
+    def _replace_list_references_in_template(self, var_title: str, template: str):
+        references: List[str] = []
+        if self._article.data_doi and len(self._article.data_doi) > 0:
+            references.extend(self._article.data_doi)
+        if self._recommendation.recommendation_comments:
+            references.extend(common_tools.get_urls_in_string(self._recommendation.recommendation_comments))
+
+        if len(references) == 0:
             return self._replace_var_in_template(var_title, 'No references', template)
         
         i = 1
-        content: List[str] = []
-        for line in var_content:
-            content.append(f"[{i}] {line}")
+        content: List[str] = [r'\begin{itemize}']
+        for reference in references:
+            content.append(f"\\item[]{{}}[{i}] \\url{{{reference}}}")
+            i += 1
+        content.append(r'\end{itemize}')
         return self._replace_var_in_template(var_title, '\n'.join(content), template, True)
 
 

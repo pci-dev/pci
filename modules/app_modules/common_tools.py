@@ -2,6 +2,7 @@
 
 from functools import reduce
 from re import match
+import re
 from typing import Any, Dict, List, Optional, cast
 from zipfile import ZipFile
 import io
@@ -312,3 +313,9 @@ def delete_user_from_PCI(user: User):
                                 ReviewState.DECLINED)
     User.empty_user_data(user)
     return User.set_deleted(user)
+
+###################################################################
+
+def get_urls_in_string(text: str) -> List[str]:
+    urls = re.findall(r"(https?://?\w+\.\S*[^.,;?!:<>{}\[\]()\"'\s])", text)
+    return urls
