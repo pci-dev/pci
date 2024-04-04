@@ -62,11 +62,20 @@ def post_form():
             )
         
     if form.process().accepted:
-        attachments_dir= clockss.attachments_dir
-        PDF.save_pdf_to_db(recommendation, attachments_dir, f"{_}.pdf")
-        # clockss.compile_and_send()
-        session.flash = T("Successfully Uploaded to Clockss")
-        redirect(url)
+        if disabled:
+            session.flash = 'Already uploaded to Clockss'
+            redirect(url)
+        else:
+            try:
+                attachments_dir= clockss.attachments_dir
+                PDF.save_pdf_to_db(recommendation, attachments_dir, filename)
+                clockss.compile_and_send()
+                session.flash = T("Successfully uploaded to Clockss")
+            except Exception as e:
+                session.flash = f"Error to upload to Clockss: {e}"
+                PDF.delete_pdf_to_db(recommendation.id)
+
+            redirect(url)
 
     response.flash = None
     response.view = "default/myLayout.html"

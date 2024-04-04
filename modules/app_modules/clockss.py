@@ -26,8 +26,7 @@ class ClockssUpload:
 
     CLOCKSS_SERVER = str(myconf.take("clockss.server"))
     CLOCKSS_USERNAME = str(myconf.take("clockss.username"))
-    CLOCKSS_PASSWORD = str(myconf.take("clockss.password"))
-    CLOCKSS_FTP_SESSION = ftplib.FTP(CLOCKSS_SERVER, CLOCKSS_USERNAME, CLOCKSS_PASSWORD) 
+    CLOCKSS_PASSWORD = str(myconf.take("clockss.password")) 
 
     LATEX_TEMPLATE_FILENAME = 'main.tex'
     PDFLATEX_BIN = str(myconf.take("latex.pdflatex"))
@@ -93,7 +92,6 @@ class ClockssUpload:
         template = self._get_latex_template_content()
 
         simple_variables: Dict[str, Any] = {
-            'ARTICLE_TITLE': self._article.title,
             'ARTICLE_AUTHORS': self._article.authors,
             'ARTICLE_ABSTRACT': self._article.abstract,
             'ARTICLE_YEAR': self._article.article_year,
@@ -216,12 +214,23 @@ class ClockssUpload:
 
 
     def compile_and_send(self):
+        ftp_server = self._clokss_ftp()
+        if ftp_server is None:
+            raise Exception('Missing Clockss FTP configuration')
+
         self._build_xml()
         self._zip_directory(self.attachments_dir)
         filename = self.attachments_dir + ".zip"
         with open(filename, 'rb') as file:
-            self.CLOCKSS_FTP_SESSION.storbinary(f'STOR {self._prefix}.zip', file)
+            try:
+                ftp_server.storbinary(f'STOR {self._prefix}.zip', file)
+            finally:
+                ftp_server.quit()
+
         #delete files after upload
         shutil.rmtree(self.attachments_dir)
         os.remove(filename)
-        self.CLOCKSS_FTP_SESSION.quit()
+
+    def _clokss_ftp(self):
+        if self.CLOCKSS_SERVER and self.CLOCKSS_USERNAME and self.CLOCKSS_PASSWORD:
+            return ftplib.FTP(self.CLOCKSS_SERVER, self.CLOCKSS_USERNAME, self.CLOCKSS_PASSWORD)
