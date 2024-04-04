@@ -395,8 +395,9 @@ def send_suggested_reviewers():
     review = db(db.t_reviews.quick_decline_key == request.post_vars.declineKey).select().last()
     no_suggestions_clicked = request.post_vars.noluck
     next = get_next(request)
+    text = (text or "").strip()
 
-    if not text.strip() or not review or no_suggestions_clicked or review.suggested_reviewers_send:
+    if not text or not review or no_suggestions_clicked or review.suggested_reviewers_send:
         Review.set_suggested_reviewers_send(review)
         if next:
             redirect(next)

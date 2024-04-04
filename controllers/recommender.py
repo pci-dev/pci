@@ -1390,8 +1390,10 @@ def send_review_cancellation():
         scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
         snapshotUrl = sched_sub_vars["snapshotUrl"]
 
+    hashtag_template = "#DefaultReviewCancellation"
+
     if review.review_state == "Awaiting response":
-        hashtag_template = "#DefaultReviewCancellation"
+        pass
     if review.review_state == "Awaiting review":
         hashtag_template = "#DefaultReviewAlreadyAcceptedCancellation"
 
