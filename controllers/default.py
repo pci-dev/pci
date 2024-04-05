@@ -278,6 +278,9 @@ def user():
             OrcidTools.add_orcid_auth_user_form(session, request, form,
                     URL(c="default", f="user", args="register", scheme=True, vars={"_next": suite or ""}))
             form.element('#auth_user_password_two__label').components[0] = SPAN(T("Confirm Password")) + SPAN(" * ", _style="color:red;")
+
+            captcha_setup(form)
+
             if suite:
                 auth.settings.register_next = suite
                 check_already_registered(form)
@@ -339,6 +342,57 @@ def user():
                 pageHelp=pageHelp,
                 form=form,
                 myFinalScript=OrcidTools.get_orcid_formatter_script())
+
+
+def captcha_setup(form):
+    target_button = "input[type=submit]"
+    validate_url = URL("default", "captcha_validate")
+    client_key = myconf.get("captcha.client_key")
+
+    if not client_key: return
+
+    captcha = DIV(
+            SCRIPT(f"""
+            var butt = document.querySelector("{target_button}")
+            butt.setAttribute("data-sitekey", "{client_key}")
+            butt.setAttribute("data-callback", "captcha_callback")
+            butt.setAttribute("class", butt.className + " g-recaptcha")
+
+            var validate_url = "{validate_url}"
+            """+"""
+            function captcha_callback(token) {
+                req = new XMLHttpRequest()
+                req.addEventListener("load", function() {
+                    status = this.responseText
+                    if (status == "True") {
+                        butt.form.submit()
+                    }
+                })
+                req.open("POST", validate_url, true)
+                req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+                req.send("token="+token)
+            }
+            """),
+            SCRIPT(_src="https://www.google.com/recaptcha/api.js"),
+    )
+    form.insert(len(form), captcha)
+
+
+def captcha_validate():
+    token = request.vars.token
+
+    verify_api = "https://www.google.com/recaptcha/api/siteverify"
+    server_key = myconf.get("captcha.server_key")
+
+    try:
+        import requests
+        res = requests.post(verify_api, params=dict(
+            secret=server_key,
+            response=token,
+        ))
+        return res.json()["score"] > .5
+    except:
+        return "error"
 
 
 def intercept_reset_password_login(_next=request.vars._next):

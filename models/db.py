@@ -8,7 +8,6 @@ from models.user import User
 from pydal.validators import IS_IN_SET
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Recaptcha2
 from gluon.storage import Storage # for db.get_last_recomms()
 from pydal.objects import OpRow
 from pydal import Field
@@ -340,16 +339,12 @@ auth.settings.registration_requires_approval = False
 auth.settings.reset_password_requires_verification = True  # WARNING set to True in production
 auth.settings.create_user_groups = False
 auth.settings.showid = False
-if myconf.get("captcha.private"):
-    # auth.settings.captcha = Recaptcha(request, myconf.get('captcha.public'), myconf.get('captcha.private'), use_ssl=True) # DEPRECATED
-    try:
-        auth.settings.captcha = Recaptcha2(request, myconf.get("captcha.public"), myconf.get("captcha.private"))
-    except:
-        pass
+if True:
     auth.settings.login_captcha = False
     auth.settings.register_captcha = None
     auth.settings.retrieve_username_captcha = False
     auth.settings.retrieve_password_captcha = None
+
 auth.messages.email_sent = "A request of confirmation has been sent to your e-mail address. Please confirm you e-mail address before trying to login."
 auth.messages.verify_email_subject = "%s: validate your registration" % myconf.get("app.longname")
 auth.messages.verify_email = (
