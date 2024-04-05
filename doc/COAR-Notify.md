@@ -38,6 +38,3 @@ Deployment
 
 The COAR sub-system requires the following extra python libs:
 - requests
-
-The PCI `coar_notify/inbox` endpoint somehow requires the captcha to be turned off.  To disable
-the captcha, comment-out the line `private` in section `[captcha]` in `appconfig.ini`.
