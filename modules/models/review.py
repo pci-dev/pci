@@ -142,7 +142,6 @@ class Review(Row):
 
     @staticmethod
     def get_due_date(review: Review):
-        db = current.db
         if review.due_date:
             return review.due_date
         
@@ -261,7 +260,6 @@ class Review(Row):
 
     @staticmethod
     def change_reviews_state(reviewer_id: int, reviews_states: List[ReviewState], new_review_state: ReviewState):
-        db = current.db
         reviews = Review.get_all_by_user(reviewer_id, reviews_states)
         for review in reviews:
             Review.set_review_status(review, new_review_state)
@@ -279,8 +277,7 @@ class Review(Row):
 
     @staticmethod
     def get_reviewers_name(article_id: int) -> str:
-        db = current.db
-        reviews = Review.get_by_article_id_and_state(db, article_id, ReviewState.REVIEW_COMPLETED)
+        reviews = Review.get_by_article_id_and_state(article_id, ReviewState.REVIEW_COMPLETED)
         nb_anonymous = 0
         names: List[str] = []
         user_id: List[int] = []
