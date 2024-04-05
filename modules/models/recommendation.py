@@ -87,8 +87,7 @@ class Recommendation(Row):
 
     @staticmethod
     def get_recommenders_names(recommendation: Recommendation):
-        db = current.db
-        press_reviews = Recommendation.get_co_recommenders(db, recommendation.id)
+        press_reviews = Recommendation.get_co_recommenders(recommendation.id)
         names: List[str] = []
         recommender_name = User.get_name_by_id(recommendation.recommender_id)
         if recommender_name:

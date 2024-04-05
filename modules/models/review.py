@@ -279,8 +279,7 @@ class Review(Row):
 
     @staticmethod
     def get_reviewers_name(article_id: int) -> str:
-        db = current.db
-        reviews = Review.get_by_article_id_and_state(db, article_id, ReviewState.REVIEW_COMPLETED)
+        reviews = Review.get_by_article_id_and_state(article_id, ReviewState.REVIEW_COMPLETED)
         nb_anonymous = 0
         names: List[str] = []
         user_id: List[int] = []
