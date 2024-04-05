@@ -145,6 +145,8 @@ class User(Row):
         user = User.get_by_id(user_id)
         if user:
             return User.get_name(user)
+        else:
+            return "?"
         
 
     @staticmethod
