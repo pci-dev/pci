@@ -136,9 +136,8 @@ class User(Row):
             name.append(user.first_name)
         if user.last_name:
             name.append(user.last_name)
-        
-        if len(name) > 0:
-            return " ".join(name)
+
+        return " ".join(name) or "?"
 
 
     @staticmethod
