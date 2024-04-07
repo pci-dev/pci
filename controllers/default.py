@@ -240,6 +240,8 @@ def user():
         if request.vars and len(request.vars) > 0 and request.vars['unsubscribe']:
             auth.settings.logout_next = URL('default','unsubscribe_page')
 
+    auth.settings.register_onvalidation = check_captcha
+
     form = auth()
     db.auth_user.registration_key.writable = False
     db.auth_user.registration_key.readable = False
@@ -366,11 +368,12 @@ def captcha_setup(form):
     form.append(captcha)
 
 
-def captcha_validate():
-    token = request.vars.token
-
+def check_captcha(form):
+    token = request.post_vars["g-recaptcha-response"]
     verify_api = "https://www.google.com/recaptcha/api/siteverify"
     server_key = myconf.get("captcha.server_key")
+
+    if not server_key: return
 
     try:
         import requests
@@ -378,9 +381,14 @@ def captcha_validate():
             secret=server_key,
             response=token,
         ))
-        return res.json()["score"] > .5
-    except:
-        return "error"
+        res.raise_for_status()
+        score = res.json()["score"]
+
+        if score < .5: raise ValueError(f"score too low: {score}")
+
+    except Exception as e:
+        response.flash = f"captcha check failed: {e.__class__.__name__} {e}"
+        form.errors = True
 
 
 def intercept_reset_password_login(_next=request.vars._next):
