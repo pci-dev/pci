@@ -346,7 +346,6 @@ def user():
 
 def captcha_setup(form):
     target_button = "input[type=submit]"
-    validate_url = URL("default", "captcha_validate")
     client_key = myconf.get("captcha.client_key")
 
     if not client_key: return
@@ -357,25 +356,14 @@ def captcha_setup(form):
             butt.setAttribute("data-sitekey", "{client_key}")
             butt.setAttribute("data-callback", "captcha_callback")
             butt.setAttribute("class", butt.className + " g-recaptcha")
-
-            var validate_url = "{validate_url}"
             """+"""
             function captcha_callback(token) {
-                req = new XMLHttpRequest()
-                req.addEventListener("load", function() {
-                    status = this.responseText
-                    if (status == "True") {
-                        butt.form.submit()
-                    }
-                })
-                req.open("POST", validate_url, true)
-                req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-                req.send("token="+token)
+                butt.form.submit()
             }
             """),
             SCRIPT(_src="https://www.google.com/recaptcha/api.js"),
     )
-    form.insert(len(form), captcha)
+    form.append(captcha)
 
 
 def captcha_validate():
