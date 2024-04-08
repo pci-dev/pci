@@ -270,7 +270,7 @@ class Review(Row):
     def get_reviewer_name(review: Review):
         reviewer = User.get_by_id(review.reviewer_id)
         if not reviewer:
-            return
+            return "?"
         
         return User.get_name(reviewer)
     
