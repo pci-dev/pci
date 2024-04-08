@@ -142,7 +142,7 @@ class FormValidator {
   }
 }
 
-const form = document.querySelector('.form-horizontal');
+const form_el = document.querySelector('.form-horizontal');
 const fields = ["t_articles_ms_version"];
 var queryString = window.location.search;
 var urlParams = new URLSearchParams(queryString);
@@ -150,7 +150,7 @@ var articleId = urlParams.get('articleId')
 
 var prevVersion = parseInt(document.getElementById('t_articles_ms_version').value);
 
-const validator = new FormValidator(form, fields);
+const validator = new FormValidator(form_el, fields);
 validator.initialize();
 
 $(".btn-success").on("click", function() {
