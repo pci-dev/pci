@@ -435,7 +435,7 @@
     "Modified On": "Modified On",
     "More": "More",
     "More...": "More...",
-    "Most recent DOI (or URL)": "Full web address (DOI or URL) of your preprint (eg for bioRxiv = https://doi.org/10.1101/xxx, for arXiv = https://doi.org/10.48550/arXiv.xxx, for HAL = https://hal.archives-ouvertes.fr/hal-xxx, for Zenodo = https://doi.org/10.5281/zenodo.xxx, for OSF preprints https://doi.org/10.31219/osf.io/xxx)",
+    "Most recent DOI (or URL)": "Please add below the DOI of your preprint on the form https://doi.org/xxx when it exists (ie for bioRxiv, arXiv, OSF, Zenodo…). If you preprint is on HAL or on an archive that does not provide a DOI, please add the URL (eg https://hal.science/hal-xxx). Do NOT add URL such as https://www.biorxiv.org/content/xxx or https://zenodo.org/records/xxx",
     "Most recent recommendations in:": "Most recent recommendations in:",
     "Most recent version of the manuscript": "Most recent version of the manuscript",
     "My closed articles recommendations": "My closed articles recommendations",
@@ -969,4 +969,7 @@
     "This invited reviewer agreed to review this preprint, but has requested %(review_duration)s to perform their review.": "This invited reviewer agreed to review this preprint, but has requested %(review_duration)s to perform their review.",
     "This invited reviewer agreed to review this preprint, but has requested until %(review_due_date)s to perform their review.": "This invited reviewer agreed to review this preprint, but has requested until %(review_due_date)s to perform their review.",
     "This user is willing to review this preprint.": "This user is willing to review this preprint.",
+    "Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact ": "Please enter the DOI of your data when it exists (eg for Zenodo, Figshare, Dryad, etc…). In other cases please add the URL. Do NOT add URLs such as https://zenodo.org/records/xxx (if you have any problems with the deposit of your data, please contact ",
+    "Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact ": "Please enter the DOI of your scripts when it exists (eg for Zenodo, Figshare, Dryad, etc…). In other cases please add the URL. Do NOT add URLs such as https://zenodo.org/records/xxx (if you have any problems with the deposit of your data, please contact ",
+    "Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact ": "Please enter the DOI of your codes when it exists (eg for Zenodo, Figshare, Dryad, etc…). In other cases please add the URL. Do NOT add URLs such as https://zenodo.org/records/xxx (if you have any problems with the deposit of your data, please contact "
 }
