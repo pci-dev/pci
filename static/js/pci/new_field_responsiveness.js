@@ -176,3 +176,25 @@ $(".btn-primary").on("click", function() {
   });
   $('.form-horizontal').submit();
 });
+
+
+function initUrlListStringField() {
+  document.querySelectorAll('input[name="data_doi"],input[name="scripts_doi"],input[name="codes_doi"]').forEach((input) => {
+    
+    document.querySelectorAll('.input-group-addon').forEach((button) => {
+      button.addEventListener('click', initUrlListStringField)
+    });
+
+    if (input.value != null && input.value.length > 0) {
+      return;
+    }
+  
+    input.value = 'https://'
+  })
+}
+
+document.querySelectorAll('input[type="radio"]').forEach((radioInput) => {
+  radioInput.addEventListener('change', initUrlListStringField);
+});
+
+initUrlListStringField();

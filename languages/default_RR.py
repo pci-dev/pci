@@ -974,4 +974,7 @@
     "This invited reviewer agreed to review this preprint, but has requested %(review_duration)s to perform their review.": "This invited reviewer agreed to review this report, but has requested %(review_duration)s to perform their review.",
     "This invited reviewer agreed to review this preprint, but has requested until %(review_due_date)s to perform their review.": "This invited reviewer agreed to review this report, but has requested until %(review_due_date)s to perform their review.",
     "This user is willing to review this preprint.": "This user is willing to review this report.",
+    "Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact ": "Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact ",
+    "Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact ": "Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact ",
+    "Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact ": "Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "
 }
