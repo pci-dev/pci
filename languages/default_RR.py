@@ -976,5 +976,8 @@
     "This user is willing to review this preprint.": "This user is willing to review this report.",
     "Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact ": "Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact ",
     "Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact ": "Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact ",
-    "Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact ": "Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "
+    "Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact ": "Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact ",
+    " In case all raw data are included in the preprint, indicate the DOI or URL of the preprint.": "",
+    " In case all raw scripts are included in the preprint, indicate the DOI or URL of the preprint.": "",
+    " In case all raw codes are included in the preprint, indicate the DOI or URL of the preprint.": "",
 }

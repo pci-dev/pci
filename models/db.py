@@ -502,7 +502,7 @@ db.define_table(
     Field("data_doi", 
         type="list:string",
         requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
-        label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact "), appContactLink, ")"),
+        label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact "), appContactLink, ").", T(" In case all raw data are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'All or part of the results presented in this preprint are based on data'. URL must start with http:// or https://")
     ),
@@ -510,7 +510,7 @@ db.define_table(
     Field("scripts_doi", 
         type="list:string",
         requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
-        label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact "), appContactLink, ")"),
+        label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact "), appContactLink, ").", T(" In case all raw scripts are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'Scripts were used to obtain or analyze the results'. URL must start with http:// or https://")
     ),
@@ -518,7 +518,7 @@ db.define_table(
     Field("codes_doi",
         type="list:string",
         requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
-        label=SPAN(T("Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "), appContactLink, ")"),
+        label=SPAN(T("Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "), appContactLink, ").", T(" In case all raw codes are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")
     ),
