@@ -10,45 +10,50 @@ def index():
     response.headers['Content-Type'] = 'text/html'
 
     return menu([
-        "pcis",
-        "coar_inboxes",
+        "pci",
         "version",
         "issn",
+        "all/pci",
         "all/issn",
+        "coar_inboxes",
     ])
 
 
 def version():
-    opt = "--decorate --decorate-refs='refs/tags/*'"
-    fmt = "--pretty='%H/%D'"
-    ver = run(f"git log {opt} {fmt} HEAD -1").strip().split('/')
+    ver = run(f"git describe --tags --long --dirty=+").strip().split('-')
+    sha = ver[-1][1:]
+    inc = int(ver[-2])
+    tag = "-".join(ver[:-2])
+    if inc: tag += f"+{inc}"
 
     return json({
-        "version": { "hash": ver[0], "tag": ver[1] }
+        "version": { "hash": sha, "tag": tag }
     })
 
 
-def _list_pcis():
-    host = pci_hosts()
-    desc = read_confs("description", cleanup="s:Peer Community [iI]n ::")
-
-    return { host[i]: desc[i] for i,_ in enumerate(host) }
-
-
-def pcis():
-    return json(_list_pcis())
+def pci():
+    return json({
+        "theme": db.cfg.description.replace("Peer Community in ", ""),
+    })
 
 
-def coar_inboxes():
-    hosts = _list_pcis()
-    if 'rr' in hosts: del hosts['rr']
-
-    return json(hosts)
+def coar_inbox():
+    return json({
+        "url": URL("coar_notify", "inbox", scheme=True),
+    })
 
 
 def issn():
     return json({
         "issn": db.config[1].issn
+    })
+
+
+def coar_inboxes():
+    hosts = filter(lambda h: h != 'rr', pci_hosts())
+    return json({
+        host: res.get("theme")
+            for host, res in call_all(hosts, "pci")
     })
 
 
@@ -89,7 +94,12 @@ def error(mesg, status=400):
     response.status = status
     return json({"error": mesg})
 
+
 import requests
+
+basic_auth = db.conf.get("config.basic_auth")
+if basic_auth: basic_auth = tuple(basic_auth.split(":"))
+
 
 def api_call(host, endpoint):
     api_url = f"https://{host}.peercommunityin.org/api/" \
@@ -98,6 +108,7 @@ def api_call(host, endpoint):
     try:
         return requests.get(
             api_url + endpoint
+            , auth=basic_auth
         ).json()
 
     except Exception as err:
