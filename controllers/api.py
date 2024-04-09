@@ -10,7 +10,6 @@ def index():
     response.headers['Content-Type'] = 'text/html'
 
     return menu([
-        "pcis",
         "pci",
         "version",
         "issn",
@@ -31,16 +30,6 @@ def version():
         "version": { "hash": sha, "tag": tag }
     })
 
-
-def _list_pcis():
-    host = pci_hosts()
-    desc = read_confs("description", cleanup="s:Peer Community [iI]n ::")
-
-    return { host[i]: desc[i] for i,_ in enumerate(host) }
-
-
-def pcis():
-    return json(_list_pcis())
 
 def pci():
     return json({
