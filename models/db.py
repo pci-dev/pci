@@ -532,6 +532,7 @@ db.define_table(
     Field("request_submission_change", type="boolean", default=False, label=T("Ask submitter to edit submission")),
     Field("funding", type="string", length=1024, label=T("Fundings"), requires=[IS_NOT_EMPTY(), IS_LENGTH(1024, 0)], comment="Indicate in this box the origin of the funding of your study. If your study has not been supported by particular funding, please indicate \"The authors declare that they have received no specific funding for this study\"."),
     Field("keywords", type="string", length=4096, label=T("Keywords"), requires=IS_EMPTY_OR(IS_LENGTH(4096, 0))),
+    Field("methods_require_specific_expertise", type="string", length=4096, requires=IS_EMPTY_OR(IS_LENGTH(4096, 0)), label="Methods that require specific expertise (optional)", comment="Please indicate the methods that may require specialised expertise during the peer review process (use a comma to separate various required expertises)."),
     Field(
         "thematics",
         type="list:string",

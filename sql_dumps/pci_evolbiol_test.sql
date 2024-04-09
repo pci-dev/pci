@@ -3120,3 +3120,7 @@ update config set coar_whitelist = '|127.0.0.1 LOCAL|';
 ALTER TABLE t_articles ADD COLUMN translated_abstract jsonb;
 ALTER TABLE t_articles ADD COLUMN translated_title jsonb;
 ALTER TABLE t_articles ADD COLUMN translated_keywords jsonb;
+
+--- 2024-04-09 updates/methods_require_specific_expertise.sql
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS methods_require_specific_expertise text;
