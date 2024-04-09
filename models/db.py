@@ -130,6 +130,7 @@ db.define_table(
 cfg = db.config[1]
 
 cfg.host = host.split(".")[0]
+cfg.description = myconf.get("app.description")
 
 db.cfg = cfg
 db.conf = myconf

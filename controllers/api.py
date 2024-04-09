@@ -12,8 +12,10 @@ def index():
     return menu([
         "pcis",
         "coar_inboxes",
+        "pci",
         "version",
         "issn",
+        "all/pci",
         "all/issn",
     ])
 
@@ -40,6 +42,10 @@ def _list_pcis():
 def pcis():
     return json(_list_pcis())
 
+def pci():
+    return json({
+        "theme": db.cfg.description.replace("Peer Community in ", ""),
+    })
 
 def coar_inboxes():
     hosts = _list_pcis()
