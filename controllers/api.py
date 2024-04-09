@@ -19,12 +19,14 @@ def index():
 
 
 def version():
-    opt = "--decorate --decorate-refs='refs/tags/*'"
-    fmt = "--pretty='%H/%D'"
-    ver = run(f"git log {opt} {fmt} HEAD -1").strip().split('/')
+    ver = run(f"git describe --tags --long --dirty=+").strip().split('-')
+    sha = ver[-1][1:]
+    inc = int(ver[-2])
+    tag = "-".join(ver[:-2])
+    if inc: tag += f"+{inc}"
 
     return json({
-        "version": { "hash": ver[0], "tag": ver[1] }
+        "version": { "hash": sha, "tag": tag }
     })
 
 
