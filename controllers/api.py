@@ -11,12 +11,12 @@ def index():
 
     return menu([
         "pcis",
-        "coar_inboxes",
         "pci",
         "version",
         "issn",
         "all/pci",
         "all/issn",
+        "coar_inboxes",
     ])
 
 
@@ -47,16 +47,24 @@ def pci():
         "theme": db.cfg.description.replace("Peer Community in ", ""),
     })
 
-def coar_inboxes():
-    hosts = _list_pcis()
-    if 'rr' in hosts: del hosts['rr']
 
-    return json(hosts)
+def coar_inbox():
+    return json({
+        "url": URL("coar_notify", "inbox", scheme=True),
+    })
 
 
 def issn():
     return json({
         "issn": db.config[1].issn
+    })
+
+
+def coar_inboxes():
+    hosts = filter(lambda h: h != 'rr', pci_hosts())
+    return json({
+        host: res.get("theme")
+            for host, res in call_all(hosts, "pci")
     })
 
 
