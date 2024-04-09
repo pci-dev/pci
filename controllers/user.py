@@ -500,6 +500,7 @@ def fill_new_article():
         db.t_articles.sub_thematics.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
         db.t_articles.keywords.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
+        db.t_articles.methods_require_specific_expertise.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
 
     else:
         db.t_articles.report_stage.readable = False
@@ -550,6 +551,7 @@ def fill_new_article():
         fields += ["sub_thematics"]
 
     fields += ["keywords"]
+    fields += ["methods_require_specific_expertise"]
 
     if not pciRRactivated:
         fields += [
@@ -720,6 +722,7 @@ def edit_my_article():
         db.t_articles.sub_thematics.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
         db.t_articles.keywords.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
+        db.t_articles.methods_require_specific_expertise.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
@@ -774,6 +777,7 @@ def edit_my_article():
             fields += ["sub_thematics"]
 
         fields += ["keywords"]
+        fields += ["methods_require_specific_expertise"]
 
         if not pciRRactivated:
             fields += [
@@ -828,6 +832,7 @@ def edit_my_article():
             fields += ["sub_thematics"]
 
         fields += ["keywords"]
+        fields += ["methods_require_specific_expertise"]
 
         if not pciRRactivated:
             fields += [
@@ -1153,6 +1158,7 @@ def my_articles():
     if len(request.args) == 0:  # in grid
         db.t_articles.abstract.readable = False
         db.t_articles.keywords.readable = False
+        db.t_articles.methods_require_specific_expertise.readable = False
         db.t_articles.thematics.readable = False
         db.t_articles.upload_timestamp.readable = False
         db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(text)
@@ -1180,6 +1186,7 @@ def my_articles():
             db.t_articles.ms_version,
             db.t_articles.thematics,
             db.t_articles.keywords,
+            db.t_articles.methods_require_specific_expertise,
             db.t_articles.auto_nb_recommendations,
         ]
     grid = SQLFORM.grid(
