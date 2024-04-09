@@ -105,6 +105,7 @@ class Article(Row):
     translated_abstract: _[List[TranslatedFieldDict]]
     translated_title: _[List[TranslatedFieldDict]]
     translated_keywords: _[List[TranslatedFieldDict]]
+    methods_require_specific_expertise: _[str]
 
 
     @staticmethod
