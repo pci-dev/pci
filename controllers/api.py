@@ -94,7 +94,12 @@ def error(mesg, status=400):
     response.status = status
     return json({"error": mesg})
 
+
 import requests
+
+basic_auth = db.conf.get("config.basic_auth")
+if basic_auth: basic_auth = tuple(basic_auth.split(":"))
+
 
 def api_call(host, endpoint):
     api_url = f"https://{host}.peercommunityin.org/api/" \
@@ -103,6 +108,7 @@ def api_call(host, endpoint):
     try:
         return requests.get(
             api_url + endpoint
+            , auth=basic_auth
         ).json()
 
     except Exception as err:
