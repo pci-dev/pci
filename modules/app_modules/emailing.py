@@ -2436,7 +2436,12 @@ def delete_reminder_for_submitter(db, hashtag_template, articleId):
     if article and article.user_id is not None:
         submitter_mail = db.auth_user[article.user_id]["email"]
 
+        if article.coar_notification_id and (
+                "#ReminderSubmitterRevisedVersion" in hashtag_template):
+            hashtag_template += "COAR"
+
         db((db.mail_queue.dest_mail_address == submitter_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.article_id == articleId)).delete()
+
         if pciRRactivated:
             hashtag_template_rr = hashtag_template + "Stage"
             db(
