@@ -2249,24 +2249,13 @@ def create_reminder_for_submitter_cancel_submission(session, auth, db, articleId
 
 ######################################################################################################################################################################
 def create_reminder_for_submitter_revised_version_warning(session, auth, db, articleId):
-    mail_vars = emailing_tools.getMailCommonVars()
+    _create_reminder_for_submitter_revised_version(articleId, "#ReminderSubmitterRevisedVersionWarning")
 
-    article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
-
-    if article and recomm:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
-        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
-        mail_vars["ccAddresses"] = db.auth_user[recomm.recommender_id]["email"]
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
-
-        hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterRevisedVersionWarning", article)
-
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId)
-
-
-######################################################################################################################################################################
 def create_reminder_for_submitter_revised_version_needed(session, auth, db, articleId):
+    _create_reminder_for_submitter_revised_version(articleId, "#ReminderSubmitterRevisedVersionNeeded")
+
+def _create_reminder_for_submitter_revised_version(articleId, email_template):
+    db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2278,7 +2267,7 @@ def create_reminder_for_submitter_revised_version_needed(session, auth, db, arti
         mail_vars["ccAddresses"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
-        hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterRevisedVersionNeeded", article)
+        hashtag_template = emailing_tools.getCorrectHashtag(email_template, article)
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId)
 
