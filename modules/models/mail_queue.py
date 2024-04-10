@@ -55,3 +55,13 @@ class MailQueue(Row):
             (db.mail_queue.recommendation_id == review.recommendation_id) &
             (db.mail_queue.review_id == review.id))
         return cast(List[MailQueue], mails)
+
+
+    @staticmethod
+    def get_by_article_and_template(article: Article, hastag_template: str):
+        db = current.db
+        mails = db(
+            (db.mail_queue.article_id == article.id) &
+            (db.mail_queue.mail_template_hashtag == hastag_template)
+        ).select()
+        return cast(List[MailQueue], mails)

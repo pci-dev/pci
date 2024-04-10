@@ -2268,8 +2268,18 @@ def _create_reminder_for_submitter_revised_version(articleId, email_template):
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
         hashtag_template = emailing_tools.getCorrectHashtag(email_template, article)
+        if article.coar_notification_id:
+            hashtag_template += "COAR" # i.e. #ReminderSubmitterRevisedVersionWarningCOAR / NeededCOAR
+            mail_vars["message"] = get_original_submitter_awaiting_submission_email(article)
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId)
+
+
+def get_original_submitter_awaiting_submission_email(article):
+    template = "#SubmitterAwaitingSubmissionCOAR"
+    emails = MailQueue.get_by_article_and_template(article, template)
+    if emails:
+        return MailQueue.get_mail_content(emails.first())
 
 
 ######################################################################################################################################################################
