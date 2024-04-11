@@ -254,13 +254,7 @@ def send_ack(self, typ: typing.Literal["TentativeAccept", "Reject"], article):
           "actor": {
             "id": self.base_url,
             "type": "Service",
-            #"name": "PCI coar Service",
           },
-          #"context": {
-          #  "id": "https://some-organisation.org/resource/0021",
-          #  "ietf:cite-as": "https://doi.org/10.4598/12123487",
-          #  "type": "Document"
-          #},
         }
 
     notification = self.add_base_notification_properties(notification, target_inbox)
