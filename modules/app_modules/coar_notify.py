@@ -18,8 +18,6 @@ __all__ = ["COARNotifier"]
 
 logger = logging.getLogger(__name__)
 
-myconf = AppConfig(reload=True)
-
 
 @functools.lru_cache()
 def _get_requests_session() -> requests.Session:
@@ -52,9 +50,7 @@ class COARNotifier:
 
     base_url = URL("|", "|", scheme=True).replace("|/|", "")
 
-    @property
-    def enabled(self):
-        return myconf.get("coar_notify.enabled")
+    enabled = AppConfig().get("coar_notify.enabled")
 
     def send_notification(self, notification, article):
         """Send a notification to the target inbox (article.doi HTTP header).
