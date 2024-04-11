@@ -856,7 +856,7 @@ def download():
 
 
 def stream_pdf():
-    filename = request.args[0]
+    filename = request.args[0] if request.args else ""
 
     match_regex = re.match("(.*?)\.(.*?)\.", filename)
 
