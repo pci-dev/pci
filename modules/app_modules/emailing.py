@@ -3192,6 +3192,7 @@ def send_to_coar_requester(session, auth, db, user, article):
     hashtag_template = "#UserCompleteSubmissionCOAR"
 
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, article_id=article.id)
+    create_reminder_user_complete_submission(article)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
     emailing_tools.getFlashMessage(session, reports)
@@ -3216,6 +3217,24 @@ def send_to_coar_resubmitter(session, auth, db, user, article):
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
     emailing_tools.getFlashMessage(session, reports)
+
+
+def create_reminder_user_complete_submission(article):
+    db, auth = current.db, current.auth
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars["destAddress"] = User.get_by_id(article.user_id).email
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["message"] = MailQueue.get_mail_content(
+            MailQueue.get_by_article_and_template(article, "#UserCompleteSubmissionCOAR").first())
+
+    hashtag_template = "#ReminderUserCompleteSubmissionCOAR"
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+
 
 ######################################################################################################################################################################
 def check_mail_queue(db, hashtag, reviewer_mail, recomm_id):

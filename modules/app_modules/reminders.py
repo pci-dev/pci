@@ -86,6 +86,7 @@ _reminders = {
     "ReminderSubmitterNewSuggestedRecommenderNeeded": [10],
     "ReminderSubmitterRevisedVersionWarning": [7],
     "ReminderSubmitterRevisedVersionNeeded": [60, 90],
+    "ReminderUserCompleteSubmission": [2, 10],
 
     "ReminderSuggestedRecommenderInvitation": [5, 9],
     "ReminderRecommender2ReviewsReceivedCouldMakeDecision": weekly(3, 15),

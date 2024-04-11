@@ -68,3 +68,17 @@ insert into mail_templates
 {{message}}
 '
 );
+insert into mail_templates
+(hashtag, description, lang, subject, contents) values (
+'#ReminderUserCompleteSubmissionCOAR',
+'Mail to submitter to remind them to complete their submission',
+'default',
+'{{appName}}: Complete your submission - reminder',
+'<p>Dear {{destPerson}}</p>
+<p>Thanks for submitting the preprint "{{articleTitle}}"  via a preprint server to {{appName}}.</p>
+<p>This is a kind reminder for you to complete your submission.</p>
+<p>Please find below the email we originally sent you.</p>
+<hr>
+{{message}}
+'
+);
