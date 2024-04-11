@@ -10,6 +10,7 @@ import uuid
 import requests
 
 from gluon import current
+from gluon.html import URL
 from gluon.contrib.appconfig import AppConfig
 from app_modules.common_small_html import mkLinkDOI
 
@@ -29,7 +30,7 @@ def _get_requests_session() -> requests.Session:
     For now, this method only provides for a custom User-Agent string so that remote
     services can identify the sender in logs."""
     session = requests.Session()
-    session.headers["User-Agent"] = f"pci ({myconf['coar_notify']['base_url'].strip()})"
+    session.headers["User-Agent"] = f"pci ({COARNotifier.base_url})"
     return session
 
 
@@ -49,9 +50,7 @@ class COARNotifier:
     def __init__(self, db):
         self.db = db
 
-    @functools.cached_property
-    def base_url(self):
-        return myconf["coar_notify"]["base_url"].strip()
+    base_url = URL("|", "|", scheme=True).replace("|/|", "")
 
     @property
     def enabled(self):
