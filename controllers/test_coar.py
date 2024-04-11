@@ -11,7 +11,8 @@ def index():
 def post_form():
     form = SQLFORM.factory(
         Field("json_ld", label=T("COAR json+ld"), type="text",
-            default=request_endorsement.replace('_UUID_', str(uuid.uuid4()))),
+            default=json.dumps(request_endorsement, indent=4)
+                        .replace('_UUID_', str(uuid.uuid4()))),
     )
     form.element(_type="submit")["_value"] = T("Send to inbox")
     form.element(_name="json_ld").attributes.update(dict(
@@ -69,7 +70,9 @@ basic_auth = conf.get("config.basic_auth", None)
 if basic_auth: basic_auth = tuple(basic_auth.split(":"))
 
 
-request_endorsement = """
+from app_modules.coar_notify import COARNotifier
+
+request_endorsement = \
 {
   "@context": [
     "https://www.w3.org/ns/activitystreams",
@@ -96,12 +99,12 @@ request_endorsement = """
   },
   "origin": {
     "id": "https://research-organisation.org/repository",
-    "inbox": "https://research-organisation.org/inbox/",
+    "inbox": COARNotifier.base_url + "coar_notify/inbox",
     "type": "Service"
   },
   "target": {
     "id": "https://overlay-journal.com/system",
-    "inbox": "https://overlay-journal.com/inbox/",
+    "inbox": COARNotifier.base_url + "coar_notify/inbox",
     "type": "Service"
   },
   "type": [
@@ -109,7 +112,6 @@ request_endorsement = """
     "coar-notify:EndorsementAction"
   ]
 }
-"""
 
 cancel_endorsement_request = """
 {
