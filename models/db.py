@@ -203,7 +203,7 @@ from gluon import current
 current.auth = auth
 current.db = db
 current.isRR = pciRRactivated
-current.coar = COARNotifier(db)
+current.coar = COARNotifier()
 
 # -------------------------------------------------------------------------
 db.define_table(

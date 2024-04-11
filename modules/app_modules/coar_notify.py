@@ -45,8 +45,8 @@ class COARNotifier:
     See https://notify.coar-repositories.org/ for details of the COAR Notify community
     conventions.
     """
-    def __init__(self, db):
-        self.db = db
+    def __init__(self):
+        self.db = current.db
 
     base_url = URL("|", "|", scheme=True).replace("|/|", "")
 
