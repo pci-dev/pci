@@ -281,9 +281,40 @@
 {{pass}}  
 
 
+{{if articleMethodsRequireSpecificExpertise and not pciRRactivated:}}
+  <div
+    style="margin:  15px 0 0px;"
+    {{if not printable:}}
+    onclick="checkPanel('#menu-9','#icon-menu-9')"
+      class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
+    {{else:}}
+      class="pci2-flex-row pci2-flex-center"   
+    {{pass}}
+  >
+    <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
+      >Methods that require specific expertise</b
+    >
+    <hr
+      style="margin: 0 10px;"
+      class="pci2-main-color-hr pci2-flex-grow"
+    />
 
-{{if 'translations' in locals():}}
-  
+    {{if not printable:}}
+      <i id="icon-menu-9" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
+    {{pass}}
+  </div>
+
+  {{if not printable:}}
+    <div id="menu-9" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
+      {{=articleMethodsRequireSpecificExpertise}}
+    </div>
+  {{pass}}
+
+  {{if printable:}}
+    <div id="menu-9" class="pci2-abstract-div" style="margin-top: 15px;">
+      {{=articleMethodsRequireSpecificExpertise}}
+    </div>
+  {{pass}}
 {{pass}}
 
 

@@ -273,7 +273,8 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
             ("articleStage", articleStage),
             ("isRecommended", isRecommended),
             ("translations", _get_article_translation(article)),
-            ("Lang", Lang)
+            ("Lang", Lang),
+            ("articleMethodsRequireSpecificExpertise", article.methods_require_specific_expertise)
         ]
     )
     if article.data_doi and policy_2():
