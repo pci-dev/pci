@@ -1048,6 +1048,9 @@ def edit_article():
         db.t_articles.record_id_version.readable = True
         db.t_articles.record_id_version.writable = True
 
+        db.t_articles.methods_require_specific_expertise.readable = False
+        db.t_articles.methods_require_specific_expertise.writable = False
+
         if art.report_stage == "STAGE 2":
             db.t_articles.art_stage_1_id.readable = True
             db.t_articles.art_stage_1_id.writable = True
