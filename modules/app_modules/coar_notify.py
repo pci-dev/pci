@@ -10,14 +10,13 @@ import uuid
 import requests
 
 from gluon import current
+from gluon.html import URL
 from gluon.contrib.appconfig import AppConfig
 from app_modules.common_small_html import mkLinkDOI
 
 __all__ = ["COARNotifier"]
 
 logger = logging.getLogger(__name__)
-
-myconf = AppConfig(reload=True)
 
 
 @functools.lru_cache()
@@ -29,7 +28,7 @@ def _get_requests_session() -> requests.Session:
     For now, this method only provides for a custom User-Agent string so that remote
     services can identify the sender in logs."""
     session = requests.Session()
-    session.headers["User-Agent"] = f"pci ({myconf['coar_notify']['base_url'].strip()})"
+    session.headers["User-Agent"] = f"pci ({COARNotifier.base_url})"
     return session
 
 
@@ -46,16 +45,12 @@ class COARNotifier:
     See https://notify.coar-repositories.org/ for details of the COAR Notify community
     conventions.
     """
-    def __init__(self, db):
-        self.db = db
+    def __init__(self):
+        self.db = current.db
 
-    @functools.cached_property
-    def base_url(self):
-        return myconf["coar_notify"]["base_url"].strip()
+    base_url = URL("|", "|", scheme=True).replace("|/|", "")
 
-    @property
-    def enabled(self):
-        return myconf.get("coar_notify.enabled")
+    enabled = AppConfig().get("coar_notify.enabled")
 
     def send_notification(self, notification, article):
         """Send a notification to the target inbox (article.doi HTTP header).
@@ -259,13 +254,7 @@ def send_ack(self, typ: typing.Literal["TentativeAccept", "Reject"], article):
           "actor": {
             "id": self.base_url,
             "type": "Service",
-            #"name": "PCI coar Service",
           },
-          #"context": {
-          #  "id": "https://some-organisation.org/resource/0021",
-          #  "ietf:cite-as": "https://doi.org/10.4598/12123487",
-          #  "type": "Document"
-          #},
         }
 
     notification = self.add_base_notification_properties(notification, target_inbox)
