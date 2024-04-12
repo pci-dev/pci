@@ -1168,7 +1168,7 @@ def reviewers():
         return my_recommendations()
 
     if recomm:
-        article= db.t_articles[recomm.article_id]
+        article= Article.get_by_id(recomm.article_id)
         if article.user_id == auth.user_id:
             session.flash = auth.not_authorized()
             redirect(request.env.http_referer)
@@ -1254,14 +1254,23 @@ def reviewers():
         selfFlag = False
         selfFlagCancelled = False
         reviewersList, reviewersIds = _edit_reviewers(reviewersListSel, recomm)
+
+        content_el: List[DIV] = []
+        if not pciRRactivated and article.methods_require_specific_expertise:
+            content_el.append(H4(B('Methods that require specific expertise')))
+            content_el.append(article.methods_require_specific_expertise)
+
         if len(reviewersList) > 0:
-            myContents = DIV(
+            content_el.append(DIV(
                 BUTTON(H4(B("Reviewers already invited:", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
                 DIV(P(UL(reviewersList)),
-                _class="content2",
-                _style="width:100%; max-width: 1200px"))
+               )))
+        
+        if len(content_el) > 0:
+            my_content = DIV(*content_el, _class="content2", _style="width:100%; max-width: 1200px")
         else:
-            myContents = ""
+            my_content = ''
+
         longname = myconf.take("app.longname")
         tools_button = DIV(
             H5(B("Tools to help you find reviewers. Be careful not to invite any of the authors as reviewers, as their names can appear in search outputs.")),
@@ -1302,7 +1311,7 @@ def reviewers():
             titleIcon="search",
             pageTitle=getTitle(request, auth, db, "#RecommenderAddReviewersTitle"),
             myAcceptBtn=myAcceptBtn,
-            content=myContents,
+            content=my_content,
             prevContent=prevRoundHeader,
             suggested_reviewers_by_author=suggested_reviewers_by_author,
             suggested_reviewers_by_reviewers=suggested_reviewers_by_reviewers,
