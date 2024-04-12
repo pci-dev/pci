@@ -281,7 +281,7 @@
 {{pass}}  
 
 
-{{if articleMethodsRequireSpecificExpertise and not pciRRactivated:}}
+{{if 'articleMethodsRequireSpecificExpertise' in locals() and not pciRRactivated:}}
   <div
     style="margin:  15px 0 0px;"
     {{if not printable:}}

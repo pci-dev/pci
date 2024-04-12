@@ -461,7 +461,7 @@ def recommendations():
 
     response.title = art.title or myconf.take("app.longname")
 
-    recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
+    recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, True)
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
     
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
@@ -738,7 +738,7 @@ def manage_recommendations():
     if grid.element(_title="Add record to database"):
         grid.element(_title="Add record to database")[0] = T("Manually add new round")
         grid.element(_title="Add record to database")["_title"] = T("Manually add new round of recommendation. Expert use!!")
-    myContents = DIV(DIV(article_components.getArticleInfosCard(auth, db, response, art, False, False), _class="pci2-content-900px"), _class="pci2-full-width pci2-flex-center")
+    myContents = DIV(DIV(article_components.get_article_infos_card(auth, db, response, art, False, False), _class="pci2-content-900px"), _class="pci2-full-width pci2-flex-center")
 
     confirmationScript = common_tools.get_script("confirmation.js")
 
@@ -768,7 +768,7 @@ def search_recommenders():
         articleHeaderHtml = ""
     else:
         art = db.t_articles[articleId]
-        articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
+        articleHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, **article_components.for_search)
 
     excludeList = common_tools.get_exclude_suggested_recommender(auth, db, articleId)
     excluded_by_submitter_query = db(db.t_excluded_recommenders.article_id == articleId).select()
@@ -912,7 +912,7 @@ def suggested_recommenders():
         redirect(request.env.http_referer)
         return
 
-    articleHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, **article_components.for_search)
+    articleHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, **article_components.for_search)
 
     query = db.t_suggested_recommenders.article_id == articleId
     db.t_suggested_recommenders.article_id.readable = False

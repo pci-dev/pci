@@ -54,10 +54,10 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
 
     recomm_altmetric = ""
 
-    articleInfosCard = article_components.getArticleInfosCard(auth, db, response,
+    articleInfosCard = article_components.get_article_infos_card(auth, db, response,
             art, printable,
             with_version=pciRRactivated,
-            with_cover_letter=False, submittedBy=False, keywords=True)
+            with_cover_letter=False, submitted_by=False, keywords=True)
 
     headerContent.update([("articleInfosCard", articleInfosCard)])
 

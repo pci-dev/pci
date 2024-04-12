@@ -709,7 +709,7 @@ def invitation_to_review():
         redirect(URL(c='user_actions', f='decline_review',  vars=dict(reviewId=review.id, key=review.quick_decline_key)))
         return
     
-    recommHeaderHtml = cast(XML, article_components.getArticleInfosCard(auth, db, response, article, printable=False))
+    recommHeaderHtml = cast(XML, article_components.get_article_infos_card(auth, db, response, article, printable=False))
     response.view = "default/invitation_to_review.html"
 
     form = invitation_to_review_form(request, auth, db, article, user, review, more_delay)

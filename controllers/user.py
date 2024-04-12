@@ -153,9 +153,9 @@ def recommendations():
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
 
         if pciRRactivated and art.user_id != auth.user_id:
-            recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, False)
+            recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, False)
         else:
-            recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
+            recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, True)
 
         recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
@@ -1422,7 +1422,7 @@ def ask_to_review():
     dueTime = rev.review_duration.lower() if rev else 'three weeks'
     # FIXME: set parallel reviews default = three weeks (hardcoded) in user select form
 
-    recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, article, False, True)
+    recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, article, False, True)
 
     pageTitle = getTitle(request, auth, db, "#AskForReviewTitle")
     customText = getText(request, auth, db, "#AskForReviewText")

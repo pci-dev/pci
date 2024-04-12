@@ -2,7 +2,10 @@
 
 import gc
 import os
-from typing import Dict, Union
+from typing import Any, Dict, Union
+from gluon.globals import Response
+from models.group import Role
+from models.review import ReviewState
 import pytz, datetime
 from re import sub, match
 from copy import deepcopy
@@ -23,11 +26,13 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
+from pydal import DAL
+
 from app_modules import common_small_html
 from app_modules import common_tools
 from app_modules.common_small_html import md_to_html
 from app_modules.lang import Lang
-from models.article import Article
+from models.article import Article, ArticleStage, ArticleStatus
 
 
 myconf = AppConfig(reload=True)
@@ -185,35 +190,33 @@ class article_infocard_for_search_screens:
 for_search = article_infocard_for_search_screens().__dict__
 
 ######################################################################################################################################################################
-def getArticleInfosCard(auth, db, response, article: Article, printable,
-        with_cover_letter=True,
-        with_version=True,
-        submittedBy=True,
-        abstract=True,
-        keywords=False,
+def get_article_infos_card(auth: Auth, db: DAL, response: Response, article: Article, printable: bool,
+        with_cover_letter: bool = True,
+        with_version: bool = True,
+        submitted_by: bool = True,
+        abstract: bool = True,
+        keywords: bool = False,
     ):
-    ## NOTE: article facts
+
+    article_img = ""
     if article.uploaded_picture is not None and article.uploaded_picture != "":
         article_img = IMG(_alt="picture", _src=URL("static", "uploads", args=article.uploaded_picture))
-    else:
-        article_img = ""
-
+        
+    printable_class = ""
     if printable:
-        printableClass = "printable"
-    else:
-        printableClass = ""
+        printable_class = "printable"
 
-    articleStage = None
+    article_stage = None
     if pciRRactivated:
-        if article.art_stage_1_id is not None or article.report_stage == "STAGE 2":
-            articleStage = B(current.T("STAGE 2"))
+        if article.art_stage_1_id is not None or article.report_stage == ArticleStage.STAGE_2.value:
+            article_stage = B(current.T(ArticleStage.STAGE_2.value))
         else:
-            articleStage = B(current.T("STAGE 1"))
+            article_stage = B(current.T(ArticleStage.STAGE_1.value))
 
     # Scheduled submission
     doi_text = (common_small_html.mkDOI(article.doi)) if (article.doi) else SPAN("")
     if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
-      if article.status != "Recommended":
+      if article.status != ArticleStatus.RECOMMENDED.value:
         doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
 
     doi_button = A(SPAN(current.T("Read preprint in preprint server"), _class="btn btn-success"), _href=article.doi, _target="blank")
@@ -223,43 +226,29 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
     
 
     # info visibility policies
-    recomm = db(db.t_recommendations.article_id == article.id).select().last()
-    isRecommender = recomm and recomm.recommender_id == auth.user_id
-    isReviewer = db(
+    recommendation = Article.get_last_recommendation(article.id)
+    is_recommender = bool(recommendation and recommendation.recommender_id == auth.user_id)
+    is_reviewer = bool(db(
             (db.t_reviews.reviewer_id == auth.user_id) &
             (db.t_recommendations.article_id == article.id) &
             (db.t_reviews.recommendation_id == db.t_recommendations.id) &
-            (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))
-    ).count() > 0
-    isRecommended = article.status == "Recommended"
+            (db.t_reviews.review_state.belongs(ReviewState.AWAITING_REVIEW.value, ReviewState.REVIEW_COMPLETED.value))
+    ).count() > 0)
+    is_recommended_article = article.status == ArticleStatus.RECOMMENDED.value
 
-    if article.anonymous_submission and article.status != "Recommended" and not isRecommender:
+    if article.anonymous_submission and not is_recommended_article and not is_recommender:
         authors = "[anonymous submission]"
     else:
         authors = article.authors
 
-    def policy_1():
-        return (
-            auth.has_membership(role="manager") or
-            auth.has_membership(role="administrator")
-            or
-            isRecommender
-        )
+    policy_1 = bool(auth.has_membership(role=Role.MANAGER.value) or auth.has_membership(role=Role.ADMINISTRATOR.value) or (is_recommender and not is_recommended_article))
+    policy_2 = bool(policy_1 or is_reviewer or is_recommended_article)
 
-    def policy_2():
-        return (
-            policy_1()
-            or
-            isReviewer
-            or
-            isRecommended
-        )
-
-    articleContent = dict()
-    articleContent.update(
+    article_content: Dict[str, Any] = dict()
+    article_content.update(
         [
             ("articleVersion", SPAN(" " + current.T("version") + " " + article.ms_version) if with_version and article.ms_version else ""),
-            ("articleSource", I(make_article_source(article) if isRecommended else "")),
+            ("articleSource", I(make_article_source(article) if is_recommended_article else "")),
             ("articleId", article.id),
             ("articleImg", article_img),
             ("articleTitle", md_to_html(article.title) or ""),
@@ -268,56 +257,58 @@ def getArticleInfosCard(auth, db, response, article: Article, printable,
             ("doiButton", doi_button),
             ("article_altmetric", article_altmetric),
             ("printable", printable),
-            ("printableClass", printableClass),
+            ("printableClass", printable_class),
             ("pciRRactivated", pciRRactivated),
-            ("articleStage", articleStage),
-            ("isRecommended", isRecommended),
+            ("articleStage", article_stage),
+            ("isRecommended", is_recommended_article),
             ("translations", _get_article_translation(article)),
-            ("Lang", Lang),
-            ("articleMethodsRequireSpecificExpertise", article.methods_require_specific_expertise)
+            ("Lang", Lang)
         ]
     )
-    if article.data_doi and policy_2():
+    if article.data_doi and policy_2:
         article_data_doi = common_small_html.fetch_url(article.data_doi)
-        articleContent.update([("dataDoi", UL(article_data_doi) if (article_data_doi) else SPAN(""))])
+        article_content.update([("dataDoi", UL(article_data_doi) if (article_data_doi) else SPAN(""))])
 
-    if article.scripts_doi and policy_2():
+    if article.scripts_doi and policy_2:
         article_script_doi = common_small_html.fetch_url(article.scripts_doi)
-        articleContent.update([("scriptDoi", UL(article_script_doi) if (article_script_doi) else SPAN(""))])
+        article_content.update([("scriptDoi", UL(article_script_doi) if (article_script_doi) else SPAN(""))])
 
-    if article.codes_doi and policy_2():
+    if article.codes_doi and policy_2:
         article_code_doi = common_small_html.fetch_url(article.codes_doi)
-        articleContent.update([("codeDoi", UL(article_code_doi) if (article_code_doi) else SPAN(""))])
+        article_content.update([("codeDoi", UL(article_code_doi) if (article_code_doi) else SPAN(""))])
 
-    if article.suggest_reviewers and policy_1():
+    if article.suggest_reviewers and policy_1:
         suggested_by_author = common_tools.separate_suggestions(article.suggest_reviewers)[0]
         if len(suggested_by_author) > 0:
-            articleContent.update([("suggestReviewers", UL(suggested_by_author or "", safe_mode=False))]) if not isRecommended else None
+            article_content.update([("suggestReviewers", UL(suggested_by_author or "", safe_mode=False))]) if not is_recommended_article else None
 
-    if article.competitors and policy_1():
-        articleContent.update([("competitors", UL(article.competitors or "", safe_mode=False))]) if not isRecommended else None
+    if article.competitors and policy_1:
+        article_content.update([("competitors", UL(article.competitors or "", safe_mode=False))]) if not is_recommended_article else None
 
     if abstract:
-        articleContent.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=False))])
+        article_content.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=''))])
 
-    if with_cover_letter and article.cover_letter is not None and not article.already_published and policy_1():
-        articleContent.update([("coverLetter", WIKI(article.cover_letter or "", safe_mode=False))])
+    if with_cover_letter and article.cover_letter is not None and not article.already_published and policy_1:
+        article_content.update([("coverLetter", WIKI(article.cover_letter or "", safe_mode=''))])
 
-    if submittedBy:
-        articleContent.update([("submittedBy", common_small_html.getArticleSubmitter(auth, db, article))])
+    if submitted_by:
+        article_content.update([("submittedBy", common_small_html.getArticleSubmitter(auth, db, article))])
     
     if keywords:
-        articleContent.update([("articleKeywords", article.keywords)])
+        article_content.update([("articleKeywords", article.keywords)])
+
+    if article.methods_require_specific_expertise and policy_1:
+        article_content.update([("articleMethodsRequireSpecificExpertise", article.methods_require_specific_expertise)])
 
     if article.doi_of_published_article:
         button_text = "Now published in a journal"
         if "10.24072/pcjournal" in article.doi_of_published_article:
             button_text = "Now published in Peer Community Journal"
             
-        articleContent.update([("publishedDoi",  A(
+        article_content.update([("publishedDoi",  A(
                 SPAN(current.T(button_text), _class="btn btn-success"),
                 _href=article.doi_of_published_article, _target="blank"))])
-    return XML(response.render("components/article_infos_card.html", articleContent))
+    return XML(response.render("components/article_infos_card.html", article_content))
 
 
 def _get_article_translation(article: Article):
