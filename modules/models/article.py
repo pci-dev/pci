@@ -15,6 +15,12 @@ from app_modules.lang import Lang
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
+
+class ArticleStage(Enum):
+    STAGE_1 = 'STAGE 1'
+    STAGE_2 = 'STAGE 2'
+
+
 class ArticleStatus(Enum):
     NOT_CONSIDERED = 'Not considered' # Not considered
     PRE_RECOMMENDED = 'Pre-recommended' # Recommendation pending validation
@@ -86,11 +92,11 @@ class Article(Row):
     record_id_version: _[str]
     has_manager_in_authors: _[bool]
     results_based_on_data: _[str]
-    data_doi: _[str]
+    data_doi: _[List[str]]
     scripts_used_for_result: _[str]
-    scripts_doi: _[str]
+    scripts_doi: _[List[str]]
     codes_used_in_study: _[str]
-    codes_doi: _[str]
+    codes_doi: _[List[str]]
     suggest_reviewers: _[List[str]]
     competitors: _[List[str]]
     doi_of_published_article: _[str]
