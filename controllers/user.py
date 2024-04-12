@@ -500,8 +500,6 @@ def fill_new_article():
         db.t_articles.sub_thematics.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
         db.t_articles.keywords.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
-        db.t_articles.methods_require_specific_expertise.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
-
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
@@ -551,10 +549,10 @@ def fill_new_article():
         fields += ["sub_thematics"]
 
     fields += ["keywords"]
-    fields += ["methods_require_specific_expertise"]
 
     if not pciRRactivated:
         fields += [
+            "methods_require_specific_expertise",
             "suggest_reviewers",
             "competitors" 
     ]
@@ -722,7 +720,6 @@ def edit_my_article():
         db.t_articles.sub_thematics.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
         db.t_articles.keywords.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
-        db.t_articles.methods_require_specific_expertise.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
@@ -777,10 +774,10 @@ def edit_my_article():
             fields += ["sub_thematics"]
 
         fields += ["keywords"]
-        fields += ["methods_require_specific_expertise"]
 
         if not pciRRactivated:
             fields += [
+                "methods_require_specific_expertise",
                 "suggest_reviewers",
                 "competitors" 
             ]
