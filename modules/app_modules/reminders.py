@@ -86,6 +86,7 @@ _reminders = {
     "ReminderSubmitterNewSuggestedRecommenderNeeded": [10],
     "ReminderSubmitterRevisedVersionWarning": [7],
     "ReminderSubmitterRevisedVersionNeeded": [60, 90],
+    "ReminderUserCompleteSubmission": [2, 10],
 
     "ReminderSuggestedRecommenderInvitation": [5, 9],
     "ReminderRecommender2ReviewsReceivedCouldMakeDecision": weekly(3, 15),
@@ -169,6 +170,7 @@ def getReminder(hashtag_template: str, review: Review):
     hash_temp = hash_temp.replace("Stage1", "")
     hash_temp = hash_temp.replace("Stage2", "")
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
+    hash_temp = hash_temp.replace("COAR", "")
 
     if hash_temp in _review_reminders:
         if review:

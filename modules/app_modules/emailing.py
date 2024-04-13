@@ -2249,24 +2249,13 @@ def create_reminder_for_submitter_cancel_submission(session, auth, db, articleId
 
 ######################################################################################################################################################################
 def create_reminder_for_submitter_revised_version_warning(session, auth, db, articleId):
-    mail_vars = emailing_tools.getMailCommonVars()
+    _create_reminder_for_submitter_revised_version(articleId, "#ReminderSubmitterRevisedVersionWarning")
 
-    article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
-
-    if article and recomm:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
-        mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
-        mail_vars["ccAddresses"] = db.auth_user[recomm.recommender_id]["email"]
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
-
-        hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterRevisedVersionWarning", article)
-
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId)
-
-
-######################################################################################################################################################################
 def create_reminder_for_submitter_revised_version_needed(session, auth, db, articleId):
+    _create_reminder_for_submitter_revised_version(articleId, "#ReminderSubmitterRevisedVersionNeeded")
+
+def _create_reminder_for_submitter_revised_version(articleId, email_template):
+    db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2278,9 +2267,19 @@ def create_reminder_for_submitter_revised_version_needed(session, auth, db, arti
         mail_vars["ccAddresses"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
 
-        hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterRevisedVersionNeeded", article)
+        hashtag_template = emailing_tools.getCorrectHashtag(email_template, article)
+        if article.coar_notification_id:
+            hashtag_template += "COAR" # i.e. #ReminderSubmitterRevisedVersionWarningCOAR / NeededCOAR
+            mail_vars["message"] = get_original_submitter_awaiting_submission_email(article)
 
         emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId)
+
+
+def get_original_submitter_awaiting_submission_email(article):
+    template = "#SubmitterAwaitingSubmissionCOAR"
+    emails = MailQueue.get_by_article_and_template(article, template)
+    if emails:
+        return MailQueue.get_mail_content(emails.first())
 
 
 ######################################################################################################################################################################
@@ -2437,7 +2436,12 @@ def delete_reminder_for_submitter(db, hashtag_template, articleId):
     if article and article.user_id is not None:
         submitter_mail = db.auth_user[article.user_id]["email"]
 
+        if article.coar_notification_id and (
+                "#ReminderSubmitterRevisedVersion" in hashtag_template):
+            hashtag_template += "COAR"
+
         db((db.mail_queue.dest_mail_address == submitter_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.article_id == articleId)).delete()
+
         if pciRRactivated:
             hashtag_template_rr = hashtag_template + "Stage"
             db(
@@ -3188,6 +3192,7 @@ def send_to_coar_requester(session, auth, db, user, article):
     hashtag_template = "#UserCompleteSubmissionCOAR"
 
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, article_id=article.id)
+    create_reminder_user_complete_submission(article)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
     emailing_tools.getFlashMessage(session, reports)
@@ -3212,6 +3217,24 @@ def send_to_coar_resubmitter(session, auth, db, user, article):
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
     emailing_tools.getFlashMessage(session, reports)
+
+
+def create_reminder_user_complete_submission(article):
+    db, auth = current.db, current.auth
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars["destAddress"] = User.get_by_id(article.user_id).email
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["message"] = MailQueue.get_mail_content(
+            MailQueue.get_by_article_and_template(article, "#UserCompleteSubmissionCOAR").first())
+
+    hashtag_template = "#ReminderUserCompleteSubmissionCOAR"
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+
 
 ######################################################################################################################################################################
 def check_mail_queue(db, hashtag, reviewer_mail, recomm_id):
