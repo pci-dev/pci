@@ -2,12 +2,15 @@ from __future__ import annotations # for self-ref param type Post in save_posts_
 from datetime import datetime
 from enum import Enum
 import re
+import string
 from typing import List, Optional as _, cast
+from gluon.html import TAG
 from models.pdf import PDF
 from models.press_reviews import PressReview
 from models.user import User
 from pydal.objects import Row
 from gluon import current
+
 
 class RecommendationState(Enum):
     REJECTED = 'Rejected'
@@ -109,3 +112,26 @@ class Recommendation(Row):
         regex = re.search("([0-9]+$)", recommendation.recommendation_doi or "", re.IGNORECASE)
         if regex:
             return regex.group(1)
+
+
+    @staticmethod
+    def get_references(recommendation: Recommendation):
+        recommendation_text = recommendation.recommendation_comments or ''
+        references: List[str] = []
+        start_reference = False
+        lines = recommendation_text.splitlines() 
+        for line in lines:
+            try:
+                line_text = str(TAG(line).flatten().lower().strip()) # type: ignore
+            except:
+                line_text = line
+            line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+
+            if start_reference:
+                if len(line_text) > 0:
+                    references.append(line)
+            else:
+                if line_text in ['reference', 'references']:
+                    start_reference = True
+
+        return references
