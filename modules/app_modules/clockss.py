@@ -3,18 +3,23 @@ import os
 import ftplib
 import pathlib
 import shutil
+import string
 from typing import Any, Dict, List, Optional
+
 from app_components.ongoing_recommendation import getRecommendationProcess
 from app_modules.html_to_latex import HtmlToLatex
 from app_modules.common_small_html import build_citation, mkSimpleDOI
 from models.article import Article
-import zipfile as z
+from models.review import Review
 from models.recommendation import Recommendation
 from app_modules import crossref
 from app_modules import common_tools
+
+from gluon.html import TAG
 from gluon.contrib.appconfig import AppConfig
 from gluon import current
-from models.review import Review
+
+import zipfile as z
 import lxml.html
 import lxml.etree
 
@@ -128,7 +133,7 @@ class Clockss:
             tree: ... = lxml.html.parse(StringIO(str(round)), parser=html_parser) # type: ignore
             root = tree.getroot()
 
-            round_number = root.xpath('//h2[@class="pci2-revision-round-title"]//b[@class="pci2-main-color-text"]/text()')
+            round_number: str = root.xpath('//h2[@class="pci2-revision-round-title"]//b[@class="pci2-main-color-text"]/text()')
             if round_number and len(round_number) > 0:
                 round_number = round_number[0].replace('#', '')
                 latex_code.append(f"\\subsection*{{Round {round_number}}}")
@@ -137,14 +142,15 @@ class Clockss:
 
             author_reply = root.xpath('//h4[@id="author-reply"]/following-sibling::div/div')
             if author_reply and len(author_reply) > 0:
-                author_reply: ... = lxml.html.tostring(author_reply[0]).decode('utf-8') # type: ignore
+                author_reply = str(lxml.html.tostring(author_reply[0]).decode('utf-8')) # type: ignore
                 author_reply = self._html_to_latex.convert(author_reply)
                 latex_code.append(f"\\subsubsection*{{Authors' response}}")
                 latex_code.append(f"{author_reply}")
             
             recommender_decision = root.xpath('//div[@class="pci2-recomm-text"]')
             if recommender_decision and len(recommender_decision) > 0:
-                recommender_decision: ... = lxml.html.tostring(recommender_decision[0]).decode('utf-8') # type: ignore
+                recommender_decision = str(lxml.html.tostring(recommender_decision[0]).decode('utf-8')) # type: ignore
+                recommender_decision = self._remove_references_in_recommendation_decision(recommender_decision)
                 recommender_decision = self._html_to_latex.convert(recommender_decision)
                 latex_code.append(f"\\subsubsection*{{Decision by {{\\recommender}}}}")
                 latex_code.append(recommender_decision)
@@ -170,6 +176,26 @@ class Clockss:
         return template.replace(f"[[{var_title.upper()}]]", "\n".join(latex_code))
 
 
+    def _remove_references_in_recommendation_decision(self, recommendation_decision: str):
+        recommendation_comments = recommendation_decision
+        recommendation_text: List[str] = []
+
+        lines = recommendation_comments.splitlines()
+        for line in lines:
+            try:
+                line_text = str(TAG(line).flatten().lower().strip()) # type: ignore
+            except:
+                line_text = line
+            line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+
+            if line_text in ['reference', 'references']:
+                break
+            
+            recommendation_text.append(line)
+
+        return '\n'.join(recommendation_text)
+    
+
     def _replace_var_in_template(self, var_title: str, var_content: Optional[Any], template: str, latex_format: bool = False):
         content = str(var_content) or f"Missing {var_title.lower()}"
         if not latex_format:
@@ -178,11 +204,7 @@ class Clockss:
     
 
     def _replace_list_references_in_template(self, var_title: str, template: str):
-        references: List[str] = []
-        if self._article.data_doi and len(self._article.data_doi) > 0:
-            references.extend(self._article.data_doi)
-        if self._recommendation.recommendation_comments:
-            references.extend(common_tools.get_urls_in_string(self._recommendation.recommendation_comments))
+        references: List[str] = Recommendation.get_references(self._recommendation)
 
         if len(references) == 0:
             return self._replace_var_in_template(var_title, 'No references', template)
@@ -190,7 +212,8 @@ class Clockss:
         i = 1
         content: List[str] = [r'\begin{itemize}']
         for reference in references:
-            content.append(f"\\item[]{{}}[{i}] \\url{{{reference}}}")
+            reference = self._html_to_latex.convert(reference)
+            content.append(f"\\item[]{{}}[{i}] {reference}")
             i += 1
         content.append(r'\end{itemize}')
         return self._replace_var_in_template(var_title, '\n'.join(content), template, True)
@@ -230,6 +253,7 @@ class Clockss:
         #delete files after upload
         shutil.rmtree(self.attachments_dir)
         os.remove(filename)
+
 
     def _clokss_ftp(self):
         if self.CLOCKSS_SERVER and self.CLOCKSS_USERNAME and self.CLOCKSS_PASSWORD:
