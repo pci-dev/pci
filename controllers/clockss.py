@@ -1,5 +1,5 @@
 from typing import cast
-from app_modules.clockss import ClockssUpload
+from app_modules.clockss import Clockss
 import os
 
 from gluon.globals import Request
@@ -32,7 +32,7 @@ def post_form():
     if not recommendation.recommendation_title:
         return error("recommendation: no title (not recommended)")
 
-    clockss = ClockssUpload(article)
+    clockss = Clockss(article)
 
     controller = "clockss"
     disabled: bool = False

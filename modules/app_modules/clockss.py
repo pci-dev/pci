@@ -22,7 +22,7 @@ import lxml.etree
 myconf = AppConfig(reload=True)
 
 
-class ClockssUpload:
+class Clockss:
 
     CLOCKSS_SERVER = str(myconf.take("clockss.server"))
     CLOCKSS_USERNAME = str(myconf.take("clockss.username"))
