@@ -178,12 +178,8 @@ $(".btn-primary").on("click", function() {
 });
 
 
-function initUrlListStringField() {
+function initUrlListStringField(mutationsList, observer) {
   document.querySelectorAll('input[name="data_doi"],input[name="scripts_doi"],input[name="codes_doi"]').forEach((input) => {
-    
-    document.querySelectorAll('.input-group-addon').forEach((button) => {
-      button.addEventListener('click', initUrlListStringField)
-    });
 
     if (input.value != null && input.value.length > 0) {
       return;
@@ -198,3 +194,6 @@ document.querySelectorAll('input[type="radio"]').forEach((radioInput) => {
 });
 
 initUrlListStringField();
+
+const observer = new MutationObserver(initUrlListStringField);
+observer.observe(document.body, { childList: true, subtree: true });
