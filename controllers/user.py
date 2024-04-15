@@ -27,7 +27,7 @@ from app_modules.article_translator import ArticleTranslator
 from gluon.http import redirect
 
 from models.review import Review, ReviewState
-from models.article import Article, TranslatedFieldType
+from models.article import Article, TranslatedFieldType, clean_vars_doi, clean_vars_doi_list
 from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
 
@@ -600,6 +600,12 @@ def fill_new_article():
             app_forms.checklist_validation(form)
         if pciRRactivated:
             form.vars.status = "Pending-survey"
+
+        form.vars.doi = clean_vars_doi(form.vars.doi)
+        form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
+        form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
+        form.vars.scripts_doi = clean_vars_doi_list(form.vars.scripts_doi)
+
     if form.process(onvalidation=onvalidation).accepted:
         articleId = form.vars.id
         if pciRRactivated:
