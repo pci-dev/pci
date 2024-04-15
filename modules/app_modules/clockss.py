@@ -98,7 +98,8 @@ class Clockss:
 
         simple_variables: Dict[str, Any] = {
             'ARTICLE_AUTHORS': self._article.authors,
-            'ARTICLE_ABSTRACT': self._article.abstract,
+            'ARTICLE_TITLE': self._article.title,
+            'RECOMMENDATION_ABSTRACT': self._remove_references_in_recommendation_decision(self._recommendation.recommendation_comments or ''),
             'ARTICLE_YEAR': self._article.article_year,
             'ARTICLE_VERSION': self._article.ms_version,
             'ARTICLE_COVER_LETTER': self._article.cover_letter,
@@ -125,6 +126,8 @@ class Clockss:
         recommendation_process: Any = getRecommendationProcess(current.auth, current.db, current.response, self._article)
         recommendation_process = recommendation_process.components[0]
         latex_code: List[str] = []
+        first_round = True
+
         for round in recommendation_process.components:
             if not round:
                 continue
@@ -132,11 +135,12 @@ class Clockss:
             html_parser = lxml.html.HTMLParser(encoding='utf-8', remove_comments=True)
             tree: ... = lxml.html.parse(StringIO(str(round)), parser=html_parser) # type: ignore
             root = tree.getroot()
+            latex_round: List[str] = []
 
             round_number: str = root.xpath('//h2[@class="pci2-revision-round-title"]//b[@class="pci2-main-color-text"]/text()')
             if round_number and len(round_number) > 0:
                 round_number = round_number[0].replace('#', '')
-                latex_code.append(f"\\subsection*{{Round {round_number}}}")
+                latex_round.append(f"\\subsection*{{Round {round_number}}}")
             else:
                 continue
 
@@ -144,20 +148,20 @@ class Clockss:
             if author_reply and len(author_reply) > 0:
                 author_reply = str(lxml.html.tostring(author_reply[0]).decode('utf-8')) # type: ignore
                 author_reply = self._html_to_latex.convert(author_reply)
-                latex_code.append(f"\\subsubsection*{{Authors' response}}")
-                latex_code.append(f"{author_reply}")
+                latex_round.append(f"\\subsubsection*{{Authors' response}}")
+                latex_round.append(f"{author_reply}")
             
             recommender_decision = root.xpath('//div[@class="pci2-recomm-text"]')
-            if recommender_decision and len(recommender_decision) > 0:
+            if recommender_decision and len(recommender_decision) > 0 and not first_round:
                 recommender_decision = str(lxml.html.tostring(recommender_decision[0]).decode('utf-8')) # type: ignore
                 recommender_decision = self._remove_references_in_recommendation_decision(recommender_decision)
                 recommender_decision = self._html_to_latex.convert(recommender_decision)
-                latex_code.append(f"\\subsubsection*{{Decision by {{\\recommender}}}}")
-                latex_code.append(recommender_decision)
+                latex_round.append(f"\\subsubsection*{{Decision by {{\\recommender}}}}")
+                latex_round.append(recommender_decision)
 
             reviews = root.xpath('//div[@class="review"]')
             if len(reviews) > 0:
-                latex_code.append("\\subsubsection*{{Reviews}}")
+                latex_round.append("\\subsubsection*{{Reviews}}")
                 
             for review in reviews:
                 review_author = review.xpath('h4/span/text()')
@@ -170,9 +174,14 @@ class Clockss:
                 if review_content and len(review_content) > 0:
                     review_content: ... = lxml.html.tostring(review_content[0]).decode('utf-8') # type: ignore
                     review_content = self._html_to_latex.convert(review_content)
-                    latex_code.append(f"\\subsubsection*{{Review by {review_author}}}")
-                    latex_code.append(review_content)
+                    latex_round.append(f"\\subsubsection*{{Review by {review_author}}}")
+                    latex_round.append(review_content)
             
+            if len(latex_round) > 1:
+                latex_code.extend(latex_round)
+                
+            first_round = False
+
         return template.replace(f"[[{var_title.upper()}]]", "\n".join(latex_code))
 
 
