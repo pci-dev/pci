@@ -52,7 +52,7 @@ from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
 from gluon.http import redirect
 
-from models.article import ArticleStatus
+from models.article import ArticleStatus, clean_vars_doi, clean_vars_doi_list
 from models.user import User
 from models.membership import Membership
 
@@ -1120,6 +1120,11 @@ def edit_article():
             if not prev_picture and form.vars.uploaded_picture == b"":
                 form.errors.uploaded_picture = not_empty.error_message
             app_forms.checklist_validation(form)
+
+        form.vars.doi = clean_vars_doi(form.vars.doi)
+        form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
+        form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
+        form.vars.scripts_doi = clean_vars_doi_list(form.vars.scripts_doi)
 
     if form.process(onvalidation=onvalidation).accepted:
         if form.vars.abstract != art.abstract or form.vars.title != art.title or form.vars.keywords != art.keywords:

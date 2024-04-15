@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+import re
 from typing import Any, List, Optional as _, cast, TypedDict
 from gluon.tools import Auth
 from models.group import Role
@@ -241,3 +242,27 @@ def is_scheduled_submission(article: Article) -> bool:
             and article.t_recommendations.count() == 1
         )
     )
+
+
+def clean_vars_doi_list(var_doi: _[List[str]]):
+    new_var_doi: List[str] = []
+    if var_doi is None:
+        return
+
+    for el in var_doi:
+        value = clean_vars_doi(el)
+        if not value:
+            continue
+        new_var_doi.append(el)
+    return new_var_doi
+
+
+def clean_vars_doi(var_doi: _[str]):
+    if var_doi is None:
+        return
+
+    value = var_doi.lower().strip()
+    if re.match(r'^https?:?\/?\/?$', value):
+        return ''
+    else:
+        return var_doi
