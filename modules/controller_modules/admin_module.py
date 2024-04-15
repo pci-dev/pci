@@ -55,6 +55,7 @@ def set_as_recommender(ids, auth, db):
 
 ######################################################################################################################################################################
 def recommLatex(articleId, tmpDir, withHistory=False):
+    db, auth, request = current.db, current.auth, current.request
     print("******************************************************", withHistory)
     art = db.t_articles[articleId]
     if art == None:
@@ -243,9 +244,6 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
 \\end{document}
 
 """
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = latex_escape(myconf.take("app.description"))
     logo = os.path.normpath(os.path.join(request.folder, "static", "images", "background.png"))
     smalllogo = os.path.normpath(os.path.join(request.folder, "static", "images", "small-background.png"))
@@ -256,7 +254,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
     Atitle = latex_escape(art.title)
     Aauthors = latex_escape(art.authors)
     lastRecomm = db.get_last_recomm(articleId)
-    recommds = mkRecommendersList(auth, db, lastRecomm)
+    recommds = mkRecommendersList(lastRecomm)
     n = len(recommds)
     recommenders = "\n"
     cpt = 1
@@ -287,7 +285,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
         emailRecomm = ""
     doi = latex_escape(art.doi)
     doiLink = common_small_html.mkLinkDOI(art.doi)
-    siteUrl = URL(c="default", f="index", scheme=scheme, host=host, port=port)
+    siteUrl = URL(c="default", f="index", scheme=True)
     bib = recommBibtex(articleId)
     # fd, bibfile = tempfile.mkstemp(suffix='.bib')
     # bibfile = "/tmp/sample.bib"
@@ -316,7 +314,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
             x = latex_escape("Revision round #%s" % roundNb)
             history += "\\subsection*{%s}\n" % x
             # roundRecommender = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-            whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+            whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=False)
             # Decision if not last recomm
             if iRecomm > 1:
                 history += "\\subsubsection*{Decision by %s}\n" % SPAN(whoDidIt).flatten()
@@ -382,6 +380,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
 
 
 def recommBibtex(articleId):
+    db, auth = current.db, current.auth
     art = db.t_articles[articleId]
     if art == None:
         session.flash = T("Unavailable")
@@ -408,7 +407,7 @@ def recommBibtex(articleId):
     doi = latex_escape(lastRecomm.doi)
     applongname = latex_escape(myconf.take("app.description"))
     whoDidIt = latex_escape(
-        SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)).flatten()
+        SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=False, linked=False)).flatten()
     )
     year = art.last_status_change.year
     pat = re.search("\\.(?P<num>\d+)$", doi)
@@ -426,6 +425,7 @@ def recommBibtex(articleId):
 
 ######################################################################################################################################################################
 def frontPageLatex(articleId):
+    db, auth, request = current.db, current.auth, current.request
     art = db.t_articles[articleId]
     if art == None:
         session.flash = T("Unavailable")
@@ -575,21 +575,18 @@ dashed=false
 \\end{document}
 
 """
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
     applongname = myconf.take("app.description")
     logo = os.path.normpath(os.path.join(request.folder, "static", "images", "background.png"))
     logoOA = os.path.normpath(os.path.join(request.folder, "static", "images", "Open_Access_logo_PLoS_white_blue.png"))
     title = art.title
     authors = art.authors
     whoDidIt = latex_escape(
-        SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=True, linked=False, host=host, port=port, scheme=scheme)).flatten()
+        SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=True, linked=False)).flatten()
     )
     reviewers = ""
     doi = art.doi
     doiLink = common_small_html.mkLinkDOI(art.doi)
-    siteUrl = URL(c="default", f="index", scheme=scheme, host=host, port=port)
+    siteUrl = URL(c="default", f="index", scheme=True)
     bib = recommBibtex(articleId)
     # fd, bibfile = tempfile.mkstemp(suffix='.bib')
     # with os.fdopen(fd, 'w') as tmp:
@@ -621,11 +618,12 @@ def mkRecommendationFormat2(auth, db, row):
 
 
 ######################################################################################################################################################################
-def mkRecommendersList(auth, db, recomm):
-    recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+def mkRecommendersList(recomm):
+    db, auth = current.db, current.auth
+    recommenders = [common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()]
     contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
     for contrib in contribsQy:
-        recommenders.append(mkUser(auth, db, contrib.contributor_id).flatten())
+        recommenders.append(common_small_html.mkUser(auth, db, contrib.contributor_id).flatten())
     return recommenders
 
 
