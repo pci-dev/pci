@@ -147,11 +147,6 @@ check.static:
 	@git diff --stat `git describe --tag --abbrev=0` \
 	| grep static/ || echo "no update needed"
 
-update.deps:
-	if [ "$$PKG" ]; then pip install --upgrade $$PKG; fi
-	pip-compile 2>/dev/null
-	git diff requirements.txt
-
 build:
 	docker build -t pci .
 
