@@ -153,9 +153,9 @@ def recommendations():
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
 
         if pciRRactivated and art.user_id != auth.user_id:
-            recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, False)
+            recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, False)
         else:
-            recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, art, printable, True)
+            recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, True)
 
         recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
@@ -500,7 +500,6 @@ def fill_new_article():
         db.t_articles.sub_thematics.requires = [IS_NOT_EMPTY(), IS_LENGTH(512, 0)]
         db.t_articles.cover_letter.requires = IS_NOT_EMPTY()
         db.t_articles.keywords.requires = [IS_NOT_EMPTY(), IS_LENGTH(4096, 0)]
-
     else:
         db.t_articles.report_stage.readable = False
         db.t_articles.report_stage.writable = False
@@ -553,6 +552,7 @@ def fill_new_article():
 
     if not pciRRactivated:
         fields += [
+            "methods_require_specific_expertise",
             "suggest_reviewers",
             "competitors" 
     ]
@@ -777,6 +777,7 @@ def edit_my_article():
 
         if not pciRRactivated:
             fields += [
+                "methods_require_specific_expertise",
                 "suggest_reviewers",
                 "competitors" 
             ]
@@ -828,6 +829,7 @@ def edit_my_article():
             fields += ["sub_thematics"]
 
         fields += ["keywords"]
+        fields += ["methods_require_specific_expertise"]
 
         if not pciRRactivated:
             fields += [
@@ -1153,6 +1155,7 @@ def my_articles():
     if len(request.args) == 0:  # in grid
         db.t_articles.abstract.readable = False
         db.t_articles.keywords.readable = False
+        db.t_articles.methods_require_specific_expertise.readable = False
         db.t_articles.thematics.readable = False
         db.t_articles.upload_timestamp.readable = False
         db.t_articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(text)
@@ -1180,6 +1183,7 @@ def my_articles():
             db.t_articles.ms_version,
             db.t_articles.thematics,
             db.t_articles.keywords,
+            db.t_articles.methods_require_specific_expertise,
             db.t_articles.auto_nb_recommendations,
         ]
     grid = SQLFORM.grid(
@@ -1418,7 +1422,7 @@ def ask_to_review():
     dueTime = rev.review_duration.lower() if rev else 'three weeks'
     # FIXME: set parallel reviews default = three weeks (hardcoded) in user select form
 
-    recommHeaderHtml = article_components.getArticleInfosCard(auth, db, response, article, False, True)
+    recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, article, False, True)
 
     pageTitle = getTitle(request, auth, db, "#AskForReviewTitle")
     customText = getText(request, auth, db, "#AskForReviewText")

@@ -883,7 +883,7 @@ def getRecommAndReviewAuthors(auth: Auth,
 
 
 ######################################################################################################################################################################
-def getArticleSubmitter(auth, db, art):
+def getArticleSubmitter(auth: Auth, db: DAL, art: Article):
     class FakeSubmitter(object):
         id = None
         first_name = ""
@@ -987,8 +987,8 @@ def mkRecommenderandContributorList(records: List[Union[Recommendation, PressRev
         result.append(result_dict)
     return result
 ######################################################################################################################################
-def fetch_url(data):
-    result = []
+def fetch_url(data: List[str]):
+    result: List[DIV] = []
     for doi in data:
         url = mkDOI(doi)
         result.append(url)
