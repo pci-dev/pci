@@ -7,6 +7,7 @@ from app_modules.helper import *
 from app_modules import crossref
 from app_modules.hypothesis import Hypothesis
 from app_modules.article_translator import ArticleTranslator
+from app_modules.clockss import send_to_clockss
 from gluon.contrib.appconfig import AppConfig
 from gluon.http import redirect
 from gluon.storage import Storage
@@ -116,8 +117,6 @@ def do_recommend_article():
         art.update_record()
         redirect(redir_url)
     elif art.status == "Pre-recommended":
-        crossref.post_and_forget(recomm)
-
         art.status = "Recommended"
         recomm.validation_timestamp = request.now
         recomm.update_record()
@@ -127,7 +126,10 @@ def do_recommend_article():
     if not pciRRactivated:
         Hypothesis(art).post_annotation()
     
-    crossref.post_and_forget(recomm)
+    status = crossref.post_and_forget(recomm)
+    if not status:
+        send_to_clockss(art, recomm)
+    
     redirect(redir_url)
 
 
