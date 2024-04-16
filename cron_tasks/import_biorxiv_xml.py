@@ -17,12 +17,14 @@ XML_FOLDER = str(myconf.get("ftp.biorxiv"))
 def main():
      application = str(current.request.application)
 
-     for xml_file in os.listdir(XML_FOLDER):
+     for xml_file_name in os.listdir(XML_FOLDER):
+          xml_file = os.path.join(XML_FOLDER, xml_file_name)
+
           dest_app = get_destination_application(xml_file)
           if dest_app != application:
                continue
           
-          xml_jats_parser = XMLJATSParser(f"{XML_FOLDER}/{xml_file}")
+          xml_jats_parser = XMLJATSParser(xml_file)
           
           user = add_author_in_db(xml_jats_parser.article.authors)
           if not user:
@@ -33,6 +35,9 @@ def main():
                raise(Exception("Unable to create article"))
 
           emailing.send_to_coar_requester(current.session, current.auth, current.db, user, article)
+          os.remove(xml_file)
+
+          
 
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
