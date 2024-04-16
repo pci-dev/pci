@@ -241,7 +241,7 @@ class OrcidAPI:
             address = cast(Dict[str, Any], addresses[0])
             country_code = cast(Optional[str], sget(address, 'country', 'value'))
             if country_code and len(country_code) > 0:
-                country_value = Country[country_code].value
+                country_value = Country.get_by_code(country_code).value
         return country_value
 
 
