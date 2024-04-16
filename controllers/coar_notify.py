@@ -385,13 +385,17 @@ def show_coar_status():
 
 
 def show_coar_requests():
-    text = "\n".join([(
-            '<tt %s>[%s]</tt> <tt>%s</tt> = ' +
-            '<a href="%s">%s</a> / ' +
-            '<a href="%s">%s</a> / ' +
-            '<a href="%s">%s</a>') % (
+    text = "\n".join([ " / ".join([
+            '<tt %s>[%s]</tt>',
+            '<tt>%s</tt>',
+            '<tt>%s</tt>',
+            '<a href="%s">%s</a>',
+            '<a href="%s">%s</a>',
+            '<a href="%s">%s</a>',
+            ]) % (
             get_status_display(x.http_status or 200),
             x.id,
+            get_article_link(x),
             x.created,
             x.inbox_url,
             x.direction,
@@ -429,6 +433,15 @@ def get_status_display(status):
                 "background-color:orange",
                 f"error: {status} = {errors.get(status, '?')}",
         ) if status >= 400 else ""
+
+
+def get_article_link(notif):
+    article = get_article_by_coar_req_id(notif.coar_id)
+    if article:
+        link = URL("manager", f"recommendations?articleId={article.id}")
+        return f'<a href="{link}">#{article.id}</a>'
+    else:
+        return ""
 
 
 def get_type(body):
