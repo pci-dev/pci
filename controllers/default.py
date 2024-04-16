@@ -142,6 +142,8 @@ def index():
         orderby=~t_articles.last_status_change,
         _class="web2py_grid action-button-absolute",
     )
+      # check url arguments passed to grid did not break db
+      db.executesql("select 1")
     except:
         raise HTTP(418, "I'm a teapot")
 
