@@ -46,4 +46,5 @@ class PDF(Row):
     @staticmethod
     def delete_pdf_to_db(recommendation_id: int):
         pdf = PDF.get_by_recommendation_id(recommendation_id)
-        pdf.delete_record()
+        if pdf:
+            pdf.delete_record()
