@@ -28,9 +28,13 @@ class PDF(Row):
         return pdf
 
     @staticmethod
-    def save_pdf_to_db(recommendation: 'Recommendation', directory: str, filename: str):
+    def save_pdf_to_db(recommendation: 'Recommendation', directory: str, filename: str, overwrite: bool = True):        
+        if overwrite:
+            PDF.delete_pdf_to_db(recommendation.id)
+
         pdf_id = int(current.db.t_pdf.insert(recommendation_id=recommendation.id, pdf=filename))
         pdf = PDF.get_by_id(pdf_id)
+
         if pdf:
             file_to_upload = os.path.join(directory, filename)
             data = open(file_to_upload, 'rb')
