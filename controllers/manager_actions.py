@@ -121,7 +121,6 @@ def do_recommend_article():
         recomm.validation_timestamp = request.now
         recomm.update_record()
         art.update_record()
-        redirurl = URL(c="articles", f="rec", vars=dict(id=art.id))
 
     if not pciRRactivated:
         Hypothesis(art).post_annotation()
