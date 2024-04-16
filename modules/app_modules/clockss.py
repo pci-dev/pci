@@ -10,6 +10,7 @@ from app_components.ongoing_recommendation import getRecommendationProcess
 from app_modules.html_to_latex import HtmlToLatex
 from app_modules.common_small_html import build_citation, mkSimpleDOI
 from models.article import Article
+from models.pdf import PDF
 from models.review import Review
 from models.recommendation import Recommendation
 from app_modules import crossref
@@ -38,6 +39,7 @@ class Clockss:
     
     _article: Article
     _prefix: str
+    _pdf_name: str
     _recommendation: Recommendation
     _html_to_latex: HtmlToLatex
 
@@ -47,6 +49,7 @@ class Clockss:
         self._article = article
         self._html_to_latex = HtmlToLatex()
         self._init_dir()
+        self._pdf_name = f"{self._prefix}.pdf"
         recommendation = Article.get_last_recommendation(self._article.id)
         if not recommendation:
             raise Exception(f'No recommendation found for article with id: {self._article.id}')
@@ -70,12 +73,12 @@ class Clockss:
 
 
     def build_pdf(self):
-        pdf_path_to_generate = f"{self.attachments_dir}/{self._prefix}.pdf"
+        pdf_path_to_generate = f"{self.attachments_dir}/{self._pdf_name}"
         latex_content = self._build_latex_content_from_template()
         if latex_content:
             self._compile_latex(latex_content, pdf_path_to_generate)
 
-        return f"{self._prefix}.pdf"
+        return self._pdf_name
         
 
     def _compile_latex(self, latex_content: str, pdf_dest_path: str):
@@ -89,7 +92,7 @@ class Clockss:
         print(latex_content, file=open(latex_file_path, 'w', encoding='utf-8'))
 
         os.system(f'{self.PDFLATEX_BIN} --output-directory={tmp_folder} -interaction=nonstopmode {latex_file_path}')
-        shutil.move(f"{tmp_folder}/{self._prefix}.pdf", pdf_dest_path)
+        shutil.move(f"{tmp_folder}/{self._pdf_name}", pdf_dest_path)
         shutil.rmtree(tmp_folder)
 
 
@@ -245,7 +248,7 @@ class Clockss:
                 zp.write(file, arcname=file.name)
 
 
-    def compile_and_send(self):
+    def package_and_send(self):
         ftp_server = self._clokss_ftp()
         if ftp_server is None:
             raise Exception('Missing Clockss FTP configuration')
@@ -267,3 +270,15 @@ class Clockss:
     def _clokss_ftp(self):
         if self.CLOCKSS_SERVER and self.CLOCKSS_USERNAME and self.CLOCKSS_PASSWORD:
             return ftplib.FTP(self.CLOCKSS_SERVER, self.CLOCKSS_USERNAME, self.CLOCKSS_PASSWORD)
+
+
+def send_to_clockss(article: Article, recommendation: Recommendation):
+    clockss = Clockss(article)
+    filename = clockss.build_pdf()
+    attachments_dir= clockss.attachments_dir
+    try:
+        PDF.save_pdf_to_db(recommendation, attachments_dir, filename)
+        clockss.package_and_send()
+    except Exception as e:
+        current.session.flash = f"Error to upload to Clockss: {e}"
+        PDF.delete_pdf_to_db(recommendation.id)
