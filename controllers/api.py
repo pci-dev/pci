@@ -45,7 +45,7 @@ def coar_inbox():
 
 def issn():
     return json({
-        "issn": db.config[1].issn
+        "issn": db.cfg.issn
     })
 
 
