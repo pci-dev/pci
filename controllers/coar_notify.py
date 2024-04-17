@@ -54,12 +54,13 @@ def inbox():
                 f"Allowed methods: {', '.join(allowed_methods)}")
 
     elif request.method == "POST":
+        parse_content_type(request)
 
         if not is_coar_whitelisted(request.env.remote_addr):
             fail(status=HTTPStatus.FORBIDDEN, message=
                     f"not whitelisted: {request.env.remote_addr}")
 
-        if not request.env.content_type in accepted_media_types:
+        if not request.content_type in accepted_media_types:
             fail(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, message=
                 f"Content-Type must be one of {', '.join(accepted_media_types)}",
             )
@@ -108,6 +109,14 @@ def is_coar_whitelisted(host):
         if host == entry.split(" ")[0]:
             return True
     return False
+
+
+def parse_content_type(request):
+    from email.policy import EmailPolicy as mime
+    header = mime.header_factory('content-type', request.env.content_type)
+
+    request.encoding = header.params.get("charset")
+    request.content_type = header.content_type
 
 
 def process_request(req):
