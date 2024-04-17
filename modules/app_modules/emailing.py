@@ -1031,7 +1031,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
 
         mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recommendation.recommender_id) or ""
         mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review))
-        mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
+        mail_vars["dueTime"] = Review.get_due_date(review).strftime(DEFAULT_DATE_FORMAT)
         mail_vars["reviewDuration"] = (review.review_duration).lower()
 
         mail_vars["ccAddresses"] = [db.auth_user[recommendation.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recommendation.id)
@@ -2705,7 +2705,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
             mail_vars["myReviewsLink"] = reviewLink()
-            mail_vars["reviewDueDate"] = review.due_date.strftime(DEFAULT_DATE_FORMAT) if review.due_date else str((datetime.datetime.now() + datetime.timedelta(days=get_review_days(review))).strftime(DEFAULT_DATE_FORMAT))
+            mail_vars["reviewDueDate"] = Review.get_due_date(review).strftime(DEFAULT_DATE_FORMAT)
             mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
             mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
