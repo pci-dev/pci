@@ -2,8 +2,6 @@ import typing
 import json
 import requests
 
-from app_modules.helper import *
-from app_modules.coar_notify import COARNotifier
 from app_modules import emailing
 from http import HTTPStatus
 from gluon import current
@@ -44,9 +42,13 @@ def inbox():
             "HEAD",
             "OPTIONS",
     ]
-    coar_notifier = current.coar
+    def add_options_headers():
+        response.headers.update({
+            "Allow": ", ".join(allowed_methods),
+            "Accept-Post": ", ".join(accepted_media_types),
+        })
 
-    if not coar_notifier.enabled:
+    if not current.coar.enabled:
         fail(status=HTTPStatus.NOT_FOUND)
 
     if request.method == "GET":
@@ -54,21 +56,19 @@ def inbox():
                 f"Allowed methods: {', '.join(allowed_methods)}")
 
     elif request.method == "POST":
+        parse_content_type(request)
 
         if not is_coar_whitelisted(request.env.remote_addr):
             fail(status=HTTPStatus.FORBIDDEN, message=
                     f"not whitelisted: {request.env.remote_addr}")
 
-        if not request.env.content_type in accepted_media_types:
+        if not request.content_type in accepted_media_types:
             fail(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, message=
                 f"Content-Type must be one of {', '.join(accepted_media_types)}",
             )
 
-        request.body.seek(0)
-        body = request.body.read()
-
         try:
-            body = json.loads(body)
+            body = json.loads(get_body(request))
 
             record_request(body)
             process_request(body)
@@ -86,15 +86,11 @@ def inbox():
 
     elif request.method == "HEAD":
         add_describedby_header(response)
+        add_options_headers()
         return ""
 
     elif request.method == "OPTIONS":
-        response.headers.update(
-            {
-                "Allow": ", ".join(allowed_methods),
-                "Accept-Post": ", ".join(accepted_media_types),
-            }
-        )
+        add_options_headers()
         return ""
 
     else:
@@ -108,6 +104,19 @@ def is_coar_whitelisted(host):
         if host == entry.split(" ")[0]:
             return True
     return False
+
+
+def parse_content_type(request):
+    from email.policy import EmailPolicy as mime
+    header = mime.header_factory('content-type', request.env.content_type)
+
+    request.encoding = header.params.get("charset")
+    request.content_type = header.content_type
+
+def get_body(request):
+    request.body.seek(0)
+    body = request.body.read()
+    return str(body, request.encoding or "utf8")
 
 
 def process_request(req):
