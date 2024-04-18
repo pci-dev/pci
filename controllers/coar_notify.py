@@ -65,11 +65,8 @@ def inbox():
                 f"Content-Type must be one of {', '.join(accepted_media_types)}",
             )
 
-        request.body.seek(0)
-        body = request.body.read()
-
         try:
-            body = json.loads(body)
+            body = json.loads(get_body(request))
 
             record_request(body)
             process_request(body)
@@ -117,6 +114,11 @@ def parse_content_type(request):
 
     request.encoding = header.params.get("charset")
     request.content_type = header.content_type
+
+def get_body(request):
+    request.body.seek(0)
+    body = request.body.read()
+    return str(body, request.encoding or "utf8")
 
 
 def process_request(req):
