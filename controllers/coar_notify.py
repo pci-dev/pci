@@ -49,23 +49,23 @@ def inbox():
         })
 
     if not current.coar.enabled:
-        fail(status=HTTPStatus.NOT_FOUND)
+        fail("COAR not enabled",
+                HTTPStatus.NOT_FOUND)
 
     if request.method == "GET":
-        fail(status=HTTPStatus.FORBIDDEN, message=
-                f"Allowed methods: {', '.join(allowed_methods)}")
+        fail(f"Allowed methods: {', '.join(allowed_methods)}",
+                HTTPStatus.FORBIDDEN)
 
     elif request.method == "POST":
         parse_content_type(request)
 
         if not is_coar_whitelisted(request.env.remote_addr):
-            fail(status=HTTPStatus.FORBIDDEN, message=
-                    f"not whitelisted: {request.env.remote_addr}")
+            fail(f"Not whitelisted: {request.env.remote_addr}",
+                    HTTPStatus.FORBIDDEN)
 
         if not request.content_type in accepted_media_types:
-            fail(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, message=
-                f"Content-Type must be one of {', '.join(accepted_media_types)}",
-            )
+            fail(f"Unsupported content-type: {request.content_type}",
+                    HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
 
         try:
             body = json.loads(get_body(request))
@@ -94,7 +94,8 @@ def inbox():
         return ""
 
     else:
-        fail(status=HTTPStatus.METHOD_NOT_ALLOWED,
+        fail(f"Method not allowed: {request.method}",
+            HTTPStatus.METHOD_NOT_ALLOWED,
             Allow=", ".join(allowed_methods),
         )
 
