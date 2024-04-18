@@ -437,11 +437,26 @@ def get_status_display(status):
 
 def get_article_link(notif):
     article = get_article_by_coar_req_id(notif.coar_id)
-    if article:
-        link = URL("manager", f"recommendations?articleId={article.id}")
-        return f'<a href="{link}">#{article.id}</a>'
+    article_id = (
+            article.id if article
+            else guess_article_id(notif.body)
+    )
+    if article_id:
+        link = URL("manager", f"recommendations?articleId={article_id}")
+        return f'<a href="{link}">#{article_id}</a>'
     else:
         return ""
+
+
+def guess_article_id(body):
+    reply = re.match(r'.*"inReplyTo": "([^"]+)".*', body)
+    if reply:
+        article = get_article_by_coar_req_id(reply[1])
+        return article.id if article else None
+
+    pci_link = re.match(r".*articleId=(\d+).*", body)
+    if pci_link:
+        return pci_link[1]
 
 
 def get_type(body):
@@ -478,6 +493,9 @@ def get_person_name(body):
 
     name = re.match(r'.*"@value": *"([^"]*)".*', body.replace('\n', ''))
     if name: return name[1]
+
+    if re.match(r'.*(Accept|Reject)".*', body):
+        return ""
 
     return "(anonymous)"
 
