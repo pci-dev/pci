@@ -306,3 +306,16 @@ class Review(Row):
         formatted_names = ', '.join(names)
 
         return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1] 
+
+
+    @staticmethod
+    def are_equal(review_1: Review, review_2: Review):
+        attributes = getattr(Review, '__annotations__', {})
+
+        for attribute in attributes.keys():
+            if attribute == 'last_change':
+                continue
+            
+            if getattr(review_1, attribute, None) != getattr(review_2, attribute, None):
+                return False
+        return True
