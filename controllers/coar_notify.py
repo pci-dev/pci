@@ -22,7 +22,6 @@ def index():
     text = show_coar_status()
 
     if auth.has_membership(role="administrator"):
-        ensure_trailing_slash()
         text += "\n"
         text += show_coar_requests()
 
@@ -396,7 +395,7 @@ def show_coar_requests():
             x.created,
             x.inbox_url,
             x.direction,
-            "show?id=%d" % x.id,
+            URL("show?id=%d" % x.id),
             get_request_type(x.body),
             get_object_ref(x.body),
             get_person_name(x.body),
@@ -430,11 +429,6 @@ def get_status_display(status):
                 "background-color:orange",
                 f"error: {status} = {errors.get(status, '?')}",
         ) if status >= 400 else ""
-
-
-def ensure_trailing_slash():
-    if not request.env.path_info.endswith("/"):
-        redirect(URL(' '))
 
 
 def get_type(body):
