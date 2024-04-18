@@ -2,8 +2,6 @@ import typing
 import json
 import requests
 
-from app_modules.helper import *
-from app_modules.coar_notify import COARNotifier
 from app_modules import emailing
 from http import HTTPStatus
 from gluon import current
@@ -44,9 +42,13 @@ def inbox():
             "HEAD",
             "OPTIONS",
     ]
-    coar_notifier = current.coar
+    def add_options_headers():
+        response.headers.update({
+            "Allow": ", ".join(allowed_methods),
+            "Accept-Post": ", ".join(accepted_media_types),
+        })
 
-    if not coar_notifier.enabled:
+    if not current.coar.enabled:
         fail(status=HTTPStatus.NOT_FOUND)
 
     if request.method == "GET":
@@ -84,15 +86,11 @@ def inbox():
 
     elif request.method == "HEAD":
         add_describedby_header(response)
+        add_options_headers()
         return ""
 
     elif request.method == "OPTIONS":
-        response.headers.update(
-            {
-                "Allow": ", ".join(allowed_methods),
-                "Accept-Post": ", ".join(accepted_media_types),
-            }
-        )
+        add_options_headers()
         return ""
 
     else:
