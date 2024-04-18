@@ -80,8 +80,7 @@ def inbox():
         except Exception as e:
             fail(f"{e.__class__.__name__}: {e}")
 
-        response.headers['Location'] = URL(
-            "coar_notify", "show", vars={"coar_id":body['id']}, scheme=True)
+        add_location_header(response, coar_id=body['id'])
         return HTTP(status=HTTPStatus.CREATED.value)
 
     elif request.method == "HEAD":
@@ -356,6 +355,11 @@ def retry(func, url):
 
 def fail(message=None, status=HTTPStatus.BAD_REQUEST, **headers):
     raise HTTP(status=status.value, body=message, **headers)
+
+
+def add_location_header(response, coar_id):
+    response.headers['Location'] = URL(
+            "coar_notify", "show", vars={"coar_id":coar_id}, scheme=True)
 
 
 ##
