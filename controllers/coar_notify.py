@@ -22,7 +22,6 @@ def index():
     text = show_coar_status()
 
     if auth.has_membership(role="administrator"):
-        ensure_trailing_slash()
         text += "\n"
         text += show_coar_requests()
 
@@ -49,23 +48,23 @@ def inbox():
         })
 
     if not current.coar.enabled:
-        fail(status=HTTPStatus.NOT_FOUND)
+        fail("COAR not enabled",
+                HTTPStatus.NOT_FOUND)
 
     if request.method == "GET":
-        fail(status=HTTPStatus.FORBIDDEN, message=
-                f"Allowed methods: {', '.join(allowed_methods)}")
+        fail(f"Allowed methods: {', '.join(allowed_methods)}",
+                HTTPStatus.FORBIDDEN)
 
     elif request.method == "POST":
         parse_content_type(request)
 
         if not is_coar_whitelisted(request.env.remote_addr):
-            fail(status=HTTPStatus.FORBIDDEN, message=
-                    f"not whitelisted: {request.env.remote_addr}")
+            fail(f"Not whitelisted: {request.env.remote_addr}",
+                    HTTPStatus.FORBIDDEN)
 
         if not request.content_type in accepted_media_types:
-            fail(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, message=
-                f"Content-Type must be one of {', '.join(accepted_media_types)}",
-            )
+            fail(f"Unsupported content-type: {request.content_type}",
+                    HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
 
         try:
             body = json.loads(get_body(request))
@@ -80,8 +79,7 @@ def inbox():
         except Exception as e:
             fail(f"{e.__class__.__name__}: {e}")
 
-        response.headers['Location'] = URL(
-            "coar_notify", "show", vars={"coar_id":body['id']}, scheme=True)
+        add_location_header(response, coar_id=body['id'])
         return HTTP(status=HTTPStatus.CREATED.value)
 
     elif request.method == "HEAD":
@@ -94,7 +92,8 @@ def inbox():
         return ""
 
     else:
-        fail(status=HTTPStatus.METHOD_NOT_ALLOWED,
+        fail(f"Method not allowed: {request.method}",
+            HTTPStatus.METHOD_NOT_ALLOWED,
             Allow=", ".join(allowed_methods),
         )
 
@@ -245,9 +244,9 @@ def update_resubmitted_article(req, context):
 
 def record_request(body):
     current.coar.record_notification(
-                body=body,
-                direction="Inbound",
-            )
+            body=body,
+            direction="Inbound",
+    )
 
 
 def get_article_by_coar_req_id(coar_req_id):
@@ -357,6 +356,11 @@ def fail(message=None, status=HTTPStatus.BAD_REQUEST, **headers):
     raise HTTP(status=status.value, body=message, **headers)
 
 
+def add_location_header(response, coar_id):
+    response.headers['Location'] = URL(
+            "coar_notify", "show", vars={"coar_id":coar_id}, scheme=True)
+
+
 ##
 ## inbox/outbox display (page /coar_notify)
 ##
@@ -391,7 +395,7 @@ def show_coar_requests():
             x.created,
             x.inbox_url,
             x.direction,
-            "show?id=%d" % x.id,
+            URL("show?id=%d" % x.id),
             get_request_type(x.body),
             get_object_ref(x.body),
             get_person_name(x.body),
@@ -425,11 +429,6 @@ def get_status_display(status):
                 "background-color:orange",
                 f"error: {status} = {errors.get(status, '?')}",
         ) if status >= 400 else ""
-
-
-def ensure_trailing_slash():
-    if not request.env.path_info.endswith("/"):
-        redirect(URL(' '))
 
 
 def get_type(body):
@@ -484,6 +483,7 @@ def get_object_ref(body):
     return "(no object ref)"
 
 errors = {
+    400: "inbox said bad request",
     418: "no inbox provided by article server",
     520: "inbox returned Unknown Error",
     521: "inbox server is down",
