@@ -244,9 +244,9 @@ def update_resubmitted_article(req, context):
 
 def record_request(body):
     current.coar.record_notification(
-                body=body,
-                direction="Inbound",
-            )
+            body=body,
+            direction="Inbound",
+    )
 
 
 def get_article_by_coar_req_id(coar_req_id):
