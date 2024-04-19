@@ -24,6 +24,8 @@ def index():
     if auth.has_membership(role="administrator"):
         text += "\n"
         text += show_coar_requests(int(request.vars.page or 0))
+    else:
+        text += login_button()
 
     return text .strip().replace('\n', '\n<br/>')
 
@@ -382,6 +384,21 @@ def show_coar_status():
     )
 
     return text
+
+
+def login_button():
+    login_url = URL("default/user/logout", "?_next="+
+                    "/default/user/login?_next="+URL(' '))
+    return f"""
+        <button style="
+                    position: fixed; top: 0; right: 0;
+                    border: 1px solid; border-radius: .5em;
+                    margin: 1em; padding: .3em;
+                "
+        onclick="location.replace('{login_url}')">
+            admin
+        </button>
+    """.replace("\n", "")
 
 
 def show_coar_requests(page=0, per_page=100):
