@@ -12,9 +12,6 @@ if typing.TYPE_CHECKING:
 
 
 def index():
-    if not current.coar.enabled:
-        return "COAR notifications for PCI (disabled)"
-
     if request.method == 'HEAD':
         add_describedby_header(response)
         return ""
@@ -27,7 +24,7 @@ def index():
     else:
         text += login_button()
 
-    return text .strip().replace('\n', '\n<br/>')
+    return "<!doctype html>\n" + text .strip().replace('\n', '\n<br/>')
 
 
 ##
@@ -368,8 +365,6 @@ def add_location_header(response, coar_id):
 ##
 
 def show_coar_status():
-    coar_notifier = current.coar
-
     text = """
     coar notifications for pci (%s)
 
@@ -378,7 +373,7 @@ def show_coar_status():
 
     """ % (
 
-        "enabled" if coar_notifier.enabled else "disabled",
+        "enabled" if current.coar.enabled else "disabled",
         db(db.t_coar_notification.direction == 'Inbound').count(),
         db(db.t_coar_notification.direction == 'Outbound').count(),
     )
