@@ -401,7 +401,7 @@ def show_coar_requests(page=0, per_page=100):
             '<tt %s>[%s]</tt>',
             '<tt>%s</tt>',
             '<tt>%s</tt>',
-            '<a href="%s">%s</a>',
+            '<tt>%s</tt> <a href="%s">%s</a>',
             '<a href="%s">%s</a>',
             '<a href="%s">%s</a>',
             ]) % (
@@ -409,8 +409,9 @@ def show_coar_requests(page=0, per_page=100):
             x.id,
             get_article_link(x),
             x.created,
+            ["◀=", "=▶"][x.direction == "Outbound"],
             x.inbox_url,
-            x.direction,
+            get_service_nick(x.article_id),
             URL("show?id=%d" % x.id),
             get_request_type(x.body),
             get_object_ref(x.body),
@@ -454,11 +455,16 @@ def get_article_link(notif):
             article.id if article
             else guess_article_id(notif.body)
     )
-    if article_id:
-        link = URL("manager", f"recommendations?articleId={article_id}")
-        return f'<a href="{link}">#{article_id}</a>'
-    else:
-        return ""
+    notif.article_id = article_id
+
+    link = URL("manager", f"recommendations?articleId={article_id}")
+    return f'<a href="{link}">#{article_id}</a>' if article_id else ""
+
+
+
+def get_service_nick(article_id):
+    article = current.db.t_articles[article_id]
+    return f'{article.preprint_server}' if article else ""
 
 
 def guess_article_id(body):
