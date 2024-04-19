@@ -23,7 +23,7 @@ def index():
 
     if auth.has_membership(role="administrator"):
         text += "\n"
-        text += show_coar_requests()
+        text += show_coar_requests(int(request.vars.page or 0))
 
     return text .strip().replace('\n', '\n<br/>')
 
@@ -384,7 +384,7 @@ def show_coar_status():
     return text
 
 
-def show_coar_requests():
+def show_coar_requests(page=0, per_page=100):
     text = "\n".join([ " / ".join([
             '<tt %s>[%s]</tt>',
             '<tt>%s</tt>',
@@ -404,9 +404,10 @@ def show_coar_requests():
             get_object_ref(x.body),
             get_person_name(x.body),
         )
-        for x in db(
-            #db.t_coar_notification.direction == "Outbound"
-        ).select(orderby=~db.t_coar_notification.id)
+        for x in db().select(
+            orderby=~db.t_coar_notification.id,
+            limitby=(page*per_page, (page+1)*per_page),
+        )
     ])
 
     return text
