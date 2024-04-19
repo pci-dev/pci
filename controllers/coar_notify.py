@@ -483,6 +483,7 @@ def get_object_ref(body):
     return "(no object ref)"
 
 errors = {
+    400: "inbox said bad request",
     418: "no inbox provided by article server",
     520: "inbox returned Unknown Error",
     521: "inbox server is down",
