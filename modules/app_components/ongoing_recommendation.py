@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from re import sub
+from typing import List
 from dateutil.relativedelta import *
 
 import io
@@ -487,7 +488,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 if recommenderOwnReviewState.review_state == "Review completed":
                     recommReviewFilledOrNull = True  # Yes, his/her review is completed
 
-        reviews = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+        reviews: List[Review] = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
             orderby=db.t_reviews.id
         )
 
@@ -594,7 +595,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                                 "authors",
                                 SPAN(
                                     current.T("anonymous reviewer " + reviewer_number),
-                                    (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
+                                    (", " + review.acceptation_timestamp.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.acceptation_timestamp else ""),
                                 ),
                             )
                         ]
@@ -607,7 +608,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                                 SPAN(
                                     Review.get_reviewer_name(review) or
                                     common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
-                                    (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
+                                    (", " + review.acceptation_timestamp.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.acceptation_timestamp else ""),
                                 ),
                             )
                         ]
