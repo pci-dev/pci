@@ -1087,7 +1087,7 @@ def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
 
 
 ######################################################################################################################################################################
-def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId, manual_insert=False):
+def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId):
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -1100,10 +1100,7 @@ def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId, man
             (db.t_reviews.recommendation_id == recomm.id) & ((db.t_reviews.review_state == "Awaiting review") | (db.t_reviews.review_state == "Review completed"))
         ).count()
 
-    if manual_insert == True:
-        count_reviews_under_consideration = count_reviews_under_consideration - 1
-
-    if recomm and article and count_reviews_under_consideration == 1:
+    if recomm and article and count_reviews_under_consideration == 2:
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
         mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
@@ -1137,7 +1134,7 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
         count_reviews_completed = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).count()
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
-    if recomm and article and count_reviews_completed >= 1 and count_reviews_under_consideration == 1:
+    if recomm and article and count_reviews_completed >= 2 and count_reviews_under_consideration == 0:
         delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
 
         mail_vars["articleTitle"] = md_to_html(article.title)
@@ -2929,7 +2926,7 @@ def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewI
         count_reviews_completed = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).count()
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
-    if recomm and count_reviews_completed >= 1 and count_reviews_under_consideration == 1 and article:
+    if recomm and count_reviews_completed >= 2 and count_reviews_under_consideration == 0 and article:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["articleTitle"] = md_to_html(article.title)
@@ -2955,7 +2952,7 @@ def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
         count_reviews_completed = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).count()
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
-    if recomm and count_reviews_completed >= 1 and count_reviews_under_consideration == 1 and article:
+    if recomm and count_reviews_completed >= 2 and count_reviews_under_consideration == 0 and article:
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["articleTitle"] = md_to_html(article.title)
@@ -2981,7 +2978,7 @@ def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewI
         count_reviews_completed = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).count()
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
-    if recomm and count_reviews_completed >= 1 and count_reviews_under_consideration == 1 and article:
+    if recomm and count_reviews_completed >= 2 and count_reviews_under_consideration == 0 and article:
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
         mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
@@ -3078,7 +3075,7 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId, forc
             count_reviews_under_consideration = db(
                 (db.t_reviews.recommendation_id == recommendationId) & ((db.t_reviews.review_state == "Awaiting review") | (db.t_reviews.review_state == "Review completed"))
             ).count()
-            if count_reviews_under_consideration >= 1:
+            if count_reviews_under_consideration > 0:
                 db(
                     (db.mail_queue.dest_mail_address == recomm_mail) & (db.mail_queue.mail_template_hashtag == hashtag_template) & (db.mail_queue.recommendation_id == recomm.id)
                 ).delete()

@@ -1019,7 +1019,7 @@ def reviewSuggested(s, row):
             emailing.send_to_recommenders_pending_review_request(session, auth, db, row["id"])
         elif row["review_state"] == "Awaiting review":
             emailing.send_to_thank_reviewer_acceptation(session, auth, db, row["id"])
-            emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, row["id"], manual_insert=True)
+            emailing.send_to_admin_2_reviews_under_consideration(session, auth, db, row["id"])
             if isScheduledTrack(article):
                 emailing.create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, row)
             # create reminder
