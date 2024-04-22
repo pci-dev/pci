@@ -577,11 +577,18 @@ def fill_new_article():
 
     app_forms.article_add_mandatory_checkboxes(form, pciRRactivated)
 
-    def fixup_radio_group(name):
+    def fixup_radio_group(name: str):
+        """
+        Just for test.
+        """
         elements = form.elements(_name=name)
-        elements[0].update(_id=name+"_group")
-        elements[1].update(_id="t_articles_no_"+name)
-        elements[2].update(_id="t_articles_"+name)
+        elements[0].update(_id=name + "_group")
+
+        elements[1].update(_id="t_articles_no_" + name)
+        elements[1].parent.components[1].update(_for="t_articles_no_" + name)
+
+        elements[2].update(_id="t_articles_" + name)
+        elements[2].parent.components[1].update(_for="t_articles_" + name)
 
     if not pciRRactivated:
         fixup_radio_group("results_based_on_data")
