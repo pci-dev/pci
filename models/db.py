@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from typing import Set, cast
+from app_components.custom_validator import CUSTOM_VALID_URL
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect
 from models.article import ArticleStatus
 from models.user import User
 from app_components.custom_field import RequiredField
-from pydal.validators import IS_IN_SET, IS_EMPTY_OR, IS_INT_IN_RANGE, IS_LENGTH, IS_NOT_EMPTY, Validator
+from pydal.validators import IS_IN_SET, IS_EMPTY_OR, IS_INT_IN_RANGE, IS_LENGTH, IS_NOT_EMPTY, Validator, IS_GENERIC_URL, IS_HTTP_URL
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.storage import Storage # for db.get_last_recomms()
@@ -489,7 +490,7 @@ db.define_table(
           comment=B('Please use the format "First name initials family name" as in "Marie S. Curie, Niels H. D. Bohr, Albert Einstein, John R. R. Tolkien, Donna T. Strickland"')),
     RequiredField("article_year", type="integer", label=T("Year")),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
-    Field("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, default="https://", represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), comment=SPAN(T("Note: for Stage 1 submissions, please make sure the link points exclusively to the manuscript file (and not to the broader project folder), and that any other links to supplementary materials, appendices, data, code, etc. are all within the manuscript file") if pciRRactivated else "")),
+    RequiredField("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, default="https://", represent=lambda text, row: common_small_html.mkDOI(text), requires=CUSTOM_VALID_URL(), comment=SPAN(T("Note: for Stage 1 submissions, please make sure the link points exclusively to the manuscript file (and not to the broader project folder), and that any other links to supplementary materials, appendices, data, code, etc. are all within the manuscript file") if pciRRactivated else "")),
     RequiredField("preprint_server", type="string", length=512, requires=IS_LENGTH(512, 0), label=
         T("Name of the server or open archive where your report has been deposited (eg OSF, Zenodo, arXiv, bioRxiv, HAL...)")
             if pciRRactivated else
@@ -505,7 +506,7 @@ db.define_table(
     Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
     RequiredField("data_doi", 
         type="list:string",
-        requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
+        requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
         label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact "), appContactLink, ").", T(" In case all raw data are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'All or part of the results presented in this preprint are based on data'. URL must start with http:// or https://")
@@ -513,7 +514,7 @@ db.define_table(
     Field("scripts_used_for_result", type="string", label="", requires=IS_IN_SET(db.script_choices), widget=SQLFORM.widgets.radio.widget,),
     RequiredField("scripts_doi", 
         type="list:string",
-        requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
+        requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
         label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact "), appContactLink, ").", T(" In case all raw scripts are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'Scripts were used to obtain or analyze the results'. URL must start with http:// or https://")
@@ -521,7 +522,7 @@ db.define_table(
     Field("codes_used_in_study", type="string", label="", requires=IS_IN_SET(db.code_choices), widget=SQLFORM.widgets.radio.widget,),
     RequiredField("codes_doi",
         type="list:string",
-        requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
+        requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
         label=SPAN(T("Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "), appContactLink, ").", T(" In case all raw codes are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")
