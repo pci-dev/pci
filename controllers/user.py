@@ -577,6 +577,11 @@ def fill_new_article():
 
     app_forms.article_add_mandatory_checkboxes(form, pciRRactivated)
 
+    data_doi_form = form.elements(_id="t_articles_results_based_on_data__row")
+    if data_doi_form:
+        data_code_script_label = LABEL("Data, code and scripts", SPAN(" * ", _style="color:red;"), _class="control-label col-sm-3")
+        data_doi_form[0].insert(0, data_code_script_label)
+
     def fixup_radio_group(name: str):
         """
         Just for test.
