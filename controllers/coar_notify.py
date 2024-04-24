@@ -248,7 +248,7 @@ def record_request(body):
 
 def get_article_by_coar_req_id(coar_req_id):
     return db(db.t_articles.coar_notification_id == coar_req_id) \
-                .select().first()
+                .select(db.t_articles.id, db.t_articles.status).first()
 
 
 def get_preprint_server(doi):
@@ -459,9 +459,9 @@ def get_article_link(notif):
     return f'<a href="{link}">#{article_id}</a>' if article_id else ""
 
 
-
 def get_service_nick(article_id):
-    article = current.db.t_articles[article_id]
+    article = db(db.t_articles.id == article_id) \
+            .select(db.t_articles.preprint_server).first()
     return f'{article.preprint_server}' if article else ""
 
 
