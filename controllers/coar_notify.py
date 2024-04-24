@@ -182,8 +182,7 @@ def cancel_endorsement(req):
     if not article:
         fail(f"no such offer: object.id='{coar_req_id}'")
 
-    article.status = "Cancelled"
-    article.update_record()
+    article.update_record(status="Cancelled")
 
 
 def create_new_user(user_email, user_name):
@@ -232,12 +231,11 @@ def update_resubmitted_article(req, context):
     if article.status != "Awaiting revision":
         return article
 
-    article.coar_notification_id = req["id"]
-    article.coar_notification_closed = False
-    article.doi = req["object"]["ietf:cite-as"]
-
-    article.update_record()
-
+    article.update_record(
+        coar_notification_id = req["id"],
+        coar_notification_closed = False,
+        doi = req["object"]["ietf:cite-as"],
+    )
     return article
 
 
