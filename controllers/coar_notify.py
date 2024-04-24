@@ -12,9 +12,6 @@ if typing.TYPE_CHECKING:
 
 
 def index():
-    if not current.coar.enabled:
-        return "COAR notifications for PCI (disabled)"
-
     if request.method == 'HEAD':
         add_describedby_header(response)
         return ""
@@ -23,9 +20,11 @@ def index():
 
     if auth.has_membership(role="administrator"):
         text += "\n"
-        text += show_coar_requests()
+        text += show_coar_requests(int(request.vars.page or 0))
+    else:
+        text += login_button()
 
-    return text .strip().replace('\n', '\n<br/>')
+    return "<!doctype html>\n" + text .strip().replace('\n', '\n<br/>')
 
 
 ##
@@ -366,8 +365,6 @@ def add_location_header(response, coar_id):
 ##
 
 def show_coar_status():
-    coar_notifier = current.coar
-
     text = """
     coar notifications for pci (%s)
 
@@ -376,7 +373,7 @@ def show_coar_status():
 
     """ % (
 
-        "enabled" if coar_notifier.enabled else "disabled",
+        "enabled" if current.coar.enabled else "disabled",
         db(db.t_coar_notification.direction == 'Inbound').count(),
         db(db.t_coar_notification.direction == 'Outbound').count(),
     )
@@ -384,25 +381,46 @@ def show_coar_status():
     return text
 
 
-def show_coar_requests():
-    text = "\n".join([(
-            '<tt %s>[%s]</tt> <tt>%s</tt> = ' +
-            '<a href="%s">%s</a> / ' +
-            '<a href="%s">%s</a> / ' +
-            '<a href="%s">%s</a>') % (
+def login_button():
+    login_url = URL("default/user/logout", "?_next="+
+                    "/default/user/login?_next="+URL(' '))
+    return f"""
+        <button style="
+                    position: fixed; top: 0; right: 0;
+                    border: 1px solid; border-radius: .5em;
+                    margin: 1em; padding: .3em;
+                "
+        onclick="location.replace('{login_url}')">
+            admin
+        </button>
+    """.replace("\n", "")
+
+
+def show_coar_requests(page=0, per_page=100):
+    text = "\n".join([ " / ".join([
+            '<tt %s>[%s]</tt>',
+            '<tt>%s</tt>',
+            '<tt>%s</tt>',
+            '<tt>%s</tt> <a href="%s">%s</a>',
+            '<a href="%s">%s</a>',
+            '<a href="%s">%s</a>',
+            ]) % (
             get_status_display(x.http_status or 200),
             x.id,
+            get_article_link(x),
             x.created,
+            ["◀=", "=▶"][x.direction == "Outbound"],
             x.inbox_url,
-            x.direction,
+            get_service_nick(x.article_id),
             URL("show?id=%d" % x.id),
             get_request_type(x.body),
             get_object_ref(x.body),
             get_person_name(x.body),
         )
-        for x in db(
-            #db.t_coar_notification.direction == "Outbound"
-        ).select(orderby=~db.t_coar_notification.id)
+        for x in db().select(
+            orderby=~db.t_coar_notification.id,
+            limitby=(page*per_page, (page+1)*per_page),
+        )
     ])
 
     return text
@@ -429,6 +447,35 @@ def get_status_display(status):
                 "background-color:orange",
                 f"error: {status} = {errors.get(status, '?')}",
         ) if status >= 400 else ""
+
+
+def get_article_link(notif):
+    article = get_article_by_coar_req_id(notif.coar_id)
+    article_id = (
+            article.id if article
+            else guess_article_id(notif.body)
+    )
+    notif.article_id = article_id
+
+    link = URL("manager", f"recommendations?articleId={article_id}")
+    return f'<a href="{link}">#{article_id}</a>' if article_id else ""
+
+
+
+def get_service_nick(article_id):
+    article = current.db.t_articles[article_id]
+    return f'{article.preprint_server}' if article else ""
+
+
+def guess_article_id(body):
+    reply = re.match(r'.*"inReplyTo": "([^"]+)".*', body)
+    if reply:
+        article = get_article_by_coar_req_id(reply[1])
+        return article.id if article else None
+
+    pci_link = re.match(r".*articleId=(\d+).*", body)
+    if pci_link:
+        return pci_link[1]
 
 
 def get_type(body):
@@ -465,6 +512,9 @@ def get_person_name(body):
 
     name = re.match(r'.*"@value": *"([^"]*)".*', body.replace('\n', ''))
     if name: return name[1]
+
+    if re.match(r'.*(Accept|Reject)".*', body):
+        return ""
 
     return "(anonymous)"
 
