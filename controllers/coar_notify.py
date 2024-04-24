@@ -471,7 +471,7 @@ def guess_article_id(body):
         article = get_article_by_coar_req_id(reply[1])
         return article.id if article else None
 
-    pci_link = re.match(r".*articleId=(\d+).*", body)
+    pci_link = re.match(r'.*articleId=(\d+).*', body, re.S)
     if pci_link:
         return pci_link[1]
 
