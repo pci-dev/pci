@@ -888,7 +888,7 @@ def getRecommAndReviewAuthors(auth: Auth,
 
 #########################
 
-def build_citation(article: Article, final_recommendation: Recommendation, with_header: bool = True):
+def build_citation(article: Article, final_recommendation: Recommendation, for_latex: bool = False):
     auth = current.auth
     db = current.db
 
@@ -900,7 +900,10 @@ def build_citation(article: Article, final_recommendation: Recommendation, with_
                         citation=True)
     
     if final_recommendation.recommendation_doi:
-        cite_ref = mkDOI(final_recommendation.recommendation_doi)
+        if for_latex:
+            cite_ref = mkSimpleDOI(final_recommendation.recommendation_doi)
+        else:
+            cite_ref = mkDOI(final_recommendation.recommendation_doi)
 
     if cite_ref:
         cite_url = cite_ref
@@ -908,21 +911,33 @@ def build_citation(article: Article, final_recommendation: Recommendation, with_
         cite_url = URL(c="articles", f="rec", vars=dict(id=article.id), host=host, scheme=scheme, port=port)
         cite_ref = A(cite_url, _href=cite_url)
 
-    cite = DIV(
-        SPAN(
-            B("Cite this recommendation as:", _class="pci2-main-color-text") if with_header else "",
-            BR() if with_header else "",
+    if for_latex:
+        cite = DIV(
             SPAN(recommendation_authors),
-            " ",
-            final_recommendation.last_change.strftime("(%Y)"),
-            " ",
-            md_to_html(final_recommendation.recommendation_title),
-            ". ",
-            I(myconf.take("app.description") + ", " + (Recommendation.get_doi_id(final_recommendation) or "") + ". "),
-            cite_ref,
-        ),
-        _class="pci-citation",
-    )
+                " ",
+                final_recommendation.last_change.strftime("(%Y)"),
+                " ",
+                md_to_html(final_recommendation.recommendation_title),
+                ". ",
+                I(myconf.take("app.description")) + ", " + (Recommendation.get_doi_id(final_recommendation) or "") + ". ",
+                cite_ref
+        )
+    else:
+        cite = DIV(
+            SPAN(
+                B("Cite this recommendation as:", _class="pci2-main-color-text"),
+                BR(),
+                SPAN(recommendation_authors),
+                " ",
+                final_recommendation.last_change.strftime("(%Y)"),
+                " ",
+                md_to_html(final_recommendation.recommendation_title),
+                ". ",
+                I(myconf.take("app.description") + ", " + (Recommendation.get_doi_id(final_recommendation) or "") + ". "),
+                cite_ref,
+            ),
+            _class="pci-citation",
+        )
 
     return cite
 

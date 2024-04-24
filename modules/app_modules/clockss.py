@@ -110,10 +110,10 @@ class Clockss:
             'REVIEWER_NAMES': Review.get_reviewers_name(self._article.id),
             'RECOMMENDATION_TITLE': self._recommendation.recommendation_title,
             'RECOMMENDATION_DOI': mkSimpleDOI(self._recommendation.doi),
-            'RECOMMENDATION_DOI_ID': Recommendation.get_doi_id(self._recommendation),
-            'PCI_NAME': str(myconf.take("app.longname")),
+            'PREPRINT_SERVER': self._article.preprint_server,
             'PCI_COMMAND': str(myconf.take("app.description")),
-            'RECOMMENDATION_CITATION': build_citation(self._article, self._recommendation, False),
+            'RECOMMENDATION_CITATION': build_citation(self._article, self._recommendation, True),
+            'RECOMMENDATION_VALIDATION_DATE': self._recommendation.validation_timestamp.strftime("%d %B %Y") if self._recommendation.validation_timestamp else None
         }
 
         for variable_name, variable_value in simple_variables.items():
@@ -262,7 +262,7 @@ class Clockss:
             finally:
                 ftp_server.quit()
 
-        #delete files after upload
+        # delete files after upload
         shutil.rmtree(self.attachments_dir)
         os.remove(filename)
 
