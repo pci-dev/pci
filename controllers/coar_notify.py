@@ -247,7 +247,8 @@ def record_request(body):
 
 
 def get_article_by_coar_req_id(coar_req_id):
-    return db(db.t_articles.coar_notification_id == coar_req_id) \
+    return db(bool(coar_req_id) &
+            (db.t_articles.coar_notification_id == coar_req_id)) \
                 .select(db.t_articles.id, db.t_articles.status).first()
 
 
