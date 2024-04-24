@@ -193,7 +193,7 @@ class Article(Row):
     @staticmethod
     def get_last_recommendation(article_id: int):
         db = current.db
-        return cast(_[Recommendation], db(db.t_recommendations.article_id == article_id).select().last())
+        return cast(_[Recommendation], db(db.t_recommendations.article_id == article_id).select(orderby=db.t_recommendations.id).last())
 
 
     @staticmethod

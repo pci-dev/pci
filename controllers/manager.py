@@ -490,7 +490,7 @@ def recommendations():
             if mastodon_button_element:
                 recommStatusHeader.append(mastodon_button_element)
             
-        recommStatusHeader.append(crossref_toolbar(art))
+        recommStatusHeader.append(crossref_clockss_toolbar(art))
 
     if printable:
         printableClass = "printable"
@@ -523,20 +523,21 @@ def recommendations():
         confirmationScript=confirmationScript,
     )
 
-def crossref_toolbar(article):
+
+def crossref_clockss_toolbar(article):
     return DIV(
-        crossref_button(article),
+        crossref_clockss_button(article),
         crossref_status(article),
-        _style="width: fit-content; display: inline-block",
+        _style="width: fit-content; display: inline-block; margin-right: 25px;",
     )
 
-def crossref_button(article: Row):
+def crossref_clockss_button(article: Row):
     return A(
         I(_class="glyphicon glyphicon-edit", _style="vertical-align:middle"),
-        T("Crossref"),
+        T("Crossref/Clockss"),
         _href=URL("crossref", f"post_form?article_id={article.id}"),
         _class="pci2-tool-link pci2-yellow-link",
-        _style="margin-right: 25px;",
+        _style="margin-right: 15px;",
     )
 
 def basic_hypothesis_button(article_id: int):

@@ -38,6 +38,10 @@ from gluon import current
 
 myconf = AppConfig(reload=True)
 
+scheme = myconf.take("alerts.scheme")
+host = myconf.take("alerts.host")
+port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
@@ -117,7 +121,7 @@ def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False,
     if userId is not None:
         theUser = User.get_by_id(userId)
         if theUser:
-            return mkUser_U(auth, db, theUser, linked=linked, scheme=scheme, host=host, port=port, orcid=orcid, orcid_exponant=orcid_exponant)
+            return mkUser_U(theUser, linked=linked, orcid=orcid, orcid_exponant=orcid_exponant)
         else:
             return SPAN("")
     else:
@@ -136,14 +140,15 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 
 
 ######################################################################################################################################################################
-def mkUser_U(auth, db, theUser: User, linked=False, scheme=False, host=False, port=False, reverse=False, orcid: bool = False, orcid_exponant: bool = False):
+def mkUser_U(theUser: User, linked=False, reverse=False, orcid: bool = False, orcid_exponant: bool = False):
+    db, auth = current.db, current.auth
     if theUser:
         if linked and not theUser.deleted:
             if reverse: b_tag = B("%s, %s." % (theUser.last_name, theUser.first_name[0]))
             else: b_tag = B("%s %s" % (theUser.first_name, theUser.last_name))
             resu = A(
                 b_tag,
-                _href=URL(c="public", f="user_public_page", scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)),
+                _href=URL(c="public", f="user_public_page", scheme=True, vars=dict(userId=theUser.id)),
                 _class="cyp-user-profile-link",
             )
         else:
@@ -791,11 +796,11 @@ def getRecommAndReviewAuthors(auth: Auth,
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(mkUser_U(None, None, theUser['id']).flatten())
+                    whoDidIt.append(mkUser_U(theUser['id']).flatten())
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))
+                        whoDidIt.append(mkUser_U(theUser, linked=linked, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -803,7 +808,7 @@ def getRecommAndReviewAuthors(auth: Auth,
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid, orcid_exponant=orcid_exponant))
+                        whoDidIt.append(mkUser_U(theUser, linked=linked, orcid=orcid, orcid_exponant=orcid_exponant))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -835,11 +840,11 @@ def getRecommAndReviewAuthors(auth: Auth,
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(mkUser_U(None, None, theUser['id']).flatten())
+                    whoDidIt.append(mkUser_U(theUser['id']).flatten())
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))              
+                        whoDidIt.append(mkUser_U(theUser, linked=linked, reverse=True, orcid=orcid, orcid_exponant=orcid_exponant))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -847,7 +852,7 @@ def getRecommAndReviewAuthors(auth: Auth,
                 else:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=linked, host=host, port=port, scheme=scheme, orcid=orcid, orcid_exponant=orcid_exponant))
+                        whoDidIt.append(mkUser_U(theUser, linked=linked, orcid=orcid, orcid_exponant=orcid_exponant))
                     if ir == nr - 1 and ir >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif ir < nr:
@@ -861,13 +866,13 @@ def getRecommAndReviewAuthors(auth: Auth,
             for theUser in namedReviewers:
                 iw += 1
                 if as_list:
-                    whoDidIt.append(mkUser_U(None, None, theUser['reviewer_id']).flatten())
+                    whoDidIt.append(mkUser_U(theUser['reviewer_id']).flatten())
                 else:
                     if theUser.reviewer_id:
                         theUser = db.auth_user[theUser.reviewer_id]
-                        whoDidIt.append(mkUser_U(auth, db, theUser, linked=False, host=host, port=port, scheme=scheme))
+                        whoDidIt.append(mkUser_U(theUser, linked=False))
                     else:
-                        whoDidIt.append(mkUser_U(None, None, theUser['reviewer_id']).flatten())
+                        whoDidIt.append(mkUser_U(theUser['reviewer_id']).flatten())
                     if iw == nw + na1 - 1 and iw >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif iw < nw + na1:
@@ -880,6 +885,61 @@ def getRecommAndReviewAuthors(auth: Auth,
                     whoDidIt.append(current.T("%d anonymous reviewer") % (na))
 
     return whoDidIt
+
+#########################
+
+def build_citation(article: Article, final_recommendation: Recommendation, for_latex: bool = False):
+    auth = current.auth
+    db = current.db
+
+    recommendation_authors = getRecommAndReviewAuthors(
+                        auth, db, article=article,
+                        with_reviewers=False, linked=False,
+                        host=host, port=port, scheme=scheme,
+                        recomm=final_recommendation, this_recomm_only=True,
+                        citation=True)
+    
+    if final_recommendation.recommendation_doi:
+        if for_latex:
+            cite_ref = mkSimpleDOI(final_recommendation.recommendation_doi)
+        else:
+            cite_ref = mkDOI(final_recommendation.recommendation_doi)
+
+    if cite_ref:
+        cite_url = cite_ref
+    else:
+        cite_url = URL(c="articles", f="rec", vars=dict(id=article.id), host=host, scheme=scheme, port=port)
+        cite_ref = A(cite_url, _href=cite_url)
+
+    if for_latex:
+        cite = DIV(
+            SPAN(recommendation_authors),
+                " ",
+                final_recommendation.last_change.strftime("(%Y)"),
+                " ",
+                md_to_html(final_recommendation.recommendation_title),
+                ". ",
+                I(myconf.take("app.description")) + ", " + (Recommendation.get_doi_id(final_recommendation) or "") + ". ",
+                cite_ref
+        )
+    else:
+        cite = DIV(
+            SPAN(
+                B("Cite this recommendation as:", _class="pci2-main-color-text"),
+                BR(),
+                SPAN(recommendation_authors),
+                " ",
+                final_recommendation.last_change.strftime("(%Y)"),
+                " ",
+                md_to_html(final_recommendation.recommendation_title),
+                ". ",
+                I(myconf.take("app.description") + ", " + (Recommendation.get_doi_id(final_recommendation) or "") + ". "),
+                cite_ref,
+            ),
+            _class="pci-citation",
+        )
+
+    return cite
 
 
 ######################################################################################################################################################################
@@ -907,7 +967,7 @@ def getArticleSubmitter(auth: Auth, db: DAL, art: Article):
     if art.already_published is False:
         result = DIV(
             I(current.T("Submitted by ")),
-            I(mkAnonymousArticleField(auth, db, hideSubmitter,B(mkUser_U(auth, db, submitter, linked=True)), art.id)),
+            I(mkAnonymousArticleField(auth, db, hideSubmitter,B(mkUser_U(submitter, linked=True)), art.id)),
             I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )
     else:

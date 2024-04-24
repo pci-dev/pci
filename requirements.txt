@@ -12,3 +12,5 @@ pillow
 requests
 requests-oauthlib
 deep_translator
+cssselect
+cssutils

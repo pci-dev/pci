@@ -2,6 +2,7 @@
 
 from functools import reduce
 from re import match
+import re
 from typing import Any, Dict, List, Optional, cast
 from zipfile import ZipFile
 import io

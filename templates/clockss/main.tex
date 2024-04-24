@@ -1,0 +1,54 @@
+%%%  TO FORMAT A PREPRINT To submit to a PCI.  If accepted then use this main.tex with the package of accepted article and search for comments  %%%
+
+\documentclass[a4paper]{article}
+
+%%%   SET THE TITLE   %%%
+\newcommand{\preprinttitle}{[[RECOMMENDATION_TITLE]]}
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%  SET THE Recommendation text.%%%
+\newcommand{\recomtext}{[[RECOMMENDATION_ABSTRACT]]}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%SET the references of the recommendation text%%%%%%%%%%%%%
+\newcommand{\references}{
+[[ARTICLE_DATA_DOI]]
+}
+
+
+%%% UNCOMMENT TO CHOOSE A PCI %%%
+
+\newcommand{\PCI}{[[PCI_COMMAND]]}
+%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%  SET THE RECOMMENDER(s) NAME(s)  %%%
+\newcommand{\recommender}{[[RECOMMENDER_NAMES]]}
+%%%%%%%%%%%%%%%%%
+
+
+%%%  SET THE REVIEWERS' NAMES IF KNOWN and/or X anonymous reviewers  %%%
+\newcommand{\reviewers}{[[REVIEWER_NAMES]]}
+%%%%%%%%%%%%%%%
+
+
+%%% SET THE 'CITE AS' of the recommendation   %%%
+\newcommand{\citeas}{[[RECOMMENDATION_CITATION]]}
+%%%%%%%%%%%%%%%%%
+
+%%% SET THE 'CITE AS' of the recommended preprint   %%%
+\newcommand{\citeaspreprint}{[[ARTICLE_AUTHORS]] ([[ARTICLE_YEAR]]) [[ARTICLE_TITLE]]. [[PREPRINT_SERVER]], [[RECOMMENDATION_DOI]]}
+%%%%%%%%%%%%%%%%%
+
+\newcommand{\publishdate}{[[RECOMMENDATION_VALIDATION_DATE]]}
+
+\input{preambule.tex}
+\begin{document}
+\beginingpreprint
+
+\section*{\centering Editorial process}
+
+[[RECOMMENDATION_PROCESS]]
+
+\end{document}

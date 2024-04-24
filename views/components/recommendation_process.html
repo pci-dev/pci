@@ -229,7 +229,7 @@
 
   <!-- Round reviews -->
   {{for review in reviewsList:}}
-    {{if review['showReviewExtraTimeButtons'] or review['showReviewRequest']:}}<div class="review-card">{{else:}}<div>{{pass}}  
+    {{if review['showReviewExtraTimeButtons'] or review['showReviewRequest']:}}<div class="review-card review">{{else:}}<div class="review">{{pass}}  
       {{if review['authors'] and not review['showReviewRequest']:}}
         <h4 class="pci2-round-review-sub-title">{{=T('Review by ')}}{{=review['authors']}}</h4>
       {{pass}}

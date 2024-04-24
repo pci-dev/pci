@@ -1,4 +1,5 @@
 from app_modules import crossref
+from app_modules.clockss import send_to_clockss
 
 crossref.init_conf(db)
 
@@ -28,7 +29,7 @@ def post_form():
     form = SQLFORM.factory(
         Field("xml", label=T("Crossref XML"), type="text", default=generated_xml),
     )
-    form.element(_type="submit")["_value"] = T("Send to Crossref")
+    form.element(_type="submit")["_value"] = T("Send to Crossref & Clockss")
     form.element(_name="xml").attributes.update(dict(
         _style="""
             font-family:monospace;
@@ -41,6 +42,9 @@ def post_form():
 
     if form.process(keepvalues=True).accepted:
         status = crossref.post_and_forget(recomm, form.vars.xml)
+        if not status:
+            send_to_clockss(article, recomm)
+
         form.element(_name="status", replace=PRE(status or "request sent"))
 
         form.element(_name="xml")["_disabled"] = 1
