@@ -20,7 +20,7 @@ def index():
 
     if auth.has_membership(role="administrator"):
         text += "\n"
-        text += show_coar_requests(int(request.vars.page or 0))
+        text += show_coar_requests()
     else:
         text += login_button()
 
@@ -395,7 +395,9 @@ def login_button():
     """.replace("\n", "")
 
 
-def show_coar_requests(page=0, per_page=100):
+def show_coar_requests(per_page=100):
+    page = paginator.page()
+
     text = "\n".join([ " / ".join([
             '<tt %s>[%s]</tt>',
             '<tt>%s</tt>',
@@ -422,7 +424,23 @@ def show_coar_requests(page=0, per_page=100):
         )
     ])
 
-    return text
+    return text + paginator.controls(page, per_page)
+
+
+class paginator:
+
+    def page():
+        try: return int(request.vars.page)
+        except: return 0
+
+    def controls(page, per_page):
+        nb_pages = round(db(db.t_coar_notification).count() / per_page + .5)
+        link = lambda txt, page: f'<a href="?page={page}">{txt}</a>'
+        next_ = link(">>", (page + 1) % nb_pages)
+        prev_ = link("<<", (page - 1 + nb_pages) % nb_pages)
+        home_ = link("::", 0)
+
+        return f"\n\n<tt>{prev_} {home_} {next_}</tt>"
 
 
 def show():
