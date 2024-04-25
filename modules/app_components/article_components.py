@@ -2,7 +2,7 @@
 
 import gc
 import os
-from typing import Any, Dict, Union
+from typing import Any, Dict
 from gluon.globals import Response
 from models.group import Role
 from models.review import ReviewState
@@ -312,34 +312,37 @@ def get_article_infos_card(auth: Auth, db: DAL, response: Response, article: Art
 
 
 def _get_article_translation(article: Article):
-    translations: Dict[str, Dict[str, Union[XML, DIV]]] = {}
+    translations: Dict[str, Dict[str, str]] = {}
 
     if article.translated_title:
         for translated_title in article.translated_title:
             if not translated_title['public']:
                 continue
-            translations[translated_title['lang']] = dict(title=H3(translated_title['content']))
+            translations[translated_title['lang']] = dict(title=str(H3(translated_title['content'])))
 
     if article.translated_abstract:
         for translated_abstract in article.translated_abstract:
             if not translated_abstract['public']:
                 continue
             lang = translated_abstract['lang']
-            translations.setdefault(lang, {})['abstract'] = XML(translated_abstract['content'])
+            translations.setdefault(lang, {})['abstract'] = translated_abstract['content']
             if translated_abstract['automated']:
-                translations[lang]['automated'] = I('This is an automatically generated version. The authors and PCI decline all responsibility concerning its content')
+                translations[lang]['automated'] = str(I('This is an automatically generated version. The authors and PCI decline all responsibility concerning its content'))
             else:
-                translations[lang]['automated'] = I('This is an author-verified version. The authors endorse the responsibility for its content.')
+                translations[lang]['automated'] = str(I('This is an author-verified version. The authors endorse the responsibility for its content.'))
             
     if article.translated_keywords:
         for translated_keywords in article.translated_keywords:
             if not translated_keywords['public']:
                 continue
             lang = translated_keywords['lang']
-            translations.setdefault(lang, {})['keywords'] = I(translated_keywords['content'])
+            translations.setdefault(lang, {})['keywords'] = str(I(translated_keywords['content']))
 
     if len(translations) > 0:
-        en = {Lang.EN.value.code: dict(title=H3(article.title or ""), abstract=XML(article.abstract or ""), keywords=I(article.keywords or ""))}
+        en = {Lang.EN.value.code: dict(
+            title=str(H3(article.title or "")),
+            abstract=article.abstract or "",
+            keywords=str(I(article.keywords or "")))}
         langs = list(translations.keys())
         langs.sort()
         translations = {lang: translations[lang] for lang in langs}
