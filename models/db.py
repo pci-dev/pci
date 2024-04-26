@@ -415,13 +415,13 @@ db.auth_user._after_update.append(lambda s, f: updUserThumb(s, f))
 
 
 def insUserThumb(f, i):
-    common_small_html.makeUserThumbnail(auth, db, i, size=(150, 150))
+    common_small_html.makeUserThumbnail(i, size=(150, 150))
     return None
 
 
 def updUserThumb(s, f):
     o = s.select().first()
-    common_small_html.makeUserThumbnail(auth, db, o.id, size=(150, 150))
+    common_small_html.makeUserThumbnail(o.id, size=(150, 150))
     return None
 
 
@@ -830,7 +830,7 @@ db.define_table(
         requires=upload_file_contraints(),
     ),
     Field("recommender_file_data", type="blob", readable=False),
-    format=lambda row: recommender_module.mkRecommendationFormat(auth, db, row),
+    format=lambda row: recommender_module.mkRecommendationFormat(row),
     singular=T("Recommendation"),
     plural=T("Recommendations"),
     migrate=False,
@@ -860,7 +860,7 @@ def newRecommendation(s, recomm):
 
     if isScheduledTrack(article):
         # "send" future message as soon as we have a {{recommenderPerson}}
-        emailing.send_to_submitter_scheduled_submission_open(auth, db, article)
+        emailing.send_to_submitter_scheduled_submission_open(article)
 
 
 def recommendationUpdated(s, updated_recommendation):
@@ -1957,7 +1957,7 @@ def survey_updated(survey):
         emailing.create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, review)
 
     emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", article.id)
-    emailing.send_to_submitter_scheduled_submission_open(auth, db, article)
+    emailing.send_to_submitter_scheduled_submission_open(article)
 
 
 from datetime import timedelta

@@ -10,6 +10,7 @@ import shutil
 
 # sudo pip install tweepy
 # import tweepy
+from gluon import current
 from gluon.contrib.markdown import WIKI
 
 from app_modules import emailing
@@ -267,7 +268,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
             recommenders += " and "
         recommenders += "\n"
         cpt += 1
-    affil = mkRecommendersAffiliations(auth, db, lastRecomm)
+    affil = mkRecommendersAffiliations(lastRecomm)
     affiliations = "\n"
     cpt = 1
     for a in affil:
@@ -275,7 +276,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
         affiliations += latex_escape(a)
         affiliations += "\\\\\n"
         cpt += 1
-    reviewers = latex_escape(common_small_html.mkReviewersString(auth, db, articleId))
+    reviewers = latex_escape(common_small_html.mkReviewersString(articleId))
     title = latex_escape(lastRecomm.recommendation_title)
     datePub = latex_escape((datetime.date.today()).strftime("%A %B %d %Y"))
     firstRecomm = db.auth_user[lastRecomm.recommender_id]
@@ -339,7 +340,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
                         x = latex_escape(
                             current.T("Reviewed by")
                             + " "
-                            + common_small_html.mkUser(auth, db, review.reviewer_id, linked=False).flatten()
+                            + common_small_html.mkUser(review.reviewer_id, linked=False).flatten()
                             + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else "")
                         )
                         history += "\\item{%s}\\par\n" % x
@@ -603,14 +604,15 @@ dashed=false
 ######################################################################################################################################################################
 # From common.py
 ######################################################################################################################################################################
-def mkRecommendationFormat2(auth, db, row):
+def mkRecommendationFormat2(row):
+    db, auth = current.db, current.auth
     recommender = db(db.auth_user.id == row.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
     if recommender:
         recommFmt = SPAN("%s %s" % (recommender.first_name, recommender.last_name))
     else:
         recommFmt = ""
     art = db.t_articles[row.article_id]
-    artRep = common_small_html.mkRepresentArticleLight(auth, db, art.id)
+    artRep = common_small_html.mkRepresentArticleLight(art.id)
     anchor = DIV(
         artRep, BR(), common_small_html.md_to_html(row.recommendation_title), BR(), B(current.T("Recommender:") + " "), recommFmt, BR(), common_small_html.mkDOI(row.doi), _class="pci-RecommendationFormat2"
     )
@@ -620,15 +622,16 @@ def mkRecommendationFormat2(auth, db, row):
 ######################################################################################################################################################################
 def mkRecommendersList(recomm):
     db, auth = current.db, current.auth
-    recommenders = [common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()]
+    recommenders = [common_small_html.mkUser(recomm.recommender_id).flatten()]
     contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
     for contrib in contribsQy:
-        recommenders.append(common_small_html.mkUser(auth, db, contrib.contributor_id).flatten())
+        recommenders.append(common_small_html.mkUser(contrib.contributor_id).flatten())
     return recommenders
 
 
 ######################################################################################################################################################################
-def mkRecommendersAffiliations(auth, db, recomm):
+def mkRecommendersAffiliations(recomm):
+    db, auth = current.db, current.auth
     affiliations = []
     theUser = db.auth_user[recomm.recommender_id]
     if theUser:
@@ -640,7 +643,7 @@ def mkRecommendersAffiliations(auth, db, recomm):
             affiliations.append(("%s, %s -- %s, %s" % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
     return affiliations
 
-    recommendersStr = common_small_html.mkRecommendersString(auth, db, recomm)
+    recommendersStr = common_small_html.mkRecommendersString(recomm)
     # reviewers = []
     reviewsQy = db(
         (db.t_reviews.recommendation_id == db.t_recommendations.id)
@@ -659,7 +662,7 @@ def mkRecommendersAffiliations(auth, db, recomm):
     # reviewers += ', '
     # else:
     # reviewers += ' and '
-    # reviewers += common_small_html.mkUser(auth, db, rw.reviewer_id).flatten()
+    # reviewers += common_small_html.mkUser(rw.reviewer_id).flatten()
     reviewsQyAnon = db(
         (db.t_reviews.recommendation_id == db.t_recommendations.id)
         & (db.t_recommendations.article_id == articleId)
@@ -701,7 +704,8 @@ def sanitizeHtmlContent(text):
 
 
 ######################################################################################################################################################################
-def mkEditResendButton(auth, db, row, urlFunction=None, urlController=None):
+def mkEditResendButton(row, urlFunction=None, urlController=None):
+    db, auth = current.db, current.auth
     anchor = A(
         SPAN(current.T("Edit and Resend"), _class="buttontext btn btn-default pci-recommender"),
         _href=URL(c="admin_actions", f="edit_resend_auth", vars=dict(mailId=row["id"], articleId=row["article_id"], hashtag=row["mail_template_hashtag"], urlFunction=urlFunction, urlController=urlController), user_signature=True),

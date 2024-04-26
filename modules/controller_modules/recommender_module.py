@@ -25,7 +25,8 @@ parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=Fal
 ######################################################################################################################################################################
 ## Recommender Module
 #######################################################################################################################################################################
-def mkViewEditArticleRecommenderButton(auth, db, row):
+def mkViewEditArticleRecommenderButton(row):
+    db, auth = current.db, current.auth
     return A(
         SPAN(current.T("View"), _class="buttontext btn btn-default pci-button pci-recommender"),
         _href=URL(c="recommender", f="article_details", vars=dict(articleId=row.id)),
@@ -34,7 +35,8 @@ def mkViewEditArticleRecommenderButton(auth, db, row):
 
 
 ######################################################################################################################################################################
-def reopen_review(auth, db, ids):
+def reopen_review(ids):
+    db, auth = current.db, current.auth
     if auth.has_membership(role="manager"):
         for myId in ids:
             rev = db.t_reviews[myId]
@@ -53,7 +55,8 @@ def reopen_review(auth, db, ids):
 ######################################################################################################################################################################
 # From common.py
 ######################################################################################################################################################################
-def mkSuggestReviewToButton(auth, db, row, recommId, myGoal, reg_user=False):
+def mkSuggestReviewToButton(row, recommId, myGoal, reg_user=False):
+    db, auth = current.db, current.auth
     if myGoal == "4review":
         anchor = A(
             SPAN(current.T("Prepare an invitation"), _class="buttontext btn btn-default pci-recommender"),
@@ -72,14 +75,15 @@ def mkSuggestReviewToButton(auth, db, row, recommId, myGoal, reg_user=False):
 
 
 ######################################################################################################################################################################
-def mkOtherContributors(auth, db, row):
+def mkOtherContributors(row):
+    db, auth = current.db, current.auth
     butts = []
     hrevs = []
     revs = db(db.t_press_reviews.recommendation_id == row.id).select()
     for rev in revs:
         if rev.contributor_id:
             if rev.contributor_id != auth.user_id:
-                hrevs.append(LI(common_small_html.mkUserWithMail(auth, db, rev.contributor_id)))
+                hrevs.append(LI(common_small_html.mkUserWithMail(rev.contributor_id)))
         else:
             hrevs.append(LI(I(current.T("not registered"))))
     butts.append(UL(hrevs, _class="pci-inCell-UL"))
@@ -87,7 +91,8 @@ def mkOtherContributors(auth, db, row):
 
 
 ######################################################################################################################################################################
-def mkRecommendationFormat(auth, db, row):
+def mkRecommendationFormat(row):
+    db, auth = current.db, current.auth
     recommender = db(db.auth_user.id == row.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
     if recommender:
         recommFmt = SPAN("%s %s" % (recommender.first_name, recommender.last_name))
@@ -106,7 +111,8 @@ def cancel_scheduled_reviews(session, auth, db, articleId):
 
 
 ######################################################################################################################################################################
-def mkEditResendButton(auth, db, row, reviewId=None, recommId=None, articleId=None, urlFunction=None, urlController=None):
+def mkEditResendButton(row, reviewId=None, recommId=None, articleId=None, urlFunction=None, urlController=None):
+    db, auth = current.db, current.auth
     anchor = A(
         SPAN(current.T("Edit and Resend"), _class="buttontext btn btn-default pci-recommender"),
         _href=URL(c="recommender_actions", f="edit_resend_auth", vars=dict(mailId=row["id"], reviewId=reviewId, recommId=recommId, articleId=articleId, urlFunction=urlFunction, urlController=urlController)),

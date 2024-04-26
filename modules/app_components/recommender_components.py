@@ -20,7 +20,9 @@ myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
-def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request, recommendation: Recommendation):
+def getReviewsSubTable(response: Response, request: Request, recommendation: Recommendation):
+    db, auth = current.db, current.auth
+
     article = Article.get_by_id(recommendation.article_id)
     if not article:
         return None
@@ -43,8 +45,8 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
     review_list: List[Dict[str, Any]] = []
     for review in reviews:
             review_vars: Dict[str, Any] = dict(
-                reviewer=common_small_html.mkUserWithMail(auth, db, review.reviewer_id),
-                status=common_small_html.mkReviewStateDiv(auth, db, review.review_state, review),
+                reviewer=common_small_html.mkUserWithMail(review.reviewer_id),
+                status=common_small_html.mkReviewStateDiv(review.review_state, review),
                 lastChange=common_small_html.mkElapsedDays(review.last_change),
                 actions=[],
             )

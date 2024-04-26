@@ -19,7 +19,9 @@ applongname = myconf.take("app.longname")
 
 ######################################################################################################################################################################
 # New common modules
-def searchByThematic(auth, db, myVars, allowBlank=True,redirectSearchArticle=False):
+def searchByThematic(myVars, allowBlank=True,redirectSearchArticle=False):
+    db, auth = current.db, current.auth
+
     keywords = None
     if "qyKeywords" in myVars:
         keywords = myVars["qyKeywords"]
@@ -484,10 +486,10 @@ def recommender_decline_invitation_form(request, session, db, auth, articleId):
     art = db.t_articles[articleId]
     contact = myconf.take("contacts.managers")
     sender_email = db(db.auth_user.id == auth.user_id).select().last().email
-    mail_template = emailing_tools.getMailTemplateHashtag(db, "#RecommenderRejectMail")
+    mail_template = emailing_tools.getMailTemplateHashtag("#RecommenderRejectMail")
 
     # template variables, along with all other locals()+
-    recommenderPerson = common_small_html.mkUser(auth, db, auth.user_id)
+    recommenderPerson = common_small_html.mkUser(auth.user_id)
     articleTitle = common_small_html.md_to_html(art.title)
     articleAuthors = emailing.mkAuthors(art)
     appName = myconf.take("app.name")

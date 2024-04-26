@@ -298,8 +298,8 @@ def get_not_considered_dialog():
         session.flash = auth.not_authorized()
         return redirect(request.env.http_referer, client_side=True)
 
-    template = getMailTemplateHashtag(db, "#SubmitterNotConsideredSubmission")
-    content = replace_mail_vars_set_not_considered_mail(auth, db, article, template['subject'], template['content'])
+    template = getMailTemplateHashtag("#SubmitterNotConsideredSubmission")
+    content = replace_mail_vars_set_not_considered_mail(article, template['subject'], template['content'])
     submit_url = cast(str, URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=article_id), user_signature=True))
     return custom_mail_dialog(article.id, content.subject, content.message, submit_url)
 

@@ -120,11 +120,11 @@ def list_users():
         ]
 
     db.auth_user._id.readable = True
-    db.auth_user._id.represent = lambda i, row: common_small_html.mkUserId(auth, db, i, linked=True)
+    db.auth_user._id.represent = lambda i, row: common_small_html.mkUserId(i, linked=True)
     db.t_reviews.recommendation_id.label = T("Article DOI")
     db.t_articles.anonymous_submission.label = T("Anonymous submission")
-    db.t_articles.anonymous_submission.represent = lambda text, row: common_small_html.mkAnonymousMask(auth, db, text)
-    db.t_articles.already_published.represent = lambda text, row: common_small_html.mkJournalImg(auth, db, text)
+    db.t_articles.anonymous_submission.represent = lambda text, row: common_small_html.mkAnonymousMask(text)
+    db.t_articles.already_published.represent = lambda text, row: common_small_html.mkJournalImg(text)
     db.auth_user.registration_key.represent = lambda text, row: SPAN(text, _class="pci-blocked") if (text == "blocked" or text == "disabled") else text
     db.auth_user.last_alert.readable = True
     db.auth_user.last_alert.writable = True
@@ -326,10 +326,10 @@ def allRecommCitations():
     for myRecomm in allRecomms:
         grid.append(
             LI(
-                common_small_html.mkRecommCitation(auth, db, myRecomm),
+                common_small_html.mkRecommCitation(myRecomm),
                 BR(),
                 B("Recommends: "),
-                common_small_html.mkArticleCitation(auth, db, myRecomm),
+                common_small_html.mkArticleCitation(myRecomm),
                 P(),
             )
         )
@@ -351,7 +351,7 @@ def article_status():
 
     write_auth = auth.has_membership("developer")
     db.t_status_article._id.label = T("Coded representation")
-    db.t_status_article._id.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status)
+    db.t_status_article._id.represent = lambda text, row: common_small_html.mkStatusDiv(row.status)
     db.t_status_article.status.writable = write_auth
     grid = SQLFORM.grid(
         db.t_status_article,
@@ -398,7 +398,7 @@ def manage_pdf():
     for q in myQy:
         myList.append(q[0])
     mySet = db((db.t_recommendations.id.belongs(myList)))
-    db.t_recommendations._format = lambda row: admin_module.mkRecommendationFormat2(auth, db, row)
+    db.t_recommendations._format = lambda row: admin_module.mkRecommendationFormat2(row)
     db.t_pdf.recommendation_id.requires = IS_IN_DB(mySet, "t_recommendations.id", db.t_recommendations._format, orderby=db.t_recommendations.id)
     db.t_pdf.recommendation_id.widget = SQLFORM.widgets.radio.widget
     grid = SQLFORM.grid(
@@ -671,7 +671,7 @@ def mailing_queue():
         _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
         _class="btn btn-default",
         _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
+    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(row, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
     
     links = [
         dict(
