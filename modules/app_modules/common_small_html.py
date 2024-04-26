@@ -38,9 +38,6 @@ from gluon import current
 
 myconf = AppConfig(reload=True)
 
-scheme = myconf.take("alerts.scheme")
-host = myconf.take("alerts.host")
-port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -129,11 +126,11 @@ def mkUser(auth: Auth, db: DAL, userId: Optional[int], linked: bool = False, sch
 
 
 ######################################################################################################################################################################
-def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=False):
+def mkUserId(auth, db, userId, linked=False, fullURL=False):
     resu = SPAN("")
     if userId is not None:
         if linked:
-            resu = A(B(str(userId)), _href=URL(c="public", f="user_public_page", scheme=scheme, host=host, port=port, vars=dict(userId=userId)), _class="cyp-user-profile-link")
+            resu = A(B(str(userId)), _href=URL(c="public", f="user_public_page", scheme=fullURL, vars=dict(userId=userId)), _class="cyp-user-profile-link")
         else:
             resu = SPAN(str(userId))
     return resu
@@ -165,13 +162,13 @@ def mkUser_U(theUser: User, linked=False, reverse=False, orcid: bool = False, or
 
 
 ######################################################################################################################################################################
-def mkUserWithAffil_U(auth, db, theUser: User, linked=False, scheme=False, host=False, port=False):
+def mkUserWithAffil_U(auth, db, theUser: User, linked=False, fullURL=False):
     if theUser:
         if linked and not theUser.deleted:
             resu = SPAN(
                 A(
                     "%s %s" % (theUser.first_name, theUser.last_name),
-                    _href=URL(c="public", f="user_public_page", scheme=scheme, host=host, port=port, vars=dict(userId=theUser.id)),
+                    _href=URL(c="public", f="user_public_page", scheme=fullURL, vars=dict(userId=theUser.id)),
                 ),
                 I(" -- %s, %s -- %s, %s" % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)),
             )
@@ -185,7 +182,7 @@ def mkUserWithAffil_U(auth, db, theUser: User, linked=False, scheme=False, host=
 
 
 ######################################################################################################################################################################
-def mkUserWithMail(auth, db, userId, linked=False, scheme=False, host=False, port=False, reverse=False, orcid=False):
+def mkUserWithMail(auth, db, userId, linked=False, fullURL=False, reverse=False, orcid=False):
     if userId is not None:
         theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.orcid).last()
     else:
@@ -207,7 +204,7 @@ def _mkUser(theUser: User, linked=False, reverse=False):
                     A(
                         name,
                         _href=URL(c="public", f="user_public_page",
-                            scheme=scheme, host=host, port=port, vars=dict(userId=userId)),
+                            scheme=True, vars=dict(userId=userId)),
                     ),
                     SPAN(" [%s]" % theUser.email))
             else:
@@ -760,9 +757,7 @@ def getRecommAndReviewAuthors(
                               with_reviewers: bool = False,
                               as_list: bool = False,
                               linked: bool = False,
-                              host: Union[str, bool] = False,
-                              port: Union[str, bool] = False,
-                              scheme: Union[str, bool] = False,
+                              fullURL: bool = False,
                               this_recomm_only: bool = False,
                               citation: bool = False,
                               orcid: bool = False,
@@ -891,7 +886,7 @@ def build_citation(article: Article, final_recommendation: Recommendation, for_l
     recommendation_authors = getRecommAndReviewAuthors(
                         article=article,
                         with_reviewers=False, linked=False,
-                        host=host, port=port, scheme=scheme,
+                        fullURL=True,
                         recomm=final_recommendation, this_recomm_only=True,
                         citation=True)
     
@@ -906,7 +901,7 @@ def build_citation(article: Article, final_recommendation: Recommendation, for_l
     if cite_ref:
         cite_url = cite_ref
     else:
-        cite_url = URL(c="articles", f="rec", vars=dict(id=article.id), host=host, scheme=scheme, port=port)
+        cite_url = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=True)
         cite_ref = A(cite_url, _href=cite_url)
 
     if for_latex:

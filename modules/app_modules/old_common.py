@@ -44,10 +44,6 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 # Show reviews of cancelled articles for CNeuro
 def reviewsOfCancelled(auth, db, art):
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    applongname = myconf.take("app.longname")
     track = None
     printable = False
     with_reviews = True

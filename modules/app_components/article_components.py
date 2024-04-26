@@ -56,7 +56,7 @@ def getRecommArticleRowCard(article, recomm, withImg=True, withScore=False, with
     recommAuthors = common_small_html.getRecommAndReviewAuthors(
                         article=article,
                         with_reviewers=True, linked=True,
-                        host=host, port=port, scheme=scheme,
+                        fullURL=fullURL,
                         recomm=recomm, this_recomm_only=True,
                         orcid_exponant=orcid_exponant
                         )
@@ -70,7 +70,7 @@ def getRecommArticleRowCard(article, recomm, withImg=True, withScore=False, with
             articleImg = IMG(
                 _src=URL(
                     "static", "uploads",
-                    scheme=scheme, host=host, port=port,
+                    scheme=fullURL,
                     args=article.uploaded_picture,
                 ),
                 _alt="article picture",
