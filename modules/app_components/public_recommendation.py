@@ -440,7 +440,7 @@ def getCommentsTreeHtml(auth, db, response, commentId):
         replyToLink = A(current.T("Reply..."), _href=URL(c="articles", f="rec", vars=dict(articleId=comment.article_id, comments=True, replyTo=comment.id),), _style="margin: 0",)
 
     componentVars = dict(
-        userLink=common_small_html.mkUser_U(comment.user_id, linked=True),
+        userLink=common_small_html.mkUser_U(db.auth_user[comment.user_id], linked=True),
         commentDate=str(comment.comment_datetime),
         commentText=WIKI(comment.user_comment) or "",
         replyToLink=replyToLink,

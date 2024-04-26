@@ -796,7 +796,8 @@ def getRecommAndReviewAuthors(auth: Auth,
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(mkUser_U(theUser['id']).flatten())
+                    theUser = db.auth_user[theUser['id']]
+                    whoDidIt.append(mkUser_U(theUser).flatten())
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
@@ -840,7 +841,8 @@ def getRecommAndReviewAuthors(auth: Auth,
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(mkUser_U(theUser['id']).flatten())
+                    theUser = db.auth_user[theUser['id']]
+                    whoDidIt.append(mkUser_U(theUser).flatten())
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
@@ -866,7 +868,8 @@ def getRecommAndReviewAuthors(auth: Auth,
             for theUser in namedReviewers:
                 iw += 1
                 if as_list:
-                    whoDidIt.append(mkUser_U(theUser['reviewer_id']).flatten())
+                    theUser = db.auth_user[theUser.reviewer_id]
+                    whoDidIt.append(mkUser_U(theUser).flatten())
                 else:
                     if theUser.reviewer_id:
                         theUser = db.auth_user[theUser.reviewer_id]
