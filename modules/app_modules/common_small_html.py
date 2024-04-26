@@ -904,6 +904,8 @@ def build_citation(article: Article, final_recommendation: Recommendation, for_l
             cite_ref = mkSimpleDOI(final_recommendation.recommendation_doi)
         else:
             cite_ref = mkDOI(final_recommendation.recommendation_doi)
+    else:
+        cite_ref = False
 
     if cite_ref:
         cite_url = cite_ref
