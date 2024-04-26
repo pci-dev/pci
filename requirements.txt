@@ -1,7 +1,7 @@
 pydal
 yatl
 furl
-lxml
+lxml<5
 orderedmultidict
 psycopg2-binary
 dateutils
