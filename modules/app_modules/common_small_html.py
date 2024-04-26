@@ -141,7 +141,6 @@ def mkUserId(auth, db, userId, linked=False, scheme=False, host=False, port=Fals
 
 ######################################################################################################################################################################
 def mkUser_U(theUser: User, linked=False, reverse=False, orcid: bool = False, orcid_exponant: bool = False):
-    db, auth = current.db, current.auth
     if theUser:
         if linked and not theUser.deleted:
             if reverse: b_tag = B("%s, %s." % (theUser.last_name, theUser.first_name[0]))
