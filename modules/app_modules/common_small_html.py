@@ -114,7 +114,7 @@ def mkLinkDOI(doi: Optional[str]):
 
 
 ######################################################################################################################################################################
-def mkUser(auth: Auth, db: DAL, userId: Optional[int], linked: bool = False, scheme: bool = False, host: bool = False, port: bool = False, orcid: bool = False, orcid_exponant: bool = False):
+def mkUser(userId: Optional[int], linked: bool = False, orcid: bool = False, orcid_exponant: bool = False):
     if userId is not None:
         theUser = User.get_by_id(userId)
         if theUser:
@@ -126,7 +126,7 @@ def mkUser(auth: Auth, db: DAL, userId: Optional[int], linked: bool = False, sch
 
 
 ######################################################################################################################################################################
-def mkUserId(auth, db, userId, linked=False, fullURL=False):
+def mkUserId(userId, linked=False, fullURL=False):
     resu = SPAN("")
     if userId is not None:
         if linked:
@@ -162,7 +162,7 @@ def mkUser_U(theUser: User, linked=False, reverse=False, orcid: bool = False, or
 
 
 ######################################################################################################################################################################
-def mkUserWithAffil_U(auth, db, theUser: User, linked=False, fullURL=False):
+def mkUserWithAffil_U(theUser: User, linked=False, fullURL=False):
     if theUser:
         if linked and not theUser.deleted:
             resu = SPAN(
@@ -182,7 +182,8 @@ def mkUserWithAffil_U(auth, db, theUser: User, linked=False, fullURL=False):
 
 
 ######################################################################################################################################################################
-def mkUserWithMail(auth, db, userId, linked=False, fullURL=False, reverse=False, orcid=False):
+def mkUserWithMail(userId, linked=False, fullURL=False, reverse=False, orcid=False):
+    db = current.db
     if userId is not None:
         theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.orcid).last()
     else:
@@ -229,7 +230,8 @@ def mkStatusArticles(db):
 
 
 ######################################################################################################################################################################
-def mkStatusSimple(auth, db, status):
+def mkStatusSimple(status):
+    db, auth = current.db, current.auth
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     status_txt = (current.T(status)).upper()
@@ -240,7 +242,8 @@ def mkStatusSimple(auth, db, status):
 
 ######################################################################################################################################################################
 # Builds a coloured status label
-def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None, reportStage="Stage not set", submission_change=False):
+def mkStatusDiv(status, showStage=False, stage1Id=None, reportStage="Stage not set", submission_change=False):
+    db, auth = current.db, current.auth
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     status_txt = (current.T(status)).upper()
@@ -285,7 +288,8 @@ def mkStatusDiv(auth, db, status, showStage=False, stage1Id=None, reportStage="S
 
 ######################################################################################################################################################################
 # Builds a coloured status label with pre-decision concealed
-def mkStatusDivUser(auth, db, status, showStage=False, stage1Id=None, reportStage="Stage not set"):
+def mkStatusDivUser(status, showStage=False, stage1Id=None, reportStage="Stage not set"):
+    db, auth = current.db, current.auth
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     if status.startswith("Pre-") and status != "Pre-submission":
@@ -330,7 +334,8 @@ def mkStatusDivUser(auth, db, status, showStage=False, stage1Id=None, reportStag
 
 
 ######################################################################################################################################################################
-def mkStatusBigDiv(auth, db, status, printable=False):
+def mkStatusBigDiv(status, printable=False):
+    db, auth = current.db, current.auth
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     status_txt = (current.T(status)).upper()
@@ -346,7 +351,8 @@ def mkStatusBigDiv(auth, db, status, printable=False):
 
 
 ######################################################################################################################################################################
-def mkStatusBigDivUser(auth, db, status, printable=False):
+def mkStatusBigDivUser(status, printable=False):
+    db, auth = current.db, current.auth
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles(db)
     if status.startswith("Pre-") and status != "Pre-submission":
@@ -368,7 +374,7 @@ def mkStatusBigDivUser(auth, db, status, printable=False):
 ######################################################################################################################################################################
 # Other status
 ######################################################################################################################################################################
-def mkReviewStateDiv(auth: Auth, db: DAL, state: str, review: Optional[Review] = None):
+def mkReviewStateDiv(state: str, review: Optional[Review] = None):
     # state_txt = (current.T(state)).upper()
     state_txt = (state or "").upper()
     if state == ReviewState.AWAITING_RESPONSE.value or state == ReviewState.WILLING_TO_REVIEW.value:
@@ -395,7 +401,7 @@ def mkReviewStateDiv(auth: Auth, db: DAL, state: str, review: Optional[Review] =
 
 
 ######################################################################################################################################################################
-def mkContributionStateDiv(auth, db, state):
+def mkContributionStateDiv(state):
     # state_txt = (current.T(state)).upper()
     state_txt = (state or "").upper()
     if state == "Pending":
@@ -412,7 +418,8 @@ def mkContributionStateDiv(auth, db, state):
 ######################################################################################################################################################################
 # Image resizing
 ######################################################################################################################################################################
-def makeUserThumbnail(auth, db, userId, size=(150, 150)):
+def makeUserThumbnail(userId, size=(150, 150)):
+    db = current.db
     user = db(db.auth_user.id == userId).select().last()
     if user.picture_data:
         try:
@@ -432,7 +439,7 @@ def makeUserThumbnail(auth, db, userId, size=(150, 150)):
 ######################################################################################################################################################################
 # Other images helper
 ######################################################################################################################################################################
-def mkAnonymousMask(auth, db, anon):
+def mkAnonymousMask(anon):
     if anon is True:
         return DIV(IMG(_alt="anonymous", _src=URL(c="static", f="images/mask.png")), _style="text-align:center;")
     else:
@@ -440,7 +447,8 @@ def mkAnonymousMask(auth, db, anon):
 
 
 ######################################################################################################################################################################
-def mkAnonymousArticleField(auth: Auth, db: DAL, anon: bool, value: Any, articleId: int):
+def mkAnonymousArticleField(anon: bool, value: Any, articleId: int):
+    auth = current.auth
     recomm = Article.get_last_recommendation(articleId)
     isRecommender = recomm and recomm.recommender_id == auth.user_id
     if anon is True and not isRecommender:
@@ -450,7 +458,7 @@ def mkAnonymousArticleField(auth: Auth, db: DAL, anon: bool, value: Any, article
 
 
 ######################################################################################################################################################################
-def mkJournalImg(auth, db, press):
+def mkJournalImg(press):
     if press is True:
         return DIV(IMG(_alt="published", _src=URL(c="static", f="images/journal.png")), _style="text-align:center;")
     else:
@@ -460,7 +468,7 @@ def mkJournalImg(auth, db, press):
 ######################################################################################################################################################################
 # Buttons
 ######################################################################################################################################################################
-def mkViewEditRecommendationsRecommenderButton(auth, db, row):
+def mkViewEditRecommendationsRecommenderButton(row):
     return A(
         SPAN(current.T("View / Edit"), _class="buttontext btn btn-default pci-button"),
         _href=URL(c="recommender", f="recommendations", vars=dict(articleId=row.article_id)),
@@ -487,7 +495,8 @@ def mkBackButton(text=current.T("Back"), target: Optional[str] = None):
 ######################################################################################################################################################################
 # Article recomm presentation
 ######################################################################################################################################################################
-def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
+def mkRepresentArticleLightLinked(article_id, urlArticle=None):
+    db = current.db
     anchor = ""
     art = db.t_articles[article_id]
 
@@ -499,12 +508,12 @@ def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
 
         if urlArticle:
             anchor = DIV(
-                A(B(md_to_html(art.title)), _href=urlArticle), BR(), SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)), BR(), doi_text, _class="ellipsis-over-350",
+                A(B(md_to_html(art.title)), _href=urlArticle), BR(), SPAN(mkAnonymousArticleField(art.anonymous_submission, art.authors, art.id)), BR(), doi_text, _class="ellipsis-over-350",
             )
         else:
             anchor = DIV(
                 B(md_to_html(art.title) or ""),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
+                SPAN(mkAnonymousArticleField(art.anonymous_submission, art.authors, art.id)),
                 BR(),
                 doi_text,
                 _class="ellipsis-over-350",
@@ -514,7 +523,8 @@ def mkRepresentArticleLightLinked(auth, db, article_id, urlArticle=None):
 
 
 ######################################################################################################################################################################
-def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=None):
+def mkRepresentArticleLightLinkedWithStatus(article_id, urlArticle=None):
+    db = current.db
     anchor = ""
     art = db.t_articles[article_id]
     if art:
@@ -527,16 +537,16 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
             anchor = DIV(
                 A(B(md_to_html(art.title) or "", _class="article-title"), _href=urlArticle),
                 BR(),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
+                SPAN(mkAnonymousArticleField(art.anonymous_submission, art.authors, art.id)),
                 BR(),
                 doi_text,
                 BR(),
-                B(current.T("Status: "), mkStatusSimple(auth, db, art.status)),
+                B(current.T("Status: "), mkStatusSimple(art.status)),
             )
         else:
             anchor = DIV(
                 B(md_to_html(art.title) or ""),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
+                SPAN(mkAnonymousArticleField(art.anonymous_submission, art.authors, art.id)),
                 BR(),
                 doi_text,
                 _class="ellipsis-over-350",
@@ -546,7 +556,8 @@ def mkRepresentArticleLightLinkedWithStatus(auth, db, article_id, urlArticle=Non
 
 
 ######################################################################################################################################################################
-def mkRepresentArticleLight(auth, db, article_id):
+def mkRepresentArticleLight(article_id):
+    db = current.db
     anchor = ""
     art = db.t_articles[article_id]
     if art:
@@ -557,7 +568,7 @@ def mkRepresentArticleLight(auth, db, article_id):
 
         anchor = DIV(
             B(md_to_html(art.title), _class="article-title"),
-            DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
+            DIV(mkAnonymousArticleField(art.anonymous_submission, art.authors, art.id)),
             doi_text,
             BR(),
             SPAN(" " + current.T("ArticleID") + " #" + str(art.id)),            
@@ -570,7 +581,7 @@ def mkRepresentArticleLight(auth, db, article_id):
 
 ######################################################################################################################################################################
 # Builds a nice representation of an article WITHOUT recommendations link
-def mkArticleCellNoRecomm(auth, db, art0):
+def mkArticleCellNoRecomm(art0):
     anchor = ""
     if art0:
         if "t_articles" in art0:
@@ -585,7 +596,7 @@ def mkArticleCellNoRecomm(auth, db, art0):
 
         anchor = DIV(
             B(md_to_html(art.title) or "", _class="article-title"),
-            DIV(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
+            DIV(mkAnonymousArticleField(art.anonymous_submission, art.authors, art.id)),
             doi_text,
             BR(),
             SPAN(" " + current.T("ArticleID") + " #" + str(art.id)),
@@ -597,14 +608,15 @@ def mkArticleCellNoRecomm(auth, db, art0):
 
 
 ######################################################################################################################################################################
-def mkArticleCellNoRecommFromId(auth, db, recommId):
+def mkArticleCellNoRecommFromId(recommId):
+    db = current.db
     anchor = ""
     recomm = db.t_recommendations[recommId]
     if recomm:
         art = db.t_articles[recomm.article_id]
         if art:
             # if art.already_published:
-            recommenders = [mkUser(auth, db, recomm.recommender_id)]
+            recommenders = [mkUser(recomm.recommender_id)]
             contribsQy = db(db.t_press_reviews.recommendation_id == recommId).select()
             n = len(contribsQy)
             i = 0
@@ -614,10 +626,10 @@ def mkArticleCellNoRecommFromId(auth, db, recommId):
                     recommenders += ", "
                 else:
                     recommenders += " and "
-                recommenders += mkUser(auth, db, contrib.contributor_id)
+                recommenders += mkUser(contrib.contributor_id)
             recommenders = SPAN(recommenders)
             # else:
-            # recommenders = mkUser(auth, db, recomm.recommender_id)
+            # recommenders = mkUser(recomm.recommender_id)
             doi_text = mkDOI(art.doi)
             if scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
                 doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
@@ -631,7 +643,7 @@ def mkArticleCellNoRecommFromId(auth, db, recommId):
                 SPAN(current.T("A recommendation of ")),
                 I(md_to_html(art.title) or "", _class="article-title"),
                 SPAN(current.T(" by ")),
-                SPAN(mkAnonymousArticleField(auth, db, art.anonymous_submission, art.authors, art.id)),
+                SPAN(mkAnonymousArticleField(art.anonymous_submission, art.authors, art.id)),
                 (SPAN(current.T(" in ")) + SPAN(art.article_source) if art.article_source else ""),
                 BR(),
                 doi_text,
@@ -644,7 +656,7 @@ def mkArticleCellNoRecommFromId(auth, db, recommId):
 ######################################################################################################################################################################
 # Make text string from data
 ######################################################################################################################################################################
-def mkRecommCitation(auth, db, myRecomm):
+def mkRecommCitation(myRecomm):
     applongname = myconf.take("app.longname")
 
     citeNum = ""
@@ -662,7 +674,8 @@ def mkRecommCitation(auth, db, myRecomm):
 
 
 ######################################################################################################################################################################
-def mkArticleCitation(auth, db, myRecomm):
+def mkArticleCitation(myRecomm):
+    db = current.db
     applongname = myconf.take("app.longname")
 
     if myRecomm is None or not hasattr(myRecomm, "article_id"):
@@ -687,14 +700,15 @@ def mkArticleCitation(auth, db, myRecomm):
 
 
 ######################################################################################################################################################################
-def mkCoRecommenders(auth, db, row, goBack=URL()):
+def mkCoRecommenders(row, goBack=URL()):
+    db = current.db
     butts = []
     hrevs = []
     art = db.t_articles[row.article_id]
     revs = db(db.t_press_reviews.recommendation_id == row.id).select()
     for rev in revs:
         if rev.contributor_id:
-            hrevs.append(LI(mkUserWithMail(auth, db, rev.contributor_id)))
+            hrevs.append(LI(mkUserWithMail(rev.contributor_id)))
         else:
             hrevs.append(LI(I(current.T("not registered"))))
     butts.append(UL(hrevs, _class="pci-inCell-UL"))
@@ -710,7 +724,8 @@ def mkCoRecommenders(auth, db, row, goBack=URL()):
 
 # Only in admin
 ######################################################################################################################################################################
-def mkReviewersString(auth, db, articleId):
+def mkReviewersString(articleId):
+    db = current.db
     reviewers = []
     reviewsQy = db(
         (db.t_reviews.recommendation_id == db.t_recommendations.id)
@@ -729,7 +744,7 @@ def mkReviewersString(auth, db, articleId):
                         reviewers += ", "
                     else:
                         reviewers += " and "
-                reviewers += mkUser(auth, db, rw.reviewer_id).flatten()
+                reviewers += mkUser(rw.reviewer_id).flatten()
     reviewsQyAnon = db(
         (db.t_reviews.recommendation_id == db.t_recommendations.id)
         & (db.t_recommendations.article_id == articleId)
@@ -960,7 +975,7 @@ def getArticleSubmitter(auth: Auth, db: DAL, art: Article):
     if art.already_published is False:
         result = DIV(
             I(current.T("Submitted by ")),
-            I(mkAnonymousArticleField(auth, db, hideSubmitter,B(mkUser_U(submitter, linked=True)), art.id)),
+            I(mkAnonymousArticleField(hideSubmitter,B(mkUser_U(submitter, linked=True)), art.id)),
             I(art.upload_timestamp.strftime(" " + DEFAULT_DATE_FORMAT + " %H:%M") if art.upload_timestamp else ""),
         )
     else:
@@ -981,8 +996,9 @@ def group_reviewers(reviews: List[Review]):
     return result
 
 ######################################################################################################################################################################
-def mkRecommendersString(auth, db, recomm):
-    recommenders = [mkUser(auth, db, recomm.recommender_id).flatten()]
+def mkRecommendersString(recomm):
+    db = current.db
+    recommenders = [mkUser(recomm.recommender_id).flatten()]
     contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
     n = len(contribsQy)
     i = 0
@@ -992,12 +1008,12 @@ def mkRecommendersString(auth, db, recomm):
             recommenders += ", "
         else:
             recommenders += " and "
-        recommenders += mkUser(auth, db, contrib.contributor_id).flatten()
+        recommenders += mkUser(contrib.contributor_id).flatten()
     recommendersStr = "".join(recommenders)
     return recommendersStr
 
 ######################################################################################################################################################################
-def mkReviewerInfo(auth, db, user, orcid: bool = False):
+def mkReviewerInfo(user, orcid: bool = False):
     anchor = ""
     if user:
         if "auth_user" in user:
@@ -1032,9 +1048,9 @@ def mkRecommenderandContributorList(records: List[Union[Recommendation, PressRev
     result = []
     for record in records:
         if hasattr(record, 'recommender_id'):
-            result_dict = {'id': record.recommender_id, 'details': mkUserWithMail(current.auth, current.db, record.recommender_id).flatten()}
+            result_dict = {'id': record.recommender_id, 'details': mkUserWithMail(record.recommender_id).flatten()}
         elif hasattr(record, 'contributor_id'):
-             result_dict = {'id': record.contributor_id, 'details': mkUserWithMail(current.auth, current.db, record.contributor_id).flatten()}
+             result_dict = {'id': record.contributor_id, 'details': mkUserWithMail(record.contributor_id).flatten()}
         else:
             raise Exception('DB record is not a Recommendation or PressReview.')
         result.append(result_dict)
@@ -1272,7 +1288,7 @@ def suggested_recommender_list(article_id: int):
 
     recommender_list = UL()
     for suggested_recommender in suggested_recommenders:
-        name_with_mail = mkUserWithMail(current.auth, current.db, suggested_recommender.suggested_recommender_id)
+        name_with_mail = mkUserWithMail(suggested_recommender.suggested_recommender_id)
         recommender_list.append(LI(name_with_mail))
     suggested_recommenders_html.append(recommender_list)
 

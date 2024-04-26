@@ -145,7 +145,8 @@ def is_recommender(auth, request):
     )
 
 ######################################################################################################################################################################
-def is_co_recommender(auth, db, recommId):
+def is_co_recommender(recommId):
+    db, auth = current.db, current.auth
     return db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
 ######################################################################################################################################################################

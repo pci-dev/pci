@@ -59,13 +59,13 @@ def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_let
     stage2List = None
     if pciRRactivated and isStage2:
         urlArticle = URL(c="articles", f="rec", vars=dict(id=art.art_stage_1_id))
-        stage1Link = common_small_html.mkRepresentArticleLightLinked(auth, db, art.art_stage_1_id, urlArticle)
+        stage1Link = common_small_html.mkRepresentArticleLightLinked(art.art_stage_1_id, urlArticle)
     elif pciRRactivated and not isStage2:
         stage2Articles = db((db.t_articles.art_stage_1_id == art.id) & (db.t_articles.status == "Recommended")).select()
         stage2List = []
         for art_st_2 in stage2Articles:
             urlArticle = URL(c="articles", f="rec", vars=dict(id=art_st_2.id))
-            stage2List.append(common_small_html.mkRepresentArticleLightLinked(auth, db, art_st_2.id, urlArticle))
+            stage2List.append(common_small_html.mkRepresentArticleLightLinked(art_st_2.id, urlArticle))
 
     if finalRecomm.recommendation_doi:
         recomm_altmetric = XML(
@@ -238,7 +238,8 @@ def _dublinc_core_meta_tag(article: Article):
 
 
 ######################################################################################################################################################################
-def getPublicReviewRoundsHtml(auth, db, response, articleId):
+def getPublicReviewRoundsHtml(response, articleId):
+    db, auth = current.db, current.auth
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -280,7 +281,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             else:
                 reviewAuthorAndDate = SPAN(
                     current.T("Reviewed by"),
-                    " ", common_small_html.mkUser(auth, db, review.reviewer_id, linked=True, orcid_exponant=True),
+                    " ", common_small_html.mkUser(review.reviewer_id, linked=True, orcid_exponant=True),
                     (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else ""),
                 )
 

@@ -284,7 +284,7 @@ def suggest_review_to():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    if recomm.recommender_id != auth.user_id and not is_co_recommender(auth, db, recomm.id) and not (auth.has_membership(role="manager")):
+    if recomm.recommender_id != auth.user_id and not is_co_recommender(recomm.id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
@@ -506,7 +506,7 @@ def make_preprint_searching_for_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    co_recommender = is_co_recommender(auth, db, recomm.id)
+    co_recommender = is_co_recommender(recomm.id)
     if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or co_recommender or auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -533,7 +533,7 @@ def make_preprint_not_searching_for_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    co_recommender = is_co_recommender(auth, db, recomm.id)
+    co_recommender = is_co_recommender(recomm.id)
     if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or co_recommender or auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)

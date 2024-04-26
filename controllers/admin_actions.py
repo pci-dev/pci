@@ -40,7 +40,7 @@ def delete_trapped_emails():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def resizeAllUserImages():
     for userId in db(db.auth_user.uploaded_picture != None).select(db.auth_user.id):
-        common_small_html.makeUserThumbnail(auth, db, userId, size=(150, 150))
+        common_small_html.makeUserThumbnail(userId, size=(150, 150))
     redirect(request.env.http_referer)
 
 
@@ -48,7 +48,7 @@ def resizeAllUserImages():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def resizeUserImages(ids):
     for userId in ids:
-        common_small_html.makeUserThumbnail(auth, db, userId, size=(150, 150))
+        common_small_html.makeUserThumbnail(userId, size=(150, 150))
 
 
 ######################################################################################################################################################################

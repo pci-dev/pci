@@ -46,13 +46,14 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 
 
-def getReviewHTML(auth, db, rewiewId):
+def getReviewHTML(rewiewId):
+    db, auth = current.db, current.auth
     review = db.t_reviews[rewiewId]
 
     reviewAuthorAndDate = SPAN(
         current.T("Reviewed by"),
         " ",
-        common_small_html.mkUser(auth, db, review.reviewer_id, linked=False),
+        common_small_html.mkUser(review.reviewer_id, linked=False),
         (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
     )
 
@@ -74,7 +75,8 @@ def getReviewHTML(auth, db, rewiewId):
     )
 
 
-def getAuthorsReplyLinks(auth, db, recommId):
+def getAuthorsReplyLinks(recommId):
+    db, auth = current.db, current.auth
     recomm = db.t_recommendations[recommId]
     
     authorsReplyPdfLink = ""
@@ -96,8 +98,9 @@ def getAuthorsReplyLinks(auth, db, recommId):
     return authorsReplyPdfLink, authorsReplyTrackChangeFileLink
 
 
-def getAuthorsReplyHTML(auth, db, recommId):
-    authorsReplyPdfLink, authorsReplyTrackChangeFileLink = getAuthorsReplyLinks(auth, db, recommId)
+def getAuthorsReplyHTML(recommId):
+    db, auth = current.db, current.auth
+    authorsReplyPdfLink, authorsReplyTrackChangeFileLink = getAuthorsReplyLinks(recommId)
     recomm = db.t_recommendations[recommId]
 
     return DIV(

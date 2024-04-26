@@ -43,7 +43,8 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
 # Show reviews of cancelled articles for CNeuro
-def reviewsOfCancelled(auth, db, art):
+def reviewsOfCancelled(art):
+    db, auth = current.db, current.auth
     track = None
     printable = False
     with_reviews = True
@@ -94,7 +95,7 @@ def reviewsOfCancelled(auth, db, art):
                             H4(
                                 current.T("Reviewed by"),
                                 " ",
-                                common_small_html.mkUser(auth, db, review.reviewer_id, linked=not (printable)),
+                                common_small_html.mkUser(review.reviewer_id, linked=not (printable)),
                                 (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
                             )
                         )

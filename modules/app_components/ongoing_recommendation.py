@@ -36,18 +36,20 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ########################################################################################################################################################################
-def getRecommStatusHeader(auth: Auth, db: DAL, response: Response, art: Article, controller_name: str, request: Request, userDiv: DIV, printable: bool, quiet: bool = True):
+def getRecommStatusHeader(response: Response, art: Article, controller_name: str, request: Request, userDiv: DIV, printable: bool, quiet: bool = True):
+    db, auth = current.db, current.auth
+
     lastRecomm = db.get_last_recomm(art.id)
     if lastRecomm:
-        co_recommender = is_co_recommender(auth, db, lastRecomm.id)
+        co_recommender = is_co_recommender(lastRecomm.id)
 
     if userDiv:
         statusDiv = DIV(
-            common_small_html.mkStatusBigDivUser(auth, db, art.status, printable),
+            common_small_html.mkStatusBigDivUser(art.status, printable),
             _class="pci2-flex-center pci2-full-width",
         )
     else:
-        statusDiv = DIV(common_small_html.mkStatusBigDiv(auth, db, art.status, printable), _class="pci2-flex-center pci2-full-width")
+        statusDiv = DIV(common_small_html.mkStatusBigDiv(art.status, printable), _class="pci2-flex-center pci2-full-width")
 
 
     myTitle = DIV(
@@ -72,7 +74,7 @@ def getRecommStatusHeader(auth: Auth, db: DAL, response: Response, art: Article,
     manageRecommendersButton = None
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRequest = True
-        manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2, auth, db)
+        manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2)
     
     if pciRRactivated and lastRecomm and ((lastRecomm.recommender_id == auth.user_id or co_recommender) and lastRecomm.recommendation_state in ("Ongoing", "Revision")) and auth.has_membership(role="recommender") and not(quiet):
        allowManageRequest = True
@@ -109,7 +111,8 @@ def getRecommStatusHeader(auth: Auth, db: DAL, response: Response, art: Article,
 
 
 ######################################################################################################################################################################
-def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True):
+def getRecommendationTopButtons(art, printable=False, quiet=True):
+    db, auth = current.db, current.auth
 
     myContents = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
     nbRecomms = db(db.t_recommendations.article_id == art.id).count()
@@ -627,7 +630,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
                         "authors",
                         SPAN(
                             Review.get_reviewer_name(review) or
-                            common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
+                            common_small_html.mkUser(review.reviewer_id, linked=True),
                             (", " + review_date_str),
                         ),
                     )
@@ -1184,7 +1187,8 @@ def validation_checklist(validation_type):
 ######################################################################################################################################
 # Postprint recommendation process
 ######################################################################################################################################
-def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=True):
+def getPostprintRecommendation(response, art, printable=False, quiet=True):
+    db, auth = current.db, current.auth
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
     recomm = db.get_last_recomm(art.id)
