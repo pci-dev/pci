@@ -654,7 +654,7 @@ def mkRecommCitation(auth, db, myRecomm):
     doi = ""
     if myRecomm is None or not hasattr(myRecomm, "recommendation_doi"):
         return SPAN("?")
-    whoDidItCite = getRecommAndReviewAuthors(auth, db, recomm=myRecomm, with_reviewers=False, linked=False)
+    whoDidItCite = getRecommAndReviewAuthors(recomm=myRecomm, with_reviewers=False, linked=False)
     if myRecomm.recommendation_doi:
         citeNumSearch = re.search("([0-9]+$)", myRecomm.recommendation_doi, re.IGNORECASE)
         if citeNumSearch:
@@ -754,8 +754,7 @@ def mkReviewersString(auth, db, articleId):
 
 ######################################################################################################################################################################
 # builds names list (recommender, co-recommenders, reviewers)
-def getRecommAndReviewAuthors(auth: Auth,
-                              db: DAL,
+def getRecommAndReviewAuthors(
                               article: Union[Article, Dict[Any, Any]] = dict(),
                               recomm: Union[Recommendation, Dict[Any, Any]] = dict(),
                               with_reviewers: bool = False,
@@ -769,6 +768,7 @@ def getRecommAndReviewAuthors(auth: Auth,
                               orcid: bool = False,
                               orcid_exponant: bool = False
                              ) -> List[Any]:
+    db = current.db
     whoDidIt = []
 
     if hasattr(recomm, "article_id"):
@@ -888,11 +888,8 @@ def getRecommAndReviewAuthors(auth: Auth,
 #########################
 
 def build_citation(article: Article, final_recommendation: Recommendation, for_latex: bool = False):
-    auth = current.auth
-    db = current.db
-
     recommendation_authors = getRecommAndReviewAuthors(
-                        auth, db, article=article,
+                        article=article,
                         with_reviewers=False, linked=False,
                         host=host, port=port, scheme=scheme,
                         recomm=final_recommendation, this_recomm_only=True,

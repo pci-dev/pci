@@ -66,7 +66,7 @@ def rec():
     nbReviews = nbRevs + (nbRecomms - 1)
 
     # Recommendation Header and Metadata
-    recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
+    recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(art, finalRecomm, printable)
     recommHeaderHtml = recommendationHeader["headerHtml"]
     recommMetadata = recommendationHeader["recommMetadata"]
     dublin_core = recommendationHeader["dublin_core"]
@@ -78,8 +78,7 @@ def rec():
 
     commentsTreeAndForm = None
     if with_comments:
-        # Get user comments list and form
-        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(auth, db, response, session, art.id, request.vars["replyTo"])
+        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(response, session, art.id, request.vars["replyTo"])
 
     if printable:
         printableClass = "printable"
@@ -118,7 +117,7 @@ def tracking():
         query_already_published_articles = db(db.t_articles.already_published == False).select(orderby=~db.t_articles.last_status_change)
 
         for article in query_already_published_articles:
-            article_html_card = article_components.getArticleTrackcRowCard(auth, db, response, article)
+            article_html_card = article_components.getArticleTrackcRowCard(article)
             if article_html_card:
                 article_list.append(article_html_card)
 

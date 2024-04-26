@@ -40,21 +40,14 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ########################################################################################################################################################################
 ## Public recommendation
 ######################################################################################################################################################################
-def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable, with_cover_letter=False, fullURL=True):
-    if fullURL:
-        scheme = myconf.take("alerts.scheme")
-        host = myconf.take("alerts.host")
-        port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    else:
-        scheme = False
-        host = False
-        port = False
+def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_letter=False, fullURL=True):
+    auth, db = current.auth, current.db
 
     headerContent = dict()
 
     recomm_altmetric = ""
 
-    articleInfosCard = article_components.get_article_infos_card(auth, db, response,
+    articleInfosCard = article_components.get_article_infos_card(
             art, printable,
             with_version=pciRRactivated,
             with_cover_letter=False, submitted_by=False, keywords=True)
@@ -109,7 +102,7 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
     ) if not pciRRactivated else ""
 
     whoDidRecomm = common_small_html.getRecommAndReviewAuthors(
-            auth, db, recomm=finalRecomm,
+            recomm=finalRecomm,
             with_reviewers=True, linked=True,
             host=host, port=port, scheme=scheme,
             this_recomm_only=True,
@@ -167,17 +160,17 @@ def getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, print
     )
 
     # Get METADATA (see next function)
-    recommMetadata = getRecommendationMetadata(auth, db, art, finalRecomm, pdfUrl, Recommendation.get_doi_id(finalRecomm), scheme, host, port)
+    recommMetadata = getRecommendationMetadata(art, finalRecomm, pdfUrl, Recommendation.get_doi_id(finalRecomm), fullURL)
     dublin_core = _dublinc_core_meta_tag(art)
 
-    headerHtml = XML(response.render("components/last_recommendation.html", headerContent))
+    headerHtml = XML(current.response.render("components/last_recommendation.html", headerContent))
     return dict(headerHtml=headerHtml, recommMetadata=recommMetadata, dublin_core=dublin_core)
 
 
 ######################################################################################################################################################################
-def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, scheme, host, port):
+def getRecommendationMetadata(art, lastRecomm, pdfLink, citeNum, fullURL):
     desc = "A recommendation of: " + (art.authors or "") + " " + (md_to_html(art.title).flatten() or "") + " " + (art.doi or "")
-    whoDidItMeta = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False, as_list=True)
+    whoDidItMeta = common_small_html.getRecommAndReviewAuthors(recomm=lastRecomm, with_reviewers=False, linked=False, as_list=True)
 
     # META headers
     myMeta = OrderedDict()
@@ -190,7 +183,7 @@ def getRecommendationMetadata(auth, db, art, lastRecomm, pdfLink, citeNum, schem
     myMeta["citation_publication_date"] = (lastRecomm.last_change.date()).strftime("%Y/%m/%d")
     myMeta["citation_online_date"] = (lastRecomm.last_change.date()).strftime("%Y/%m/%d")
     myMeta["citation_journal_abbrev"] = myconf.take("app.name")
-    myMeta["citation_issn"] = db.config[1].issn
+    myMeta["citation_issn"] = current.db.config[1].issn
     myMeta["citation_volume"] = "1"
     myMeta["citation_publisher"] = "Peer Community In"
     if lastRecomm.recommendation_doi:
@@ -344,7 +337,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
             )
 
         recommAuthors = common_small_html.getRecommAndReviewAuthors(
-                        auth, db, recomm=recomm,
+                        recomm=recomm,
                         with_reviewers=False, linked=True,
                         host=host, port=port, scheme=scheme,
                         this_recomm_only=True,
@@ -376,7 +369,8 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 
 
 ######################################################################################################################################################################
-def getRecommCommentListAndForm(auth, db, response, session, articleId, parentId=None):
+def getRecommCommentListAndForm(response, session, articleId, parentId=None):
+    auth, db = current.auth, current.db
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
@@ -418,7 +412,7 @@ def getRecommCommentListAndForm(auth, db, response, session, articleId, parentId
     commentsQy = db((db.t_comments.article_id == articleId) & (db.t_comments.parent_id == None)).select(orderby=db.t_comments.comment_datetime)
     if len(commentsQy) > 0:
         for comment in commentsQy:
-            commentsTree.append(getCommentsTreeHtml(auth, db, response, comment.id))
+            commentsTree.append(getCommentsTreeHtml(response, comment.id))
     else:
         commentsTree.append(DIV(SPAN(current.T("No user comments yet")), _style="margin-top: 15px"))
 
@@ -427,13 +421,14 @@ def getRecommCommentListAndForm(auth, db, response, session, articleId, parentId
     return XML(response.render("components/comments_tree_and_form.html", componentVars))
 
 
-def getCommentsTreeHtml(auth, db, response, commentId):
+def getCommentsTreeHtml(response, commentId):
+    auth, db = current.auth, current.db
     comment = db.t_comments[commentId]
     childrenDiv = []
     children = db(db.t_comments.parent_id == comment.id).select(orderby=db.t_comments.comment_datetime)
 
     for child in children:
-        childrenDiv.append(getCommentsTreeHtml(auth, db, response, child.id))
+        childrenDiv.append(getCommentsTreeHtml(response, child.id))
 
     replyToLink = ""
     if auth.user:

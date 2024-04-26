@@ -193,7 +193,9 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True):
 
 
 ########################################################################################################################################################################
-def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
+def getRecommendationProcessForSubmitter(art, printable):
+    db = current.db
+
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
     submissionValidatedClassClass = "step-default"
@@ -241,7 +243,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
                 authorsReplyDate = None # current round
 
             recommenderName = common_small_html.getRecommAndReviewAuthors(
-                auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme
+                recomm=recomm, with_reviewers=False, linked=not (printable), fullURL=True,
             )
 
             recommStatus = None
@@ -320,7 +322,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
                 recommendationLink=recommendationLink,
                 uploadDate=uploadDate,
             )
-            recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
+            recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars)))
 
             roundNumber += 1
 
@@ -356,7 +358,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
             uploadDate=uploadDate,
         )
 
-        recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
+        recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars)))
     if (managerDecisionDoneClass == "step-done") or (managerDecisionDoneClass == "step-default" and art.status == "Recommended-private"):
         isRecommAvalaibleToSubmitter = True
     return dict(roundNumber=totalRecomm, isRecommAvalaibleToSubmitter=isRecommAvalaibleToSubmitter, content=recommendationDiv)
@@ -1195,7 +1197,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
         recommendationDiv.append("NO RECOMMENDATION")
         return recommendationDiv
 
-    whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
+    whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=recomm, with_reviewers=False, linked=not (printable), fullURL=True)
 
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
