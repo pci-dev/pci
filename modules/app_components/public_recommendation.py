@@ -104,7 +104,7 @@ def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_let
     whoDidRecomm = common_small_html.getRecommAndReviewAuthors(
             recomm=finalRecomm,
             with_reviewers=True, linked=True,
-            host=host, port=port, scheme=scheme,
+            fullURL=fullURL,
             this_recomm_only=True,
             orcid_exponant=True
             )
@@ -115,7 +115,7 @@ def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_let
     pdfLink = None
 
     if len(pdf_query) > 0:
-        pdfUrl = URL("articles", "rec", vars=dict(articleId=art.id, asPDF=True), host=host, scheme=scheme, port=port)
+        pdfUrl = URL("articles", "rec", vars=dict(articleId=art.id, asPDF=True), scheme=fullURL)
         pdfLink = A(SPAN(current.T("PDF recommendation"), " ", IMG(_alt="pdf", _src=URL("static", "images/application-pdf.png"))), _href=pdfUrl, _class="btn btn-info pci-public",)
 
     recommendationPdfLink = None
@@ -123,7 +123,7 @@ def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_let
         recommendationPdfLink = A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download recommender's annotations (PDF)"),
-            _href=URL("default", "download", args=finalRecomm.recommender_file, scheme=scheme, host=host, port=port),
+            _href=URL("default", "download", args=finalRecomm.recommender_file, scheme=fullURL),
             _style="font-weight: bold; margin-top: 15px; margin-bottom: 5px; display:block",
         )
     article_upload_time = art.upload_timestamp.strftime("posted %d %B %Y")
@@ -339,7 +339,7 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
         recommAuthors = common_small_html.getRecommAndReviewAuthors(
                         recomm=recomm,
                         with_reviewers=False, linked=True,
-                        host=host, port=port, scheme=scheme,
+                        fullURL=True,
                         this_recomm_only=True,
                         orcid_exponant=True
                         )
@@ -371,9 +371,6 @@ def getPublicReviewRoundsHtml(auth, db, response, articleId):
 ######################################################################################################################################################################
 def getRecommCommentListAndForm(response, session, articleId, parentId=None):
     auth, db = current.auth, current.db
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     isLoggedIn = False
     scrollToCommentForm = False
