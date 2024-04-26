@@ -113,7 +113,6 @@ class Clockss:
             'RECOMMENDATION_TITLE': self._recommendation.recommendation_title,
             'RECOMMENDATION_DOI': mkSimpleDOI(self._recommendation.doi),
             'PREPRINT_SERVER': self._article.preprint_server,
-            'PCI_COMMAND': str(myconf.take("app.description")),
             'RECOMMENDATION_CITATION': build_citation(self._article, self._recommendation, True),
             'RECOMMENDATION_VALIDATION_DATE': self._recommendation.validation_timestamp.strftime("%d %B %Y") if self._recommendation.validation_timestamp else None
         }
@@ -123,8 +122,34 @@ class Clockss:
 
         template = self._replace_list_references_in_template('ARTICLE_DATA_DOI', template)
         template = self._replace_recommendation_process('RECOMMENDATION_PROCESS', template)
+        template = self._replace_img_in_template(template)
 
         return template
+    
+
+    def _replace_img_in_template(self, template: str):
+        pci = str(myconf.take("app.description")).lower()
+        img_map = {
+            'peer community in registered reports': 'logo_PDF_rr.jpg',
+            'peer community in zoology': 'logo_PDF_zool.jpg',
+            'peer community in ecology': 'logo_PDF_ecology.jpg',
+            'peer community in animal science': 'logo_PDF_animsci.jpg',
+            'peer community in archaeology': 'logo_PDF_archaeo.jpg',
+            'peer community in forest and wood sciences': 'logo_PDF_fws.jpg',
+            'peer community in genomics': 'logo_PDF_genomics.jpg',
+            'peer community in mathematical and computational biology': 'logo_PDF_mcb.jpg',
+            'peer community in network science': 'logo_PDF_networksci.jpg',
+            'peer community in paleontology': 'logo_PDF_paleo.jpg',
+            'peer community in neuroscience': 'logo_PDF_neuro.jpg',
+            'peer community in ecotoxicology and environmental chemistry': 'logo_PDF_ecotoxenvchem.jpg',
+            'peer community in infections': 'logo_PDF_infections.jpg',
+            'peer community in health and movement sciences': 'logo_PDF_healthandmovementsciences.png',
+            'peer community in microbiology': 'logo_PDF_microbiology.png',
+            'peer community in organization studies': 'logo_PDF_organizationstudies.png',
+            'peer community in computational statistics': 'logo_PDF_computationalstatistics.png'
+        }
+        img = img_map.get(pci, 'logo_PDF_evolbiol.jpg')
+        return self._replace_var_in_template('PCI_IMG', img, template)
     
 
     def _replace_recommendation_process(self, var_title: str, template: str):
