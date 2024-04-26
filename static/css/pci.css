@@ -1414,3 +1414,9 @@ header {
 body.impersonate {
   margin-top: 49px;
 }
+
+#menu-translations iframe {
+  border: none;
+  margin-top: 15px;
+  width: 800px;
+}

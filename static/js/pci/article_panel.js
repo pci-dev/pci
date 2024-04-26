@@ -26,6 +26,9 @@ function checkPanel(panelId, iconId) {
       });
 
     panel.classList.remove("pci2-panel-closed");
+
+    initIframe(panel);
+
     arrowIcon.classList.remove("glyphicon-rotate");
     arrowIcon.classList.add("glyphicon-rotate-reversed");
     if (icons.length > 1) {
@@ -41,4 +44,39 @@ function checkPanel(panelId, iconId) {
       arrowIcon.parentElement.classList.remove("pci2-main-color-selected");
     }
   }
+}
+
+function initIframe(iframe) {
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  
+  const linkOpenSans = doc.createElement('link');
+  linkOpenSans.rel = 'stylesheet'
+  linkOpenSans.href = 'https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700'
+  doc.head.appendChild(linkOpenSans);
+
+  const style = document.createElement('style');
+  style.textContent = `
+    * {
+      font-family: "Open Sans", sans-serif;
+      color: rgb(136, 136, 136);
+      font-size: 14px;
+      margin: 0px;
+      line-height: 20px
+    }
+
+    i {
+      font-size: 14px;
+    }
+
+    h3 {
+      font-weight: bold;
+      font-size: 17px;
+      margin-bottom: 5px;
+      margin-top: 3px;
+    }
+  `
+  doc.head.append(style);
+
+  const contentHeight = iframe.contentWindow.document.body.scrollHeight
+  iframe.style.height = contentHeight + 7 + 'px';
 }

@@ -333,19 +333,21 @@
     <div id="menu-translations">
     {{for lang, translation in translations.items():}}
         {{if not printable:}}
-        <div id="menu-5-{{=lang}}" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
-          {{=translation.get('automated', '')}}
-          {{=translation.get('title', '')}}
-          {{=translation.get('abstract', '')}}
-          {{=translation.get('keywords', '')}}
-        </div>
+        <iframe srcdoc="
+        {{=translation.get('automated', '')}}
+        {{=translation.get('title', '')}}
+        {{=translation.get('abstract', '')}}
+        {{=translation.get('keywords', '')}}"
+        id="menu-5-{{=lang}}" class="pci2-abstract-div pci2-panel-closed">
+        </iframe>
       {{else:}}
-        <div id="menu-5-{{=lang}}" class="pci2-abstract-div" style="margin-top: 15px;">
+        <iframe srcdoc="
           {{=translation.get('automated', '')}}
           {{=translation.get('title', '')}}
           {{=translation.get('abstract', '')}}
-          {{=translation.get('keywords', '')}}
-        </div>
+          {{=translation.get('keywords', '')}}"
+          id="menu-5-{{=lang}}" class="pci2-abstract-div">
+        </iframe>
       {{pass}}
     {{pass}}
     </div>
