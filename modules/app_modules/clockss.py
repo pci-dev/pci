@@ -30,12 +30,12 @@ myconf = AppConfig(reload=True)
 
 class Clockss:
 
-    CLOCKSS_SERVER = str(myconf.take("clockss.server"))
-    CLOCKSS_USERNAME = str(myconf.take("clockss.username"))
-    CLOCKSS_PASSWORD = str(myconf.take("clockss.password")) 
+    CLOCKSS_SERVER = str(myconf.get("clockss.server"))
+    CLOCKSS_USERNAME = str(myconf.get("clockss.username"))
+    CLOCKSS_PASSWORD = str(myconf.get("clockss.password"))
 
     LATEX_TEMPLATE_FILENAME = 'main.tex'
-    PDFLATEX_BIN = str(myconf.take("latex.pdflatex"))
+    PDFLATEX_BIN = str(myconf.get("latex.pdflatex"))
     
     _article: Article
     _prefix: str
