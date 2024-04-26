@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from re import sub
-from typing import List
+from typing import List, Optional, cast
 from dateutil.relativedelta import *
 
 import io
@@ -488,9 +488,9 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 if recommenderOwnReviewState.review_state == "Review completed":
                     recommReviewFilledOrNull = True  # Yes, his/her review is completed
 
-        reviews: List[Review] = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
+        reviews = cast(List[Review], db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
             orderby=db.t_reviews.id
-        )
+        ))
 
         manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
         if manager_coauthor: break
@@ -584,6 +584,13 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
             if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review") and (art.status in ("Under consideration", "Scheduled submission under consideration")) and not (printable):
                 reviewVars.update([("showEditButtons", True)])
 
+            review_date: Optional[datetime.datetime] = None
+            if review.review_state == ReviewState.REVIEW_COMPLETED.value:
+                review_date = review.last_change
+            else:
+                review_date = review.acceptation_timestamp
+            review_date_str = review_date.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review_date else ""
+
             if not (hideOngoingReview):
                 # display the review
                 if review.anonymously:
@@ -595,7 +602,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                                 "authors",
                                 SPAN(
                                     current.T("anonymous reviewer " + reviewer_number),
-                                    (", " + review.acceptation_timestamp.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.acceptation_timestamp else ""),
+                                    (", " + review_date_str),
                                 ),
                             )
                         ]
@@ -608,7 +615,7 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                                 SPAN(
                                     Review.get_reviewer_name(review) or
                                     common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
-                                    (", " + review.acceptation_timestamp.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.acceptation_timestamp else ""),
+                                    (", " + review_date_str),
                                 ),
                             )
                         ]
