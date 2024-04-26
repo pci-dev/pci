@@ -30,12 +30,12 @@ myconf = AppConfig(reload=True)
 
 class Clockss:
 
-    CLOCKSS_SERVER = str(myconf.take("clockss.server"))
-    CLOCKSS_USERNAME = str(myconf.take("clockss.username"))
-    CLOCKSS_PASSWORD = str(myconf.take("clockss.password")) 
+    CLOCKSS_SERVER = str(myconf.get("clockss.server"))
+    CLOCKSS_USERNAME = str(myconf.get("clockss.username"))
+    CLOCKSS_PASSWORD = str(myconf.get("clockss.password"))
 
     LATEX_TEMPLATE_FILENAME = 'main.tex'
-    PDFLATEX_BIN = str(myconf.take("latex.pdflatex"))
+    PDFLATEX_BIN = str(myconf.get("latex.pdflatex"))
     
     _article: Article
     _prefix: str
@@ -82,6 +82,8 @@ class Clockss:
         
 
     def _compile_latex(self, latex_content: str, pdf_dest_path: str):
+        if not self.PDFLATEX_BIN: raise Exception("pdflatex not configured")
+
         tmp_folder = f"{current.request.folder}/tmp/{self._prefix}"
         if os.path.exists(tmp_folder):
             shutil.rmtree(tmp_folder)
@@ -249,7 +251,7 @@ class Clockss:
 
 
     def package_and_send(self):
-        ftp_server = self._clokss_ftp()
+        ftp_server = self._clockss_ftp()
         if ftp_server is None:
             raise Exception('Missing Clockss FTP configuration')
 
@@ -267,15 +269,19 @@ class Clockss:
         os.remove(filename)
 
 
-    def _clokss_ftp(self):
+    def _clockss_ftp(self):
         if self.CLOCKSS_SERVER and self.CLOCKSS_USERNAME and self.CLOCKSS_PASSWORD:
             return ftplib.FTP(self.CLOCKSS_SERVER, self.CLOCKSS_USERNAME, self.CLOCKSS_PASSWORD)
 
 
 def send_to_clockss(article: Article, recommendation: Recommendation):
     clockss = Clockss(article)
-    filename = clockss.build_pdf()
     attachments_dir= clockss.attachments_dir
+    try:
+        filename = clockss.build_pdf()
+    except Exception as e:
+        current.session.flash = f"Error building Clockss PDF: {e}"
+        return
     try:
         PDF.save_pdf_to_db(recommendation, attachments_dir, filename)
         clockss.package_and_send()
