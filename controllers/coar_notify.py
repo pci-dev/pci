@@ -20,7 +20,7 @@ def index():
 
     if auth.has_membership(role="administrator"):
         text += "\n"
-        text += show_coar_requests(int(request.vars.page or 0))
+        text += show_coar_requests()
     else:
         text += login_button()
 
@@ -182,8 +182,7 @@ def cancel_endorsement(req):
     if not article:
         fail(f"no such offer: object.id='{coar_req_id}'")
 
-    article.status = "Cancelled"
-    article.update_record()
+    article.update_record(status="Cancelled")
 
 
 def create_new_user(user_email, user_name):
@@ -232,12 +231,11 @@ def update_resubmitted_article(req, context):
     if article.status != "Awaiting revision":
         return article
 
-    article.coar_notification_id = req["id"]
-    article.coar_notification_closed = False
-    article.doi = req["object"]["ietf:cite-as"]
-
-    article.update_record()
-
+    article.update_record(
+        coar_notification_id = req["id"],
+        coar_notification_closed = False,
+        doi = req["object"]["ietf:cite-as"],
+    )
     return article
 
 
@@ -249,8 +247,9 @@ def record_request(body):
 
 
 def get_article_by_coar_req_id(coar_req_id):
-    return db(db.t_articles.coar_notification_id == coar_req_id) \
-                .select().first()
+    return db(bool(coar_req_id) &
+            (db.t_articles.coar_notification_id == coar_req_id)) \
+                .select(db.t_articles.id, db.t_articles.status).first()
 
 
 def get_preprint_server(doi):
@@ -396,7 +395,9 @@ def login_button():
     """.replace("\n", "")
 
 
-def show_coar_requests(page=0, per_page=100):
+def show_coar_requests(per_page=100):
+    page = paginator.page()
+
     text = "\n".join([ " / ".join([
             '<tt %s>[%s]</tt>',
             '<tt>%s</tt>',
@@ -423,7 +424,23 @@ def show_coar_requests(page=0, per_page=100):
         )
     ])
 
-    return text
+    return text + paginator.controls(page, per_page)
+
+
+class paginator:
+
+    def page():
+        try: return int(request.vars.page)
+        except: return 0
+
+    def controls(page, per_page):
+        nb_pages = round(db(db.t_coar_notification).count() / per_page + .5)
+        link = lambda txt, page: f'<a href="?page={page}">{txt}</a>'
+        next_ = link(">>", (page + 1) % nb_pages)
+        prev_ = link("<<", (page - 1 + nb_pages) % nb_pages)
+        home_ = link("::", 0)
+
+        return f"\n\n<tt>{prev_} {home_} {next_}</tt>"
 
 
 def show():
@@ -461,9 +478,9 @@ def get_article_link(notif):
     return f'<a href="{link}">#{article_id}</a>' if article_id else ""
 
 
-
 def get_service_nick(article_id):
-    article = current.db.t_articles[article_id]
+    article = db(db.t_articles.id == article_id) \
+            .select(db.t_articles.preprint_server).first()
     return f'{article.preprint_server}' if article else ""
 
 
@@ -473,7 +490,7 @@ def guess_article_id(body):
         article = get_article_by_coar_req_id(reply[1])
         return article.id if article else None
 
-    pci_link = re.match(r".*articleId=(\d+).*", body)
+    pci_link = re.match(r'.*articleId=(\d+).*', body, re.S)
     if pci_link:
         return pci_link[1]
 
