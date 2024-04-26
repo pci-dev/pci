@@ -43,15 +43,7 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
-def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, withScore=False, withDate=False, fullURL=False, withLastRecommOnly=False, orcid_exponant: bool = False):
-    if fullURL:
-        scheme = myconf.take("alerts.scheme")
-        host = myconf.take("alerts.host")
-        port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    else:
-        scheme = False
-        host = False
-        port = False
+def getRecommArticleRowCard(article, recomm, withImg=True, withScore=False, withDate=False, fullURL=False, withLastRecommOnly=False, orcid_exponant: bool = False):
 
     isStage2 = article.art_stage_1_id is not None
     stage1Url = None
@@ -62,7 +54,7 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
         return None
 
     recommAuthors = common_small_html.getRecommAndReviewAuthors(
-                        auth, db, article=article,
+                        article=article,
                         with_reviewers=True, linked=True,
                         host=host, port=port, scheme=scheme,
                         recomm=recomm, this_recomm_only=True,
@@ -97,7 +89,7 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
 
     componentVars = dict(
         articleDate=date,
-        articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=scheme, host=host, port=port),
+        articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=fullURL),
         articleTitle=md_to_html(article.title),
         articleImg=articleImg,
         isAlreadyPublished=article.already_published,
@@ -111,15 +103,12 @@ def getRecommArticleRowCard(auth, db, response, article, recomm, withImg=True, w
         stage1Url=stage1Url,
     )
 
-    return XML(response.render("components/article_row_card.html", componentVars))
+    return XML(current.response.render("components/article_row_card.html", componentVars))
 
 
 ######################################################################################################################################################################
-def getArticleTrackcRowCard(auth, db, response, article):
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    applongname = myconf.take("app.longname")
+def getArticleTrackcRowCard(article):
+    db = current.db
 
     nbReviews = db(
         (db.t_recommendations.article_id == article.id)
@@ -165,7 +154,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
 
         componentVars = dict(
             articleId=article.id,
-            articleImg=IMG(_src=URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port), _class="pci-trackImg",),
+            articleImg=IMG(_src=URL(c="static", f="images/small-background.png", scheme=True), _class="pci-trackImg",),
             articleTitle=title,
             articleAuthor=authors,
             articleDoi=doi_text,
@@ -173,7 +162,7 @@ def getArticleTrackcRowCard(auth, db, response, article):
             articleStatusText=txt,
         )
 
-        return XML(response.render("components/article_track_row_card.html", componentVars))
+        return XML(current.response.render("components/article_track_row_card.html", componentVars))
 
     # no article reviews founded
     else:
@@ -190,13 +179,15 @@ class article_infocard_for_search_screens:
 for_search = article_infocard_for_search_screens().__dict__
 
 ######################################################################################################################################################################
-def get_article_infos_card(auth: Auth, db: DAL, response: Response, article: Article, printable: bool,
+def get_article_infos_card(article: Article, printable: bool,
         with_cover_letter: bool = True,
         with_version: bool = True,
         submitted_by: bool = True,
         abstract: bool = True,
         keywords: bool = False,
     ):
+
+    auth, db = current.auth, current.db
 
     article_img = ""
     if article.uploaded_picture is not None and article.uploaded_picture != "":
@@ -313,7 +304,7 @@ def get_article_infos_card(auth: Auth, db: DAL, response: Response, article: Art
         article_content.update([("publishedDoi",  A(
                 SPAN(current.T(button_text), _class="btn btn-success"),
                 _href=article.doi_of_published_article, _target="blank"))])
-    return XML(response.render("components/article_infos_card.html", article_content))
+    return XML(current.response.render("components/article_infos_card.html", article_content))
 
 
 def _get_article_translation(article: Article):

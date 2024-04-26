@@ -47,7 +47,7 @@ def mkRecommArticleRss(auth, db, row):
     else:
         img = None
     link = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=scheme, host=host, port=port)
-    whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=row, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+    whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=row, with_reviewers=False, linked=False, fullURL=True)
     desc = DIV()
     article = DIV(CENTER(I(row.title), BR(), SPAN(row.authors), BR(), common_small_html.mkDOI(row.doi)), _style="border:2px solid #cccccc; margin-bottom:8px; font-size:larger;")
     desc.append(article)

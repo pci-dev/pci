@@ -314,7 +314,7 @@ Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
             x = latex_escape("Revision round #%s" % roundNb)
             history += "\\subsection*{%s}\n" % x
             # roundRecommender = db(db.auth_user.id==recomm.recommender_id).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name).last()
-            whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=False)
+            whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=recomm, with_reviewers=False, linked=False)
             # Decision if not last recomm
             if iRecomm > 1:
                 history += "\\subsubsection*{Decision by %s}\n" % SPAN(whoDidIt).flatten()
@@ -407,7 +407,7 @@ def recommBibtex(articleId):
     doi = latex_escape(lastRecomm.doi)
     applongname = latex_escape(myconf.take("app.description"))
     whoDidIt = latex_escape(
-        SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=False, linked=False)).flatten()
+        SPAN(common_small_html.getRecommAndReviewAuthors(article=art, with_reviewers=False, linked=False)).flatten()
     )
     year = art.last_status_change.year
     pat = re.search("\\.(?P<num>\d+)$", doi)
@@ -581,7 +581,7 @@ dashed=false
     title = art.title
     authors = art.authors
     whoDidIt = latex_escape(
-        SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, article=art, with_reviewers=True, linked=False)).flatten()
+        SPAN(common_small_html.getRecommAndReviewAuthors(article=art, with_reviewers=True, linked=False)).flatten()
     )
     reviewers = ""
     doi = art.doi

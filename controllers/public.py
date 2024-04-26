@@ -115,7 +115,7 @@ def profile_page(user: User):
                 nbRecomms = len(recommsQy)
                 recomms = []
                 for row in recommsQy:
-                    recomms.append(article_components.getRecommArticleRowCard(auth, db, response, row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    recomms.append(article_components.getRecommArticleRowCard(row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
 
                 # reviews
                 reviews = []
@@ -131,7 +131,7 @@ def profile_page(user: User):
 
                 nbReviews = len(reviewsQy)
                 for row in reviewsQy:
-                    reviews.append(article_components.getRecommArticleRowCard(auth, db, response, row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    reviews.append(article_components.getRecommArticleRowCard(row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
 
                 return dict(
                     pageHelp=getHelp(request, auth, db, "#PublicUserCard"),

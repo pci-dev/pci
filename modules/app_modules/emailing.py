@@ -207,7 +207,7 @@ def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
             if lastRecomm:
                 mail_vars["doiRecomm"] = XML(common_small_html.mkLinkDOI(lastRecomm.recommendation_doi))
                 mail_vars["recommVersion"] = lastRecomm.ms_version
-                mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
+                mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
                 mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(lastRecomm.id)
                 mail_vars["recommendationProcess"] = ongoing_recommendation.get_recommendation_process(article, True)
@@ -220,7 +220,7 @@ def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
             if lastRecomm:
                 mail_vars["doiRecomm"] = XML(common_small_html.mkLinkDOI(lastRecomm.recommendation_doi))
                 mail_vars["recommVersion"] = lastRecomm.ms_version
-                mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
+                mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
                 mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(lastRecomm.id)
                 mail_vars["recommendationProcess"] = ongoing_recommendation.get_recommendation_process(article, True)
