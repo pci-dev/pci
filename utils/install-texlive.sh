@@ -17,7 +17,10 @@ fi
     curl -L -o install-tl-unx.tar.gz https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
     zcat < install-tl-unx.tar.gz | tar xf -
     cd `ls | grep install-tl-2 | tail -1`
-    perl ./install-tl --no-interaction --texdir=$HOME/texlive
+    perl ./install-tl --no-interaction --texdir=$HOME/texlive || {
+        echo "error installing texlive"
+        exit 2
+    }
 
 cd $HOME
 
