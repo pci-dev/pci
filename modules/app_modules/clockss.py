@@ -143,6 +143,10 @@ class Clockss:
             'peer community in neuroscience': 'logo_PDF_neuro.jpg',
             'peer community in ecotoxicology and environmental chemistry': 'logo_PDF_ecotoxenvchem.jpg',
             'peer community in infections': 'logo_PDF_infections.jpg',
+            'peer community in health and movement sciences': 'logo_PDF_healthandmovementsciences.png',
+            'peer community in microbiology': 'logo_PDF_microbiology.png',
+            'peer community in organization studies': 'logo_PDF_organizationstudies.png',
+            'peer community in computational statistics': 'logo_PDF_computationalstatistics.png'
         }
         img = img_map.get(pci, 'logo_PDF_evolbiol.jpg')
         return self._replace_var_in_template('PCI_IMG', img, template)
