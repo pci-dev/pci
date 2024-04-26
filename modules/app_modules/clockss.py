@@ -249,7 +249,7 @@ class Clockss:
 
 
     def package_and_send(self):
-        ftp_server = self._clokss_ftp()
+        ftp_server = self._clockss_ftp()
         if ftp_server is None:
             raise Exception('Missing Clockss FTP configuration')
 
@@ -267,7 +267,7 @@ class Clockss:
         os.remove(filename)
 
 
-    def _clokss_ftp(self):
+    def _clockss_ftp(self):
         if self.CLOCKSS_SERVER and self.CLOCKSS_USERNAME and self.CLOCKSS_PASSWORD:
             return ftplib.FTP(self.CLOCKSS_SERVER, self.CLOCKSS_USERNAME, self.CLOCKSS_PASSWORD)
 
