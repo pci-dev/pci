@@ -82,6 +82,8 @@ class Clockss:
         
 
     def _compile_latex(self, latex_content: str, pdf_dest_path: str):
+        if not self.PDFLATEX_BIN: raise Exception("pdflatex not configured")
+
         tmp_folder = f"{current.request.folder}/tmp/{self._prefix}"
         if os.path.exists(tmp_folder):
             shutil.rmtree(tmp_folder)
@@ -274,8 +276,12 @@ class Clockss:
 
 def send_to_clockss(article: Article, recommendation: Recommendation):
     clockss = Clockss(article)
-    filename = clockss.build_pdf()
     attachments_dir= clockss.attachments_dir
+    try:
+        filename = clockss.build_pdf()
+    except Exception as e:
+        current.session.flash = f"Error building Clockss PDF: {e}"
+        return
     try:
         PDF.save_pdf_to_db(recommendation, attachments_dir, filename)
         clockss.package_and_send()
