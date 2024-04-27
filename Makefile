@@ -7,6 +7,7 @@ virt-env:
 web2py:
 	cd .. ; git clone --depth=10 https://github.com/pci-dev/web2py
 	ln -s $(PWD) ../web2py/applications/pci
+	cp utils/routes.py ../web2py/
 
 pydeps:
 	pip install -r requirements.txt
