@@ -969,7 +969,7 @@ def fill_report_survey():
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
 
-    form = app_forms.report_survey(auth, session, art, db, controller="user_fill")
+    form = app_forms.report_survey(art, controller="user_fill")
 
     myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
@@ -1018,7 +1018,7 @@ def edit_report_survey():
                 <= db.full_upload_opening_offset.days
     )
 
-    form = app_forms.report_survey(auth, session, art, db, survey, "user_edit",
+    form = app_forms.report_survey(art, survey, "user_edit",
                                     do_validate=not fullSubmissionOpened)
 
     if fullSubmissionOpened:

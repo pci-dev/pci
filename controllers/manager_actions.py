@@ -286,7 +286,7 @@ def set_not_considered():
         session.flash = T('Article set "Not considered"')
         article.status = ArticleStatus.NOT_CONSIDERED.value
         article.update_record()
-        emailing.send_set_not_considered_mail(session, auth, db, subject, message, article, author)
+        emailing.send_set_not_considered_mail(subject, message, article, author)
     return redirect(request.env.http_referer, client_side=True)
 
 

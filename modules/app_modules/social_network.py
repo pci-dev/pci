@@ -33,8 +33,8 @@ class SocialNetwork(metaclass=ABCMeta):
         pass
 
 
-    def generate_post(self, db: DAL, article: Article, recommendation: Recommendation):
-        text = self.__generate_post_text(db, article, recommendation)
+    def generate_post(self, article: Article, recommendation: Recommendation):
+        text = self.__generate_post_text(article, recommendation)
         posts = self.__cut_post_text(text.strip())
 
         return posts
@@ -48,7 +48,7 @@ class SocialNetwork(metaclass=ABCMeta):
         return posts
 
 
-    def __generate_post_text(self, db: DAL, article: Article, recommendation: Recommendation) -> str:
+    def __generate_post_text(self, article: Article, recommendation: Recommendation) -> str:
         line1 = f'A new #preprint #OpenScience #PeerReview by @{self._tweethash}: {article.authors} ({article.article_year}) {article.title}. {article.preprint_server}, ver. {article.ms_version} peer-reviewed and recommended by {self._description}. {article.doi} '
         line2 = f'recommended by {Recommendation.get_recommenders_names(recommendation)} for @{self._tweethash} based on published reviews by {Review.get_reviewers_name(article.id)} #OpenScience https://doi.org/{generate_recommendation_doi(article.id)}'
         return line1 + line2

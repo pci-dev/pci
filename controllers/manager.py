@@ -1188,7 +1188,7 @@ def edit_report_survey():
         session.flash = T("New survey created")
         # redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
-    form = app_forms.report_survey(auth, session, art, db, survey, "manager_edit")
+    form = app_forms.report_survey(art, survey, "manager_edit")
 
     myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"

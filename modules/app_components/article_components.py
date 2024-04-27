@@ -26,7 +26,6 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.sqlhtml import *
 
-from pydal import DAL
 
 from app_modules import common_small_html
 from app_modules import common_tools
@@ -288,7 +287,7 @@ def get_article_infos_card(article: Article, printable: bool,
         article_content.update([("coverLetter", WIKI(article.cover_letter or "", safe_mode=''))])
 
     if submitted_by:
-        article_content.update([("submittedBy", common_small_html.getArticleSubmitter(auth, db, article))])
+        article_content.update([("submittedBy", common_small_html.getArticleSubmitter(article))])
     
     if keywords:
         article_content.update([("articleKeywords", article.keywords)])

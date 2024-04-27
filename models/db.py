@@ -1049,7 +1049,7 @@ def reviewSuggested(s, row):
                 emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionDue", row["recommendation_id"])
                 emailing.delete_reminder_for_recommender(db, "#ReminderRecommenderRevisedDecisionOverDue", row["recommendation_id"])
                 if pciRRactivated:
-                    emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderAgreedAndNeedsToTakeAction", "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], row["recommendation_id"])
+                    emailing.delete_reminder_for_managers(["#ManagersRecommenderAgreedAndNeedsToTakeAction", "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], row["recommendation_id"])
                      # renew reminder
                     if no_of_accepted_invites < 2 and recomm.recommendation_state == "Ongoing":
                         emailing.alert_managers_recommender_action_needed(session, auth, db, "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recomm.id)
@@ -1098,7 +1098,7 @@ def after_review_done(s, current_review_values):
             if no_of_accepted_invites < 2 and recommendation.recommendation_state == "Ongoing" and not_enough_reviewer_mail == 0:
                 emailing.alert_managers_recommender_action_needed(session, auth, db, "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recommendation.id)
             elif no_of_accepted_invites >= 2:
-                emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], recommendation.id)
+                emailing.delete_reminder_for_managers(["#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], recommendation.id)
             elif no_of_completed_reviews >= 2 and no_of_completed_reviews == no_of_accepted_invites and recommendation.recommendation_state == "Ongoing":
                 emailing.alert_managers_recommender_action_needed(session, auth, db, "#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction", recommendation.id)
                    

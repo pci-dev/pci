@@ -10,7 +10,6 @@ from gluon.sqlhtml import *
 from gluon.contrib.appconfig import AppConfig
 from models.article import Article, ArticleStatus
 from models.recommendation import Recommendation
-from pydal import DAL
 
 from app_modules import common_small_html
 from models.review import Review, ReviewState

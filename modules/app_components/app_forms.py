@@ -242,14 +242,16 @@ def article_add_mandatory_checkboxes(form, pciRRactivated):
         form[0].insert(-1, field)
 
 #######################################################################################
-def report_survey(auth: Auth, session: Session, article: Article, db: DAL, survey: Optional[ReportSurvey] = None, controller: Optional[str] = None, do_validate: bool = True):
+def report_survey(article: Article, survey: Optional[ReportSurvey] = None, controller: Optional[str] = None, do_validate: bool = True):
+    db, auth = current.db, current.auth
+    session = current.session
     db.t_report_survey._id.readable = False
     db.t_report_survey._id.writable = False
 
     if article.report_stage == "STAGE 1":
-        fields = get_from_fields_report_survey_stage1(db)
+        fields = get_from_fields_report_survey_stage1()
     else:
-        fields = get_from_fields_report_survey_stage2(db, auth, article)
+        fields = get_from_fields_report_survey_stage2(article)
 
     form = SQLFORM(db.t_report_survey, survey.id if survey else "", fields=fields, keepvalues=True,)
     form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
@@ -340,7 +342,8 @@ def report_survey_on_validation(form: FORM, article: Article, do_validate: bool)
         form.errors.q4 = "This box needs to be ticked"
 
 
-def get_from_fields_report_survey_stage1(db: DAL):
+def get_from_fields_report_survey_stage1():
+    db = current.db
     db.t_report_survey.q1.requires = IS_IN_SET(("COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW", "RR SNAPSHOT FOR SCHEDULED REVIEW"))
     db.t_report_survey.q2.requires = IS_IN_SET(("REGULAR RR", "PROGRAMMATIC RR"))
     db.t_report_survey.q3.requires = IS_IN_SET(("FULLY PUBLIC", "PRIVATE"))
@@ -414,7 +417,9 @@ def get_from_fields_report_survey_stage1(db: DAL):
     ]
 
 
-def get_from_fields_report_survey_stage2(db: DAL, auth: Auth, article: Article):
+def get_from_fields_report_survey_stage2(article: Article):
+    db, auth = current.db, current.auth
+
     if auth.has_membership(role="manager") or auth.has_membership(role="recommender"):
         dbset = db((db.t_articles.user_id == article.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.status.belongs("Recommended", "Recommended-private")) | (db.t_articles.id == article.art_stage_1_id))
     else:

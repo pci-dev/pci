@@ -20,7 +20,7 @@ myconf = AppConfig(reload=True)
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def testMail():
     print("starting test mail")
-    emailing.send_test_mail(session, auth, db, auth.user_id)
+    emailing.send_test_mail(auth.user_id)
     redirect(request.env.http_referer)
 
 

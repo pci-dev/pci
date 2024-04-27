@@ -611,7 +611,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
         # display the review
         if review.anonymously:
             count_anonymous_review += 1
-            reviewer_number = common_tools.find_reviewer_number(db, review, count_anonymous_review)
+            reviewer_number = common_tools.find_reviewer_number(review, count_anonymous_review)
             review_vars.update(
                 [
                     (

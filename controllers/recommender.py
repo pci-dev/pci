@@ -1108,8 +1108,8 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
                         common_small_html.mkUserWithMail(reviewer_id),
                         " ",
                         B(T(" (YOU) ")) if reviewer_id and reviewer_id == recommendation.recommender_id else "",
-                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, review, nb_anonymous)} in the previous round of review)", _style="font-style: italic") if review.anonymously  and new_round else "",
-                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(db, review, nb_anonymous)} in the evaluation of the Stage 1)", _style="font-style: italic") if review.anonymously  and (new_stage and not new_round) else "",
+                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(review, nb_anonymous)} in the previous round of review)", _style="font-style: italic") if review.anonymously  and new_round else "",
+                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(review, nb_anonymous)} in the evaluation of the Stage 1)", _style="font-style: italic") if review.anonymously  and (new_stage and not new_round) else "",
                         A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
                             _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=latest_round_recommendation_id, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
                                 if reviewer_id not in current_reviewers_ids else "",
@@ -2351,7 +2351,7 @@ def edit_recommendation():
                         common_tools.cancel_decided_article_pending_reviews(db, recomm)
                     recomm.update_record()
                     art.update_record()
-                    emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderAgreedAndNeedsToTakeAction", "#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction", 
+                    emailing.delete_reminder_for_managers(["#ManagersRecommenderAgreedAndNeedsToTakeAction", "#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction",
                                                             "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], recomm.id)
                     redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
                 else:

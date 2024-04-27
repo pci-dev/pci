@@ -29,7 +29,6 @@ from models.article import Article
 from models.press_reviews import PressReview
 from models.review import Review
 from models.user import User
-from pydal import DAL
 
 
 from app_modules import common_small_html
