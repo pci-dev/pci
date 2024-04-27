@@ -238,11 +238,8 @@ def _dublinc_core_meta_tag(article: Article):
 
 
 ######################################################################################################################################################################
-def getPublicReviewRoundsHtml(response, articleId):
+def getPublicReviewRoundsHtml(articleId):
     db, auth = current.db, current.auth
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
     recomms = db((db.t_recommendations.article_id == articleId)).select(orderby=~db.t_recommendations.id)
 
@@ -295,7 +292,7 @@ def getPublicReviewRoundsHtml(response, articleId):
                 pdfLink = A(
                     I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                     current.T("Download the review (PDF file)"),
-                    _href=URL("default", "download", args=review.review_pdf, scheme=scheme, host=host, port=port),
+                    _href=URL("default", "download", args=review.review_pdf, scheme=True),
                     _style="font-weight: bold; margin-bottom: 5px; display:block",
                 )
 
@@ -311,7 +308,7 @@ def getPublicReviewRoundsHtml(response, articleId):
             authorsReplyPdfLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download author's reply (PDF file)"),
-                _href=URL("default", "download", args=recomm.reply_pdf, scheme=scheme, host=host, port=port),
+                _href=URL("default", "download", args=recomm.reply_pdf, scheme=True),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
@@ -320,7 +317,7 @@ def getPublicReviewRoundsHtml(response, articleId):
             authorsReplyTrackChangeFileLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download tracked changes file"),
-                _href=URL("default", "download", args=recomm.track_change, scheme=scheme, host=host, port=port),
+                _href=URL("default", "download", args=recomm.track_change, scheme=True),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
         if (recomm.reply is not None and len(recomm.reply) > 0) or recomm.reply_pdf is not None or recomm.track_change is not None:
@@ -333,7 +330,7 @@ def getPublicReviewRoundsHtml(response, articleId):
             recommendationPdfLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download recommender's annotations (PDF)"),
-                _href=URL("default", "download", args=recomm.recommender_file, scheme=scheme, host=host, port=port),
+                _href=URL("default", "download", args=recomm.recommender_file, scheme=True),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
@@ -364,7 +361,7 @@ def getPublicReviewRoundsHtml(response, articleId):
             authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
         )
 
-        reviewRoundsHtml.append(XML(response.render("components/public_review_rounds.html", componentVars)))
+        reviewRoundsHtml.append(XML(current.response.render("components/public_review_rounds.html", componentVars)))
 
     return reviewRoundsHtml
 

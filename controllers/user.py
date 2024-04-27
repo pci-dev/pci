@@ -157,7 +157,7 @@ def recommendations():
         else:
             recommHeaderHtml = article_components.get_article_infos_card(art, printable, True)
 
-        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(response, art, "user", request, True, printable, quiet=False)
+        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, "user", request, True, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(art, printable, quiet=False)
 
         recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(art, printable)

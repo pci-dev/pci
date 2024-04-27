@@ -324,7 +324,7 @@ def article_details():
                 )
             else:
                 if art.already_published:
-                    myContents = ongoing_recommendation.getPostprintRecommendation(response, art, printable)
+                    myContents = ongoing_recommendation.getPostprintRecommendation(art, printable)
                 else:
                     myContents = ongoing_recommendation.get_recommendation_process(art, printable)
 
@@ -348,7 +348,7 @@ def article_details():
                 db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
             )
             recommHeaderHtml = article_components.get_article_infos_card(art, printable, True)
-            recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(response, art, "recommender", request, False, printable, quiet=False)
+            recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, "recommender", request, False, printable, quiet=False)
             recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(art, printable, quiet=False)
 
             infoCard = TAG(recommHeaderHtml)
@@ -602,7 +602,7 @@ def _my_recomms(statuses, pressReviews=None):
             db.t_recommendations.recommender_id,
         ]
         links += [
-            dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(response, request, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(request, row.t_recommendations if "t_recommendations" in row else row)),
         ]
         db.t_recommendations.article_id.label = T("Preprint")
 
@@ -753,7 +753,7 @@ def recommendations():
         redirect(request.env.http_referer)
     else:
         if art.already_published:
-            myContents = ongoing_recommendation.getPostprintRecommendation(response, art, printable, quiet=False)
+            myContents = ongoing_recommendation.getPostprintRecommendation(art, printable, quiet=False)
         else:
             myContents = ongoing_recommendation.get_recommendation_process(art, printable)
 
@@ -776,7 +776,7 @@ def recommendations():
         # New recommendation function (WIP)
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
         recommHeaderHtml = article_components.get_article_infos_card(art, printable, True)
-        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(response, art, "recommender", request, False, printable, quiet=False)
+        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, "recommender", request, False, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(art, printable, quiet=False)
 
         if printable:

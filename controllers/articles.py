@@ -74,7 +74,7 @@ def rec():
     if len(recommMetadata) > 0:
         response.meta = recommMetadata
 
-    reviewRounds = DIV(public_recommendation.getPublicReviewRoundsHtml(auth, db, response, art.id))
+    reviewRounds = DIV(public_recommendation.getPublicReviewRoundsHtml(art.id))
 
     commentsTreeAndForm = None
     if with_comments:
