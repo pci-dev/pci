@@ -36,7 +36,7 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ########################################################################################################################################################################
-def getRecommStatusHeader(response: Response, art: Article, controller_name: str, request: Request, userDiv: DIV, printable: bool, quiet: bool = True):
+def getRecommStatusHeader(art: Article, controller_name: str, request: Request, userDiv: DIV, printable: bool, quiet: bool = True):
     db, auth = current.db, current.auth
 
     lastRecomm = db.get_last_recomm(art.id)
@@ -107,7 +107,7 @@ def getRecommStatusHeader(response: Response, art: Article, controller_name: str
         recommenderSurveyButton=recommenderSurveyButton
     )
 
-    return XML(response.render("components/recommendation_header.html", componentVars))
+    return XML(current.response.render("components/recommendation_header.html", componentVars))
 
 
 ######################################################################################################################################################################
@@ -1187,7 +1187,7 @@ def validation_checklist(validation_type):
 ######################################################################################################################################
 # Postprint recommendation process
 ######################################################################################################################################
-def getPostprintRecommendation(response, art, printable=False, quiet=True):
+def getPostprintRecommendation(art, printable=False, quiet=True):
     db, auth = current.db, current.auth
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
@@ -1262,6 +1262,6 @@ def getPostprintRecommendation(response, art, printable=False, quiet=True):
         cancelSubmissionLink=cancelSubmissionLink,
         validateRecommendationLink=validateRecommendationLink,
     )
-    recommendationDiv.append(XML(response.render("components/postprint_recommendation.html", componentVars)))
+    recommendationDiv.append(XML(current.response.render("components/postprint_recommendation.html", componentVars)))
 
     return recommendationDiv

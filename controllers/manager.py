@@ -441,7 +441,7 @@ def recommendations():
         art.update_record(manager_authors=manager_authors)
 
     if art.already_published:
-        myContents = ongoing_recommendation.getPostprintRecommendation(response, art, printable, quiet=False)
+        myContents = ongoing_recommendation.getPostprintRecommendation(art, printable, quiet=False)
     else:
         myContents = ongoing_recommendation.get_recommendation_process(art, printable)
 
@@ -462,7 +462,7 @@ def recommendations():
     response.title = art.title or myconf.take("app.longname")
 
     recommHeaderHtml = article_components.get_article_infos_card(art, printable, True)
-    recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(response, art, "manager", request, False, printable, quiet=False)
+    recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, "manager", request, False, printable, quiet=False)
     
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if not manager_coauthor:
@@ -1297,7 +1297,7 @@ def _all_recommendations(goBack, query, isPress):
             db.t_recommendations.recommender_id,
         ]
         links = [
-            dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(response, request, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(request, row.t_recommendations if "t_recommendations" in row else row)),
             # dict(header=T('Actions'),            body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(row.t_recommendations if 't_recommendations' in row else row)),
             dict(
                 header=T("Actions"),

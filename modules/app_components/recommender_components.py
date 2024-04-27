@@ -20,7 +20,7 @@ myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
-def getReviewsSubTable(response: Response, request: Request, recommendation: Recommendation):
+def getReviewsSubTable(request: Request, recommendation: Recommendation):
     db, auth = current.db, current.auth
 
     article = Article.get_by_id(recommendation.article_id)
@@ -136,4 +136,4 @@ def getReviewsSubTable(response: Response, request: Request, recommendation: Rec
         pciRRactivated=pciRRactivated
     )
 
-    return XML(response.render("components/review_sub_table.html", component_vars))
+    return XML(current.response.render("components/review_sub_table.html", component_vars))
