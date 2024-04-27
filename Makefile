@@ -5,8 +5,8 @@ virt-env:
 	mkvirtualenv pci --python=`which python3.8`
 
 web2py:
-	git clone --depth=10 https://github.com/pci-dev/web2py
-	ln -s ../.. web2py/applications/pci
+	cd .. ; git clone --depth=10 https://github.com/pci-dev/web2py
+	ln -s $(PWD) ../web2py/applications/pci
 
 pydeps:
 	pip install -r requirements.txt
@@ -39,7 +39,7 @@ db.admin:
 psql = psql -q -U postgres -v "ON_ERROR_STOP=1"
 
 start start.debug:
-	web2py/web2py.py --password pci $(log) &
+	../web2py/web2py.py --password pci $(log) &
 
 stop:
 	@PID=`ps ax -o pid,args | grep web2py.py | grep -v grep | awk '{print $$1}'` ;\
