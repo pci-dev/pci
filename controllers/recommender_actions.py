@@ -516,7 +516,7 @@ def make_preprint_searching_for_reviewers():
         art.is_searching_reviewers = True
         art.update_record()
         db.commit()
-        emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderAgreedAndNeedsToTakeAction"], recomm.id)
+        emailing.delete_reminder_for_managers(["#ManagersRecommenderAgreedAndNeedsToTakeAction"], recomm.id)
         session.flash = 'Preprint now appear in the "In need of reviewers" list'
         redirect(request.env.http_referer)
 
@@ -697,7 +697,7 @@ def accept_new_delay_to_reviewing():
 
     if review.acceptation_timestamp and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
         Review.set_review_status(review, ReviewState.AWAITING_REVIEW)
-        emailing.send_decision_new_delay_review_mail(session, auth, db, True, review)
+        emailing.send_decision_new_delay_review_mail(True, review)
         return _new_delay_to_reviewing_redirection(True)
     else:
         session.flash = T("Unable to validate")
@@ -720,7 +720,7 @@ def decline_new_delay_to_reviewing():
 
     if review.acceptation_timestamp and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
         Review.set_review_status(review, ReviewState.DECLINED_BY_RECOMMENDER)
-        emailing.send_decision_new_delay_review_mail(session, auth, db, False, review)
+        emailing.send_decision_new_delay_review_mail(False, review)
         return _new_delay_to_reviewing_redirection(False)
     else:
         session.flash = T("Unable to decline")
@@ -806,7 +806,7 @@ def change_review_due_date():
             if not over_due_sent:
                 emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
 
-        emailing.send_alert_reviewer_due_date_change(session, auth, db, review)
+        emailing.send_alert_reviewer_due_date_change(review)
 
         session.flash = f"Review date changed to {form.vars['review_duration']}"
         

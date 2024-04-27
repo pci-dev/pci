@@ -22,7 +22,6 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.storage import Storage
 import models.article
-from pydal import DAL
 
 from gluon.custom_import import track_changes
 
@@ -83,7 +82,8 @@ get_review_days = Review.get_review_days_from_due_date
 
 ######################################################################################################################################################################
 # TEST MAIL (or "How to properly create an emailing function")
-def send_test_mail(session, auth, db, userId):
+def send_test_mail(userId):
+    db = current.db
     print("send_test_mail")
     # Get common variables :
     mail_vars = emailing_tools.getMailCommonVars()
@@ -1950,7 +1950,9 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
 
 ######################################################################################################################################################################
 ######################################################################################################################################################################
-def send_change_mail(session: Session, auth: Auth, db: DAL, user_id: int, dest_mail: str, recover_email_key: str):
+def send_change_mail(user_id: int, dest_mail: str, recover_email_key: str):
+    auth, session = current.auth, current.session
+
     mail = emailing_tools.getMailer(auth)
     mail_vars = emailing_tools.getMailCommonVars()
 
@@ -1997,7 +1999,8 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     emailing_tools.getFlashMessage(session, reports)
 
 ######################################################################################################################################################################
-def send_submitter_generic_mail(session, auth, db, author_email, articleId, form, mail_template):
+def send_submitter_generic_mail(author_email, articleId, form, mail_template):
+    db, auth, session = current.db, current.auth, current.session
 
 
     cc_addresses = emailing_tools.list_addresses(form.cc)
@@ -3320,14 +3323,16 @@ def alert_managers_recommender_action_needed(session, auth, db, hashtag_template
         emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ########################################################
-def delete_reminder_for_managers(db, hashtag_template, recommId):
+def delete_reminder_for_managers(hashtag_template, recommId):
+    db = current.db
     recomm = db.t_recommendations[recommId]
 
     for hashtag in hashtag_template:
         if  recomm:
             db((db.mail_queue.mail_template_hashtag == hashtag) & (db.mail_queue.recommendation_id == recomm.id)).delete()
 
-def send_warning_to_submitters(session, auth, db, article_id):
+def send_warning_to_submitters(article_id):
+    db = current.db
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[article_id]
 
@@ -3341,13 +3346,13 @@ def send_warning_to_submitters(session, auth, db, article_id):
         emailing_tools.insertMailInQueue(hashtag_template, mail_vars, None, None, article.id)
 
 ######################################################################################################################################################################
-def send_set_not_considered_mail(session: Session, auth: Auth, db: DAL, subject: str, message: str, article: Article, author: User):
+def send_set_not_considered_mail(subject: str, message: str, article: Article, author: User):
     form = replace_mail_vars_set_not_considered_mail(article, subject, message)
-    send_submitter_generic_mail(session, auth, db, author.email, article.id, form, "#SubmitterNotConsideredSubmission")
+    send_submitter_generic_mail(author.email, article.id, form, "#SubmitterNotConsideredSubmission")
 
 ########################################################
 
-def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: DAL, review: Review):
+def send_conditional_acceptation_review_mail(review: Review):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -3383,7 +3388,7 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     create_reminder_for_conditional_recommender_acceptation_review(review, article, recommendation, recommender, buttons, conditional_recommender_acceptation_review_mail_id)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(current.session, reports)
 
 
 def conditional_acceptation_review_mail_button(review_id: int, mail_vars: Dict[str, Any]):
@@ -3422,7 +3427,7 @@ def conditional_acceptation_review_mail_button(review_id: int, mail_vars: Dict[s
 
 ########################################################
 
-def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, accept: bool, review: Review):
+def send_decision_new_delay_review_mail(accept: bool, review: Review):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -3458,11 +3463,11 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
 
     emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(current.session, reports)
 
 ########################################################
 
-def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, db: DAL, review: Review, article: Article, recommendation: Recommendation, recommender: User, buttons: Any, conditional_recommender_acceptation_review_mail_id: int):
+def create_reminder_for_conditional_recommender_acceptation_review(review: Review, article: Article, recommendation: Recommendation, recommender: User, buttons: Any, conditional_recommender_acceptation_review_mail_id: int):
     if not review or not recommendation or not article or not recommender or not buttons:
         return None
 
@@ -3490,7 +3495,7 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
 
 #########################################################
 
-def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, review: Review):
+def send_alert_reviewer_due_date_change(review: Review):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -3523,7 +3528,7 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
 
     emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(current.session, reports)
 ##################################################################################################################################################################
 
 def send_import_biorxiv_alert(xml_file_path: str):
@@ -3603,7 +3608,8 @@ def send_message_to_recommender_and_reviewers(article_id):
 
 ##################################################################################################################################################################
 
-def send_unsubscription_alert_for_manager(auth: Auth, db: DAL):
+def send_unsubscription_alert_for_manager():
+    db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
     hashtag_template = "#UnsubscriptionAlert"
 

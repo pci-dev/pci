@@ -17,7 +17,6 @@ from models.membership import Membership
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
 from models.user import User
-from pydal import DAL
 
 from gluon.contrib.appconfig import AppConfig # type: ignore
 
@@ -203,7 +202,8 @@ def get_managers(db):
     return users
 
 
-def get_exclude_suggested_recommender(auth: Auth, db: DAL, article_id: int) -> List[int]:
+def get_exclude_suggested_recommender(article_id: int) -> List[int]:
+    db, auth = current.db, current.auth
     article = Article.get_by_id(article_id)
     if not article:
         return []
@@ -248,11 +248,12 @@ def cancel_decided_article_pending_reviews(db, recomm):
 
 ###################################################################
 
-def find_reviewer_number(db: DAL, review: Review, count_anon: int):
+def find_reviewer_number(review: Review, count_anon: int):
     '''
     function finds a number for the reviewer in order to differentiate between anonymous reviewers;
     it needs to be kept in mind that reviewers keep their number in different rounds of evaluation.
     '''
+    db = current.db
     recommendations = db((db.t_articles.id == db.t_recommendations.article_id) & (db.t_recommendations.id == review.recommendation_id)).select()
     article_id = recommendations[0].t_articles.id
     recomms = db(db.t_recommendations.article_id == article_id).select(orderby=db.t_recommendations.id)

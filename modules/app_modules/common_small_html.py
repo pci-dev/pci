@@ -27,7 +27,6 @@ from models.press_reviews import PressReview
 from models.review import Review, ReviewState
 from models.user import User
 from models.suggested_recommender import SuggestedRecommender
-from pydal import DAL
 
 from app_modules.helper import getText
 from app_modules import common_tools
@@ -951,7 +950,9 @@ def build_citation(article: Article, final_recommendation: Recommendation, for_l
 
 
 ######################################################################################################################################################################
-def getArticleSubmitter(auth: Auth, db: DAL, art: Article):
+def getArticleSubmitter(art: Article):
+    db, auth = current.db, current.auth
+
     class FakeSubmitter(object):
         id = None
         first_name = ""
@@ -1147,7 +1148,7 @@ def complete_profile_dialog(next: str):
 
 ####################################################################################
 
-def complete_orcid_dialog(db: DAL): 
+def complete_orcid_dialog():
     radio_label_style = "display: inline;"
     radio_container_style = "margin-top: 5px;"
     url = cast(str, URL("default", "orcid_choice"))
@@ -1174,8 +1175,8 @@ def complete_orcid_dialog(db: DAL):
 
 ####################################################################################
 
-def invitation_to_review_form(request: Request, auth: Auth, db: DAL, article_id: int, user: User, review: Review, more_delay: bool):
-    disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+def invitation_to_review_form(article_id: int, user: User, review: Review, more_delay: bool):
+    disclaimerText = DIV(getText(current.request, current.auth, current.db, "#ConflictsForReviewers"))
     dueTime = review.review_duration.lower() if review.review_duration else 'three weeks'
 
     form = FORM(
@@ -1237,7 +1238,7 @@ def invitation_to_review_form(request: Request, auth: Auth, db: DAL, article_id:
         )
 
         delay_form = SQLFORM.factory(
-            Field("review_duration", type="text", label=current.T("Choose the duration before posting my review"), default=dueTime.capitalize(), requires=IS_IN_SET(db.review_duration_choices, zero=None)),
+            Field("review_duration", type="text", label=current.T("Choose the duration before posting my review"), default=dueTime.capitalize(), requires=IS_IN_SET(current.db.review_duration_choices, zero=None)),
             buttons=[]
         )
         form.append(delay_form.components[0])

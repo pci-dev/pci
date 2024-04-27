@@ -496,7 +496,7 @@ def show_account_menu_dialog():
         next = get_next(request)
         dialog = complete_profile_dialog(next)
     elif not current_user.orcid and not current_user.no_orcid:
-        dialog = complete_orcid_dialog(db)
+        dialog = complete_orcid_dialog()
     return dialog
 
 
@@ -533,7 +533,7 @@ def unsubscribe():
     if not current_user:
         return redirect(URL("default", "index"))
     
-    send_unsubscription_alert_for_manager(auth, db)
+    send_unsubscription_alert_for_manager()
 
     try:
         delete_user_from_PCI(current_user)
@@ -612,7 +612,7 @@ def change_email():
         try:
             new_email = cast(str, form.vars.new_email)
             recover_email_key = User.change_email(auth.user_id, new_email)
-            emailing.send_change_mail(session, auth, db, auth.user_id, new_email, recover_email_key)
+            emailing.send_change_mail(auth.user_id, new_email, recover_email_key)
             session.flash = f"An email has been sent to {new_email} to confirm it"
         except Exception as e:
             session.flash = f"Error: {e}"
@@ -714,7 +714,7 @@ def invitation_to_review():
     recommHeaderHtml = cast(XML, article_components.get_article_infos_card(article, printable=False))
     response.view = "default/invitation_to_review.html"
 
-    form = invitation_to_review_form(request, auth, db, article, user, review, more_delay)
+    form = invitation_to_review_form(article, user, review, more_delay)
 
     if form.process().accepted:
         if request.vars.no_conflict_of_interest == 'yes' and request.vars.anonymous_agreement == 'yes' and request.vars.ethics_approved == 'true' and (request.vars.cgu_checkbox == 'yes' or user.ethical_code_approved):
@@ -786,7 +786,7 @@ def invitation_to_review_acceptation():
             if not review.acceptation_timestamp:
                 if more_delay:
                     Review.accept_review(review, article, True, ReviewState.NEED_EXTRA_REVIEW_TIME)
-                    send_conditional_acceptation_review_mail(session, auth, db, review)
+                    send_conditional_acceptation_review_mail(review)
                 else:
                     Review.accept_review(review, article, True)
 

@@ -14,7 +14,6 @@ from gluon.html import *
 from gluon.template import render
 from gluon.contrib.appconfig import AppConfig
 from gluon.validators import IS_EMAIL
-from pydal import DAL
 
 from gluon.custom_import import track_changes
 from models.article import Article
