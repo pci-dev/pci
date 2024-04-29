@@ -224,7 +224,7 @@ def decline_article_confirmed():
             sug_rec.update_record()
             db.commit()
             
-            emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", article_id, auth.user_id)
+            emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article_id, auth.user_id)
             session.flash = T("Suggestion declined")
         else: 
             raise HTTP(404, "404: " + T("Unavailable"))
@@ -620,9 +620,9 @@ def do_end_scheduled_submission():
             emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId)
             emailing.create_reminder_for_reviewer_review_due(session, auth, db, reviewId)
             emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId)
-            emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], reviewId)
+            emailing.delete_reminder_for_reviewer(["#ReminderScheduledReviewComingSoon"], reviewId)
 
-        emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", articleId)
+        emailing.delete_reminder_for_submitter("#SubmitterScheduledSubmissionOpen", articleId)
 
         session.flash = T("Submission now available to reviewers")
     controller = "recommender"
@@ -791,9 +791,9 @@ def change_review_due_date():
             session.flash =  T('Wrong date: ') + error.args[0]
             redirect(request.env.http_referer)
 
-        soon_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id) or 0) == 0
-        review_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id) or 0) == 0
-        over_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id) or 0) == 0
+        soon_due_sent = (emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewSoonDue"], review.id) or 0) == 0
+        review_due_sent = (emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewDue"], review.id) or 0) == 0
+        over_due_sent = (emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewOverDue"], review.id) or 0) == 0
 
         if soon_due_sent and review_due_sent:
             emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)

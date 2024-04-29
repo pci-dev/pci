@@ -142,7 +142,7 @@ def recommendations():
                 art.status = "Scheduled submission pending"
                 art.update_record()
 
-                emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", art.id)
+                emailing.delete_reminder_for_submitter("#SubmitterScheduledSubmissionOpen", art.id)
 
                 session.flash = T("Article submitted successfully")
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=articleId)))
