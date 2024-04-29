@@ -1155,6 +1155,8 @@ def edit_article():
         response.flash = T("Form has errors", lazy=False)
 
     confirmationScript = common_tools.get_script("confirmation.js")
+    article_form_common_script = common_tools.get_script("article_form_common.js")
+
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
         pageHelp=getHelp("#ManagerEditArticle"),
@@ -1162,7 +1164,7 @@ def edit_article():
         titleIcon="edit",
         pageTitle=getTitle("#ManagerEditArticleTitle"),
         form=form,
-        myFinalScript=myFinalScript,
+        myFinalScript=[myFinalScript, article_form_common_script],
         confirmationScript=confirmationScript,
     )
 
