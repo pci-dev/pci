@@ -15,6 +15,7 @@ languages/default.py
 languages/plural-*
 controllers/dev.py
 controllers/stats.py
+models/db_plug.py
 misc/
 log.txt
 .vscode
