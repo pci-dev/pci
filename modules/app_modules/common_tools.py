@@ -106,7 +106,8 @@ def pci_redirect(url):
 
 
 ###################################################################
-def get_prev_recomm(db, recomm):
+def get_prev_recomm(recomm):
+    db = current.db
     last_recomm = db(
             (db.t_recommendations.article_id == recomm.article_id) &
             (db.t_recommendations.id < recomm.id)
@@ -164,7 +165,8 @@ def check_coauthorship(user_id: int, article: Article):
     return False
 
 
-def get_manager_coauthors(db, artId):
+def get_manager_coauthors(artId):
+    db = current.db
     article = db(db.t_articles.id == artId).select().last()
     manager_authors = (article.manager_authors or "").split(',')
     
@@ -181,7 +183,8 @@ def extract_manager_ids(form, manager_ids):
     return ','.join(manager_authors)
 
 
-def get_managers(db):
+def get_managers():
+    db = current.db
     # collect managers (that are not admins)
     admins = [row.user_id for row in db(
             (db.auth_membership.group_id == db.auth_group.id) &
@@ -239,7 +242,8 @@ def generate_recommendation_doi(article_id: int):
 absoluteButtonScript = get_script("web2py_button_absolute.js")
 
 ####################################################################
-def cancel_decided_article_pending_reviews(db, recomm):
+def cancel_decided_article_pending_reviews(recomm):
+    db = current.db
     reviews = db(db.t_reviews.recommendation_id == recomm.id).select()
     for review in reviews:
         if review.review_state == "Willing to review" or review.review_state == "Awaiting review" or review.review_state == "Awaiting response":

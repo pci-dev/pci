@@ -180,7 +180,7 @@ def do_reject_article():
         recomm.update_record()
         art.update_record()
         if art.is_scheduled:
-            cancel_decided_article_pending_reviews(db, recomm)
+            cancel_decided_article_pending_reviews(recomm)
             cc=  ", ".join([recommender.email, contact])
             form = Storage(
                 subject=recomm.recommendation_title, message=recomm.recommendation_comments, cc=cc, replyto=cc

@@ -119,7 +119,8 @@ def getRecommender(row):
         return ""
 
 ######################################################################################################################################################################
-def getReviewers(recomm, db):
+def getReviewers(recomm):
+    db = current.db
     revList = []
     latestRound = db((db.t_recommendations.article_id == recomm.article_id)).select(
             db.t_recommendations.id, orderby=db.t_recommendations.id).last()
@@ -129,7 +130,8 @@ def getReviewers(recomm, db):
     return revList
 
 ######################################################################################################################################################################
-def getAllRecommenders(db):
+def getAllRecommenders():
+    db = current.db
     recommList = []
     recomm_query = db((db.auth_membership.group_id == 1)).select(db.auth_membership.user_id)
     for i in recomm_query:

@@ -1093,7 +1093,7 @@ def edit_article():
 
     try: article_manager_coauthors = art.manager_authors
     except: article_manager_coauthors = False
-    managers = common_tools.get_managers(db)
+    managers = common_tools.get_managers()
     manager_checks = {}
     for m in managers:
         manager_checks[m[0]] = False

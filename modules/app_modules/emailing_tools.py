@@ -93,7 +93,7 @@ def getMailForRecommenderCommonVars(sender: User, article: Article, recommendati
     is_co_recommender = helper.is_co_recommender(recommendation.id)
 
     mail_vars = getMailCommonVars()
-    _recomm = common_tools.get_prev_recomm(db, recommendation) if new_round else recommendation
+    _recomm = common_tools.get_prev_recomm(recommendation) if new_round else recommendation
     r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(_recomm.id)
     r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
     trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
@@ -172,7 +172,7 @@ def getMailForReviewerCommonVars(sender: User, article: Article, recommendation:
     is_co_recommender = helper.is_co_recommender(recommendation.id)
 
     mail_vars = getMailCommonVars()
-    _recomm = common_tools.get_prev_recomm(db, recommendation) if new_round else recommendation
+    _recomm = common_tools.get_prev_recomm(recommendation) if new_round else recommendation
     r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(_recomm.id)
     r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
     trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
@@ -317,23 +317,24 @@ def getMailTemplateHashtag(hashTag, myLanguage="default"):
         return dict(subject=item.subject, content=item.contents)
     else:
         if scheduledSubmissionActivated and pciRRactivated:
-            return generateNewMailTemplates(db, hashTag, myLanguage)
+            return generateNewMailTemplates(hashTag, myLanguage)
         else:
             return dict(error=True, message="hashtag not found")
 
 
 ######################################################################################################################################################################
-def generateNewMailTemplates(db, hashTag, myLanguage):
+def generateNewMailTemplates(hashTag, myLanguage):
+    db = current.db
     baseHashtag = hashTag
     baseHashtag = baseHashtag.replace("Stage1", "")
     baseHashtag = baseHashtag.replace("Stage2", "")
     baseHashtag = baseHashtag.replace("ScheduledSubmission", "")
 
     # Create stage 1 template
-    result1 = insertNewTemplateInDB(db, baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
+    result1 = insertNewTemplateInDB(baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
 
     # Create stage 2 template
-    result2 = insertNewTemplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
+    result2 = insertNewTemplateInDB(baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
 
     if "Stage1" in hashTag:
         return result1
@@ -346,7 +347,8 @@ def generateNewMailTemplates(db, hashTag, myLanguage):
 
 
 ######################################################################################################################################################################
-def insertNewTemplateInDB(db, newHashTag, baseHashtag, myLanguage):
+def insertNewTemplateInDB(newHashTag, baseHashtag, myLanguage):
+    db = current.db
     query = (db.mail_templates.hashtag == baseHashtag) & (db.mail_templates.lang == myLanguage)
     item = db(query).select().first()
 
