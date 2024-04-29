@@ -518,7 +518,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 
             emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
-            delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
+            delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
             reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
@@ -607,7 +607,7 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
 
         emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
-        delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
+        delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
         reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
@@ -1138,7 +1138,7 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
     if recomm and article and count_reviews_completed >= 2 and count_reviews_under_consideration == 0:
-        delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
+        delete_reminder_for_recommender("#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
@@ -2289,9 +2289,9 @@ def get_original_submitter_awaiting_submission_email(article):
 def create_reminders_for_submitter_scheduled_submission(session, auth, db, article):
     articleId = article.id
 
-    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
-    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
-    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+    delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+    delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionDue", articleId)
+    delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionOverDue", articleId)
 
     if article.t_report_survey.select()[0].q1 == "COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW":
         return # do not schedule reminders when report is already submitted
@@ -2434,7 +2434,8 @@ def mk_submitter_my_articles_url(mail_vars):
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_submitter(db, hashtag_template, articleId):
+def delete_reminder_for_submitter(hashtag_template, articleId):
+    db = current.db
     article = db.t_articles[articleId]
     if article and article.user_id is not None:
         submitter_mail = db.auth_user[article.user_id]["email"]
@@ -2516,7 +2517,8 @@ def create_reminder_for_suggested_recommender_invitation(session, auth, db, arti
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_suggested_recommenders(db, hashtag_template, articleId):
+def delete_reminder_for_suggested_recommenders(hashtag_template, articleId):
+    db = current.db
     article = db.t_articles[articleId]
     if article:
         suggested_recommenders = db(
@@ -2542,7 +2544,8 @@ def delete_reminder_for_suggested_recommenders(db, hashtag_template, articleId):
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_one_suggested_recommender(db, hashtag_template, articleId, suggRecommId):
+def delete_reminder_for_one_suggested_recommender(hashtag_template, articleId, suggRecommId):
+    db = current.db
     article = db.t_articles[articleId]
     if article:
         db(
@@ -2840,7 +2843,8 @@ def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db,
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_reviewer(db, hashtag_template, reviewId):
+def delete_reminder_for_reviewer(hashtag_template, reviewId):
+    db = current.db
     review = db.t_reviews[reviewId]
     recomm = db.t_recommendations[review.recommendation_id]
     reviewer = db.auth_user[review.reviewer_id]
@@ -3063,7 +3067,8 @@ def create_reminder_for_recommender_revised_decision_over_due(session, auth, db,
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_recommender(db, hashtag_template, recommendationId, force_delete=False, review: Optional[Review]=None):
+def delete_reminder_for_recommender(hashtag_template, recommendationId, force_delete=False, review: Optional[Review]=None):
+    db = current.db
     recomm = db.t_recommendations[recommendationId]
 
     if recomm:
@@ -3136,7 +3141,8 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId, forc
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_recommender_from_article_id(db, hashtag_template, articleId):
+def delete_reminder_for_recommender_from_article_id(hashtag_template, articleId):
+    db = current.db
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
 
@@ -3152,14 +3158,16 @@ def delete_reminder_for_recommender_from_article_id(db, hashtag_template, articl
 
 
 ######################################################################################################################################################################
-def delete_all_reminders_from_article_id(db, articleId):
+def delete_all_reminders_from_article_id(articleId):
+    db = current.db
     article = db.t_articles[articleId]
     if article:
         db((db.mail_queue.article_id == articleId) & (db.mail_queue.mail_template_hashtag.startswith("#Reminder"))).delete()
 
 
 #####################################################################################################################################################################
-def delete_all_reminders_from_recommendation_id(db, recommendationId):
+def delete_all_reminders_from_recommendation_id(recommendationId):
+    db = current.db
     recomm = db.t_recommendations[recommendationId]
     if recomm:
         db((db.mail_queue.recommendation_id == recommendationId) & (db.mail_queue.mail_template_hashtag.startswith("#Reminder"))).delete()

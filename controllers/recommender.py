@@ -1467,8 +1467,8 @@ def send_review_cancellation():
             redirect(URL(c="manager", f="all_recommendations"))
 
     reminder_hashtag = ["#ReminderReviewerReviewSoonDue", "#ReminderReviewerReviewDue", "#ReminderReviewerReviewOverDue"]
-    emailing.delete_reminder_for_reviewer(db, reminder_hashtag, reviewId)
-    emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], reviewId)
+    emailing.delete_reminder_for_reviewer(reminder_hashtag, reviewId)
+    emailing.delete_reminder_for_reviewer(["#ReminderScheduledReviewComingSoon"], reviewId)
     
     return dict(
         form=form,
