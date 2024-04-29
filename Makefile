@@ -151,6 +151,7 @@ api:
 	ln -s api.py controllers/default.py
 	mkdir -p models && \
 	ln -s ../utils/api.db_plug.py models/db_plug.py
+	ln -s utils/api.README.md README.md
 
 api.dismount:
 	\rm -f controllers/default.py models/db_plug.py

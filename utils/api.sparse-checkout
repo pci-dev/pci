@@ -3,4 +3,5 @@
 /controllers/api.py
 /modules/app_modules/utils.py
 /utils/api.db_plug.py
+/utils/api.README.md
 !/*/
