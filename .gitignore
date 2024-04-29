@@ -15,7 +15,6 @@ languages/default.py
 languages/plural-*
 controllers/dev.py
 controllers/stats.py
-web2py/
 misc/
 log.txt
 .vscode
