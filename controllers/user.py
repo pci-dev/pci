@@ -26,6 +26,7 @@ from app_modules.orcid import OrcidTools
 from app_modules.article_translator import ArticleTranslator
 from gluon.http import redirect
 
+from gluon.sqlhtml import SQLFORM
 from models.review import Review, ReviewState
 from models.article import Article, TranslatedFieldType, clean_vars_doi, clean_vars_doi_list
 from models.report_survey import ReportSurvey
@@ -646,6 +647,7 @@ def fill_new_article():
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
     myScript = common_tools.get_script("fill_new_article.js")
+    article_form_common_script = common_tools.get_script("article_form_common.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
@@ -653,7 +655,7 @@ def fill_new_article():
         pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
         customText=customText,
         form=form,
-        myFinalScript=myScript or "",
+        myFinalScript=[myScript or "", article_form_common_script],
     )
 
 
@@ -944,13 +946,14 @@ def edit_my_article():
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
 
     manager_script = common_tools.get_script("manager_selection.js")
+    article_form_common_script = common_tools.get_script("article_form_common.js")
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserEditArticle"),
         customText=getText(request, auth, db, "#UserEditArticleText"),
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#UserEditArticleTitle"),
         form=form,
-        myFinalScript=myScript,
+        myFinalScript=[myScript, article_form_common_script],
         managerScript = manager_script,
         pciRRjsScript=pciRRjsScript,
     )
