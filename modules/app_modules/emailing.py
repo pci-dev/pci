@@ -272,7 +272,7 @@ def send_to_submitter_scheduled_submission_open(article):
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
     mail_vars["ccAddresses"] = [
             mail_vars["appContactMail"], # i.e. contacts.managers
-    ] + get_recomm_and_co_recomm_emails(db, article)
+    ] + get_recomm_and_co_recomm_emails(article)
 
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
@@ -291,7 +291,8 @@ def mk_recommender(article):
     return common_small_html.mkUserWithMail(recomm.recommender_id)
 
 
-def get_recomm_and_co_recomm_emails(db, article):
+def get_recomm_and_co_recomm_emails(article):
+    db = current.db
     recomm = db.get_last_recomm(article.id)
     return [
             db.auth_user[recomm.recommender_id]["email"],
@@ -377,7 +378,7 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
             elif newStatus == "Recommended":
                 mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
                 mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
-                mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+                mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderStatusChangedUnderToRecommended", article)
 
@@ -1244,13 +1245,13 @@ def send_new_membreship(session, auth, db, membershipId):
             mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["ethicsurl"] = mk_ethicsLink()
 
-            mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+            mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
             hashtag_template = "#NewMembreshipRecommender"
             new_role_report = "new recommender "
 
         elif group.role == "manager":
-            mail_vars["bccAddresses"] = emailing_vars.getAdminsMails(db)
+            mail_vars["bccAddresses"] = emailing_vars.getAdminsMails()
 
             hashtag_template = "#NewMembreshipManager"
             new_role_report = "new manager "
@@ -1340,10 +1341,10 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
             "#ManagersArticleStatusChanged",
         ]
         if hashtag_template in listCorrectHashtags(for_admins, article):
-            dest_emails = emailing_vars.getAdminsMails(db)
+            dest_emails = emailing_vars.getAdminsMails()
             dest_role = "admin"
         else:
-            dest_emails = emailing_vars.getManagersMails(db)
+            dest_emails = emailing_vars.getManagersMails()
             dest_role = "manager"
         reports = merge_mails(hashtag_template, mail_vars, recomm_id, None, article.id, dest_emails, dest_role)
 
@@ -1465,7 +1466,7 @@ def send_to_delete_one_corecommender(session, auth, db, contribId):
                     mail_vars["destAddress"] = db.auth_user[contrib.contributor_id]["email"]
                     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
                     mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
-                    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+                    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
                     hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommenderRemovedFromArticle", article)
 
@@ -1500,7 +1501,7 @@ def send_to_one_corecommender(session, auth, db, contribId):
 
                     if article.status in ("Under consideration", "Pre-recommended", "Pre-recommended-private"):
                         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
-                        mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+                        mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
                         if article.already_published:
                             hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommenderAddedOnArticleAlreadyPublished", article)
@@ -1821,7 +1822,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     authors_reply = None
     if new_round:
-        prev_recomm = common_tools.get_prev_recomm(db, recommendation)
+        prev_recomm = common_tools.get_prev_recomm(recommendation)
         authors_reply = emailing_parts.getAuthorsReplyHTML(prev_recomm.id)
 
     message = render(
@@ -2649,7 +2650,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         mail_vars["reviewDuration"] = (review.review_duration).lower()
         mail_vars["replytoAddresses"] = replyto_addresses
 
-        _recomm = common_tools.get_prev_recomm(db, recomm) if new_round else recomm
+        _recomm = common_tools.get_prev_recomm(recomm) if new_round else recomm
         r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(_recomm.id)
 
         r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
@@ -2680,7 +2681,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         authors_reply = None
         if new_round:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerInvitationNewRoundRegisteredUser", article)
-            prev_recomm = common_tools.get_prev_recomm(db, recomm)
+            prev_recomm = common_tools.get_prev_recomm(recomm)
             authors_reply = emailing_parts.getAuthorsReplyHTML(prev_recomm.id)
 
         sender_name = None
@@ -3189,7 +3190,7 @@ def send_to_coar_requester(session: Session, auth: Auth, db, user: User, article
     mail_vars["destPerson"] = common_small_html.mkUser(user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
     mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=True)
     mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=True)
     mail_vars["completeSubmissionLink"] = URL("coar", "complete_submission", scheme=True,
@@ -3215,7 +3216,7 @@ def send_to_coar_resubmitter(session, auth, db, user, article):
     mail_vars["destPerson"] = common_small_html.mkUser(user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
     mail_vars["linkTarget"] = URL(
         c="user", f="edit_my_article",
         vars=dict(articleId=article.id, key=user.reset_password_key),
@@ -3236,7 +3237,7 @@ def create_reminder_user_complete_submission(article):
 
     mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
     mail_vars["destAddress"] = User.get_by_id(article.user_id).email
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["message"] = MailQueue.get_mail_content(
@@ -3248,7 +3249,8 @@ def create_reminder_user_complete_submission(article):
 
 
 ######################################################################################################################################################################
-def check_mail_queue(db, hashtag, reviewer_mail, recomm_id):
+def check_mail_queue(hashtag, reviewer_mail, recomm_id):
+    db = current.db
     hashtag = hashtag + "%"
     return db(
             db.mail_queue.mail_template_hashtag.like(hashtag)
@@ -3291,7 +3293,7 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
     if review.review_state == "Awaiting review" and isScheduledTrack(art) and art.report_stage == "STAGE 1":
         hashtag_template = "#DefaultReviewAlreadyAcceptedCancellationStage1ScheduledSubmission"
-    if not check_mail_queue(db, hashtag_template, reviewer.email, review.recommendation_id):
+    if not check_mail_queue(hashtag_template, reviewer.email, review.recommendation_id):
         emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
         emailing_tools.getFlashMessage(session, reports)
@@ -3309,7 +3311,7 @@ def create_reminder_recommender_could_make_decision(session, auth, db, recommId)
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleAuthors"] = mkAuthors(article)
 
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
     hashtag_template = "#ReminderRecommender2ReviewsReceivedCouldMakeDecision"
 
@@ -3326,7 +3328,7 @@ def alert_managers_recommender_action_needed(session, auth, db, hashtag_template
         mail_vars["destAddress"] = mail_vars["appContactMail"]
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["recommenderPerson"] = mk_recommender(article)
-        mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+        mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
         emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
@@ -3625,7 +3627,7 @@ def send_unsubscription_alert_for_manager():
     mail_vars["address"] = auth.user.email
     
     mail_vars["destAddress"] = mail_vars["appContactMail"]
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
     emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
 

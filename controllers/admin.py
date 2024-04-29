@@ -373,7 +373,7 @@ def article_status():
         ],
         orderby=db.t_status_article.priority_level,
     )
-    common_small_html.mkStatusArticles(db)
+    common_small_html.mkStatusArticles()
     return dict(
         titleIcon="bookmark",
         pageTitle=getTitle(request, auth, db, "#AdministrateArticleStatusTitle"),

@@ -562,7 +562,7 @@ def fill_new_article():
     if parallelSubmissionAllowed:
         fields += ["parallel_submission"]
 
-    managers = common_tools.get_managers(db)
+    managers = common_tools.get_managers()
     manager_ids = [m[0] for m in managers]
     manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are members of the managing board) if they are co-authors of the article')]
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=False, label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
@@ -856,7 +856,7 @@ def edit_my_article():
 
     try: article_manager_coauthors = article.manager_authors
     except: article_manager_coauthors = False
-    managers = common_tools.get_managers(db)
+    managers = common_tools.get_managers()
     manager_checks = {}
     for m in managers:
         manager_checks[m[0]] = False
@@ -1425,7 +1425,7 @@ def ask_to_review():
     actionFormUrl = URL("user_actions", "do_ask_to_review")
     amISubmitter = article.user_id == auth.user_id
     recomm = db(db.t_recommendations.article_id == articleId).select().last()
-    amIReviewer = auth.user_id in user_module.getReviewers(recomm, db)
+    amIReviewer = auth.user_id in user_module.getReviewers(recomm)
     amIRecommender = recomm.recommender_id == auth.user_id
 
     rev = db(db.t_reviews.recommendation_id == recomm.id).select().last()

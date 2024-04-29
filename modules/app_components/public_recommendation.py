@@ -270,7 +270,7 @@ def getPublicReviewRoundsHtml(articleId):
         for review in reviewsList:
             if review.anonymously:
                 count_anon += 1
-                reviewer_number = common_tools.find_reviewer_number(db, review, count_anon)
+                reviewer_number = common_tools.find_reviewer_number(review, count_anon)
                 reviewAuthorAndDate = SPAN(
                     current.T("Reviewed by") + " " + current.T("anonymous reviewer %s"%(reviewer_number)) + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else "")
                 )

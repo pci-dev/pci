@@ -222,7 +222,8 @@ def _mkUser(theUser: User, linked=False, reverse=False):
 statusArticles = dict()
 
 
-def mkStatusArticles(db):
+def mkStatusArticles():
+    db = current.db
     statusArticles.clear()
     for sa in db(db.t_status_article).select():
         statusArticles[sa["status"]] = sa
@@ -230,9 +231,8 @@ def mkStatusArticles(db):
 
 ######################################################################################################################################################################
 def mkStatusSimple(status):
-    db, auth = current.db, current.auth
     if statusArticles is None or len(statusArticles) == 0:
-        mkStatusArticles(db)
+        mkStatusArticles()
     status_txt = (current.T(status)).upper()
     color_class = statusArticles[status]["color_class"] or "default"
     hint = statusArticles[status]["explaination"] or ""
@@ -242,9 +242,9 @@ def mkStatusSimple(status):
 ######################################################################################################################################################################
 # Builds a coloured status label
 def mkStatusDiv(status, showStage=False, stage1Id=None, reportStage="Stage not set", submission_change=False):
-    db, auth = current.db, current.auth
+    auth = current.auth
     if statusArticles is None or len(statusArticles) == 0:
-        mkStatusArticles(db)
+        mkStatusArticles()
     status_txt = (current.T(status)).upper()
     color_class = statusArticles[status]["color_class"] or "default"
     hint = statusArticles[status]["explaination"] or ""
@@ -288,9 +288,9 @@ def mkStatusDiv(status, showStage=False, stage1Id=None, reportStage="Stage not s
 ######################################################################################################################################################################
 # Builds a coloured status label with pre-decision concealed
 def mkStatusDivUser(status, showStage=False, stage1Id=None, reportStage="Stage not set"):
-    db, auth = current.db, current.auth
+    auth = current.auth
     if statusArticles is None or len(statusArticles) == 0:
-        mkStatusArticles(db)
+        mkStatusArticles()
     if status.startswith("Pre-") and status != "Pre-submission":
         status2 = "Under consideration"
     else:
@@ -334,9 +334,8 @@ def mkStatusDivUser(status, showStage=False, stage1Id=None, reportStage="Stage n
 
 ######################################################################################################################################################################
 def mkStatusBigDiv(status, printable=False):
-    db, auth = current.db, current.auth
     if statusArticles is None or len(statusArticles) == 0:
-        mkStatusArticles(db)
+        mkStatusArticles()
     status_txt = (current.T(status)).upper()
     color_class = statusArticles[status]["color_class"] or "default"
     hint = statusArticles[status]["explaination"] or ""
@@ -351,9 +350,8 @@ def mkStatusBigDiv(status, printable=False):
 
 ######################################################################################################################################################################
 def mkStatusBigDivUser(status, printable=False):
-    db, auth = current.db, current.auth
     if statusArticles is None or len(statusArticles) == 0:
-        mkStatusArticles(db)
+        mkStatusArticles()
     if status.startswith("Pre-") and status != "Pre-submission":
         status2 = "Under consideration"
     else:

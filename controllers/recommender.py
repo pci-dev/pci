@@ -185,7 +185,7 @@ def search_reviewers():
         nb_reviews = db((db.t_reviews.reviewer_id == fr['id']) & (db.t_reviews.review_state == "Review completed")).count()
         nb_recomm = db((db.t_recommendations.recommender_id == fr['id']) & (db.t_recommendations.recommendation_state == "Recommended")).count()
         nb_co_recomm = db((db.t_press_reviews.contributor_id == fr['id']) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)).count()
-        is_recomm = fr['id'] in user_module.getAllRecommenders(db)
+        is_recomm = fr['id'] in user_module.getAllRecommenders()
         fr['reviewer_stat'] = [nb_reviews, nb_recomm, nb_co_recomm, is_recomm, fr['id']]
 
     full_text_search_fields = [
@@ -1656,7 +1656,7 @@ def email_for_registered_reviewer():
             )
 
     if pciRRactivated:
-        rr_vars = emailing_vars.getRRInvitiationVars(db, article, new_stage)
+        rr_vars = emailing_vars.getRRInvitiationVars(article, new_stage)
         mail_vars = dict(mail_vars, **rr_vars)
 
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
@@ -1806,7 +1806,7 @@ def email_for_new_reviewer():
             )
 
     if pciRRactivated:
-        rr_vars = emailing_vars.getRRInvitiationVars(db, article, new_stage)
+        rr_vars = emailing_vars.getRRInvitiationVars(article, new_stage)
         mail_vars = dict(mail_vars, **rr_vars)
 
 
@@ -2348,7 +2348,7 @@ def edit_recommendation():
                         recomm.recommendation_state = "Recommended"
                         art.status = "Pre-recommended"
                     if  scheduled_reject is None:
-                        common_tools.cancel_decided_article_pending_reviews(db, recomm)
+                        common_tools.cancel_decided_article_pending_reviews(recomm)
                     recomm.update_record()
                     art.update_record()
                     emailing.delete_reminder_for_managers(["#ManagersRecommenderAgreedAndNeedsToTakeAction", "#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction",

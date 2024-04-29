@@ -498,7 +498,7 @@ def recommender_decline_invitation_form(request, session, db, auth, articleId):
     articleTitle = common_small_html.md_to_html(art.title)
     articleAuthors = emailing.mkAuthors(art)
     appName = myconf.take("app.name")
-    managers_mails = ", ".join(emailing_vars.getManagersMails(db))
+    managers_mails = ", ".join(emailing_vars.getManagersMails())
 
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
