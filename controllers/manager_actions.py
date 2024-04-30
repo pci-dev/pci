@@ -21,7 +21,7 @@ from pydal import DAL
 myconf = AppConfig(reload=True)
 db = cast(DAL, db)
 
-crossref.init_conf(db)
+crossref.init_conf()
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 contact = myconf.take("contacts.managers")
 

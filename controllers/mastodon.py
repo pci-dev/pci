@@ -39,7 +39,7 @@ def post_form():
         redirect(URL("mastodon", f"post_form?article_id={article_id}"))
         return
 
-    mastodon_client = Mastodon(db)
+    mastodon_client = Mastodon()
     mastodon_instance_name = merge_instance_name(mastodon_client)
 
     toots_text: List[str] = []

@@ -1,13 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from textwrap import wrap
 from typing import List, cast
+from gluon import current
 from gluon.contrib.appconfig import AppConfig
 from models.article import Article
 from models.post import Post, PostTable
 from models.recommendation import Recommendation
 from models.review import Review
 from models.user import User
-from pydal.base import DAL
 
 from app_modules.common_tools import generate_recommendation_doi
 
@@ -16,12 +16,12 @@ class SocialNetwork(metaclass=ABCMeta):
     
     POST_MAX_LENGTH: int
 
-    def __init__(self, db: DAL, post_max_length: int, table_name: PostTable):
+    def __init__(self, post_max_length: int, table_name: PostTable):
             self._post_max_length = post_max_length
             self._table_name = table_name
 
             self._myconf = AppConfig(reload=True)
-            self._db = db
+            self._db = current.db
 
             self._tweethash = cast(str, self._myconf.take('social.tweethash'))
             self._description = cast(str, self._myconf.take('app.description'))
