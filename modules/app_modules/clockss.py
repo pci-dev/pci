@@ -74,7 +74,7 @@ class Clockss:
 
     def _build_xml(self):
         filename = f"{self.attachments_dir}/{self._prefix}.xml"
-        crossref.init_conf(current.db)
+        crossref.init_conf()
         recommendation_xml = crossref.crossref_xml(self._recommendation)
         with open(filename, 'wb') as file:
             file.write(recommendation_xml.encode('utf8'))

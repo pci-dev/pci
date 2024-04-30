@@ -39,7 +39,7 @@ def post_form():
         redirect(URL("twitter", f"post_form?article_id={article_id}"))
         return
 
-    twitter_client = Twitter(db)
+    twitter_client = Twitter()
 
     tweets_text: List[str] = []
     tweets_in_db = twitter_client.get_posts_from_db(article_id, recommendation.id)

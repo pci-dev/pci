@@ -572,7 +572,7 @@ def color_hypothesis_button():
 
 
 def twitter_button(article, recommendation):
-    twitter_client = Twitter(db)
+    twitter_client = Twitter()
 
     already_send = twitter_client.has_already_posted(article.id, recommendation.id)
     has_config = twitter_client.has_general_twitter_config() or twitter_client.has_specific_twitter_config()
@@ -594,7 +594,7 @@ def twitter_button(article, recommendation):
     )
 
 def mastodon_button(article, recommendation):
-    mastodon_client = Mastodon(db)
+    mastodon_client = Mastodon()
 
     already_send = mastodon_client.has_already_posted(article.id, recommendation.id)
     has_config = mastodon_client.has_mastodon_general_config() or mastodon_client.has_mastodon_specific_config()
