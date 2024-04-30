@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 from app_components.ongoing_recommendation import getRecommendationProcess
 from app_modules.html_to_latex import HtmlToLatex
 from app_modules.common_small_html import build_citation, mkSimpleDOI
+from configparser import NoOptionError
 from models.article import Article
 from models.pdf import PDF
 from models.review import Review
@@ -30,12 +31,12 @@ myconf = AppConfig(reload=True)
 
 class Clockss:
 
-    CLOCKSS_SERVER = str(myconf.get("clockss.server"))
-    CLOCKSS_USERNAME = str(myconf.get("clockss.username"))
-    CLOCKSS_PASSWORD = str(myconf.get("clockss.password"))
+    CLOCKSS_SERVER: Optional[str] = myconf.get("clockss.server")
+    CLOCKSS_USERNAME: Optional[str] = myconf.get("clockss.username")
+    CLOCKSS_PASSWORD: Optional[str] = myconf.get("clockss.password")
 
     LATEX_TEMPLATE_FILENAME = 'main.tex'
-    PDFLATEX_BIN = str(myconf.get("latex.pdflatex"))
+    PDFLATEX_BIN: Optional[str] = myconf.get("latex.pdflatex")
     
     _article: Article
     _prefix: str
@@ -82,7 +83,8 @@ class Clockss:
         
 
     def _compile_latex(self, latex_content: str, pdf_dest_path: str):
-        if not self.PDFLATEX_BIN: raise Exception("pdflatex not configured")
+        if not self.PDFLATEX_BIN:
+            raise NoOptionError('pdflatex', 'latex')
 
         tmp_folder = f"{current.request.folder}/tmp/{self._prefix}"
         if os.path.exists(tmp_folder):
@@ -278,7 +280,7 @@ class Clockss:
     def package_and_send(self):
         ftp_server = self._clockss_ftp()
         if ftp_server is None:
-            raise Exception('Missing Clockss FTP configuration')
+            raise NoOptionError('server/username/password', 'clockss')
 
         self._build_xml()
         self._zip_directory(self.attachments_dir)
@@ -310,6 +312,8 @@ def send_to_clockss(article: Article, recommendation: Recommendation):
     try:
         PDF.save_pdf_to_db(recommendation, attachments_dir, filename)
         clockss.package_and_send()
+    except NoOptionError:
+        PDF.delete_pdf_to_db(recommendation.id)
     except Exception as e:
         current.session.flash = f"Error to upload to Clockss: {e}"
         PDF.delete_pdf_to_db(recommendation.id)
