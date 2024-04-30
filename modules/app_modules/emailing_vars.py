@@ -146,22 +146,6 @@ def getPCiRRScheduledSubmissionsVars(article):
     )
 
 
-# def getArticleVars(db, articleId=None, article=None, anonymousAuthors=False):
-#     art = None
-#     if article is not None:
-#         art = article
-#     if (art is None) and (articleId is not None):
-#         art = db.t_articles[articleId]
-
-#     if art is not None:
-#         mail_vars = dict(
-#             articleTitle=art.title,
-#             articleAuthors=mkAuthors(article),
-#             articleDoi=common_small_html.mkDOI(article.doi),
-#             articlePrePost="postprint" if art.already_published else "preprint",
-#         )
-
-#         return mail_vars
 def getPCiRRrecommendationText(article):
     recommendation_text = ""
     if article.status == "Recommended":

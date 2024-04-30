@@ -66,9 +66,6 @@ def suggest_article_to():
     excludeList.append(str(recommenderId))
     myVars["exclude"] = ",".join(excludeList)
     session.flash = T('Suggested recommender "%s" added.') % common_small_html.mkUser(recommenderId).flatten()
-    # redirect(request.env.http_referer)
-    # redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-    # redirect(URL(c='user', f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
     redirect(URL(c="user", f="search_recommenders", vars=myVars, user_signature=True))
 
 ######################################################################################################################################################################
@@ -152,7 +149,6 @@ def article_revised():
         if art.status == "Scheduled submission revision":
             art.update_record(status="Scheduled submission pending")
         else:
-        # print('article_revised')
             art.status = "Under consideration"
             art.update_record()
             last_recomm = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id).last()
@@ -593,34 +589,3 @@ def delete_review_file():
     session.flash = T("File successfully deleted")
     
     redirect(request.env.http_referer)
-
-######################################################################################################################################################################
-## (gab) Unused ?
-######################################################################################################################################################################
-# @auth.requires_login()
-# def do_delete_article():
-# 	articleId = request.vars['articleId']
-# 	if articleId is None:
-# 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-# 	art = db.t_articles[articleId]
-# 	if art is None:
-# 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-# 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-# 	if art.user_id != auth.user_id:
-# 		session.flash = auth.not_authorized()
-# 		redirect(request.env.http_referer)
-# 	else:
-# 		db(db.t_articles.id == articleId).delete()
-# 		session.flash = T('Preprint submission deleted')
-# 		redirect(URL(c='user', f='my_articles', user_signature=True))
-
-
-# ######################################################################################################################################################################
-# def suggest_article_to_all(articleId, recommenderIds):
-# 	added = []
-# 	for recommenderId in recommenderIds:
-# 		do_suggest_article_to(articleId, recommenderId)
-# 		added.append(common_small_html.mkUser(recommenderId))
-# 	#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-# 	session.flash = T('Suggested recommenders %s added.') % (', '.join(added))
-# 	redirect(request.env.http_referer)
