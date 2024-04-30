@@ -145,11 +145,13 @@ setup.new-pci:
 	ln -s default_base.py languages/default.py
 
 api:
-	cat utils/api.sparse-checkout > .git/info/sparse-checkout
-	cat utils/api.db_plug.py > models/db_plug.py
+	cp -f utils/api/sparse-checkout .git/info/
 	git sparse-checkout init
-	\rm -f languages/default.py
-	cd controllers && ln -s api.py default.py
+	ln -sf api.py controllers/default.py
+	mkdir -p models && \
+	ln -sf ../utils/api/db_plug.py models/
+	ln -sf utils/api/README.md ./
+	find . | grep -v .git
 
 api.dismount:
 	\rm -f controllers/default.py models/db_plug.py
