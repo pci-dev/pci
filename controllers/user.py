@@ -1215,12 +1215,10 @@ def my_articles():
         _class="web2py_grid action-button-absolute",
     )
     return dict(
-        # myBackButton=common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#UserMyArticles"),
         customText=getText(request, auth, db, "#UserMyArticlesText"),
         titleIcon="duplicate",
         pageTitle=getTitle(request, auth, db, "#UserMyArticlesTitle"),
-        #grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
         grid=DIV(grid, _style=""),
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
@@ -1672,10 +1670,6 @@ def edit_reply():
     form = SQLFORM(db.t_recommendations, record=recommId, fields=["id", "reply", "reply_pdf", "track_change"], buttons=buttons, upload=URL("default", "download"), showid=False)
 
     if form.process().accepted:
-        # if request.vars.completed:
-        #     session.flash = T("Reply completed", lazy=False)
-        #     redirect(URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True))
-        # else:
         session.flash = T("Reply saved", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True, anchor="author-reply"))
     elif form.errors:
@@ -1684,7 +1678,6 @@ def edit_reply():
         form = getText(request, auth, db, "#SubmissionOnHoldInfo")
     return dict(
         pageHelp=getHelp(request, auth, db, "#UserEditReply"),
-        # myBackButton = common_small_html.mkBackButton(),
         titleIcon="edit",
         customText=getText(request, auth, db, "#UserEditReplyText"),
         pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),

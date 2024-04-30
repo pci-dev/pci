@@ -28,11 +28,6 @@ def getHelp(request, auth, db, myHashtag, myLanguage="default"):
     if h:
         i = h.id
         c = replaceMailVars(h.contents or "", globals())
-        # try:
-        #     c = (h.contents or "") % globals()
-        #     c = (h.contents or "") % globals()
-        # except:
-        #     c = h.contents or ""
     else:
         i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
@@ -67,11 +62,6 @@ def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200")
         if h:
             i = h.id
             c = replaceMailVars(h.contents or "", globals())
-            # try:
-            #     c = (h.contents or "") % globals()
-            #     c = (h.contents or "") % globals()
-            # except:
-            #     c = h.contents or ""
         else:
             i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
@@ -98,11 +88,6 @@ def getTitle(request, auth, db, myHashtag, myLanguage="default"):
     if h:
         i = h.id
         c = replaceMailVars(h.contents or "", globals())
-        # try:
-        #     c = (h.contents or "") % globals()
-        #     c = (h.contents or "") % globals()
-        # except:
-        #     c = h.contents or ""
     else:
         i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
