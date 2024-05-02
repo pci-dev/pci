@@ -298,7 +298,9 @@ class Clockss:
 
     def _clockss_ftp(self):
         if self.CLOCKSS_SERVER and self.CLOCKSS_USERNAME and self.CLOCKSS_PASSWORD:
-            return ftplib.FTP(self.CLOCKSS_SERVER, self.CLOCKSS_USERNAME, self.CLOCKSS_PASSWORD)
+            host, port = (self.CLOCKSS_SERVER + ":21").split(":")[:2]
+            ftplib.FTP_PORT = int(port)
+            return ftplib.FTP(host, self.CLOCKSS_USERNAME, self.CLOCKSS_PASSWORD)
 
 
 def send_to_clockss(article: Article, recommendation: Recommendation):
