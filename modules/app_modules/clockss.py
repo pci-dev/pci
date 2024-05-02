@@ -279,8 +279,6 @@ class Clockss:
 
     def package_and_send(self):
         ftp_server = self._clockss_ftp()
-        if ftp_server is None:
-            raise NoOptionError('server/username/password', 'clockss')
 
         self._build_xml()
         self._zip_directory(self.attachments_dir)
@@ -304,6 +302,8 @@ class Clockss:
             client.connect(host, int(port))
             client.login(user, passwd)
             return client
+        else:
+            raise NoOptionError('server/username/password', 'clockss')
 
 
 def send_to_clockss(article: Article, recommendation: Recommendation):
