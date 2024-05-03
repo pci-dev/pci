@@ -21,7 +21,7 @@ function colorHypothesisButton() {
 
 	$.ajax({
 		type: 'POST',
-		url: '{{=URL("manager", "color_hypothesis_button")}}',
+		url: 'color_hypothesis_button',
 		data: { article_id: articleId },
 		success: function(response) {
 			$('#hypothesis_button_container').html(response)
