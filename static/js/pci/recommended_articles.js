@@ -1,7 +1,7 @@
 var button = document.getElementById("cancel-submission-button");
 if (button) {
 	confirmCancellation = function (e) {
-		if (!confirm("{{=T('Are you sure you want to proceed?')}}")) {
+		if (!confirm("Are you sure you want to proceed?")) {
 			e.preventDefault()
 		}
 	}
