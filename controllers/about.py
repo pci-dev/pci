@@ -401,7 +401,8 @@ def recommenders():
 
     query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender") & (db.auth_user.deleted == False)
 
-    original_grid = SQLFORM.grid(
+    try:
+      original_grid = SQLFORM.grid(
                     query,
                     create=False,
                     details=False,
@@ -420,6 +421,8 @@ def recommenders():
                     orderby=users.last_name,
                     _class="web2py_grid action-button-absolute about-recommender",
                 )
+    except:
+        raise HTTP(418, "I'm a teapot")
 
     # the grid is adjusted after creation to adhere to our requirements
     grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders_about') \
