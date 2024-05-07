@@ -1,7 +1,7 @@
 var button = document.getElementById("cancel-submission-button");
 if (button) {
 	confirmCancellation = function (e) {
-		if (!confirm("{{=T('Are you sure you want to proceed?')}}")) {
+		if (!confirm("Are you sure you want to proceed?")) {
 			e.preventDefault()
 		}
 	}
@@ -21,7 +21,7 @@ function colorHypothesisButton() {
 
 	$.ajax({
 		type: 'POST',
-		url: '{{=URL("manager", "color_hypothesis_button")}}',
+		url: 'color_hypothesis_button',
 		data: { article_id: articleId },
 		success: function(response) {
 			$('#hypothesis_button_container').html(response)
