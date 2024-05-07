@@ -351,6 +351,12 @@ def article_details():
             recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "recommender", request, False, printable, quiet=False)
             recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
+            infoCard = TAG(recommHeaderHtml)
+            coverLetter = infoCard.element("div#menu-4")
+            coverLetter.attributes["_class"] = (coverLetter.attributes["_class"]
+                    .replace("pci2-panel-closed", "")) # show openned
+            recommHeaderHtml = infoCard
+
             if printable:
                 printableClass = "printable"
                 response.view = "default/wrapper_printable.html"
