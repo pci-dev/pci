@@ -772,6 +772,7 @@ def edit_my_article():
             "scripts_doi", 
             "codes_used_in_study", 
             "codes_doi", 
+            "funding",
         ]
 
         fields += ["thematics"]
