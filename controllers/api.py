@@ -68,6 +68,25 @@ def all():
     })
 
 
+def recommendations():
+    from app_modules.common_small_html import mkLinkDOI
+    from models.recommendation import Recommendation, RecommendationState
+    recomms = Recommendation.get_all([RecommendationState.RECOMMENDED])
+    return json([
+        {
+            "recommendation": {
+                "url": URL("articles", f"rec?id={recom.article_id}", scheme=True),
+                "doi": mkLinkDOI(recom.recommendation_doi),
+            },
+            "article": {
+                "doi": recom.article_id.doi,
+                "published_doi": recom.article_id.doi_of_published_article,
+            },
+        }
+        for recom in recomms
+    ])
+
+
 # internals
 
 def pci_hosts(conf_key="host"):
