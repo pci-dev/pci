@@ -288,7 +288,12 @@ def get_article_infos_card(auth: Auth, db: DAL, response: Response, article: Art
     if abstract:
         article_content.update([("articleAbstract", WIKI(article.abstract or "", safe_mode=''))])
 
-    if with_cover_letter and article.cover_letter is not None and not article.already_published and policy_1:
+    if with_cover_letter and article.cover_letter is not None and not article.already_published and (
+            policy_1 or (
+                auth.has_membership(role=Role.RECOMMENDER.value)
+                and not (recommendation and recommendation.recommender_id)
+            )
+        ):
         article_content.update([("coverLetter", WIKI(article.cover_letter or "", safe_mode=''))])
 
     if submitted_by:
