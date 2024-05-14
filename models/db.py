@@ -977,6 +977,7 @@ db.define_table(
 )
 db.t_reviews.reviewer_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(last_name)s, %(first_name)s"))
 db.t_reviews.recommendation_id.requires = IS_IN_DB(db, db.t_recommendations.id, "%(doi)s")
+db.t_reviews._before_insert.append(lambda row: init_review(row))
 db.t_reviews._before_update.append(lambda s, f: before_review_done(s, f))
 db.t_reviews._after_update.append(lambda s, f: after_review_done(s, f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
@@ -992,6 +993,11 @@ def notify_submitter(review):
         if nb_reviews == 1:
             pass
 
+
+from gluon.utils import web2py_uuid
+
+def init_review(row):
+    row.quick_decline_key = web2py_uuid()
 
 
 def reviewSuggested(s, row):
