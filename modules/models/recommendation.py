@@ -77,11 +77,9 @@ class Recommendation(Row):
         if len(recommendation_states) == 0:
             return cast(List[Recommendation], db().select(db.t_recommendations.ALL))
         else:
-            states_values: List[str] = []
-            for recommendation_state in recommendation_states:
-                states_values.append(recommendation_state.value)
-            reco = cast(List[Recommendation], db((db.t_recommendations.recommendation_state.belongs(states_values))).select())
-            return reco
+            states_values = [state.value for state in recommendation_states]
+            return cast(List[Recommendation], db(db.t_recommendations.recommendation_state.belongs(states_values))
+                        .select(orderby=db.t_recommendations.id))
 
 
     @staticmethod
