@@ -149,6 +149,7 @@ def _AdminMenu():
         menu_entry("Users & roles", "glyphicon-user", URL("admin", "list_users", user_signature=True)),
         menu_entry("Synthesis of reviews", "glyphicon-list-alt", URL("admin", "recap_reviews", user_signature=True)),
         menu_entry("All recommendation citations", "glyphicon-education", URL("admin", "allRecommCitations", user_signature=True)),
+        menu_entry("All PCIs recommendations", "glyphicon-education", URL("api", "all/recommendations")),
         menu_entry("Recommendation PDF files", "glyphicon-duplicate", URL("admin", "manage_pdf", user_signature=True)),
         menu_entry("Mailing queue", "glyphicon-send", URL("admin", "mailing_queue", user_signature=True)),
         divider(),
