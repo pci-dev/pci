@@ -146,22 +146,22 @@ def _AdminMenu():
         isActive = True
 
     adminMenu = [
-        menu_entry("Users & roles", "glyphicon-user", URL("admin", "list_users", user_signature=True)),
-        menu_entry("Synthesis of reviews", "glyphicon-list-alt", URL("admin", "recap_reviews", user_signature=True)),
-        menu_entry("All recommendation citations", "glyphicon-education", URL("admin", "allRecommCitations", user_signature=True)),
+        menu_entry("Users & roles", "glyphicon-user", URL("admin", "list_users")),
+        menu_entry("Synthesis of reviews", "glyphicon-list-alt", URL("admin", "recap_reviews")),
+        menu_entry("All recommendation citations", "glyphicon-education", URL("admin", "allRecommCitations")),
         menu_entry("All PCIs recommendations", "glyphicon-education", URL("api", "all/recommendations")),
-        menu_entry("Recommendation PDF files", "glyphicon-duplicate", URL("admin", "manage_pdf", user_signature=True)),
-        menu_entry("Mailing queue", "glyphicon-send", URL("admin", "mailing_queue", user_signature=True)),
+        menu_entry("Recommendation PDF files", "glyphicon-duplicate", URL("admin", "manage_pdf")),
+        menu_entry("Mailing queue", "glyphicon-send", URL("admin", "mailing_queue")),
         divider(),
-        menu_entry("Thematic fields", "glyphicon-tags", URL("admin", "thematics_list", user_signature=True)),
-        menu_entry("Status of articles", "glyphicon-bookmark", URL("admin", "article_status", user_signature=True)),
-        menu_entry("Help texts", "glyphicon-question-sign", URL("custom_help_text", "help_texts", user_signature=True)),
-        menu_entry("E-mail templates", "glyphicon-envelope", URL("custom_help_text", "mail_templates", user_signature=True)),
+        menu_entry("Thematic fields", "glyphicon-tags", URL("admin", "thematics_list")),
+        menu_entry("Status of articles", "glyphicon-bookmark", URL("admin", "article_status")),
+        menu_entry("Help texts", "glyphicon-question-sign", URL("custom_help_text", "help_texts")),
+        menu_entry("E-mail templates", "glyphicon-envelope", URL("custom_help_text", "mail_templates")),
         menu_entry("Upload filetypes", "glyphicon-file", URL("admin", "edit_config/allowed_upload_filetypes")),
         menu_entry("COAR whitelist", "glyphicon-inbox", URL("admin", "edit_config/coar_whitelist")),
         menu_entry("ISSN", "glyphicon-cog", URL("admin", "edit_config/issn")),
         divider(),
-        menu_entry("Contact lists", "glyphicon-earphone", URL("admin", "mailing_lists", user_signature=True)),
+        menu_entry("Contact lists", "glyphicon-earphone", URL("admin", "mailing_lists")),
     ]
 
     return [
