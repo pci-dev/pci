@@ -215,8 +215,7 @@ def decline_review(): # no auth required
 
 
 def _check_decline_review_request():
-    reviewId = request.vars["id"]
-    if reviewId == None: reviewId = request.vars["reviewId"]
+    reviewId = request.vars["id"] or request.vars["reviewId"]
     quickDeclineKey = request.vars["key"]
 
     review = db.t_reviews[reviewId]
