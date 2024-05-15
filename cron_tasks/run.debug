@@ -14,7 +14,7 @@ main() {
 	exit 1
 }
 
-cd web2py
+cd $DIR/../../web2py
 
 python3 web2py.py --no_banner \
 	-M \
