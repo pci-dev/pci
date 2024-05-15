@@ -124,9 +124,8 @@ class User(Row):
 
     @staticmethod
     def delete(user_id: int):
-        db = current.db
-        count_deleted = cast(int, db(db.auth_user.id == user_id).delete())
-        return count_deleted == 1
+        from app_modules.common_tools import delete_user_from_PCI
+        delete_user_from_PCI(User.get_by_id(user_id))
 
 
     @staticmethod
