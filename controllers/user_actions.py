@@ -397,7 +397,8 @@ def send_suggested_reviewers():
     text = (text or "").strip()
 
     if not text or not review or no_suggestions_clicked or review.suggested_reviewers_send:
-        Review.set_suggested_reviewers_send(review)
+        if review:
+            Review.set_suggested_reviewers_send(review)
         if next:
             redirect(next)
         else:

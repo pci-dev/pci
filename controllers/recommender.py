@@ -1708,10 +1708,6 @@ def email_for_registered_reviewer():
         reviewer = db.auth_user[review.reviewer_id]
         destPerson = common_small_html.mkUser(auth, db, reviewer.id).flatten()
 
-        if not review.quick_decline_key:
-            review.quick_decline_key = web2py_uuid()
-            review.update_record()
-
         linkTarget = URL(
                 c="default",
                 f="invitation_to_review",
@@ -1891,19 +1887,16 @@ def email_for_new_reviewer():
         if nbExistingReviews > 0:
             session.flash = T('User "%(reviewer_email)s" have already been invited. E-mail cancelled.') % (request.vars)
         else:
-            # Create review
-            quickDeclineKey = web2py_uuid()
-
             # BUG : managers could invite recommender as reviewer (incoherent status)
             reviewId = db.t_reviews.insert(
                     recommendation_id=recommendation_id,
                     reviewer_id=new_user_id,
                     review_state=None,                  # State will be validated after emailing
-                    quick_decline_key=quickDeclineKey,
                     review_duration=form.vars.review_duration,
             )
 
-            declineLinkTarget = URL(c="user_actions", f="decline_review", vars=dict(id=reviewId, key=quickDeclineKey),
+            declineLinkTarget = URL(c="user_actions", f="decline_review",
+                    vars=dict(id=reviewId, key=db.t_reviews[reviewId].quick_decline_key),
                     scheme=scheme, host=host, port=port)
             if existingUser:
                     if recomm_round > 1 and not pciRRactivated:
