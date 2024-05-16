@@ -83,7 +83,7 @@ def recommendations():
                 "published_doi": recom.article_id.doi_of_published_article,
             },
         }
-        for recom in recomms
+        for recom in recomms if recom.article_id.status == "Recommended"
     ])
 
 
