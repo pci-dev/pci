@@ -353,7 +353,8 @@ def article_details():
 
             infoCard = TAG(recommHeaderHtml)
             coverLetter = infoCard.element("div#menu-4")
-            coverLetter.attributes["_class"] = (coverLetter.attributes["_class"]
+            if coverLetter:
+                coverLetter.attributes["_class"] = (coverLetter.attributes["_class"]
                     .replace("pci2-panel-closed", "")) # show openned
             recommHeaderHtml = infoCard
 
