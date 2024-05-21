@@ -29,12 +29,12 @@ jQuery(document).ready(function() {
     jQuery("#t_articles_article_source__row").show();
   } else {
     jQuery("#t_articles_article_source__row").hide();
-    jQuery(":submit").prop("disabled", true);
+    jQuery("input[type=submit]").prop("disabled", true);
   }
 
   if (jQuery("#t_articles_already_published").length)
     if (all_prerequisites()) {
-      jQuery(":submit").prop("disabled", false);
+      jQuery("input[type=submit]").prop("disabled", false);
     }
 
   if (jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked")) {
@@ -47,10 +47,10 @@ jQuery(document).ready(function() {
     jQuery("#t_articles_i_am_an_author").prop("checked")
   ) {
     if (all_prerequisites()) {
-      jQuery(":submit").prop("disabled", false);
+      jQuery("input[type=submit]").prop("disabled", false);
     }
   } else {
-    jQuery(":submit").prop("disabled", true);
+    jQuery("input[type=submit]").prop("disabled", true);
   }
 
   jQuery("#t_articles_picture_rights_ok").change(function() {
@@ -83,10 +83,10 @@ jQuery(document).ready(function() {
       jQuery("#t_articles_i_am_an_author").prop("checked")
     ) {
       if (all_prerequisites()) {
-        jQuery(":submit").prop("disabled", false);
+        jQuery("input[type=submit]").prop("disabled", false);
       }
     } else {
-      jQuery(":submit").prop("disabled", true);
+      jQuery("input[type=submit]").prop("disabled", true);
     }
   });
   jQuery("#t_articles_i_am_an_author").change(function() {
@@ -96,10 +96,10 @@ jQuery(document).ready(function() {
       jQuery("#t_articles_i_am_an_author").prop("checked")
     ) {
       if (all_prerequisites()) {
-        jQuery(":submit").prop("disabled", false);
+        jQuery("input[type=submit]").prop("disabled", false);
       }
     } else {
-      jQuery(":submit").prop("disabled", true);
+      jQuery("input[type=submit]").prop("disabled", true);
     }
   });
   jQuery("#t_articles_parallel_submission").change(function() {
@@ -115,10 +115,10 @@ jQuery(document).ready(function() {
       jQuery("#t_articles_i_am_an_author").prop("checked")
     ) {
       if (all_prerequisites()) {
-        jQuery(":submit").prop("disabled", false);
+        jQuery("input[type=submit]").prop("disabled", false);
       }
     } else {
-      jQuery(":submit").prop("disabled", true);
+      jQuery("input[type=submit]").prop("disabled", true);
     }
   });
 
@@ -142,16 +142,16 @@ jQuery(document).ready(function() {
       if (parallel_submission != null) {
         if ((not_reviewed_elsewhere.checked == true | parallel_submission.checked == true) &
             i_am_author.checked == true & all_prerequisites()) {
-            document.querySelector("#submit_record__row .btn-success").disabled = false; }
+            document.querySelector("#submit_record__row input[type=submit]").disabled = false; }
         else {
-          document.querySelector("#submit_record__row .btn-success").disabled = true; 
+          document.querySelector("#submit_record__row input[type=submit]").disabled = true; 
         }
       }
       else {
         if (not_reviewed_elsewhere.checked == true & i_am_author.checked == true & all_prerequisites()) {
-              document.querySelector("#submit_record__row .btn-success").disabled = false; }
+              document.querySelector("#submit_record__row input[type=submit]").disabled = false; }
         else {
-              document.querySelector("#submit_record__row .btn-success").disabled = true; 
+              document.querySelector("#submit_record__row input[type=submit]").disabled = true; 
         }
       }
     }
