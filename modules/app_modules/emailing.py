@@ -3169,7 +3169,7 @@ def send_reset_password(user, link):
     emailing_tools.insertMailInQueue(current.auth, current.db, hashtag_template, mail_vars)
 
 ######################################################################################################################################################################
-def send_to_coar_requester(session: Session, auth: Auth, db: DAL, user: User, article: Article):
+def send_to_coar_requester(session: Session, auth: Auth, db, user: User, article: Article):
     mail_vars = emailing_tools.getMailCommonVars()
 
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
