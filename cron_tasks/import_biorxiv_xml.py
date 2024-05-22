@@ -21,8 +21,11 @@ def main():
           print(f"No application in destination app list with name: {current.request.application}")
           return
 
-     for xml_file_name in os.listdir(XML_FOLDER):
-          xml_file = os.path.join(XML_FOLDER, xml_file_name)
+     for file_name in os.listdir(XML_FOLDER):
+          if not file_name.endswith('.xml'):
+               continue
+
+          xml_file = os.path.join(XML_FOLDER, file_name)
           
           try:
                xml_jats_parser = XMLJATSParser(xml_file)
@@ -44,8 +47,7 @@ def main():
                continue
 
           emailing.send_to_coar_requester(current.session, current.auth, current.db, user, article)
-          os.remove(xml_file)
-
+          clean(xml_file)
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
      authors: List[str] = []
@@ -86,10 +88,17 @@ def add_author_in_db(authors: List[XMLJATSAuthorElement]):
                                             orcid=author.orcid)
 
 
-def get_destination_application(filepath: str):
-        filename = Path(filepath).stem
-        app_name = filename.split('_')[0]
-        return app_name
+def clean(xml_file: str):
+     os.remove(xml_file)
+
+     base_name = Path(xml_file).stem
+     archive_name = f"{base_name}.zip"
+     archive_file = os.path.join(XML_FOLDER, archive_name)
+     try:
+          os.remove(archive_file)
+     except OSError:
+          print(f'No archive to clean found: {archive_file}')
+          pass
 
 
 if __name__ == '__main__':
