@@ -8,36 +8,43 @@ from models.article import Article
 
 from models.user import User
 from app_modules import emailing
-from app_modules.xml_jats_parser import XMLJATSArticleElement, XMLJATSParser, XMLJATSAuthorElement
+from app_modules.xml_jats_parser import DestinationApp, XMLJATSArticleElement, XMLJATSParser, XMLJATSAuthorElement
 
 myconf = AppConfig(reload=True)
 
 XML_FOLDER = str(myconf.get("ftp.biorxiv"))
 
 def main():
-     application = str(current.request.application)
+     try:
+          application = DestinationApp(str(current.request.application))
+     except:
+          print(f"No application in destination app list with name: {current.request.application}")
+          return
 
      for xml_file_name in os.listdir(XML_FOLDER):
           xml_file = os.path.join(XML_FOLDER, xml_file_name)
-
-          dest_app = get_destination_application(xml_file)
-          if dest_app != application:
-               continue
           
-          xml_jats_parser = XMLJATSParser(xml_file)
+          try:
+               xml_jats_parser = XMLJATSParser(xml_file)
+          except Exception as e:
+               print(f"Error to parse {xml_file}: {e}")
+               continue
+
+          if not xml_jats_parser.destination or xml_jats_parser.destination != application:
+               continue
           
           user = add_author_in_db(xml_jats_parser.article.authors)
           if not user:
-            raise(Exception("Unable to create or find user."))
+               print(f"Unable to create or find user from document {xml_file}")
+               continue
           
           article = add_article_in_db(xml_jats_parser.article, user)     
           if not article:
-               raise(Exception("Unable to create article"))
+               print(f"Unable to create article from document {xml_file}")
+               continue
 
           emailing.send_to_coar_requester(current.session, current.auth, current.db, user, article)
           os.remove(xml_file)
-
-          
 
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
@@ -83,6 +90,7 @@ def get_destination_application(filepath: str):
         filename = Path(filepath).stem
         app_name = filename.split('_')[0]
         return app_name
+
 
 if __name__ == '__main__':
     main()

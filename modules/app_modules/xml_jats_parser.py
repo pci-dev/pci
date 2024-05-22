@@ -1,8 +1,35 @@
 
+from enum import Enum
 import re
 from typing import List, Optional
 import xml.etree.ElementTree as ET
-import lxml.etree as lxml 
+import lxml.etree as lxml
+
+
+class DestinationApp(Enum):
+    ANIMSCI  = 'PCIAnimSci'
+    ARCHAEO = 'PCIArchaeology'
+    ECOLOGY = 'PCIEcology'
+    ECOTOXENVCHEM = 'PCIEcotoxEnvChem'
+    EVOLBIOL = 'PCIEvolBiol'
+    FORESTWOODSCI = 'PCIForestWoodSci'
+    GENOMICS = 'PCIGenomics'
+    HEALTHMOVSCI = 'PCIHealthMovSci'
+    INFECTIONS = 'PCIInfections'
+    MCB = 'PCIMCB'
+    MICROBIOL = 'PCIMicrobiol'
+    NETWORKSCI = 'PCINetworkSci'
+    NEURO = 'PCINeuro'
+    ORGSTUDIES = 'PCIOrgStudies'
+    PALEO = 'PCIPaleo'
+    RR = 'PCIRegisteredReports'
+    ZOOL = 'PCIZool'
+
+    TEST = 'PCICompStat' # Prod test platform
+    EB3 = 'EB3' # Test platform
+    RR3 = 'RR3' # Test platform
+    PCI = 'pci' # For local test
+
 
 class XMLJATSAuthorElement:
     first_name: Optional[str]
@@ -203,10 +230,22 @@ class XMLJATSArticleElement:
 class XMLJATSParser:
 
     article: XMLJATSArticleElement
+    destination: Optional[DestinationApp]
 
     def __init__(self, filepath: str):
         xml_tree = ET.parse(filepath, lxml.XMLParser(recover=True))
         xml_root = xml_tree.getroot()
 
         self.article = XMLJATSArticleElement(xml_root)
+        self.destination = self._extract_destionation(xml_root)
+
+
+    def _extract_destionation(self, xml_root: ET.Element):
+        destination = xml_root.findtext("./front/journal-meta/journal-id[@journal-id-type='destination']")
+        if destination is None:
+            return
+        
+        destination = destination.upper()
+        destination = re.sub(r"^PCI[^A-Z0-9]+", '', destination)
+        return DestinationApp[destination]
 
