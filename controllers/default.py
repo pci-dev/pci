@@ -868,10 +868,9 @@ def stream_pdf():
     table_name = match_regex.group(1)
     table_file_field = match_regex.group(2)
 
-    row = db(db[table_name][table_file_field] == filename).select().first()
-    table_file_data_field = table_file_field + "_data"
     try:
-        file_data_bytes = row[table_file_data_field]
+        row = db(db[table_name][table_file_field] == filename).select().first()
+        file_data_bytes = row[table_file_field + "_data"]
     except:
         raise HTTP(404, "404: " + T("Unavailable"))
 
