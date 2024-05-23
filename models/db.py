@@ -4,6 +4,7 @@ from typing import Set, cast
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect
+from models.article import ArticleStatus
 from models.user import User
 from pydal.validators import IS_IN_SET
 from gluon.tools import Auth, Service, PluginManager, Mail
@@ -765,7 +766,7 @@ def deltaStatus(s, f):
 
 
 def newArticle(s, articleId):
-    if s.status == "Pending-survey": # pciRRactivated only
+    if s.status in (ArticleStatus.PENDING_SURVEY.value, ArticleStatus.PRE_SUBMISSION.value): # pciRRactivated only
         return
 
     if s.coar_notification_id:
