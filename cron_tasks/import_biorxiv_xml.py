@@ -1,5 +1,7 @@
 from pathlib import Path
 import os
+import shutil
+import time
 from typing import List
 
 from gluon import current
@@ -13,8 +15,12 @@ from app_modules.xml_jats_parser import DestinationApp, XMLJATSArticleElement, X
 myconf = AppConfig(reload=True)
 
 XML_FOLDER = str(myconf.get("ftp.biorxiv"))
+DONE_FOLDER = f"{XML_FOLDER}/done"
 
 def main():
+     create_done_folder()
+     clean_done_folder()
+
      try:
           application = DestinationApp(str(current.request.application))
      except:
@@ -47,7 +53,8 @@ def main():
                continue
 
           emailing.send_to_coar_requester(current.session, current.auth, current.db, user, article)
-          clean(xml_file)
+          clean_xml(xml_file)
+
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
      authors: List[str] = []
@@ -88,9 +95,16 @@ def add_author_in_db(authors: List[XMLJATSAuthorElement]):
                                             orcid=author.orcid)
 
 
-def clean(xml_file: str):
-     os.remove(xml_file)
+     
 
+
+def create_done_folder():
+     if not os.path.exists(DONE_FOLDER):
+          os.makedirs(DONE_FOLDER)
+          print(f"{DONE_FOLDER} created")
+
+
+def clean_xml(xml_file: str):
      base_name = Path(xml_file).stem
      archive_name = f"{base_name}.zip"
      archive_file = os.path.join(XML_FOLDER, archive_name)
@@ -99,6 +113,21 @@ def clean(xml_file: str):
      except OSError:
           print(f'No archive to clean found: {archive_file}')
           pass
+     
+     shutil.move(xml_file, DONE_FOLDER)
+
+
+def clean_done_folder():
+     max_life_time = time.time() - 30 * 24 * 60 * 60 # 30 days
+     for file_name in os.listdir(DONE_FOLDER):
+          file = os.path.join(DONE_FOLDER, file_name)
+          if not os.path.isfile(file):
+               continue
+          
+          file_age = os.path.getmtime(file)
+          if file_age <= max_life_time:
+               os.remove(file)
+               print(f"{file} has been removed")
 
 
 if __name__ == '__main__':
