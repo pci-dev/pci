@@ -167,10 +167,6 @@ class XMLJATSArticleElement:
         if abstract:
             self.abstract = abstract.strip()
 
-        version = xml_root.findtext("./front/article-meta/article-version")
-        if version:
-            self.version = version.strip()
-
         year = xml_root.findtext("./front/article-meta/pub-date/year")
         if year:
             self.year = int(year.strip())
@@ -180,11 +176,23 @@ class XMLJATSArticleElement:
             self.journal = journal.strip()
 
         self._explore_doi(xml_root)
+        self._explore_version(xml_root)
 
         self.authors = []
         authors = xml_root.findall("./front/article-meta/contrib-group/contrib")
         for author in authors:
             self.authors.append(XMLJATSAuthorElement(xml_root, author))
+
+
+    def _explore_version(self, xml_root: ET.Element):
+        version = xml_root.findtext("./front/article-meta/article-version")
+        if version:
+            self.version = version.strip()
+            return
+        
+        version = xml_root.get("dtd-version")
+        if version:
+            self.version = version.strip()
 
 
     def _explore_doi(self, xml_root: ET.Element):
