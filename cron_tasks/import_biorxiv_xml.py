@@ -37,10 +37,15 @@ def main():
                xml_jats_parser = XMLJATSParser(xml_file)
           except Exception as e:
                print(f"Error to parse {xml_file}: {e}")
+               emailing.send_import_biorxiv_alert(xml_file, True)
+               clean_xml(xml_file)
                continue
 
-          if not xml_jats_parser.destination or xml_jats_parser.destination != application:
+          if xml_jats_parser.destination != application:
                continue
+
+          emailing.send_import_biorxiv_alert(xml_file, False)
+          clean_xml(xml_file)
           
           user = add_author_in_db(xml_jats_parser.article.authors)
           if not user:
@@ -53,7 +58,6 @@ def main():
                continue
 
           emailing.send_to_coar_requester(current.session, current.auth, current.db, user, article)
-          clean_xml(xml_file)
 
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):

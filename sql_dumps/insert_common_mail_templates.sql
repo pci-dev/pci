@@ -82,3 +82,10 @@ insert into mail_templates
 {{message}}
 '
 );
+
+--- 2024-05-27 updates/BiorxivFTPAlert_template.sql
+INSERT INTO mail_templates (hashtag,lang,subject,description,contents) VALUES
+	 ('#BiorxivFTPAlert','default','Biorvix FTP Alert','Biorvix FTP Alert','<p>A new Biorxiv FTP file has arrived on the server.</p>
+<p>Content:</p>
+<p>{{xmlContent}}</p>
+<p>&nbsp;</p>');

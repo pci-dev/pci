@@ -238,7 +238,7 @@ class XMLJATSArticleElement:
 class XMLJATSParser:
 
     article: XMLJATSArticleElement
-    destination: Optional[DestinationApp]
+    destination: DestinationApp
 
     def __init__(self, filepath: str):
         xml_tree = ET.parse(filepath, lxml.XMLParser(recover=True))
@@ -251,9 +251,13 @@ class XMLJATSParser:
     def _extract_destionation(self, xml_root: ET.Element):
         destination = xml_root.findtext("./front/journal-meta/journal-id[@journal-id-type='destination']")
         if destination is None:
-            return
+            raise Exception(f"No PCI app destination found in XML")
         
         destination = destination.upper()
         destination = re.sub(r"^PCI[^A-Z0-9]+", '', destination)
-        return DestinationApp[destination]
+
+        try:
+            return DestinationApp[destination]
+        except KeyError:
+            raise KeyError(f"'{destination}' is not valid app destination")
 

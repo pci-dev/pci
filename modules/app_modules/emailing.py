@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import html
 import os
 import datetime
 import time
@@ -3521,6 +3522,25 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
     emailing_tools.getFlashMessage(session, reports)
+##################################################################################################################################################################
+
+def send_import_biorxiv_alert(xml_file_path: str, generic_contact: bool):
+    mail_vars = emailing_tools.getMailCommonVars()
+    
+    if generic_contact:
+        mail_vars["destAddress"] = mail_vars["appGenericContactMail"]
+    else:
+        mail_vars["destAddress"] = mail_vars["appContactMail"]
+
+    with open(xml_file_path, 'r') as xml_file:
+        content = ""
+        for line in xml_file:
+            content += f"{html.escape(line)}<br/>"
+        mail_vars["xmlContent"] = f"<pre lang='xml'>{content}</pre>"
+
+    hashtag_template = "#BiorxivFTPAlert"
+
+    emailing_tools.insertMailInQueue(current.auth, current.db, hashtag_template, mail_vars)
 
 ##################################################################################################################################################################
 def send_message_to_recommender_and_reviewers(auth, db, article_id):
