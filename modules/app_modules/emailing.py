@@ -3527,12 +3527,12 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
 def send_import_biorxiv_alert(xml_file_path: str):
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destAddress"] = mail_vars["appGenericContactMail"]
-
+    pre_style = "overflow-y: scroll; max-width: 100%; height: 100%; color: #8e8c84; background-color: #f5f5f5; border: 1px solid #cccccc; border-radius: 4px; padding: 9.5px;"
     with open(xml_file_path, 'r') as xml_file:
         content = ""
         for line in xml_file:
             content += f"{html.escape(line)}<br/>"
-        mail_vars["xmlContent"] = f"<pre lang='xml'>{content}</pre>"
+        mail_vars["xmlContent"] = f'<pre lang="xml" style="{pre_style}">{content}</pre>'
 
     hashtag_template = "#BiorxivFTPAlert"
 
