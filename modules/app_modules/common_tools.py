@@ -147,7 +147,8 @@ def handle_multiple_uploads(review, files):
     review.update_record(review_pdf=filename, review_pdf_data=data)
 
 
-def get_exclude_list(request):
+def get_exclude_list():
+    request = current.request
     excludeList = request.vars.exclude
 
     if type(excludeList) is str:
@@ -279,7 +280,8 @@ def find_reviewer_number(review: Review, count_anon: int):
 
 ###########################################""""
 
-def get_reset_password_key(request: Request):
+def get_reset_password_key():
+    request = current.request
     if 'key' in request.vars:
         vkey = cast(str, request.vars['key'])
         if isinstance(vkey, list):
@@ -290,7 +292,8 @@ def get_reset_password_key(request: Request):
     else:
         return None
     
-def get_article_id(request: Request):
+def get_article_id():
+    request = current.request
     if 'articleId' in request.vars:
         articleId = cast(str, request.vars['articleId'])
         if isinstance(articleId, list):
@@ -301,7 +304,8 @@ def get_article_id(request: Request):
     else:
         return None
     
-def get_review_id(request: Request):
+def get_review_id():
+    request = current.request
     if 'reviewId' in request.vars:
         review_id = cast(str, request.vars['reviewId'])
         if isinstance(review_id, list):
@@ -312,7 +316,8 @@ def get_review_id(request: Request):
     else:
         return None
     
-def get_next(request: Request):
+def get_next():
+    request = current.request
     if '_next' in request.vars:
         next = cast(str, request.vars['_next'])
         if isinstance(next, list):

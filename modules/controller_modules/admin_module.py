@@ -30,7 +30,9 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 ## (gab) Helper => move to modules ?
 ######################################################################################################################################################################
-def mkRoles(row, auth, db):
+def mkRoles(row):
+    auth, db = current.auth, current.db
+    
     if auth.has_membership(role="administrator") or auth.has_membership(role="developer"):
         resu = ""
         if row.id:
@@ -41,7 +43,9 @@ def mkRoles(row, auth, db):
 
 
 ######################################################################################################################################################################
-def set_as_recommender(ids, auth, db):
+def set_as_recommender(ids):
+    auth, db = current.auth, current.db
+    
     if auth.has_membership(role="administrator") or auth.has_membership(role="developer"):
 
         # get recommender group id

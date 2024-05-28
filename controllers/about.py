@@ -31,8 +31,8 @@ def index():
     return about()
 
 def version():
-    pageTitle = getTitle(request, auth, db, "#VersionTitle")
-    customText = getText(request, auth, db, "#VersionInfo")
+    pageTitle = getTitle("#VersionTitle")
+    customText = getText("#VersionInfo")
     opt = "--decorate --decorate-refs-exclude remotes/origin/*"
     version = run(f"git log {opt} --oneline HEAD -1")
 
@@ -42,8 +42,8 @@ def version():
 
 ######################################################################################################################################################################
 def ethics():
-    pageTitle = getTitle(request, auth, db, "#EthicsTitle")
-    customText = getText(request, auth, db, "#EthicsInfo")
+    pageTitle = getTitle("#EthicsTitle")
+    customText = getText("#EthicsInfo")
     message = ""
     tweeterAcc = myconf.get("social.tweeter")
     if auth.user_id:
@@ -84,7 +84,7 @@ def rss_info():
     aurl = DIV(A(url, _href=url), img, _style="text-align:center")
 
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#RssTitle"), customText=getText(request, auth, db, "#RssInfo"), message=aurl)
+    return dict(pageTitle=getTitle("#RssTitle"), customText=getText("#RssInfo"), message=aurl)
 
 
 def rss_flashcode():
@@ -147,8 +147,8 @@ def social():
 
     response.view = "default/info.html"
     return dict(
-        pageTitle=getTitle(request, auth, db, "#SocialTitle"),
-        customText=getText(request, auth, db, "#SocialInfo"),
+        pageTitle=getTitle("#SocialTitle"),
+        customText=getText("#SocialInfo"),
         message=DIV(frames, _class="pci-socialDiv"),
         facebook=True,
         shareable=True,
@@ -162,8 +162,8 @@ def gtu():
     tweeterAcc = myconf.get("social.tweeter")
     response.view = "default/info.html"
     return dict(
-        pageTitle=getTitle(request, auth, db, "#GtuTitle"),
-        customText=getText(request, auth, db, "#GtuInfo"),
+        pageTitle=getTitle("#GtuTitle"),
+        customText=getText("#GtuInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="gtu", host=host, scheme=scheme, port=port),
         tweeterAcc=tweeterAcc,
@@ -176,8 +176,8 @@ def about():
     tweeterAcc = myconf.get("social.tweeter")
     response.view = "default/info.html"
     return dict(
-        pageTitle=getTitle(request, auth, db, "#AboutTitle"),
-        customText=getText(request, auth, db, "#AboutInfo"),
+        pageTitle=getTitle("#AboutTitle"),
+        customText=getText("#AboutInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="about", host=host, scheme=scheme, port=port),
         tweeterAcc=tweeterAcc,
@@ -190,8 +190,8 @@ def contact():
     tweeterAcc = myconf.get("social.tweeter")
     response.view = "default/info.html"
     return dict(
-        pageTitle=getTitle(request, auth, db, "#ContactTitle"),
-        customText=getText(request, auth, db, "#ContactInfo"),
+        pageTitle=getTitle("#ContactTitle"),
+        customText=getText("#ContactInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="contact", host=host, scheme=scheme, port=port),
         tweeterAcc=tweeterAcc,
@@ -203,8 +203,8 @@ def contact():
 def buzz():
     response.view = "default/info.html"
     return dict(
-        pageTitle=getTitle(request, auth, db, "#BuzzTitle"),
-        customText=getText(request, auth, db, "#BuzzInfo"),
+        pageTitle=getTitle("#BuzzTitle"),
+        customText=getText("#BuzzInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="buzz", host=host, scheme=scheme, port=port),
         pciRRactivated=pciRRactivated,
@@ -264,7 +264,7 @@ def thanks_to_reviewers():
         html.append(html_list_user)
 
     return dict(
-        pageTitle=getTitle(request, auth, db, "#ThanksToReviewersTitle"),
+        pageTitle=getTitle("#ThanksToReviewersTitle"),
         customText=html,
         tweeterAcc=tweeterAcc,
     )
@@ -307,7 +307,7 @@ def _get_review_with_reviewer_by_year():
 ######################################################################################################################################################################
 def full_policies():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#FullPoliciesTitle"), customText=getText(request, auth, db, "#FullPoliciesInfo"),)
+    return dict(pageTitle=getTitle("#FullPoliciesTitle"), customText=getText("#FullPoliciesInfo"),)
 
 
 ######################################################################################################################################################################
@@ -318,31 +318,31 @@ def pci_partners():
 ######################################################################################################################################################################
 def pci_rr_friendly_journals():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#PciRRFriendlyJournalsTitle"), customText=getText(request, auth, db, "#PciRRFriendlyJournalsInfo"),)
+    return dict(pageTitle=getTitle("#PciRRFriendlyJournalsTitle"), customText=getText("#PciRRFriendlyJournalsInfo"),)
 
 
 ######################################################################################################################################################################
 def pci_friendly_journals():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#PciFriendlyJournalsTitle"), customText=getText(request, auth, db, "#PciFriendlyJournalsInfo"))
+    return dict(pageTitle=getTitle("#PciFriendlyJournalsTitle"), customText=getText("#PciFriendlyJournalsInfo"))
 
 
 ######################################################################################################################################################################
 def pci_rr_interested_journals():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#PciRRInterestedJournalsTitle"), customText=getText(request, auth, db, "#PciRRInterestedJournalsInfo"),)
+    return dict(pageTitle=getTitle("#PciRRInterestedJournalsTitle"), customText=getText("#PciRRInterestedJournalsInfo"),)
 
 
 ######################################################################################################################################################################
 def become_journal_adopter():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#BecomeJournalAdopterTitle"), customText=getText(request, auth, db, "#BecomeJournalAdopterInfo"),)
+    return dict(pageTitle=getTitle("#BecomeJournalAdopterTitle"), customText=getText("#BecomeJournalAdopterInfo"),)
 
 
 ######################################################################################################################################################################
 def journal_adopter_faq():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#JournalAdopterFaqTitle"), customText=getText(request, auth, db, "#JournalAdopterFaqInfo"),)
+    return dict(pageTitle=getTitle("#JournalAdopterFaqTitle"), customText=getText("#JournalAdopterFaqInfo"),)
 
 
 ######################################################################################################################################################################
@@ -431,8 +431,8 @@ def recommenders():
     response.view = "default/gab_list_layout.html"
 
     return dict(
-        pageTitle=getTitle(request, auth, db, "#PublicRecommendationBoardTitle"),
-        customText=getText(request, auth, db, "#PublicRecommendationBoardText"),
-        pageHelp=getHelp(request, auth, db, "#PublicRecommendationBoardDescription"),
+        pageTitle=getTitle("#PublicRecommendationBoardTitle"),
+        customText=getText("#PublicRecommendationBoardText"),
+        pageHelp=getHelp("#PublicRecommendationBoardDescription"),
         grid=grid,
     )

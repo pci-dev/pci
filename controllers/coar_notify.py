@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 
 def index():
     if request.method == 'HEAD':
-        add_describedby_header(response)
+        add_describedby_header()
         return ""
 
     text = show_coar_status()
@@ -57,7 +57,7 @@ def inbox():
                 HTTPStatus.FORBIDDEN)
 
     elif request.method == "POST":
-        parse_content_type(request)
+        parse_content_type()
 
         if not is_coar_whitelisted(request.env.remote_addr):
             fail(f"Not whitelisted: {request.env.remote_addr}",
@@ -68,7 +68,7 @@ def inbox():
                     HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
 
         try:
-            body = json.loads(get_body(request))
+            body = json.loads(get_body())
 
             record_request(body)
             process_request(body)
@@ -80,11 +80,11 @@ def inbox():
         except Exception as e:
             fail(f"{e.__class__.__name__}: {e}")
 
-        add_location_header(response, coar_id=body['id'])
+        add_location_header(coar_id=body['id'])
         return HTTP(status=HTTPStatus.CREATED.value)
 
     elif request.method == "HEAD":
-        add_describedby_header(response)
+        add_describedby_header()
         add_options_headers()
         return ""
 
@@ -106,14 +106,14 @@ def is_coar_whitelisted(host):
     return False
 
 
-def parse_content_type(request):
+def parse_content_type():
     from email.policy import EmailPolicy as mime
     header = mime.header_factory('content-type', request.env.content_type)
 
     request.encoding = header.params.get("charset")
     request.content_type = header.content_type
 
-def get_body(request):
+def get_body():
     request.body.seek(0)
     body = request.body.read()
     return str(body, request.encoding or "utf8")
@@ -338,7 +338,7 @@ def fail(message=None, status=HTTPStatus.BAD_REQUEST, **headers):
     raise HTTP(status=status.value, body=message, **headers)
 
 
-def add_location_header(response, coar_id):
+def add_location_header(coar_id):
     response.headers['Location'] = URL(
             "coar_notify", "show", vars={"coar_id":coar_id}, scheme=True)
 
@@ -595,7 +595,7 @@ def system_description():
     return json.dumps(resp_json, indent=4)
 
 
-def add_describedby_header(response):
+def add_describedby_header():
     response.headers.update({
         "link": '<' + URL("coar_notify", "system_description", scheme=True) + '>' +
         '; rel="describedby"; type="application/json"'

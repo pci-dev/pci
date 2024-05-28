@@ -78,7 +78,7 @@ def rec():
 
     commentsTreeAndForm = None
     if with_comments:
-        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(response, session, art.id, request.vars["replyTo"])
+        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(art.id, request.vars["replyTo"])
 
     if printable:
         printableClass = "printable"
@@ -123,10 +123,10 @@ def tracking():
 
         response.view = "default/gab_list_layout.html"
         resu = dict(
-            pageHelp=getHelp(request, auth, db, "#Tracking"),
+            pageHelp=getHelp("#Tracking"),
             titleIcon="tasks",
-            pageTitle=getTitle(request, auth, db, "#TrackingTitle"),
-            customText=getText(request, auth, db, "#TrackingText"),
+            pageTitle=getTitle("#TrackingTitle"),
+            customText=getText("#TrackingText"),
             grid=DIV(article_list, _class="pci2-flex-center"),
         )
         return resu
@@ -164,9 +164,9 @@ def pub_reviews():
     response.view = "default/myLayout.html"
     resu = dict(
         titleIcon="eye-open",
-        pageTitle=getTitle(request, auth, db, "#TrackReviewsTitle"),
-        pageHelp=getHelp(request, auth, db, "#TrackReviews"),
-        customText=getText(request, auth, db, "#TrackReviewsText"),
+        pageTitle=getTitle("#TrackReviewsTitle"),
+        pageHelp=getHelp("#TrackReviews"),
+        customText=getText("#TrackReviewsText"),
         grid=myContents,
     )
     return resu

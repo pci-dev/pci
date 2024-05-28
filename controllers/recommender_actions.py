@@ -250,7 +250,7 @@ def _decline_article_page(message: str, article_id: int):
 def decline_article_confirmed_send_message():
     article_id = request.vars["articleId"]
     if article_id:
-        form = app_forms.recommender_decline_invitation_form(request, session, db, auth, article_id)
+        form = app_forms.recommender_decline_invitation_form(article_id)
         return _decline_article_send_message_page(form)
 
 

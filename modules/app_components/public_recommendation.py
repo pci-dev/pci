@@ -367,8 +367,8 @@ def getPublicReviewRoundsHtml(articleId):
 
 
 ######################################################################################################################################################################
-def getRecommCommentListAndForm(response, session, articleId, parentId=None):
-    auth, db = current.auth, current.db
+def getRecommCommentListAndForm(articleId, parentId=None):
+    auth, db, response, session = current.auth, current.db, current.response, current.session
 
     isLoggedIn = False
     scrollToCommentForm = False
@@ -407,7 +407,7 @@ def getRecommCommentListAndForm(response, session, articleId, parentId=None):
     commentsQy = db((db.t_comments.article_id == articleId) & (db.t_comments.parent_id == None)).select(orderby=db.t_comments.comment_datetime)
     if len(commentsQy) > 0:
         for comment in commentsQy:
-            commentsTree.append(getCommentsTreeHtml(response, comment.id))
+            commentsTree.append(getCommentsTreeHtml(comment.id))
     else:
         commentsTree.append(DIV(SPAN(current.T("No user comments yet")), _style="margin-top: 15px"))
 
@@ -416,14 +416,14 @@ def getRecommCommentListAndForm(response, session, articleId, parentId=None):
     return XML(response.render("components/comments_tree_and_form.html", componentVars))
 
 
-def getCommentsTreeHtml(response, commentId):
-    auth, db = current.auth, current.db
+def getCommentsTreeHtml(commentId):
+    auth, db, response = current.auth, current.db, current.response
     comment = db.t_comments[commentId]
     childrenDiv = []
     children = db(db.t_comments.parent_id == comment.id).select(orderby=db.t_comments.comment_datetime)
 
     for child in children:
-        childrenDiv.append(getCommentsTreeHtml(response, child.id))
+        childrenDiv.append(getCommentsTreeHtml(child.id))
 
     replyToLink = ""
     if auth.user:

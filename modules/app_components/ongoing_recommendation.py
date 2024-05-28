@@ -36,8 +36,8 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ########################################################################################################################################################################
-def getRecommStatusHeader(art: Article, controller_name: str, request: Request, userDiv: DIV, printable: bool, quiet: bool = True):
-    db, auth = current.db, current.auth
+def getRecommStatusHeader(art: Article, userDiv: bool, printable: bool, quiet: bool = True):
+    db, auth, request = current.db, current.auth, current.request
 
     lastRecomm = db.get_last_recomm(art.id)
     if lastRecomm:
@@ -455,7 +455,7 @@ def _get_author_reply_link(article: Article, recommendation: Recommendation, pri
     auth = current.auth
 
     if (article.user_id == auth.user_id) and (article.status == ArticleStatus.AWAITING_REVISION.value) and not (printable) and (i_recommendation == 1):
-        return common_tools.URL(c="user", f="edit_reply", vars=dict(recommId=recommendation.id), user_signature=True, scheme=scheme, host=host, port=port)
+        return common_tools.URL(c="user", f="edit_reply", vars=dict(recommId=recommendation.id), user_signature=True, scheme=True)
 
 
 def _get_authors_reply_pdf_link(recommendation: Recommendation):
@@ -463,7 +463,7 @@ def _get_authors_reply_pdf_link(recommendation: Recommendation):
         return A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download author's reply (PDF file)"),
-            _href=common_tools.URL("default", "download", args=recommendation.reply_pdf, scheme=scheme, host=host, port=port),
+            _href=common_tools.URL("default", "download", args=recommendation.reply_pdf, scheme=True),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
 
@@ -472,7 +472,7 @@ def _is_scheduled_submission_revision(article: Article, printable: bool):
     auth = current.auth
 
     if (article.status == ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value) and (article.user_id == auth.user_id) and not (printable):
-        return common_tools.URL(c="user_actions", f="article_revised", vars=dict(articleId=article.id), user_signature=True, scheme=scheme, host=host, port=port)
+        return common_tools.URL(c="user_actions", f="article_revised", vars=dict(articleId=article.id), user_signature=True, scheme=True)
     
 
 def _get_authors_reply_track_change_file_link(recommendation: Recommendation):
@@ -480,7 +480,7 @@ def _get_authors_reply_track_change_file_link(recommendation: Recommendation):
         return A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download tracked changes file"),
-            _href=common_tools.URL("default", "download", args=recommendation.track_change, scheme=scheme, host=host, port=port),
+            _href=common_tools.URL("default", "download", args=recommendation.track_change, scheme=True),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
     
@@ -644,7 +644,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
             pdfLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download the review (PDF file)"),
-                _href=common_tools.URL("default", "download", args=review.review_pdf, scheme=scheme, host=host, port=port),
+                _href=common_tools.URL("default", "download", args=review.review_pdf, scheme=True),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
             review_vars.update([("pdfLink", pdfLink)])
@@ -695,7 +695,7 @@ def _get_recommender_buttons(article: Article, recommendation: Recommendation, a
     if not (recommendation.is_closed) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender) and (article.status == ArticleStatus.UNDER_CONSIDERATION.value) and not (printable):
         # recommender's button for recommendation edition
         edit_recommendation_button_text = current.T("Write or edit your decision / recommendation")
-        edit_recommendation_link = common_tools.URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id), scheme=scheme, host=host, port=port)
+        edit_recommendation_link = common_tools.URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id), scheme=True)
         if pciRRactivated:
             pass
         elif (nb_completed >= 2 and nb_on_going == 0) or nb_round > 1:
@@ -716,7 +716,7 @@ def _get_invite_reviewer_links(article: Article, recommendation: Recommendation,
     invite_reviewer_link = None
     show_remove_searching_for_reviewers_button = None
     if not (recommendation.is_closed) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender or auth.has_membership(role=Role.MANAGER.value)) and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)):
-        invite_reviewer_link = common_tools.URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id), scheme=scheme, host=host, port=port)
+        invite_reviewer_link = common_tools.URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id), scheme=True)
         show_remove_searching_for_reviewers_button = article.is_searching_reviewers
     
     return dict(
@@ -748,14 +748,14 @@ def _get_recommendation_pdf_link(recommendation: Recommendation, hide_on_going_r
         recommendation_pdf_link = A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download recommender's annotations (PDF)"),
-            _href=common_tools.URL("default", "download", args=recommendation.recommender_file, scheme=scheme, host=host, port=port),
+            _href=common_tools.URL("default", "download", args=recommendation.recommender_file, scheme=True),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
     return recommendation_pdf_link
 
 
 def _mk_link(role: Role, action: str, review_item: Dict[Any, Any]):
-    return common_tools.URL(c=role.value+"_actions", f=action+"_review_request", vars=dict(reviewId=review_item["id"]), scheme=scheme, host=host, port=port)
+    return common_tools.URL(c=role.value+"_actions", f=action+"_review_request", vars=dict(reviewId=review_item["id"]), scheme=True)
 
 
 def _get_role_current_user():
@@ -838,8 +838,7 @@ def get_recommendation_process_components(article: Article, printable: bool = Fa
         nb_round -= 1
         nb_completed: int = 0
         nb_on_going: int = 0
-        who_did_it_html = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recommendation, with_reviewers=False, linked=not (printable),
-                        host=host, port=port, scheme=scheme,
+        who_did_it_html = common_small_html.getRecommAndReviewAuthors(recomm=recommendation, with_reviewers=False, linked=not (printable),
                         this_recomm_only=True,
                         )
 

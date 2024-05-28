@@ -157,7 +157,7 @@ def recommendations():
         else:
             recommHeaderHtml = article_components.get_article_infos_card(art, printable, True)
 
-        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, "user", request, True, printable, quiet=False)
+        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, True, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(art, printable, quiet=False)
 
         recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(art, printable)
@@ -184,7 +184,7 @@ def recommendations():
             recommHeaderHtml=recommHeaderHtml,
             recommStatusHeader=recommStatusHeader,
             recommTopButtons=recommTopButtons or "",
-            pageHelp=getHelp(request, auth, db, "#UserRecommendations"),
+            pageHelp=getHelp("#UserRecommendations"),
             myContents=myContents,
             recommendationProgression=recommendationProgression["content"],
             roundNumber=recommendationProgression["roundNumber"],
@@ -206,7 +206,7 @@ def recommendations():
 def search_recommenders():
     whatNext = request.vars["whatNext"]
     articleId = request.vars.articleId
-    excludeList = common_tools.get_exclude_list(request)
+    excludeList = common_tools.get_exclude_list()
     if excludeList is None:
         return "invalid parameter: exclude"
 
@@ -346,10 +346,10 @@ def search_recommenders():
         select_all_script = common_tools.get_script("select_all.js")
         response.view = "default/gab_list_layout.html"
         return dict(
-            pageHelp=getHelp(request, auth, db, "#UserSearchRecommenders"),
-            customText=getText(request, auth, db, "#UserSearchRecommendersText"),
+            pageHelp=getHelp("#UserSearchRecommenders"),
+            customText=getText("#UserSearchRecommendersText"),
             titleIcon="search",
-            pageTitle=getTitle(request, auth, db, "#UserSearchRecommendersTitle"),
+            pageTitle=getTitle("#UserSearchRecommendersTitle"),
             myUpperBtn=myUpperBtn,
             myAcceptBtn=myAcceptBtn,
             myFinalScript=common_tools.get_script("popover.js"),
@@ -369,8 +369,8 @@ def new_submission():
     submitPreprintLink = None
 
 
-    pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle")
-    customText=getText(request, auth, db, "#SubmissionOnHoldInfo")
+    pageTitle=getTitle("#UserBeforeSubmissionTitle")
+    customText=getText("#SubmissionOnHoldInfo")
 
     db.config.allow_submissions.writable = True
     db.config.allow_submissions.readable = True
@@ -390,8 +390,8 @@ def new_submission():
     
 
     if status['allow_submissions']:
-        pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle")
-        customText=getText(request, auth, db, "#NewRecommendationRequestInfo")
+        pageTitle=getTitle("#UserBeforeSubmissionTitle")
+        customText=getText("#NewRecommendationRequestInfo")
         
         if auth.user:
             submitPreprintLink = URL("user", "check_title" if pciRRactivated else "fill_new_article", user_signature=True)
@@ -434,10 +434,10 @@ def check_title():
     myScript = common_tools.get_script("check_title.js")
     response.view = "default/myLayout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
-        customText=getText(request, auth, db, "#UserEditArticleText"),
+        pageHelp=getHelp("#UserSubmitNewArticle"),
+        customText=getText("#UserEditArticleText"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
+        pageTitle=getTitle("#UserSubmitNewArticleTitle"),
         myFinalScript=myScript,
         form=form
     )
@@ -626,19 +626,19 @@ def fill_new_article():
         response.flash = T("Form has errors", lazy=False)
 
 
-    customText = getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800")
+    customText = getText("#UserSubmitNewArticleText", maxWidth="800")
     if pciRRactivated:
         customText = ""
 
     if status['allow_submissions'] is False:
-        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
+        form = getText("#SubmissionOnHoldInfo")
 
     myScript = common_tools.get_script("fill_new_article.js")
     response.view = "default/gab_form_layout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
+        pageHelp=getHelp("#UserSubmitNewArticle"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
+        pageTitle=getTitle("#UserSubmitNewArticleTitle"),
         customText=customText,
         form=form,
         myFinalScript=myScript or "",
@@ -929,14 +929,14 @@ def edit_my_article():
         response.flash = T("Form has errors", lazy=False)
 
     if pciRRactivated and status['allow_submissions'] is False:
-        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
+        form = getText("#SubmissionOnHoldInfo")
 
     manager_script = common_tools.get_script("manager_selection.js")
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserEditArticle"),
-        customText=getText(request, auth, db, "#UserEditArticleText"),
+        pageHelp=getHelp("#UserEditArticle"),
+        customText=getText("#UserEditArticleText"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#UserEditArticleTitle"),
+        pageTitle=getTitle("#UserEditArticleTitle"),
         form=form,
         myFinalScript=myScript,
         managerScript = manager_script,
@@ -974,10 +974,10 @@ def fill_report_survey():
     myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#FillReportSurvey"),
+        pageHelp=getHelp("#FillReportSurvey"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#FillReportSurveyTitle"),
-        customText=getText(request, auth, db, "#FillReportSurveyText", maxWidth="800"),
+        pageTitle=getTitle("#FillReportSurveyTitle"),
+        customText=getText("#FillReportSurveyText", maxWidth="800"),
         form=form,
         myFinalScript=myScript,
     )
@@ -1025,15 +1025,15 @@ def edit_report_survey():
         form.element("#t_report_survey_q10")["_disabled"] = 1
 
     if pciRRactivated and status['allow_submissions'] is False:
-        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
+        form = getText("#SubmissionOnHoldInfo")
 
     myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#EditReportSurvey"),
+        pageHelp=getHelp("#EditReportSurvey"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#EditReportSurveyTitle"),
-        customText=getText(request, auth, db, "#EditReportSurveyText", maxWidth="800"),
+        pageTitle=getTitle("#EditReportSurveyTitle"),
+        customText=getText("#EditReportSurveyText", maxWidth="800"),
         form=form,
         myFinalScript=myScript,
     )
@@ -1064,9 +1064,9 @@ def suggested_recommenders():
     return dict(
         myBackButton=common_small_html.mkBackButton(),
         titleIcon="education",
-        pageTitle=getTitle(request, auth, db, "#SuggestedRecommendersTitle"),
-        customText=getText(request, auth, db, "#SuggestedRecommendersText"),
-        pageHelp=getHelp(request, auth, db, "#SuggestedRecommenders"),
+        pageTitle=getTitle("#SuggestedRecommendersTitle"),
+        customText=getText("#SuggestedRecommendersText"),
+        pageHelp=getHelp("#SuggestedRecommenders"),
         grid=grid,
     )
 
@@ -1108,10 +1108,10 @@ def suggested_recommenders():
         )
         return dict(
             # myBackButton=common_small_html.mkBackButton(),
-            pageHelp=getHelp(request, auth, db, "#UserSuggestedRecommenders"),
-            customText=getText(request, auth, db, "#UserSuggestedRecommendersText"),
+            pageHelp=getHelp("#UserSuggestedRecommenders"),
+            customText=getText("#UserSuggestedRecommendersText"),
             titleIcon="education",
-            pageTitle=getTitle(request, auth, db, "#UserSuggestedRecommendersTitle"),
+            pageTitle=getTitle("#UserSuggestedRecommendersTitle"),
             grid=grid,
         )
 
@@ -1215,10 +1215,10 @@ def my_articles():
         _class="web2py_grid action-button-absolute",
     )
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserMyArticles"),
-        customText=getText(request, auth, db, "#UserMyArticlesText"),
+        pageHelp=getHelp("#UserMyArticles"),
+        customText=getText("#UserMyArticlesText"),
         titleIcon="duplicate",
-        pageTitle=getTitle(request, auth, db, "#UserMyArticlesTitle"),
+        pageTitle=getTitle("#UserMyArticlesTitle"),
         grid=DIV(grid, _style=""),
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
@@ -1241,15 +1241,15 @@ def my_reviews():
             & (db.t_reviews.review_state == "Awaiting response")
             & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
         )
-        pageTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
-        customText = getText(request, auth, db, "#UserMyReviewsRequestsText")
+        pageTitle = getTitle("#UserMyReviewsRequestsTitle")
+        customText = getText("#UserMyReviewsRequestsText")
         btnTxt = current.T("Accept or decline")
     else:
         query = (query
             & (db.t_reviews.review_state != "Awaiting response")
         )
-        pageTitle = getTitle(request, auth, db, "#UserMyReviewsTitle")
-        customText = getText(request, auth, db, "#UserMyReviewsText")
+        pageTitle = getTitle("#UserMyReviewsTitle")
+        customText = getText("#UserMyReviewsText")
         btnTxt = current.T("View")
 
     # db.t_articles._id.readable = False
@@ -1379,7 +1379,7 @@ def my_reviews():
         titleIcon = "eye-open"
 
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserMyReviews"),
+        pageHelp=getHelp("#UserMyReviews"),
         titleIcon=titleIcon,
         pageTitle=pageTitle,
         customText=customText,
@@ -1419,7 +1419,7 @@ def ask_to_review():
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "ask_to_review", vars=dict(articleId=articleId) if articleId else ""))))
 
-    disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+    disclaimerText = DIV(getText("#ConflictsForReviewers"))
     actionFormUrl = URL("user_actions", "do_ask_to_review")
     amISubmitter = article.user_id == auth.user_id
     recomm = db(db.t_recommendations.article_id == articleId).select().last()
@@ -1432,8 +1432,8 @@ def ask_to_review():
 
     recommHeaderHtml = article_components.get_article_infos_card(article, False, True)
 
-    pageTitle = getTitle(request, auth, db, "#AskForReviewTitle")
-    customText = getText(request, auth, db, "#AskForReviewText")
+    pageTitle = getTitle("#AskForReviewTitle")
+    customText = getText("#AskForReviewText")
 
     response.view = "controller/user/ask_to_review.html"
     return dict(
@@ -1542,12 +1542,12 @@ def edit_review():
     anonymousDialog = common_small_html.confirmationDialog("anonymousReviewerConfirmDialogMessage")
 
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserEditReview"),
+        pageHelp=getHelp("#UserEditReview"),
         myBackButton=common_small_html.mkBackButton(),
         anonymousReviewerConfirmDialog=anonymousDialog,
-        customText=getText(request, auth, db, "#UserEditReviewText"),
+        customText=getText("#UserEditReviewText"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),
+        pageTitle=getTitle("#UserEditReviewTitle"),
         form=form,
         myFinalScript=myScript,
         deleteFileButtonsScript=common_tools.get_script("add_delete_review_file_buttons_user.js"),
@@ -1634,9 +1634,9 @@ def add_suggested_recommender():
         )
         return dict(
             titleIcon="education",
-            pageTitle=getTitle(request, auth, db, "#UserAddSuggestedRecommenderTitle"),
-            customText=getText(request, auth, db, "#UserAddSuggestedRecommenderText"),
-            pageHelp=getHelp(request, auth, db, "#UserAddSuggestedRecommender"),
+            pageTitle=getTitle("#UserAddSuggestedRecommenderTitle"),
+            customText=getText("#UserAddSuggestedRecommenderText"),
+            pageHelp=getHelp("#UserAddSuggestedRecommender"),
             myUpperBtn=myUpperBtn,
             content=myContents,
             form="",
@@ -1675,12 +1675,12 @@ def edit_reply():
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
     if pciRRactivated and status['allow_submissions'] is False:
-        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
+        form = getText("#SubmissionOnHoldInfo")
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserEditReply"),
+        pageHelp=getHelp("#UserEditReply"),
         titleIcon="edit",
-        customText=getText(request, auth, db, "#UserEditReplyText"),
-        pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
+        customText=getText("#UserEditReplyText"),
+        pageTitle=getTitle("#UserEditReplyTitle"),
         form=form,
         deleteFileButtonsScript=common_tools.get_script("add_delete_recommendation_file_buttons_user.js"),
     )
@@ -1784,10 +1784,10 @@ def articles_awaiting_reviewers():
     grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp', remove_options, integer_fields)
 
     return dict(
-        pageHelp=getHelp(request, auth, db, "#ArticlesAwaitingReviewers"),
-        customText=getText(request, auth, db, "#ArticlesAwaitingReviewersText"),
+        pageHelp=getHelp("#ArticlesAwaitingReviewers"),
+        customText=getText("#ArticlesAwaitingReviewersText"),
         titleIcon="inbox",
-        pageTitle=getTitle(request, auth, db, "#ArticlesAwaitingReviewersTitle"),
+        pageTitle=getTitle("#ArticlesAwaitingReviewersTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )

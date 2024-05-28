@@ -269,7 +269,7 @@ def accept_review_confirmed(): # no auth required
     '''
     if reviewer accepts invitation, also ask them for more reviewer suggestions
     '''
-    review_id = get_review_id(request)
+    review_id = get_review_id()
     if not review_id:
         session.flash = current.T('No review id found')
         redirect(URL('default','index'))
@@ -281,7 +281,7 @@ def accept_review_confirmed(): # no auth required
         redirect(URL('default','index'))
         return
 
-    next = get_next(request)
+    next = get_next()
     if next and review.suggested_reviewers_send:
         redirect(next)
 
@@ -303,7 +303,7 @@ def accept_review_confirmed(): # no auth required
 
 def send_suggestion_page():
     default_next =cast(str, URL(c="user_actions", f="suggestion_sent_page"))
-    review_id = get_review_id(request)
+    review_id = get_review_id()
     if not review_id:
         session.flash = current.T('No review id found')
         redirect(URL('default','index'))
@@ -315,7 +315,7 @@ def send_suggestion_page():
         redirect(URL('default','index'))
         return
     
-    next = get_next(request)
+    next = get_next()
     if review.suggested_reviewers_send:
         if next:
             redirect(next)
@@ -389,7 +389,7 @@ def send_suggested_reviewers():
     text = request.post_vars.suggested_reviewers_text
     review = db(db.t_reviews.quick_decline_key == request.post_vars.declineKey).select().last()
     no_suggestions_clicked = request.post_vars.noluck
-    next = get_next(request)
+    next = get_next()
     text = (text or "").strip()
 
     if not text or not review or no_suggestions_clicked or review.suggested_reviewers_send:

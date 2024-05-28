@@ -19,8 +19,8 @@ myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
-def getReviewsSubTable(request: Request, recommendation: Recommendation):
-    db, auth = current.db, current.auth
+def getReviewsSubTable(recommendation: Recommendation):
+    db, auth, request = current.db, current.auth, current.request
 
     article = Article.get_by_id(recommendation.article_id)
     if not article:

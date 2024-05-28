@@ -51,11 +51,11 @@ def list_users():
         selectable = [
             (
                 T("Add role 'recommender' to selected users"),
-                lambda ids: [admin_module.set_as_recommender(ids, auth, db)],
+                lambda ids: [admin_module.set_as_recommender(ids)],
                 "btn btn-info pci-admin",
             )
         ]
-        links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row, auth, db))]
+        links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row))]
 
     db.auth_user.email.represent = lambda text, row: A(text, _href="mailto:%s" % text)
 
@@ -181,9 +181,9 @@ def list_users():
     response.view = "default/myLayout.html"
     return dict(
         titleIcon="user",
-        pageTitle=getTitle(request, auth, db, "#AdministrateUsersTitle"),
-        pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
-        customText=getText(request, auth, db, "#AdministrateUsersText"),
+        pageTitle=getTitle("#AdministrateUsersTitle"),
+        pageHelp=getHelp("#AdministrateUsers"),
+        customText=getText("#AdministrateUsersText"),
         grid=grid,
         
     )
@@ -274,9 +274,9 @@ def mailing_lists():
 
     return dict(
         titleIcon="earphone",
-        pageTitle=getTitle(request, auth, db, "#EmailsListsUsersTitle"),
-        customText=getText(request, auth, db, "#EmailsListsUsersText"),
-        pageHelp=getHelp(request, auth, db, "#EmailsListsUsers"),
+        pageTitle=getTitle("#EmailsListsUsersTitle"),
+        customText=getText("#EmailsListsUsersText"),
+        pageHelp=getHelp("#EmailsListsUsers"),
         content=myContents,
         grid="",
     )
@@ -307,9 +307,9 @@ def thematics_list():
     )
     return dict(
         titleIcon="tags",
-        pageTitle=getTitle(request, auth, db, "#AdministrateThematicFieldsTitle"),
-        pageHelp=getHelp(request, auth, db, "#AdministrateThematicFields"),
-        customText=getText(request, auth, db, "#AdministrateThematicFieldsText"),
+        pageTitle=getTitle("#AdministrateThematicFieldsTitle"),
+        pageHelp=getHelp("#AdministrateThematicFields"),
+        customText=getText("#AdministrateThematicFieldsText"),
         grid=grid,
     )
 
@@ -335,9 +335,9 @@ def allRecommCitations():
         )
     return dict(
         titleIcon="education",
-        pageTitle=getTitle(request, auth, db, "#allRecommCitationsTextTitle"),
-        customText=getText(request, auth, db, "#allRecommCitationsTextText"),
-        pageHelp=getHelp(request, auth, db, "#allRecommCitationsHelpTexts"),
+        pageTitle=getTitle("#allRecommCitationsTextTitle"),
+        customText=getText("#allRecommCitationsTextText"),
+        pageHelp=getHelp("#allRecommCitationsHelpTexts"),
         grid=grid,
     )
 
@@ -376,9 +376,9 @@ def article_status():
     common_small_html.mkStatusArticles()
     return dict(
         titleIcon="bookmark",
-        pageTitle=getTitle(request, auth, db, "#AdministrateArticleStatusTitle"),
-        pageHelp=getHelp(request, auth, db, "#AdministrateArticleStatus"),
-        customText=getText(request, auth, db, "#AdministrateArticleStatusText"),
+        pageTitle=getTitle("#AdministrateArticleStatusTitle"),
+        pageHelp=getHelp("#AdministrateArticleStatus"),
+        customText=getText("#AdministrateArticleStatusText"),
         grid=grid,
     )
 
@@ -417,8 +417,8 @@ def manage_pdf():
     )
     return dict(
         titleIcon="duplicate",
-        pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"),
-        customText=getText(request, auth, db, "#AdminPdfText"),
+        pageTitle=getTitle("#AdminPdfTitle"),
+        customText=getText("#AdminPdfText"),
         grid=grid,
     )
 
@@ -575,8 +575,8 @@ def recap_reviews():
     db.executesql("DROP TABLE IF EXISTS _t_%(runId)s;" % locals())
     return dict(
         titleIcon="list-alt",
-        customText=getText(request, auth, db, "#AdminRecapReviews"),
-        pageTitle=getTitle(request, auth, db, "#AdminRecapReviewsTitle"),
+        customText=getText("#AdminRecapReviews"),
+        pageTitle=getTitle("#AdminRecapReviewsTitle"),
         grid=DIV(grid, _style="width:100%; overflow-x:scroll;"),
     )
 
@@ -719,8 +719,8 @@ def mailing_queue():
 
     return dict(
         titleIcon="send",
-        pageTitle=getTitle(request, auth, db, "#AdminMailQueueTitle"),
-        customText=getText(request, auth, db, "#AdminMailQueueText"),
+        pageTitle=getTitle("#AdminMailQueueTitle"),
+        customText=getText("#AdminMailQueueText"),
         grid=grid,
         myFinalScript=myScript,
         absoluteButtonScript=common_tools.absoluteButtonScript,
@@ -728,7 +728,7 @@ def mailing_queue():
 
 
 def mail_form_processing(form):
-    app_forms.update_mail_content_keep_editing_form(form, db, request, response)
+    app_forms.update_mail_content_keep_editing_form(form)
 
     if form.content_saved:
         redirect(URL("admin", "mailing_queue", args=request.args, user_signature=True))
@@ -807,10 +807,10 @@ def edit_and_resend_email():
 
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        pageHelp=getHelp("#EmailForRegisterdReviewer"),
         titleIcon="envelope",
         html_string=html_string,
         resent=resent,
-        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText("#EmailForRegisteredReviewerInfo"),
     )

@@ -102,12 +102,13 @@ def send_test_mail(userId):
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     # Build reports :
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Send email to the requester (if any)
-def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
+def send_to_submitter(articleId: int, newStatus):
+    session, auth, db, response = current.session, current.auth, current.db, current.response
     print("send_to_submitter")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -240,12 +241,13 @@ def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
 
         reports = emailing_tools.createMailReport(True, "submitter " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Send email to the requester (if any)
-def send_to_submitter_acknowledgement_submission(session, auth, db, articleId):
+def send_to_submitter_acknowledgement_submission(articleId):
+    session, auth, db = current.session, current.auth, current.db
     print("send_to_submitter_acknowledgement_submission")
     mail_vars = emailing_tools.getMailCommonVars()
 
@@ -301,7 +303,8 @@ def get_recomm_and_co_recomm_emails(article):
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any) for postprints
-def send_to_recommender_postprint_status_changed(session, auth, db, articleId, newStatus):
+def send_to_recommender_postprint_status_changed(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -327,7 +330,7 @@ def send_to_recommender_postprint_status_changed(session, auth, db, articleId, n
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -395,7 +398,7 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -421,7 +424,7 @@ def send_to_recommender_decision_sent_back(session, auth, db, form, articleId, l
     )
 
     reports = emailing_tools.createMailReport(True, replyto_addresses, reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -461,7 +464,7 @@ def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, article
 
             reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def mkUnanonymizedAuthors(article):
@@ -523,7 +526,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
 
             reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def build_sugg_recommender_buttons(link_target: str, article_id: int):
@@ -612,7 +615,7 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
 
         reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -652,7 +655,7 @@ def send_to_recommenders_review_completed(session, auth, db, reviewId):
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -692,7 +695,7 @@ def send_to_recommenders_review_considered(session, auth, db, reviewId):
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -728,7 +731,7 @@ def send_to_recommenders_review_declined(session, auth, db, reviewId):
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -757,7 +760,7 @@ def send_to_recommenders_pending_review_request(session, auth, db, reviewId):
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -789,7 +792,7 @@ def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -828,7 +831,7 @@ def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStat
     else:
         print("send_to_reviewers_article_cancellation: Article not found")
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -864,7 +867,7 @@ def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newFor
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -898,7 +901,7 @@ def send_to_reviewer_review_request_declined(session, auth, db, reviewId, newFor
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -908,17 +911,17 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
 
     review = Review.get_by_id(reviewId)
     if not review:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
     
     recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
     
     article = Article.get_by_id(recommendation.article_id)
     if not article:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
     
     mail_vars["articleTitle"] = md_to_html(article.title)
@@ -947,7 +950,7 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
 
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -988,7 +991,7 @@ def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1084,7 +1087,7 @@ def send_admin_new_user(session, auth, db, userId):
         if dest_emails != []:
             reports = merge_mails(hashtag_template, mail_vars, recomm_id=None, recommendation=None, article_id=None, dest_emails=dest_emails, dest_role="administrators")
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1125,7 +1128,7 @@ def send_new_user(session, auth, db, userId):
 
         reports = emailing_tools.createMailReport(True, "new user " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1164,7 +1167,7 @@ def send_new_membreship(session, auth, db, membershipId):
 
         reports = emailing_tools.createMailReport(True, new_role_report + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1249,7 +1252,7 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
             dest_role = "manager"
         reports = merge_mails(hashtag_template, mail_vars, recomm_id, None, article.id, dest_emails, dest_role)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def merge_mails(hashtag_template, mail_vars, recomm_id, recommendation, article_id, dest_emails, dest_role=None, sugg_recommender_buttons=None):
@@ -1299,7 +1302,7 @@ def send_to_thank_recommender_postprint(session, auth, db, recommId):
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1339,7 +1342,7 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1375,7 +1378,7 @@ def send_to_delete_one_corecommender(session, auth, db, contribId):
 
                     reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1413,7 +1416,7 @@ def send_to_one_corecommender(session, auth, db, contribId):
 
                         reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1459,7 +1462,7 @@ def send_to_corecommenders(session, auth, db, articleId, newStatus):
 
             reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1513,7 +1516,7 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1560,7 +1563,7 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
             # Build reports :
-            emailing_tools.getFlashMessage(session, reports)
+            emailing_tools.getFlashMessage(reports)
 
 
 def mkSender(recomm):
@@ -1603,7 +1606,7 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
         # Build reports :
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1634,7 +1637,7 @@ def send_to_recommender_preprint_validated(session, auth, db, articleId):
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
         # Build reports :
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1648,22 +1651,22 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
 
     review = Review.get_by_id(reviewId)
     if not review:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
 
     recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
 
     article = Article.get_by_id(recommendation.article_id)
     if not article:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
 
     reviewer = User.get_by_id(review.reviewer_id)
     if not reviewer:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
     
     sender: Optional[User] = None
@@ -1765,7 +1768,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, review_duration: str, article: Article):
@@ -1848,14 +1851,14 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
     
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
 ######################################################################################################################################################################
 def send_change_mail(user_id: int, dest_mail: str, recover_email_key: str):
     auth, session = current.auth, current.session
 
-    mail = emailing_tools.getMailer(auth)
+    mail = emailing_tools.getMailer()
     mail_vars = emailing_tools.getMailCommonVars()
 
     mail_resu = False
@@ -1870,7 +1873,7 @@ def send_change_mail(user_id: int, dest_mail: str, recover_email_key: str):
 
     reports = emailing_tools.createMailReport(True, mail_vars["destAddress"], reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
 def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
@@ -1898,7 +1901,7 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     )
 
     reports = emailing_tools.createMailReport(True, reviewer_email, reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
 def send_submitter_generic_mail(author_email, articleId, form, mail_template):
@@ -1926,7 +1929,7 @@ def send_submitter_generic_mail(author_email, articleId, form, mail_template):
     )
 
     reports = emailing_tools.createMailReport(True, author_email, reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 def mk_mail(subject, message, resend=False):
     mail_vars = emailing_tools.getMailCommonVars()
@@ -1978,7 +1981,7 @@ def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId
                                          alternative_content=mail_content)
 
     reports = emailing_tools.createMailReport(True, dest_mail_address, reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -3108,7 +3111,7 @@ def send_to_coar_requester(session: Session, auth: Auth, db, user: User, article
     create_reminder_user_complete_submission(article)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def send_to_coar_resubmitter(session, auth, db, user, article):
@@ -3129,7 +3132,7 @@ def send_to_coar_resubmitter(session, auth, db, user, article):
     emailing_tools.insertMailInQueue(hashtag_template, mail_vars, article_id=article.id)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def create_reminder_user_complete_submission(article):
@@ -3197,7 +3200,7 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     if not check_mail_queue(hashtag_template, reviewer.email, review.recommendation_id):
         emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
 def create_reminder_recommender_could_make_decision(session, auth, db, recommId):
@@ -3299,7 +3302,7 @@ def send_conditional_acceptation_review_mail(review: Review):
     create_reminder_for_conditional_recommender_acceptation_review(review, article, recommendation, recommender, buttons, conditional_recommender_acceptation_review_mail_id)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    emailing_tools.getFlashMessage(current.session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def conditional_acceptation_review_mail_button(review_id: int, mail_vars: Dict[str, Any]):
@@ -3374,7 +3377,7 @@ def send_decision_new_delay_review_mail(accept: bool, review: Review):
 
     emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    emailing_tools.getFlashMessage(current.session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 ########################################################
 
@@ -3439,7 +3442,7 @@ def send_alert_reviewer_due_date_change(review: Review):
 
     emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    emailing_tools.getFlashMessage(current.session, reports)
+    emailing_tools.getFlashMessage(reports)
 ##################################################################################################################################################################
 
 def send_import_biorxiv_alert(xml_file_path: str):
@@ -3454,18 +3457,16 @@ def send_import_biorxiv_alert(xml_file_path: str):
 
     hashtag_template = "#BiorxivFTPAlert"
 
-    emailing_tools.insertMailInQueue(current.auth, current.db, hashtag_template, mail_vars)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
 
 
 def send_to_biorxiv_requester(user: User, article: Article):
-    auth, db, session = current.auth, current.db, current.session
-
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
+    mail_vars["destPerson"] = common_small_html.mkUser(user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
     mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     mail_vars["completeSubmissionLink"] = URL("biorxiv", "complete_submission", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
@@ -3477,20 +3478,19 @@ def send_to_biorxiv_requester(user: User, article: Article):
 
     hashtag_template = "#UserCompleteSubmissionBiorxiv"
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, article_id=article.id)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, article_id=article.id)
     create_reminder_user_complete_submission_biorxiv(article)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def create_reminder_user_complete_submission_biorxiv(article: Article):
-    auth, db = current.auth, current.db
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
     mail_vars["destAddress"] = User.get_by_id(article.user_id).email
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["message"] = MailQueue.get_mail_content(
@@ -3498,7 +3498,7 @@ def create_reminder_user_complete_submission_biorxiv(article: Article):
 
     hashtag_template = "#ReminderUserCompleteSubmissionBiorxiv"
 
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, article.id)
 
 ##################################################################################################################################################################
 def send_message_to_recommender_and_reviewers(article_id):

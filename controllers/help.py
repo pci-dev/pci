@@ -12,8 +12,8 @@ def help_generic():
     response.view = "default/info.html"
     tweeterAcc = myconf.get("social.tweeter")
     return dict(
-        pageTitle=getTitle(request, auth, db, "#GenericHelpTitle"),
-        customText=getText(request, auth, db, "#GenericHelpInfo"),
+        pageTitle=getTitle("#GenericHelpTitle"),
+        customText=getText("#GenericHelpInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="help_generic", host=host, scheme=scheme, port=port),
         tweeterAcc=tweeterAcc,
@@ -26,8 +26,8 @@ def help_practical():
     response.view = "default/info.html"
     tweeterAcc = myconf.get("social.tweeter")
     return dict(
-        pageTitle=getTitle(request, auth, db, "#PracticalHelpTitle"),
-        customText=getText(request, auth, db, "#PracticalHelpInfo"),
+        pageTitle=getTitle("#PracticalHelpTitle"),
+        customText=getText("#PracticalHelpInfo"),
         tweeterAcc=tweeterAcc,
     )
 
@@ -37,8 +37,8 @@ def faq():
     response.view = "default/info.html"
     tweeterAcc = myconf.get("social.tweeter")
     return dict(
-        pageTitle=getTitle(request, auth, db, "#FAQTitle"),
-        customText=getText(request, auth, db, "#FAQInfo"),
+        pageTitle=getTitle("#FAQTitle"),
+        customText=getText("#FAQInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="faq", host=host, scheme=scheme, port=port),
         tweeterAcc=tweeterAcc,
@@ -51,8 +51,8 @@ def cite():
     response.view = "default/info.html"
     tweeterAcc = myconf.get("social.tweeter")
     return dict(
-        pageTitle=getTitle(request, auth, db, "#CiteTitle"),
-        customText=getText(request, auth, db, "#CiteInfo"),
+        pageTitle=getTitle("#CiteTitle"),
+        customText=getText("#CiteInfo"),
         shareable=True,
         currentUrl=URL(c="about", f="cite", host=host, scheme=scheme, port=port),
         tweeterAcc=tweeterAcc,
@@ -63,28 +63,28 @@ def cite():
 ######################################################################################################################################################################
 def top_guidelines():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#TopGuidelinesTitle"), customText=getText(request, auth, db, "#TopGuidelinesInfo"),)
+    return dict(pageTitle=getTitle("#TopGuidelinesTitle"), customText=getText("#TopGuidelinesInfo"),)
 
 
 ######################################################################################################################################################################
 def guide_for_authors():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#GuideForAuthorsTitle"), customText=getText(request, auth, db, "#GuideForAuthorsInfo"),)
+    return dict(pageTitle=getTitle("#GuideForAuthorsTitle"), customText=getText("#GuideForAuthorsInfo"),)
 
 
 ######################################################################################################################################################################
 def guide_for_reviewers():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#GuideForReviewersTitle"), customText=getText(request, auth, db, "#GuideForReviewersInfo"),)
+    return dict(pageTitle=getTitle("#GuideForReviewersTitle"), customText=getText("#GuideForReviewersInfo"),)
 
 
 ######################################################################################################################################################################
 def guide_for_recommenders():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#GuideForRecommendersTitle"), customText=getText(request, auth, db, "#GuideForRecommendersInfo"),)
+    return dict(pageTitle=getTitle("#GuideForRecommendersTitle"), customText=getText("#GuideForRecommendersInfo"),)
 
 
 ######################################################################################################################################################################
 def become_a_recommenders():
     response.view = "default/info.html"
-    return dict(pageTitle=getTitle(request, auth, db, "#BecomeARecommendersTitle"), customText=getText(request, auth, db, "#BecomeARecommendersInfo"),)
+    return dict(pageTitle=getTitle("#BecomeARecommendersTitle"), customText=getText("#BecomeARecommendersInfo"),)

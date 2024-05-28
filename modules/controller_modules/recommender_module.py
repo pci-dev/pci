@@ -102,7 +102,8 @@ def mkRecommendationFormat(row):
     anchor = SPAN(common_small_html.md_to_html(row.recommendation_title), BR(), B(current.T("Recommender:") + " "), recommFmt, BR(), common_small_html.mkDOI(row.doi),)
     return anchor
 
-def cancel_scheduled_reviews(session, auth, db, articleId):
+def cancel_scheduled_reviews(articleId):
+    db = current.db
     recomm = db.get_last_recomm(articleId)
     pendingReviews =  db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state in ("Awaiting review", "Awaiting response"))).select(orderby=db.t_reviews.id)
     for review in pendingReviews:

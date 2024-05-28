@@ -38,9 +38,9 @@ def user_public_page():
         return profile_page(user)
     except:
         return dict(
-            pageHelp=getHelp(request, auth, db, "#PublicUserCard"),
+            pageHelp=getHelp("#PublicUserCard"),
             titleIcon="briefcase",
-            pageTitle=getTitle(request, auth, db, "#PublicUserCardTitle"),
+            pageTitle=getTitle("#PublicUserCardTitle"),
             customText=B(T(custom_text))
         )
 
@@ -134,7 +134,7 @@ def profile_page(user: User):
                     reviews.append(article_components.getRecommArticleRowCard(row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
 
                 return dict(
-                    pageHelp=getHelp(request, auth, db, "#PublicUserCard"),
+                    pageHelp=getHelp("#PublicUserCard"),
                     titleIcon="briefcase",
                     pageTitle=pageTitle,
                     uneditableTitle=True,
