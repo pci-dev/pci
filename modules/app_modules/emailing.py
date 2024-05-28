@@ -335,7 +335,9 @@ def send_to_recommender_postprint_status_changed(articleId, newStatus):
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any)
-def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
+def send_to_recommender_status_changed(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
+    
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -402,7 +404,9 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
 
 
 ######################################################################################################################################################################
-def send_to_recommender_decision_sent_back(session, auth, db, form, articleId, lastRecomm, hashtag):
+def send_to_recommender_decision_sent_back(form, articleId, lastRecomm, hashtag):
+    session, auth, db = current.session, current.auth, current.db
+
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
     cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
 
@@ -429,7 +433,9 @@ def send_to_recommender_decision_sent_back(session, auth, db, form, articleId, l
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given NO MORE available article
-def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, articleId):
+def send_to_suggested_recommenders_not_needed_anymore(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -473,7 +479,9 @@ def mkUnanonymizedAuthors(article):
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
-def send_to_suggested_recommenders(session, auth, db, articleId):
+def send_to_suggested_recommenders(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -567,7 +575,9 @@ def build_sugg_recommender_buttons(link_target: str, article_id: int):
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
-def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
+def send_to_suggested_recommender(articleId, suggRecommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -620,7 +630,9 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
 
 ######################################################################################################################################################################
 # Do send email to recommender when a review is closed
-def send_to_recommenders_review_completed(session, auth, db, reviewId):
+def send_to_recommenders_review_completed(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     print("send_to_recommenders_review_completed")
     mail_vars = emailing_tools.getMailCommonVars()
 
@@ -660,7 +672,9 @@ def send_to_recommenders_review_completed(session, auth, db, reviewId):
 
 ######################################################################################################################################################################
 # Do send email to recommender when a review is accepted for consideration
-def send_to_recommenders_review_considered(session, auth, db, reviewId):
+def send_to_recommenders_review_considered(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -699,7 +713,9 @@ def send_to_recommenders_review_considered(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
-def send_to_recommenders_review_declined(session, auth, db, reviewId):
+def send_to_recommenders_review_declined(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -735,7 +751,9 @@ def send_to_recommenders_review_declined(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
-def send_to_recommenders_pending_review_request(session, auth, db, reviewId):
+def send_to_recommenders_pending_review_request(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -765,7 +783,9 @@ def send_to_recommenders_pending_review_request(session, auth, db, reviewId):
 
 ######################################################################################################################################################################
 # Do send email to recommender when a review is re-opened
-def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
+def send_to_reviewer_review_reopened(reviewId, newForm):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -796,7 +816,9 @@ def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
 
 
 ######################################################################################################################################################################
-def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStatus):
+def send_to_reviewers_article_cancellation(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -835,7 +857,9 @@ def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStat
 
 
 ######################################################################################################################################################################
-def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newForm):
+def send_to_reviewer_review_request_accepted(reviewId, newForm):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -871,7 +895,9 @@ def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newFor
 
 
 ######################################################################################################################################################################
-def send_to_reviewer_review_request_declined(session, auth, db, reviewId, newForm):
+def send_to_reviewer_review_request_declined(reviewId, newForm):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -905,7 +931,9 @@ def send_to_reviewer_review_request_declined(session, auth, db, reviewId, newFor
 
 
 ######################################################################################################################################################################
-def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
+def send_to_thank_reviewer_acceptation(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -954,7 +982,9 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
-def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
+def send_to_thank_reviewer_done(reviewId, newForm):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -995,7 +1025,9 @@ def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
 
 
 ######################################################################################################################################################################
-def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId):
+def send_to_admin_2_reviews_under_consideration(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -1029,7 +1061,9 @@ def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
-def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
+def send_to_admin_all_reviews_completed(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -1065,7 +1099,9 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
-def send_admin_new_user(session, auth, db, userId):
+def send_admin_new_user(userId):
+    session, auth, db = current.session, current.auth, current.db
+
     print("send_admin_new_user")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1091,7 +1127,9 @@ def send_admin_new_user(session, auth, db, userId):
 
 
 ######################################################################################################################################################################
-def send_new_user(session, auth, db, userId):
+def send_new_user(userId):
+    session, auth, db = current.session, current.auth, current.db
+    
     print("send_new_user")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1132,7 +1170,9 @@ def send_new_user(session, auth, db, userId):
 
 
 ######################################################################################################################################################################
-def send_new_membreship(session, auth, db, membershipId):
+def send_new_membreship(membershipId):
+    session, auth, db = current.session, current.auth, current.db
+
     print("send_new_membership")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1171,7 +1211,9 @@ def send_new_membreship(session, auth, db, membershipId):
 
 
 ######################################################################################################################################################################
-def send_to_managers(session, auth, db, articleId, newStatus, response):
+def send_to_managers(articleId, newStatus):
+    session, auth, db, response = current.session, current.auth, current.db, current.response
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1271,7 +1313,9 @@ def listCorrectHashtags(hashtags, article):
 
 
 ######################################################################################################################################################################
-def send_to_thank_recommender_postprint(session, auth, db, recommId):
+def send_to_thank_recommender_postprint(recommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1306,7 +1350,9 @@ def send_to_thank_recommender_postprint(session, auth, db, recommId):
 
 
 ######################################################################################################################################################################
-def send_to_thank_recommender_preprint(session, auth, db, articleId):
+def send_to_thank_recommender_preprint(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1346,7 +1392,9 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
 
 
 ######################################################################################################################################################################
-def send_to_delete_one_corecommender(session, auth, db, contribId):
+def send_to_delete_one_corecommender(contribId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1382,7 +1430,9 @@ def send_to_delete_one_corecommender(session, auth, db, contribId):
 
 
 ######################################################################################################################################################################
-def send_to_one_corecommender(session, auth, db, contribId):
+def send_to_one_corecommender(contribId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1420,7 +1470,9 @@ def send_to_one_corecommender(session, auth, db, contribId):
 
 
 ######################################################################################################################################################################
-def send_to_corecommenders(session, auth, db, articleId, newStatus):
+def send_to_corecommenders(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1466,7 +1518,9 @@ def send_to_corecommenders(session, auth, db, articleId, newStatus):
 
 
 ######################################################################################################################################################################
-def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
+def send_decision_to_reviewers(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
+
     print("send_decision_to_reviewers")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1525,7 +1579,9 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
 # The following two send_to are only ever called with pciRRactivated
 #
 ######################################################################################################################################################################
-def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
+def send_to_reviewers_preprint_submitted(articleId):
+    session, auth, db = current.session, current.auth, current.db
+    
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
 
@@ -1576,7 +1632,9 @@ def mkSender(recomm):
     return sender
 
 ######################################################################################################################################################################
-def send_to_recommender_preprint_submitted(session, auth, db, articleId):
+def send_to_recommender_preprint_submitted(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
 
@@ -1610,7 +1668,9 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
 
 
 ######################################################################################################################################################################
-def send_to_recommender_preprint_validated(session, auth, db, articleId):
+def send_to_recommender_preprint_validated(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
 
@@ -1643,7 +1703,9 @@ def send_to_recommender_preprint_validated(session, auth, db, articleId):
 ######################################################################################################################################################################
 # Mail with templates
 ######################################################################################################################################################################
-def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False, new_stage=False):
+def send_reviewer_invitation(reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False, new_stage=False):
+    session, auth, db = current.session, current.auth, current.db
+
     reg_user_reminder_template = None
     new_user_reminder_template = None
 
@@ -1704,7 +1766,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
             new_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
-        create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, hashtag_template=new_user_reminder_template, new_stage=new_stage)
+        create_reminder_for_reviewer_review_invitation_new_user(review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, hashtag_template=new_user_reminder_template, new_stage=new_stage)
 
     elif linkTarget:
         if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
@@ -1719,7 +1781,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         if hashtag_template == "#DefaultReviewInvitationRegisteredUserReturningReviewerStage2":
             reg_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewInvitationRegisteredUserReturningReviewer", article)
 
-        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round, hashtag_template=reg_user_reminder_template, new_stage=new_stage)
+        create_reminder_for_reviewer_review_invitation_registered_user(review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round, hashtag_template=reg_user_reminder_template, new_stage=new_stage)
 
     subject_header = email_subject_header(recommendation.article_id)
     subject_without_appname = subject.replace("%s: " % subject_header, "")
@@ -1819,7 +1881,9 @@ def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, revi
     
 
 ######################################################################################################################################################################
-def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggested_reviewers_text):
+def send_to_recommender_reviewers_suggestions(review, suggested_reviewers_text):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1876,7 +1940,9 @@ def send_change_mail(user_id: int, dest_mail: str, recover_email_key: str):
     emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
-def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
+def send_reviewer_generic_mail(reviewer_email, recomm, form):
+    session, auth, db = current.session, current.auth, current.db
+
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.cc)
     cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
 
@@ -1950,7 +2016,9 @@ def mk_mail(subject, message, resend=False):
         )
     )
 ######################################################################################################################################################################
-def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId=None, hashtag=None):
+def resend_mail(form, reviewId=None, recommId=None, articleId=None, hashtag=None):
+    session, auth, db = current.session, current.auth, current.db
+
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
     cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
     clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(form.vars.replyto)
@@ -1987,7 +2055,9 @@ def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId
 ######################################################################################################################################################################
 ## News letter
 ######################################################################################################################################################################
-def send_newsletter_mail(session, auth, db, userId, newsletterType):
+def send_newsletter_mail(userId: int, newsletterType: str):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     user = db.auth_user[userId]
@@ -2086,7 +2156,9 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
 
 
 ######################################################################################################################################################################
-def delete_newsletter_mail(session, auth, db, userId):
+def delete_newsletter_mail(userId: int):
+    session, auth, db = current.session, current.auth, current.db
+
     user = db.auth_user[userId]
 
     if user is not None:
@@ -2105,7 +2177,9 @@ def delete_newsletter_mail(session, auth, db, userId):
 ######################################################################################################################################################################
 ## Reminders
 ######################################################################################################################################################################
-def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId):
+def create_reminder_for_submitter_suggested_recommender_needed(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2128,7 +2202,9 @@ def mk_ethicsLink():
 
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_new_suggested_recommender_needed(session, auth, db, articleId):
+def create_reminder_for_submitter_new_suggested_recommender_needed(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2142,7 +2218,9 @@ def create_reminder_for_submitter_new_suggested_recommender_needed(session, auth
 
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_cancel_submission(session, auth, db, articleId):
+def create_reminder_for_submitter_cancel_submission(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2156,10 +2234,12 @@ def create_reminder_for_submitter_cancel_submission(session, auth, db, articleId
 
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_revised_version_warning(session, auth, db, articleId):
+def create_reminder_for_submitter_revised_version_warning(articleId):
+    session, auth, db = current.session, current.auth, current.db
     _create_reminder_for_submitter_revised_version(articleId, "#ReminderSubmitterRevisedVersionWarning")
 
-def create_reminder_for_submitter_revised_version_needed(session, auth, db, articleId):
+def create_reminder_for_submitter_revised_version_needed(articleId):
+    session, auth, db = current.session, current.auth, current.db
     _create_reminder_for_submitter_revised_version(articleId, "#ReminderSubmitterRevisedVersionNeeded")
 
 def _create_reminder_for_submitter_revised_version(articleId, email_template):
@@ -2191,7 +2271,9 @@ def get_original_submitter_awaiting_submission_email(article):
 
 
 ######################################################################################################################################################################
-def create_reminders_for_submitter_scheduled_submission(session, auth, db, article):
+def create_reminders_for_submitter_scheduled_submission(article):
+    session, auth, db = current.session, current.auth, current.db
+
     articleId = article.id
 
     delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
@@ -2201,12 +2283,14 @@ def create_reminders_for_submitter_scheduled_submission(session, auth, db, artic
     if article.t_report_survey.select()[0].q1 == "COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW":
         return # do not schedule reminders when report is already submitted
 
-    create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
-    create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
-    create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
+    create_reminder_for_submitter_scheduled_submission_soon_due(articleId)
+    create_reminder_for_submitter_scheduled_submission_due(articleId)
+    create_reminder_for_submitter_scheduled_submission_over_due(articleId)
 
 
-def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId):
+def create_reminder_for_submitter_scheduled_submission_soon_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
 
@@ -2233,7 +2317,9 @@ def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, d
         emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date - datetime.timedelta(days=14)))
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId):
+def create_reminder_for_submitter_scheduled_submission_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
 
@@ -2260,7 +2346,9 @@ def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, ar
         emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=scheduled_submission_date)
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId):
+def create_reminder_for_submitter_scheduled_submission_over_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
 
@@ -2287,7 +2375,9 @@ def create_reminder_for_submitter_scheduled_submission_over_due(session, auth, d
         emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date + datetime.timedelta(days=1)))
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_validated_scheduled_submission(session, auth, db, articleId):
+def create_reminder_for_recommender_validated_scheduled_submission(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
@@ -2310,7 +2400,9 @@ def create_reminder_for_recommender_validated_scheduled_submission(session, auth
         emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period - datetime.timedelta(days=1)))
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_validated_scheduled_submission_late(session, auth, db, articleId):
+def create_reminder_for_recommender_validated_scheduled_submission_late(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
@@ -2361,7 +2453,9 @@ def delete_reminder_for_submitter(hashtag_template, articleId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_suggested_recommenders_invitation(session, auth, db, articleId):
+def create_reminder_for_suggested_recommenders_invitation(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2394,7 +2488,9 @@ def create_reminder_for_suggested_recommenders_invitation(session, auth, db, art
 
 
 ######################################################################################################################################################################
-def create_reminder_for_suggested_recommender_invitation(session, auth, db, articleId, suggRecommId):
+def create_reminder_for_suggested_recommender_invitation(articleId, suggRecommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2475,7 +2571,9 @@ def reviewLink(**kwargs):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
+def create_reminder_for_reviewer_review_invitation_new_user(reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
+    session, auth, db = current.session, current.auth, current.db
+
     review = Review.get_by_id(reviewId)
     recomm = Recommendation.get_by_id(review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
@@ -2529,7 +2627,9 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
+def create_reminder_for_reviewer_review_invitation_registered_user(reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
+    session, auth, db = current.session, current.auth, current.db
+
     review = Review.get_by_id(reviewId)
     recomm = Recommendation.get_by_id(review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
@@ -2596,7 +2696,9 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
+def create_reminder_for_reviewer_review_soon_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+    
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
@@ -2648,7 +2750,9 @@ def getScheduledReviewDueDate(article):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
+def create_reminder_for_reviewer_review_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
@@ -2684,7 +2788,9 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
+def create_reminder_for_reviewer_review_over_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
@@ -2721,7 +2827,9 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, review):
+def create_reminder_for_reviewer_scheduled_review_coming_soon(review):
+    session, auth, db = current.session, current.auth, current.db
+
     recomm = db.t_recommendations[review.recommendation_id]
     article = db.t_articles[recomm.article_id]
     reviewer = db.auth_user[review.reviewer_id]
@@ -2770,7 +2878,9 @@ def delete_reminder_for_reviewer(hashtag_template, reviewId):
     return nb_deleted
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleId):
+def create_reminder_for_recommender_reviewers_needed(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2802,7 +2912,9 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_new_reviewers_needed(session, auth, db, recommId):
+def create_reminder_for_recommender_new_reviewers_needed(recommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     recomm = db.t_recommendations[recommId]
@@ -2828,7 +2940,9 @@ def create_reminder_for_recommender_new_reviewers_needed(session, auth, db, reco
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewId):
+def create_reminder_for_recommender_decision_soon_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2854,7 +2968,9 @@ def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewI
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
+def create_reminder_for_recommender_decision_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2880,7 +2996,9 @@ def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewId):
+def create_reminder_for_recommender_decision_over_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2906,7 +3024,9 @@ def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewI
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_soon_due(session, auth, db, articleId):
+def create_reminder_for_recommender_revised_decision_soon_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2928,7 +3048,9 @@ def create_reminder_for_recommender_revised_decision_soon_due(session, auth, db,
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_due(session, auth, db, articleId):
+def create_reminder_for_recommender_revised_decision_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2950,7 +3072,9 @@ def create_reminder_for_recommender_revised_decision_due(session, auth, db, arti
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_over_due(session, auth, db, articleId):
+def create_reminder_for_recommender_revised_decision_over_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -3088,7 +3212,7 @@ def send_reset_password(user, link):
     emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
 
 ######################################################################################################################################################################
-def send_to_coar_requester(session: Session, auth: Auth, db, user: User, article: Article):
+def send_to_coar_requester(user, article):
     mail_vars = emailing_tools.getMailCommonVars()
 
     mail_vars["destPerson"] = common_small_html.mkUser(user.id)
@@ -3114,7 +3238,9 @@ def send_to_coar_requester(session: Session, auth: Auth, db, user: User, article
     emailing_tools.getFlashMessage(reports)
 
 
-def send_to_coar_resubmitter(session, auth, db, user, article):
+def send_to_coar_resubmitter(user, article):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     mail_vars["destPerson"] = common_small_html.mkUser(user.id)
@@ -3163,7 +3289,8 @@ def check_mail_queue(hashtag, reviewer_mail, recomm_id):
     ).count() > 0
 
 ######################################################################################################################################################################
-def create_cancellation_for_reviewer(session, auth, db, reviewId):
+def create_cancellation_for_reviewer(reviewId):
+    session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -3203,7 +3330,9 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
         emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
-def create_reminder_recommender_could_make_decision(session, auth, db, recommId):
+def create_reminder_recommender_could_make_decision(recommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     recomm = db.t_recommendations[recommId]
@@ -3222,7 +3351,9 @@ def create_reminder_recommender_could_make_decision(session, auth, db, recommId)
     emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ################################################################################################
-def alert_managers_recommender_action_needed(session, auth, db, hashtag_template, recommId):
+def alert_managers_recommender_action_needed(hashtag_template, recommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     recomm = db.t_recommendations[recommId]

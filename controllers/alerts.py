@@ -19,8 +19,8 @@ def test_flash():
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def testMyNewsletterMail():
     user = db.auth_user[auth.user_id]
-    emailing.delete_newsletter_mail(session, auth, db, auth.user_id)
-    emailing.send_newsletter_mail(session, auth, db, auth.user_id, user.alerts)
+    emailing.delete_newsletter_mail(auth.user_id)
+    emailing.send_newsletter_mail(auth.user_id, user.alerts)
     redirect(request.env.http_referer)
 
 

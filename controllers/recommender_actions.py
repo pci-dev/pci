@@ -96,7 +96,7 @@ def do_accept_new_article_to_recommend():
         article.status = ArticleStatus.UNDER_CONSIDERATION.value
         article.update_record()
         if is_scheduled_submission(article):
-            emailing.create_reminders_for_submitter_scheduled_submission(session, auth, db, article)
+            emailing.create_reminders_for_submitter_scheduled_submission(article)
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
     else:
         if article.status == ArticleStatus.UNDER_CONSIDERATION.value:
@@ -617,9 +617,9 @@ def do_end_scheduled_submission():
         ).select()
         for review in awaitingReviews:
             reviewId = review["t_reviews.id"]
-            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId)
-            emailing.create_reminder_for_reviewer_review_due(session, auth, db, reviewId)
-            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId)
+            emailing.create_reminder_for_reviewer_review_soon_due(reviewId)
+            emailing.create_reminder_for_reviewer_review_due(reviewId)
+            emailing.create_reminder_for_reviewer_review_over_due(reviewId)
             emailing.delete_reminder_for_reviewer(["#ReminderScheduledReviewComingSoon"], reviewId)
 
         emailing.delete_reminder_for_submitter("#SubmitterScheduledSubmissionOpen", articleId)
@@ -796,15 +796,15 @@ def change_review_due_date():
         over_due_sent = (emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewOverDue"], review.id) or 0) == 0
 
         if soon_due_sent and review_due_sent:
-            emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
-            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
+            emailing.create_reminder_for_reviewer_review_due(review.id)
+            emailing.create_reminder_for_reviewer_review_over_due(review.id)
         else:
             if not soon_due_sent:
-                emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
+                emailing.create_reminder_for_reviewer_review_soon_due(review.id)
             if not review_due_sent:
-                emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
+                emailing.create_reminder_for_reviewer_review_due(review.id)
             if not over_due_sent:
-                emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
+                emailing.create_reminder_for_reviewer_review_over_due(review.id)
 
         emailing.send_alert_reviewer_due_date_change(review)
 

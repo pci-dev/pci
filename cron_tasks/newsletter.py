@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from app_modules import emailing
 from app_modules import newsletter
+
+from gluon import current
 
 
 news = newsletter.interval
 
 
-def send_newsletter(freq):
+def send_newsletter(freq: str):
+    db = current.db
+
     my_date = datetime.now()
 
     newsletter_date = my_date - timedelta(days=news[freq])
@@ -24,8 +28,8 @@ def send_newsletter(freq):
 
     for user in users_with_newsletter:
         print(freq + " newsletter: " + user.first_name + " " + user.last_name)
-        emailing.delete_newsletter_mail(session, auth, db, user.id)
-        emailing.send_newsletter_mail(session, auth, db, user.id, freq)
+        emailing.delete_newsletter_mail(user.id)
+        emailing.send_newsletter_mail(user.id, freq)
         user.last_alert = datetime.now()
         user.update_record()
 

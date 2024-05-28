@@ -159,7 +159,7 @@ def pub_reviews():
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
     else:
-        myContents = DIV(old_common.reviewsOfCancelled(auth, db, art))
+        myContents = DIV(old_common.reviewsOfCancelled(art))
 
     response.view = "default/myLayout.html"
     resu = dict(

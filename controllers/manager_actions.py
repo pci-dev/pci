@@ -185,7 +185,7 @@ def do_reject_article():
             form = Storage(
                 subject=recomm.recommendation_title, message=recomm.recommendation_comments, cc=cc, replyto=cc
             )
-            emailing.send_submitter_generic_mail(session, auth, db, author.email, art.id, form, "#SubmitterScheduledSubmissionDeskReject")
+            emailing.send_submitter_generic_mail(author.email, art.id, form, "#SubmitterScheduledSubmissionDeskReject")
             recomm.update_record(recommendation_title="", recommendation_comments="")
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 

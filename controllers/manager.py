@@ -1692,7 +1692,7 @@ def send_submitter_generic_mail():
             art.update_record()
         request.vars["replyto"] = replyTo
         try:
-            emailing.send_submitter_generic_mail(session, auth, db, author.email, art.id, request.vars, template)
+            emailing.send_submitter_generic_mail(author.email, art.id, request.vars, template)
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
@@ -1936,10 +1936,7 @@ def email_for_recommender():
     resent = False
     if form.process().accepted:
         try:
-            emailing.send_to_recommender_decision_sent_back(session,
-                                                            auth,
-                                                            db,
-                                                            form,
+            emailing.send_to_recommender_decision_sent_back(form,
                                                             articleId,
                                                             lastRecomm,
                                                             hashtag_template)
