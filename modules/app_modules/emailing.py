@@ -3177,13 +3177,13 @@ def send_to_coar_requester(session: Session, auth: Auth, db, user: User, article
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
     mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
-    mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=True)
-    mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=True)
-    mail_vars["completeSubmissionLink"] = URL("coar", "complete_submission", scheme=True,
+    mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    mail_vars["completeSubmissionLink"] = URL("coar", "complete_submission", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
         vars=dict(articleId=article.id, key=user.reset_password_key,
                     coarId=article.coar_notification_id),
     )
-    mail_vars["cancelSubmissionLink"] = URL("coar", "cancel_submission", scheme=True,
+    mail_vars["cancelSubmissionLink"] = URL("coar", "cancel_submission", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
         vars=dict(articleId=article.id, coarId=article.coar_notification_id),
     )
 
