@@ -3524,13 +3524,9 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     emailing_tools.getFlashMessage(session, reports)
 ##################################################################################################################################################################
 
-def send_import_biorxiv_alert(xml_file_path: str, generic_contact: bool):
+def send_import_biorxiv_alert(xml_file_path: str):
     mail_vars = emailing_tools.getMailCommonVars()
-    
-    if generic_contact:
-        mail_vars["destAddress"] = mail_vars["appGenericContactMail"]
-    else:
-        mail_vars["destAddress"] = mail_vars["appContactMail"]
+    mail_vars["destAddress"] = mail_vars["appGenericContactMail"]
 
     with open(xml_file_path, 'r') as xml_file:
         content = ""
