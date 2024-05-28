@@ -16,10 +16,13 @@ myconf = AppConfig(reload=True)
 
 XML_FOLDER = str(myconf.get("ftp.biorxiv"))
 DONE_FOLDER = f"{XML_FOLDER}/done"
+FAILED_FOLDER = f"{XML_FOLDER}/failed"
 
 def main():
      create_done_folder()
-     clean_done_folder()
+     create_failed_folder()
+     clean_folder(DONE_FOLDER)
+     clean_folder(FAILED_FOLDER)
 
      try:
           application = DestinationApp(str(current.request.application))
@@ -37,15 +40,21 @@ def main():
                xml_jats_parser = XMLJATSParser(xml_file)
           except Exception as e:
                print(f"Error to parse {xml_file}: {e}")
-               emailing.send_import_biorxiv_alert(xml_file, True)
-               clean_xml(xml_file)
+               emailing.send_import_biorxiv_alert(xml_file)
+               clean_xml(xml_file, True)
+               continue
+
+          if not application_supported(xml_jats_parser.destination):
+               print(f"Destination {xml_jats_parser.destination.value} exists, but not supported")
+               emailing.send_import_biorxiv_alert(xml_file)
+               clean_xml(xml_file, True)
                continue
 
           if xml_jats_parser.destination != application:
                continue
 
-          emailing.send_import_biorxiv_alert(xml_file, False)
-          clean_xml(xml_file)
+          emailing.send_import_biorxiv_alert(xml_file)
+          clean_xml(xml_file, False)
           
           user = add_author_in_db(xml_jats_parser.article.authors)
           if not user:
@@ -99,7 +108,16 @@ def add_author_in_db(authors: List[XMLJATSAuthorElement]):
                                             orcid=author.orcid)
 
 
-     
+def application_supported(destination: DestinationApp):
+     app_dir = os.path.join('applications')
+     for dir in os.listdir(app_dir):
+          try:
+               app = DestinationApp(dir)
+               if app == destination:
+                    return True
+          except:
+               continue
+     return False
 
 
 def create_done_folder():
@@ -108,7 +126,13 @@ def create_done_folder():
           print(f"{DONE_FOLDER} created")
 
 
-def clean_xml(xml_file: str):
+def create_failed_folder():
+     if not os.path.exists(FAILED_FOLDER):
+          os.makedirs(FAILED_FOLDER)
+          print(f"{FAILED_FOLDER} created")
+
+
+def clean_xml(xml_file: str, failed: bool):
      base_name = Path(xml_file).stem
      archive_name = f"{base_name}.zip"
      archive_file = os.path.join(XML_FOLDER, archive_name)
@@ -118,13 +142,18 @@ def clean_xml(xml_file: str):
           print(f'No archive to clean found: {archive_file}')
           pass
      
-     shutil.move(xml_file, DONE_FOLDER)
+     if failed:
+          dest_folder = FAILED_FOLDER
+     else:
+          dest_folder = DONE_FOLDER
+     shutil.move(xml_file, dest_folder)
+     print(f"{xml_file} moved to {dest_folder}")
 
 
-def clean_done_folder():
+def clean_folder(folder_path: str):
      max_life_time = time.time() - 30 * 24 * 60 * 60 # 30 days
-     for file_name in os.listdir(DONE_FOLDER):
-          file = os.path.join(DONE_FOLDER, file_name)
+     for file_name in os.listdir(folder_path):
+          file = os.path.join(folder_path, file_name)
           if not os.path.isfile(file):
                continue
           
