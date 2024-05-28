@@ -1450,7 +1450,7 @@ def send_review_cancellation():
         
         try:
             emailing.send_reviewer_invitation(
-                session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
+                reviewId, replyto_addresses, cc_addresses, hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
             )
             review.update_record(review_state="Cancelled")
         except Exception as e:
@@ -1543,7 +1543,7 @@ def send_reviewer_generic_mail():
         clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyTo)
         request.vars["replyto"] = clean_replyto_adresses
         try:
-            emailing.send_reviewer_generic_mail(session, auth, db, reviewer.email, recomm, request.vars)
+            emailing.send_reviewer_generic_mail(reviewer.email, recomm, request.vars)
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
@@ -1727,9 +1727,6 @@ def email_for_registered_reviewer():
 
         try:
                 emailing.send_reviewer_invitation(
-                    session,
-                    auth,
-                    db,
                     reviewId,
                     replyto_addresses,
                     cc_addresses,
@@ -1908,9 +1905,6 @@ def email_for_new_reviewer():
 
             try:
                     emailing.send_reviewer_invitation(
-                        session,
-                        auth,
-                        db,
                         reviewId,
                         replyto_addresses,
                         cc_addresses,
@@ -2744,9 +2738,6 @@ def edit_and_resend_email():
     if form.process().accepted:
         try:
             emailing.resend_mail(
-                session,
-                auth, 
-                db, 
                 form,
                 hashtag=mail.mail_template_hashtag,
                 reviewId=reviewId,

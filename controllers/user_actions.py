@@ -403,7 +403,7 @@ def send_suggested_reviewers():
     article = db((db.t_recommendations.id == review.recommendation_id) & (db.t_recommendations.article_id == db.t_articles.id)).select()
     add_suggest_reviewers_to_article(article, review, text)
 
-    emailing.send_to_recommender_reviewers_suggestions(session, auth, db, review, text)
+    emailing.send_to_recommender_reviewers_suggestions(review, text)
     Review.set_suggested_reviewers_send(review)
 
     response.view = "default/info.html"

@@ -297,7 +297,7 @@ def report_survey(article: Article, survey: Optional[ReportSurvey] = None, contr
 
         if controller == "user_fill":
             emailing.send_to_submitter_acknowledgement_submission(article.id)
-            emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, article.id)
+            emailing.create_reminder_for_submitter_suggested_recommender_needed(article.id)
             redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
 
         if controller == "manager_edit":
@@ -521,7 +521,7 @@ def recommender_decline_invitation_form(articleId):
         form['replyto'] = '%s, %s'%(sender_email, contact)
         form['subject'] = default_subject
         try:
-            emailing.send_submitter_generic_mail(session, auth, db, contact, articleId, form, "#RecommenderRejectMail")
+            emailing.send_submitter_generic_mail(contact, articleId, form, "#RecommenderRejectMail")
         except Exception as e:
             session.flash = (session.flash or "") + current.T("Email failed.")
             raise e 
