@@ -1174,7 +1174,7 @@ def complete_orcid_dialog():
 ####################################################################################
 
 def invitation_to_review_form(article_id: int, user: User, review: Review, more_delay: bool):
-    disclaimerText = DIV(getText(current.request, current.auth, current.db, "#ConflictsForReviewers"))
+    disclaimerText = DIV(getText("#ConflictsForReviewers"))
     dueTime = review.review_duration.lower() if review.review_duration else 'three weeks'
 
     form = FORM(

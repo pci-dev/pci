@@ -72,7 +72,7 @@ if False and request.tickets_db:
     ts._get_table(request.tickets_db, ts.tablename, request.application)
 
 
-def get_databases(request):
+def get_databases():
     dbs = {}
     for (key, value) in global_env.items():
         try:
@@ -84,7 +84,7 @@ def get_databases(request):
     return dbs
 
 
-databases = get_databases(None)
+databases = get_databases()
 
 
 def eval_in_global_env(text):
@@ -92,7 +92,7 @@ def eval_in_global_env(text):
     return global_env["_ret"]
 
 
-def get_database(request):
+def get_database():
     if request.args and request.args[0] in databases:
         return eval_in_global_env(request.args[0])
     else:
@@ -100,8 +100,8 @@ def get_database(request):
         redirect(URL("index"))
 
 
-def get_table(request):
-    db = get_database(request)
+def get_table():
+    db = get_database()
     if len(request.args) > 1 and request.args[1] in db.tables:
         return (db, request.args[1])
     else:
@@ -109,14 +109,14 @@ def get_table(request):
         redirect(URL("index"))
 
 
-def get_query(request):
+def get_query():
     try:
         return eval_in_global_env(request.vars.query)
     except Exception:
         return None
 
 
-def query_by_table_type(tablename, db, request=request):
+def query_by_table_type(tablename):
     keyed = hasattr(db[tablename], "_primarykey")
     if keyed:
         firstkey = db[tablename][db[tablename]._primarykey[0]]
@@ -142,7 +142,7 @@ def index():
 
 
 def insert():
-    (db, table) = get_table(request)
+    (db, table) = get_table()
     form = SQLFORM(db[table], ignore_rw=ignore_rw)
     if form.accepts(request.vars, session):
         response.flash = T("new record inserted")
@@ -157,7 +157,7 @@ def insert():
 def download():
     import os
 
-    db = get_database(request)
+    db = get_database()
     return response.download(request, db)
 
 
@@ -165,8 +165,8 @@ def csv():
     import gluon.contenttype
 
     response.headers["Content-Type"] = gluon.contenttype.contenttype(".csv")
-    db = get_database(request)
-    query = get_query(request)
+    db = get_database()
+    query = get_query()
     if not query:
         return None
     response.headers["Content-disposition"] = "attachment; filename=%s_%s.csv" % tuple(request.vars.query.split(".")[:2])
@@ -180,7 +180,7 @@ def import_csv(table, file):
 def select():
     import re
 
-    db = get_database(request)
+    db = get_database()
     dbname = request.args[0]
     try:
         is_imap = db._uri.startswith("imap://")
@@ -195,7 +195,7 @@ def select():
             request.vars.query = "%s.%s.%s==%s" % (request.args[0], match.group("table"), match.group("field"), match.group("value"))
     else:
         request.vars.query = session.last_query
-    query = get_query(request)
+    query = get_query()
     if request.vars.start:
         start = int(request.vars.start)
     else:
@@ -292,7 +292,7 @@ def select():
 
 
 def update():
-    (db, table) = get_table(request)
+    (db, table) = get_table()
     keyed = hasattr(db[table], "_primarykey")
     record = None
     db[table]._common_filter = None
@@ -304,7 +304,7 @@ def update():
         record = db(db[table].id == request.args(2)).select().first()
 
     if not record:
-        qry = query_by_table_type(table, db)
+        qry = query_by_table_type(table)
         session.flash = T("record does not exist")
         redirect(URL("select", args=request.args[:1], vars=dict(query=qry)))
 
@@ -324,7 +324,7 @@ def update():
 
     if form.accepts(request.vars, session):
         session.flash = T("done!")
-        qry = query_by_table_type(table, db)
+        qry = query_by_table_type(table)
         redirect(URL("select", args=request.args[:1], vars=dict(query=qry)))
     return dict(form=form, table=db[table])
 

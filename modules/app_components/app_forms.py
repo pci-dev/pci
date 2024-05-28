@@ -146,8 +146,9 @@ def cc_widget(field, value):
 
 from app_modules import emailing_tools
 
-def update_mail_content_keep_editing_form(form, db, request, response):
-
+def update_mail_content_keep_editing_form(form):
+    db, request, response = current.db, current.request, current.response
+    
     mail = db.mail_queue[request.vars.id]
     content_saved = process_mail_content(mail, form)
 
@@ -295,7 +296,7 @@ def report_survey(article: Article, survey: Optional[ReportSurvey] = None, contr
         session.flash = current.T("Article submitted", lazy=False)
 
         if controller == "user_fill":
-            emailing.send_to_submitter_acknowledgement_submission(session, auth, db, article.id)
+            emailing.send_to_submitter_acknowledgement_submission(article.id)
             emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, article.id)
             redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
 
@@ -486,7 +487,8 @@ def checklist_validation(form):
         
 
 ########################################################
-def recommender_decline_invitation_form(request, session, db, auth, articleId):
+def recommender_decline_invitation_form(articleId):
+    request, session, db, auth = current.request, current.session, current.db, current.auth
     Field.CC = db.Field.CC
     art = db.t_articles[articleId]
     contact = myconf.take("contacts.managers")

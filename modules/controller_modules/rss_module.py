@@ -35,7 +35,9 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 # RSS MODULES
 ######################################################################################################################################################################
-def mkRecommArticleRss(auth, db, row):
+def mkRecommArticleRss(row):
+    db = current.db
+
     recomm = db((db.t_recommendations.article_id == row.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if recomm is None:
         return None
@@ -73,7 +75,7 @@ def mkRecommArticleRss(auth, db, row):
 
 
 ######################################################################################################################################################################
-def mkRecommArticleRss4bioRxiv(auth, db, row):
+def mkRecommArticleRss4bioRxiv(row):
     ## Template:
     # <link providerId="PCI">
     # <resource>
@@ -87,6 +89,8 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
     # </resource>
     # <doi>10.1101/273367</doi>
     # </link>
+    auth, db = current.auth, current.db
+    
     recomm = db((db.t_recommendations.article_id == row.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if recomm is None:
         return None
@@ -95,8 +99,8 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
     title = "Version %(version)s of this preprint has been peer-reviewed and recommended by %(pci)s" % locals()
     url = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=True)
 
-    recommendersStr = common_small_html.mkRecommendersString(auth, db, recomm)
-    reviewersStr = common_small_html.mkReviewersString(auth, db, row.id)
+    recommendersStr = common_small_html.mkRecommendersString(recomm)
+    reviewersStr = common_small_html.mkReviewersString(row.id)
 
     local = pytz.timezone("Europe/Paris")
     local_dt = local.localize(row.last_status_change, is_dst=None)

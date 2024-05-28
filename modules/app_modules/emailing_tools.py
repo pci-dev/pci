@@ -55,8 +55,8 @@ def mkAuthors(article):
 
 
 ######################################################################################################################################################################
-def getMailer(auth):
-    mail = auth.settings.mailer
+def getMailer():
+    mail = current.auth.settings.mailer
     mail.settings.server = myconf.take("smtp.server")
     mail.settings.sender = myconf.take("smtp.sender")
     mail.settings.login = myconf.take("smtp.login")
@@ -372,7 +372,8 @@ def createMailReport(mail_resu, destPerson, reports):
 
 
 ######################################################################################################################################################################
-def getFlashMessage(session, reports):
+def getFlashMessage(reports):
+    session = current.session
     messages = []
 
     for report in reports:

@@ -4,7 +4,6 @@ from attr import dataclass
 
 from gluon.dal import SQLCustomType
 from gluon.contrib.appconfig import AppConfig
-from gluon.globals import Request, Session
 from gluon.html import A, CENTER, FORM, IMG, URL, SPAN, DIV, STRONG
 from gluon.http import redirect
 from gluon.sqlhtml import SQLFORM
@@ -43,7 +42,9 @@ class OrcidTools:
     
 
     @staticmethod
-    def add_orcid_auth_user_form(session: Session, request: Request, auth_user_form: SQLFORM, redirect_url: Optional[str] = None):
+    def add_orcid_auth_user_form(auth_user_form: SQLFORM, redirect_url: Optional[str] = None):
+        session = current.session
+        
         OrcidTools.configure_orcid_input(auth_user_form)
         if not redirect_url or len(redirect_url) == 0:
             return
@@ -53,20 +54,22 @@ class OrcidTools:
         orcid_row.components.insert(0, CENTER(orcid_api.get_orcid_html_button()))
         if session.click_orcid:
             try:
-                orcid_api.update_form(session, request, auth_user_form)
+                orcid_api.update_form(auth_user_form)
             except HTTPException as e:
                 session.flash = e
             session.click_orcid = False
 
 
     @staticmethod
-    def redirect_ORCID_authentication(session: Session, request: Request):
+    def redirect_ORCID_authentication():
+        session = current.session
+
         session.click_orcid = True
-        next = get_next(request)
+        next = get_next()
         if not next:
             session.flash = current.T('Redirection URL is required for ORCID authentication')
             return redirect(URL('default','index'))
-        code = OrcidAPI.get_code_in_url(request)
+        code = OrcidAPI.get_code_in_url()
         if not code:
             orcid_api = OrcidAPI(next)
             orcid_api.go_to_authentication_page()
@@ -158,9 +161,11 @@ class OrcidAPI:
                  current.T('Log to your ORCID account to partially fill your profile'), _href=URL("default", "redirect_ORCID_authentication", vars=dict(_next=self.__redirect_url)), _class="btn btn-info", _style=style)
 
 
-    def update_form(self, session: Session, request: Request, form: FORM):
+    def update_form(self, form: FORM):
+        session = current.session
+
         if not session.token_orcid:
-            code = OrcidAPI.get_code_in_url(request)
+            code = OrcidAPI.get_code_in_url()
             if not code:
                 return
 
@@ -331,7 +336,9 @@ class OrcidAPI:
 
 
     @staticmethod
-    def get_code_in_url(request: Request):
+    def get_code_in_url():
+        request = current.request
+
         if 'code' in request.vars:
             return cast(str, request.vars['code'])
         return None

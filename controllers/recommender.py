@@ -132,10 +132,10 @@ def fields_awaiting_articles():
     response.view = "default/gab_list_layout.html"
     return dict(
         titleIcon="inbox",
-        pageTitle=getTitle(request, auth, db, "#RecommenderAwaitingArticlesTitle"),
-        customText=getText(request, auth, db, "#RecommenderArticlesAwaitingRecommendationText:InMyFields"),
+        pageTitle=getTitle("#RecommenderAwaitingArticlesTitle"),
+        customText=getText("#RecommenderArticlesAwaitingRecommendationText:InMyFields"),
         grid=grid,
-        pageHelp=getHelp(request, auth, db, "#RecommenderArticlesAwaitingRecommendation:InMyFields"),
+        pageHelp=getHelp("#RecommenderArticlesAwaitingRecommendation:InMyFields"),
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
@@ -216,18 +216,18 @@ def search_reviewers():
     users.thematics.type = "string"
     users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
 
-    pageTitle = getTitle(request, auth, db, "#RecommenderSearchReviewersTitle")
-    customText = getText(request, auth, db, "#RecommenderSearchReviewersText")
-    pageHelp = getHelp(request, auth, db, "#RecommenderSearchReviewers")
+    pageTitle = getTitle("#RecommenderSearchReviewersTitle")
+    customText = getText("#RecommenderSearchReviewersText")
+    pageHelp = getHelp("#RecommenderSearchReviewers")
 
     if myGoal == "4review":
             header = T("")
             # use above defaults for: pageTitle, customText, pageHelp
     elif myGoal == "4press":
             header = T("Propose contribution")
-            pageTitle = getTitle(request, auth, db, "#RecommenderSearchCollaboratorsTitle")
-            customText = getText(request, auth, db, "#RecommenderSearchCollaboratorsText")
-            pageHelp = getHelp(request, auth, db, "#RecommenderSearchCollaborators")
+            pageTitle = getTitle("#RecommenderSearchCollaboratorsTitle")
+            customText = getText("#RecommenderSearchCollaboratorsText")
+            pageHelp = getHelp("#RecommenderSearchCollaborators")
 
     links = [
         dict(
@@ -348,7 +348,7 @@ def article_details():
                 db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
             )
             recommHeaderHtml = article_components.get_article_infos_card(art, printable, True)
-            recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, "recommender", request, False, printable, quiet=False)
+            recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, False, printable, quiet=False)
             recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(art, printable, quiet=False)
 
             infoCard = TAG(recommHeaderHtml)
@@ -373,7 +373,7 @@ def article_details():
                 recommHeaderHtml=recommHeaderHtml,
                 recommStatusHeader=recommStatusHeader,
                 printable=printable,
-                pageHelp=getHelp(request, auth, db, "#RecommenderArticlesRequiringRecommender"),
+                pageHelp=getHelp("#RecommenderArticlesRequiringRecommender"),
                 myContents=myContents,
                 myBackButton=common_small_html.mkBackButton(),
                 pciRRactivated=pciRRactivated,
@@ -395,7 +395,7 @@ def new_submission():
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL())))
     else:
-        c = getText(request, auth, db, "#ConflictsForRecommenders")
+        c = getText("#ConflictsForRecommenders")
         myEthical = DIV(
             FORM(
                 DIV(
@@ -415,9 +415,9 @@ def new_submission():
         )
         myScript = common_tools.get_script("new_submission.js")
 
-    customText = DIV(getText(request, auth, db, "#NewRecommendationInfo"), myEthical, _class="pci2-flex-column pci2-align-items-center")
+    customText = DIV(getText("#NewRecommendationInfo"), myEthical, _class="pci2-flex-column pci2-align-items-center")
 
-    return dict(titleIcon="edit", pageTitle=getTitle(request, auth, db, "#RecommenderBeforePostprintSubmissionTitle"), customText=customText, myFinalScript=myScript)
+    return dict(titleIcon="edit", pageTitle=getTitle("#RecommenderBeforePostprintSubmissionTitle"), customText=customText, myFinalScript=myScript)
 
 
 ######################################################################################################################################################################
@@ -497,9 +497,9 @@ def my_awaiting_articles():
 
     return dict(
         titleIcon="envelope",
-        pageHelp=getHelp(request, auth, db, "#RecommenderSuggestedArticles"),
-        customText=getText(request, auth, db, "#RecommenderSuggestedArticlesText"),
-        pageTitle=getTitle(request, auth, db, "#RecommenderSuggestedArticlesTitle"),
+        pageHelp=getHelp("#RecommenderSuggestedArticles"),
+        customText=getText("#RecommenderSuggestedArticlesText"),
+        pageTitle=getTitle("#RecommenderSuggestedArticlesTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
@@ -527,8 +527,8 @@ def accept_new_article_to_recommend():
         actionFormUrl = URL("recommender_actions", "do_accept_new_article_to_recommend")
         longname = myconf.take("app.longname")
 
-    pageTitle = getTitle(request, auth, db, "#AcceptPreprintInfoTitle")
-    customText = getText(request, auth, db, "#AcceptPreprintInfoText")
+    pageTitle = getTitle("#AcceptPreprintInfoTitle")
+    customText = getText("#AcceptPreprintInfoText")
 
     response.view = "controller/recommender/accept_new_article_to_recommend.html"
     return dict(
@@ -540,10 +540,10 @@ def accept_new_article_to_recommend():
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def completed_evaluations():
     resu = _my_recomms(["Recommended-private", "Recommended", "Rejected", "Cancelled"])
-    resu["customText"] = getText(request, auth, db, "#RecommenderCompletedArticlesText")
+    resu["customText"] = getText("#RecommenderCompletedArticlesText")
     resu["titleIcon"] = "ok-sign"
-    resu["pageTitle"] = getTitle(request, auth, db, "#RecommenderCompletedArticlesTitle")
-    resu["pageHelp"] = getHelp(request, auth, db, "#RecommenderCompletedArticles")
+    resu["pageTitle"] = getTitle("#RecommenderCompletedArticlesTitle")
+    resu["pageHelp"] = getHelp("#RecommenderCompletedArticles")
     return resu
 
 ######################################################################################################################################################################
@@ -589,20 +589,20 @@ def _my_recomms(statuses, pressReviews=None):
     isPress = (pressReviews == True)
     if isPress:  ## NOTE: POST-PRINTS
         query = query & (db.t_articles.already_published == True)
-        pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPostprintTitle")
-        customText = getText(request, auth, db, "#RecommenderMyRecommendationsPostprintText")
+        pageTitle = getTitle("#RecommenderMyRecommendationsPostprintTitle")
+        customText = getText("#RecommenderMyRecommendationsPostprintText")
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
         query = query & (db.t_articles.already_published == False)
-        pageTitle = getTitle(request, auth, db, "#RecommenderMyRecommendationsPreprintTitle")
-        customText = getText(request, auth, db, "#RecommenderMyRecommendationsPreprintText")
+        pageTitle = getTitle("#RecommenderMyRecommendationsPreprintTitle")
+        customText = getText("#RecommenderMyRecommendationsPreprintText")
         fields += [
             db.t_recommendations.recommendation_state,
             db.t_recommendations.is_closed,
             db.t_recommendations.recommender_id,
         ]
         links += [
-            dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(request, row.t_recommendations if "t_recommendations" in row else row)),
+            dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(row.t_recommendations if "t_recommendations" in row else row)),
         ]
         db.t_recommendations.article_id.label = T("Preprint")
 
@@ -665,7 +665,7 @@ def _my_recomms(statuses, pressReviews=None):
 
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
-        pageHelp=getHelp(request, auth, db, "#RecommenderMyRecommendations"),
+        pageHelp=getHelp("#RecommenderMyRecommendations"),
         titleIcon=titleIcon,
         pageTitle=pageTitle,
         customText=customText,
@@ -711,11 +711,11 @@ def direct_submission():
             URL(c="recommender", f="add_contributor", vars=dict(recommId=recommId, goBack=URL("recommender", "my_recommendations", vars=dict(pressReviews=True)), onlyAdd=False))
         )
     return dict(
-        pageHelp=getHelp(request, auth, db, "#RecommenderDirectSubmission"),
+        pageHelp=getHelp("#RecommenderDirectSubmission"),
         # myBackButton=common_small_html.mkBackButton(),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#RecommenderDirectSubmissionTitle"),
-        customText=getText(request, auth, db, "#RecommenderDirectSubmissionText"),
+        pageTitle=getTitle("#RecommenderDirectSubmissionTitle"),
+        customText=getText("#RecommenderDirectSubmissionText"),
         form=form,
         myFinalScript=myScript,
     )
@@ -776,7 +776,7 @@ def recommendations():
         # New recommendation function (WIP)
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
         recommHeaderHtml = article_components.get_article_infos_card(art, printable, True)
-        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, "recommender", request, False, printable, quiet=False)
+        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, False, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(art, printable, quiet=False)
 
         if printable:
@@ -794,7 +794,7 @@ def recommendations():
             recommHeaderHtml=recommHeaderHtml,
             recommTopButtons=recommTopButtons or "",
             printable=printable,
-            pageHelp=getHelp(request, auth, db, "#RecommenderOtherRecommendations"),
+            pageHelp=getHelp("#RecommenderOtherRecommendations"),
             myContents=myContents,
             myBackButton=common_small_html.mkBackButton(),
             pciRRactivated=pciRRactivated,
@@ -893,10 +893,10 @@ def show_report_survey():
 
     response.view = "default/gab_form_layout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#RecommenderReportSurvey"),
+        pageHelp=getHelp("#RecommenderReportSurvey"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#RecommenderReportSurveyTitle"),
-        customText=getText(request, auth, db, "#RecommenderReportSurveyText", maxWidth="800"),
+        pageTitle=getTitle("#RecommenderReportSurveyTitle"),
+        customText=getText("#RecommenderReportSurveyText", maxWidth="800"),
         form=form,
     )
 
@@ -944,10 +944,10 @@ def one_review():
             upload=URL("default", "download"),
         )
     return dict(
-        pageHelp=getHelp(request, auth, db, "#RecommenderArticleOneReview"),
-        customText=getText(request, auth, db, "#RecommenderArticleOneReviewText"),
+        pageHelp=getHelp("#RecommenderArticleOneReview"),
+        customText=getText("#RecommenderArticleOneReviewText"),
         titleIcon="eye-open",
-        pageTitle=getTitle(request, auth, db, "#RecommenderArticleOneReviewTitle"),
+        pageTitle=getTitle("#RecommenderArticleOneReviewTitle"),
         myBackButton=common_small_html.mkBackButton(),
         form=form,
     )
@@ -1051,10 +1051,10 @@ def reviews():
         myScript = common_tools.get_script("rename_add_record_button.js")
 
         return dict(
-            pageHelp=getHelp(request, auth, db, "#RecommenderArticleReviews"),
-            customText=getText(request, auth, db, "#RecommenderArticleReviewsText"),
+            pageHelp=getHelp("#RecommenderArticleReviews"),
+            customText=getText("#RecommenderArticleReviewsText"),
             titleIcon="eye-open",
-            pageTitle=getTitle(request, auth, db, "#RecommenderArticleReviewsTitle"),
+            pageTitle=getTitle("#RecommenderArticleReviewsTitle"),
             # myBackButton=common_small_html.mkBackButton(),
             content=myContents,
             grid=grid,
@@ -1156,7 +1156,7 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
     
 
 
-    customText=getText(request, auth, db, "#RecommenderReinviteReviewersText")
+    customText=getText("#RecommenderReinviteReviewersText")
 
     if not text: prevRoundHeader = ""
 
@@ -1194,7 +1194,7 @@ def reviewers():
         first_round_id = db((db.t_recommendations.article_id == article.id)).select(orderby=db.t_recommendations.id).first()
         no_of_first_round_reviews = db((db.t_reviews.recommendation_id == first_round_id)).count()
         prevRoundHeader = ""
-        customText=getText(request, auth, db, "#RecommenderAddReviewersText")
+        customText=getText("#RecommenderAddReviewersText")
         if (pciRRactivated and article.art_stage_1_id is not None) and ((recomm_round == 2 and no_of_first_round_reviews == 0) or (recomm_round == 1)):
             prevRoundHeader, customText = get_prev_reviewers(article.art_stage_1_id, recomm, new_stage=new_stage)
         elif recomm_round > 1:
@@ -1308,10 +1308,10 @@ def reviewers():
         myScript = common_tools.get_script("collapsibles.js")
 
         return dict(
-            pageHelp=getHelp(request, auth, db, "#RecommenderAddReviewers"),
+            pageHelp=getHelp("#RecommenderAddReviewers"),
             customText=customText,
             titleIcon="search",
-            pageTitle=getTitle(request, auth, db, "#RecommenderAddReviewersTitle"),
+            pageTitle=getTitle("#RecommenderAddReviewersTitle"),
             myAcceptBtn=myAcceptBtn,
             content=my_content,
             prevContent=prevRoundHeader,
@@ -1467,10 +1467,10 @@ def send_review_cancellation():
     
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        pageHelp=getHelp("#EmailForRegisterdReviewer"),
         titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText("#EmailForRegisteredReviewerInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
 
@@ -1554,10 +1554,10 @@ def send_reviewer_generic_mail():
 
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        pageHelp=getHelp("#EmailForRegisterdReviewer"),
         titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText("#EmailForRegisteredReviewerInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
 
@@ -1749,10 +1749,10 @@ def email_for_registered_reviewer():
 
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        pageHelp=getHelp("#EmailForRegisterdReviewer"),
         titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText("#EmailForRegisteredReviewerInfo"),
     )
 
 
@@ -1931,10 +1931,10 @@ def email_for_new_reviewer():
     myScript = common_tools.get_script("name_check.js")
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForNewReviewer"),
+        pageHelp=getHelp("#EmailForNewReviewer"),
         titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#EmailForNewReviewerInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForNewReviewerInfo"),
+        pageTitle=getTitle("#EmailForNewReviewerInfoTitle"),
+        customText=getText("#EmailForNewReviewerInfo"),
         myBackButton=common_small_html.mkBackButton(),
         myFinalScript=myScript,
     )
@@ -2077,10 +2077,10 @@ def add_contributor():
             )
         return dict(
             myBackButton=myBackButton,
-            pageHelp=getHelp(request, auth, db, "#RecommenderAddContributor"),
-            customText=getText(request, auth, db, "#RecommenderAddContributorText"),
+            pageHelp=getHelp("#RecommenderAddContributor"),
+            customText=getText("#RecommenderAddContributorText"),
             titleIcon="link",
-            pageTitle=getTitle(request, auth, db, "#RecommenderAddContributorTitle"),
+            pageTitle=getTitle("#RecommenderAddContributorTitle"),
             content=myContents,
             form=form,
             myAcceptBtn=myAcceptBtn,
@@ -2131,9 +2131,9 @@ def contributions():
 
         myScript = common_tools.get_script("contributions.js")
         return dict(
-            pageHelp=getHelp(request, auth, db, "#RecommenderContributionsToPressReviews"),
-            customText=getText(request, auth, db, "#RecommenderContributionsToPressReviewsText"),
-            pageTitle=getTitle(request, auth, db, "#RecommenderContributionsToPressReviewsTitle"),
+            pageHelp=getHelp("#RecommenderContributionsToPressReviews"),
+            customText=getText("#RecommenderContributionsToPressReviewsText"),
+            pageTitle=getTitle("#RecommenderContributionsToPressReviewsTitle"),
             contents=myContents,
             grid=grid,
             # myAcceptBtn = myAcceptBtn,
@@ -2234,15 +2234,15 @@ def edit_recommendation():
         if isPress:
             db.t_recommendations.recommendation_title.label = T("Recommendation title")
             db.t_recommendations.recommendation_comments.label = T("Recommendation")
-            customText = getText(request, auth, db, "#RecommenderEditRecommendationText")
-            pageHelp = getHelp(request, auth, db, "#RecommenderEditRecommendation")
-            pageTitle = getTitle(request, auth, db, "#RecommenderEditRecommendationTitle")
+            customText = getText("#RecommenderEditRecommendationText")
+            pageHelp = getHelp("#RecommenderEditRecommendation")
+            pageTitle = getTitle("#RecommenderEditRecommendationTitle")
         else:
             db.t_recommendations.recommendation_title.label = T("Decision or recommendation title")
             db.t_recommendations.recommendation_comments.label = SPAN("Decision or recommendation", BR(), H5("Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box."))
-            customText = getText(request, auth, db, "#RecommenderEditDecisionText")
-            pageHelp = getHelp(request, auth, db, "#RecommenderEditDecision")
-            pageTitle = getTitle(request, auth, db, "#RecommenderEditDecisionTitle")
+            customText = getText("#RecommenderEditDecisionText")
+            pageHelp = getHelp("#RecommenderEditDecision")
+            pageTitle = getTitle("#RecommenderEditDecisionTitle")
 
         if isPress or scheduled_reject:
             fields = ["no_conflict_of_interest", "recommendation_title", "recommendation_comments"]
@@ -2442,10 +2442,10 @@ def my_co_recommendations():
     )
     myContents = ""
     return dict(
-        pageHelp=getHelp(request, auth, db, "#RecommenderMyPressReviews"),
-        customText=getText(request, auth, db, "#RecommenderMyPressReviewsText"),
+        pageHelp=getHelp("#RecommenderMyPressReviews"),
+        customText=getText("#RecommenderMyPressReviewsText"),
         titleIcon="link",
-        pageTitle=getTitle(request, auth, db, "#RecommenderMyPressReviewsTitle"),
+        pageTitle=getTitle("#RecommenderMyPressReviewsTitle"),
         # myBackButton=common_small_html.mkBackButton(),
         contents=myContents,
         grid=grid,
@@ -2561,9 +2561,9 @@ def review_emails():
     myScript = common_tools.get_script("replace_mail_content.js")
     return dict(
         titleIcon="send",
-        pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
-        customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
-        pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
+        pageTitle=getTitle("#RecommenderReviewEmailsTitle"),
+        customText=getText("#RecommenderReviewEmailsText"),
+        pageHelp=getHelp("#RecommenderReviewEmails"),
         myBackButton=common_small_html.mkBackButton(target=back_button),
         grid=grid,
         myFinalScript=myScript,
@@ -2697,9 +2697,9 @@ def article_reviews_emails():
     myScript = common_tools.get_script("replace_mail_content.js")
     return dict(
         titleIcon="send",
-        pageTitle=getTitle(request, auth, db, "#ArticleReviewsEmailsTitle"),
-        customText=getText(request, auth, db, "#ArticleReviewsEmailsText"),
-        pageHelp=getHelp(request, auth, db, "#ArticleReviewsEmails"),
+        pageTitle=getTitle("#ArticleReviewsEmailsTitle"),
+        customText=getText("#ArticleReviewsEmailsText"),
+        pageHelp=getHelp("#ArticleReviewsEmails"),
         myBackButton=common_small_html.mkBackButton(target=target), 
         grid=original_grid,
         myFinalScript=myScript,
@@ -2708,7 +2708,7 @@ def article_reviews_emails():
 
 
 def mail_form_processing(form):
-    app_forms.update_mail_content_keep_editing_form(form, db, request, response)
+    app_forms.update_mail_content_keep_editing_form(form)
 
 
 ######################################################################################################################################################################
@@ -2762,12 +2762,12 @@ def edit_and_resend_email():
 
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        pageHelp=getHelp("#EmailForRegisterdReviewer"),
         titleIcon="envelope",
         html_string=html_string,
         resent=resent,
-        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText("#EmailForRegisteredReviewerInfo"),
     )
 
 ######################################################################################################################################################################
@@ -2811,9 +2811,9 @@ def verify_co_authorship():
 
     return dict(
         myBackButton = common_small_html.mkBackButton(),
-        customText=getText(request, auth, db, "#VerifyCoAuthorText"),
+        customText=getText("#VerifyCoAuthorText"),
         titleIcon="ok-sign",
-        pageTitle=getText(request, auth, db, "#VerifyCoAuthorTitle"),
-        pageHelp=getHelp(request, auth, db, "#VerifyCoAuthor"),
+        pageTitle=getText("#VerifyCoAuthorTitle"),
+        pageHelp=getHelp("#VerifyCoAuthor"),
         grid=DIV(grid),
     )

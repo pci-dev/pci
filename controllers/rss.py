@@ -77,7 +77,7 @@ def _rss_cacher(maxArticles):
     most_recent = None
     for row in query:
         try:
-            r = rss_module.mkRecommArticleRss(auth, db, row)
+            r = rss_module.mkRecommArticleRss(row)
             if r:
                 myRows.append(r)
                 if most_recent is None or row.last_status_change > most_recent:
@@ -192,7 +192,7 @@ def rss4bioRxiv():
     links = etree.Element("links")
     for row in query:
         # try:
-        r = rss_module.mkRecommArticleRss4bioRxiv(auth, db, row)
+        r = rss_module.mkRecommArticleRss4bioRxiv(row)
         if r:
             link = etree.Element("link", attrib=dict(providerId=provider))
             resource = etree.SubElement(link, "resource")
@@ -273,7 +273,7 @@ def rss4altmetric():
     links = etree.Element("links")
     for row in query:
         # try:
-        r = rss_module.mkRecommArticleRss4bioRxiv(auth, db, row)
+        r = rss_module.mkRecommArticleRss4bioRxiv(row)
         if r:
             link = etree.Element("link", attrib=dict(providerId=provider))
             resource = etree.SubElement(link, "resource")
