@@ -2,13 +2,13 @@
 
 from functools import reduce
 from re import match
-import re
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 from zipfile import ZipFile
 import io
 from gluon import current
 from gluon.globals import Request
-from gluon.html import *
+from gluon import html
+from gluon.http import HTTP
 from gluon.sqlhtml import SQLFORM
 from gluon.tools import Auth
 from gluon.validators import IS_LIST_OF
@@ -19,10 +19,55 @@ from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 from pydal import DAL
 
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 
 myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+
+
+def URL(a: Optional[str] = None,
+        c: Optional[str] = None,
+        f: Optional[str] = None,
+        r: Optional[str] = None,
+        args: Optional[str] = None,
+        vars: Optional[Dict[str, Any]] = None,
+        anchor: str ='',
+        extension: Optional[str] = None,
+        env: Optional[str] = None,
+        hmac_key: Optional[str] = None,
+        hash_vars: bool = True,
+        salt: Optional[str] = None,
+        user_signature: Optional[bool] = None,
+        scheme: Optional[Union[str, bool]] = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        encode_embedded_slash: bool = False,
+        url_encode: bool = True,
+        language: Optional[str] = None,
+        hash_extension: bool = True
+        ):
+    
+    return str(html.URL(a, # type: ignore
+                    c,
+                    f,
+                    r,
+                    args,
+                    vars,
+                    anchor,
+                    extension,
+                    env,
+                    hmac_key,
+                    hash_vars,
+                    salt,
+                    user_signature,
+                    scheme,
+                    host,
+                    port,
+                    encode_embedded_slash,
+                    url_encode,
+                    language,
+                    hash_extension))
+
 
 ######################################################################################################################################################################
 def takePort(p: Optional[str]):
@@ -37,7 +82,7 @@ def takePort(p: Optional[str]):
 
 ######################################################################################################################################################################
 def get_script(scriptName: str):
-    return SCRIPT(_src=URL("static", "js/pci/"+scriptName), _type="text/javascript")
+    return html.SCRIPT(_src=URL("static", "js/pci/"+scriptName), _type="text/javascript")
 
 
 ######################################################################################################################################################################
@@ -56,7 +101,7 @@ def getDefaultDateFormat():
 def pci_redirect(url):
     print("sURL:")
     print(surl)
-    scr = HTML(HEAD(XML('<meta http-equiv="Cache-control" content="no-cache">'), SCRIPT('document.location.href="%s"' % surl, _type="text/javascript")))
+    scr = html.HTML(html.HEAD(html.XML('<meta http-equiv="Cache-control" content="no-cache">'), html.SCRIPT('document.location.href="%s"' % surl, _type="text/javascript")))
     print(scr)
     raise HTTP(200, scr)
 
@@ -313,3 +358,5 @@ def delete_user_from_PCI(user: User):
                                 ReviewState.DECLINED)
     User.empty_user_data(user)
     return User.set_deleted(user)
+
+    
