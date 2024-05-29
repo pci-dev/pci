@@ -145,7 +145,7 @@ class XMLJATSArticleElement:
     authors: List[XMLJATSAuthorElement]
     abstract: Optional[str]
     doi: Optional[str]
-    version: Optional[str]
+    version: Optional[int]
     year: Optional[int]
     journal: Optional[str]
 
@@ -185,14 +185,17 @@ class XMLJATSArticleElement:
 
 
     def _explore_version(self, xml_root: ET.Element):
-        version = xml_root.findtext("./front/article-meta/article-version")
-        if version:
-            self.version = version.strip()
+        try:
+            version = xml_root.findtext("./front/article-meta/article-version")
+            if version:
+                self.version = int(float(version.strip()))
+                return
+            
+            version = xml_root.get("dtd-version")
+            if version:
+                self.version = int(float(version.strip()))
+        except ValueError:
             return
-        
-        version = xml_root.get("dtd-version")
-        if version:
-            self.version = version.strip()
 
 
     def _explore_doi(self, xml_root: ET.Element):

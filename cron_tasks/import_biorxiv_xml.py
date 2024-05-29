@@ -84,7 +84,7 @@ def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
                                                    ", ".join(authors),
                                                    title=article_data.title,
                                                    abstract=article_data.abstract,
-                                                   ms_version=article_data.version,
+                                                   ms_version=str(article_data.version),
                                                    article_year=article_data.year,
                                                    preprint_server=article_data.journal)
      

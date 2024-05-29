@@ -54,7 +54,7 @@ def cancel_submission():
     if not _is_manager_or_author(article):
         raise HTTP(403, f"You are not article author or manager")
 
-    Article.set_status(article, ArticleStatus.NOT_CONSIDERED)
+    Article.set_status(article, ArticleStatus.CANCELLED)
 
     current.session.flash = f"Submission #{article_id} cancelled"
     return redirect(URL("default", "index"))
