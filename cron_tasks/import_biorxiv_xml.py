@@ -5,7 +5,7 @@ import time
 from typing import List
 
 from gluon import current
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from models.article import Article
 
 from models.user import User
@@ -66,7 +66,7 @@ def main():
                print(f"Unable to create article from document {xml_file}")
                continue
 
-          emailing.send_to_coar_requester(current.session, current.auth, current.db, user, article)
+          emailing.send_to_biorxiv_requester(user, article)
 
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
