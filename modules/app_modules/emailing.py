@@ -3554,7 +3554,7 @@ def send_to_biorxiv_requester(user: User, article: Article):
         vars=dict(articleId=article.id, key=user.reset_password_key),
     )
     mail_vars["cancelSubmissionLink"] = URL("biorxiv", "cancel_submission", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
-        vars=dict(articleId=article.id),
+        vars=dict(articleId=article.id, pre_submission_token=article.pre_submission_token)
     )
 
     hashtag_template = "#UserCompleteSubmissionBiorxiv"

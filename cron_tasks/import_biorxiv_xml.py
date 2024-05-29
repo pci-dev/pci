@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import secrets
 import shutil
 import time
 from typing import List
@@ -86,7 +87,8 @@ def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
                                                    abstract=article_data.abstract,
                                                    ms_version=str(article_data.version),
                                                    article_year=article_data.year,
-                                                   preprint_server=article_data.journal)
+                                                   preprint_server=article_data.journal,
+                                                   pre_submission_token=secrets.token_urlsafe(64))
      
      return article
 

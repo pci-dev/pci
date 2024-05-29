@@ -1,3 +1,4 @@
+from typing import Optional
 from app_modules.common_tools import get_article_id, URL
 from app_modules.emailing_tools import getMailCommonVars
 from gluon import current
@@ -41,7 +42,6 @@ def complete_submission():
     return dict(pageTitle=page_title, customText=custom_text)
 
 
-@auth.requires_login() # type: ignore
 def cancel_submission():
     article_id = get_article_id(current.request)
     if not article_id:
@@ -51,12 +51,20 @@ def cancel_submission():
     if not article:
         raise HTTP(404, f"Article with id {article_id} not found")
     
-    if not _is_manager_or_author(article):
-        raise HTTP(403, f"You are not article author or manager")
+    pre_submission_token: Optional[str] = None
+    if 'pre_submission_token' in current.request.vars:
+        pre_submission_token = current.request.vars['pre_submission_token']
 
-    Article.set_status(article, ArticleStatus.CANCELLED)
+    if not pre_submission_token or pre_submission_token != article.pre_submission_token:
+        if not _is_manager_or_author(article):
+            raise HTTP(403, f"You are not article author or manager")
 
-    current.session.flash = f"Submission #{article_id} cancelled"
+    if article.status != ArticleStatus.CANCELLED.value:
+        Article.set_status(article, ArticleStatus.CANCELLED)
+        current.session.flash = f"Submission #{article_id} cancelled"
+    else:
+        current.session.flash = f"Submission #{article_id} already cancelled"
+    
     return redirect(URL("default", "index"))
 
 
