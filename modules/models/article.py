@@ -6,7 +6,7 @@ from typing import Any, List, Optional as _, cast, TypedDict
 from gluon.tools import Auth
 from models.group import Role
 from pydal.objects import Row
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon import current
 
 from models.recommendation import Recommendation
@@ -102,6 +102,7 @@ class Article(Row):
     competitors: _[List[str]]
     doi_of_published_article: _[str]
     coar_notification_id: _[str]
+    pre_submission_token: _[str]
     request_submission_change: _[bool]
     validation_timestamp: _[datetime]
     preprint_server: _[str]
@@ -216,7 +217,7 @@ class Article(Row):
                                                         ArticleStatus.RECOMMENDED.value,
                                                         ArticleStatus.NOT_CONSIDERED.value,
                                                         ArticleStatus.CANCELLED.value)
-        is_admin = bool(auth.has_membership(role=Role.ADMINISTRATOR.value))
+        is_admin = bool(auth.has_membership(role=Role.ADMINISTRATOR.value)) # type: ignore
         return is_author or is_admin
     
 
@@ -243,6 +244,7 @@ class Article(Row):
                                     ms_version: _[str] = None,
                                     article_year: _[int] = None,
                                     preprint_server: _[str] = None,
+                                    pre_submission_token: _[str] = None,
                                     **kwargs: Any):
         db = current.db
  
@@ -257,6 +259,7 @@ class Article(Row):
             ms_version=ms_version,
             article_year=article_year,
             preprint_server=preprint_server,
+            pre_submission_token=pre_submission_token,
             **kwargs)
 
         return Article.get_by_id(article_id)

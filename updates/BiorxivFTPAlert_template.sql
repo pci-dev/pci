@@ -33,3 +33,6 @@ insert into mail_templates
 {{message}}
 '
 );
+
+ALTER table t_articles
+ADD COLUMN if not exists pre_submission_token text;

@@ -3124,3 +3124,7 @@ ALTER TABLE t_articles ADD COLUMN translated_keywords jsonb;
 --- 2024-04-09 updates/methods_require_specific_expertise.sql
 ALTER TABLE t_articles 
 ADD COLUMN IF NOT EXISTS methods_require_specific_expertise text;
+
+--- 2024-05-27 updates/BiorxivFTPAlert_template.sql
+ALTER table t_articles
+ADD COLUMN if not exists pre_submission_token text;
