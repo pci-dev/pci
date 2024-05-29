@@ -101,7 +101,7 @@ def mkDOI(doi: Optional[str]):
         return SPAN("", _class="doi_url")
 
 
-def mkSimpleDOI(doi):
+def mkSimpleDOI(doi: Optional[str]):
     doi_url = mkLinkDOI(doi)
     return A(doi, _href=doi_url) if doi_url else ""
 
