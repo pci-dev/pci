@@ -260,6 +260,12 @@ class Article(Row):
             **kwargs)
 
         return Article.get_by_id(article_id)
+    
+
+    @staticmethod
+    def set_status(article: 'Article', status: ArticleStatus):
+        article.status = status.value
+        article.update_record()
 
 
 def is_scheduled_submission(article: Article) -> bool:
