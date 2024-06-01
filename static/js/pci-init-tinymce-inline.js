@@ -5,21 +5,6 @@ const ids_array_inline = ["#t_articles_title"];
 for (const id_textarea of ids_array_inline) {
   let elem = document.querySelector(id_textarea);
   if (elem) {
-    // let newNode = document.createElement("h4")
-    // newNode.id = elem.id + "_inline"
-    // newNode.className = "test-toto"
-    // newNode.innerText = ""
-    // newNode.style.margin = "0"
-
-    // get value
-    // newNode.innerHTML = elem.value
-
-    // elem.style.display = "none"
-
-    // let parentNode = elem.parentNode
-    // parentNode.insertBefore(newNode, elem)
-    // let editor_elem = `<div id="${id_textarea + '_editor'}"></div>`
-
     let tinymce_options = {
       external_plugins: { mathjax: "../tinymce-mathjax/plugin.min.js" },
       invalid_styles:
