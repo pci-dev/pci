@@ -27,7 +27,6 @@ init_db() {
 	PSQL < sql_dumps/pci_evolbiol_test.sql
 	PSQL < sql_dumps/t_status_article.sql
 	PSQL < sql_dumps/pci_evolbiol_test_data0.sql
-	PSQL < sql_dumps/insert_test_users.sql
 	utils/import-from-eb.sh
 }
 
