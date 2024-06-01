@@ -1291,8 +1291,7 @@ def my_reviews():
         db.t_reviews.review.readable = False
     else:
         db.t_reviews.recommendation_id.readable = False
-    # db.t_reviews.review.label = T('Your review')
-    # links = [dict(header='toto', body=lambda row: row.t_articles.id),]
+
     links = [
         dict(
             header=T("Review uploaded as file") if not pciRRactivated else T("Review files"),
