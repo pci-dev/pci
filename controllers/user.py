@@ -654,7 +654,7 @@ def edit_my_article():
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
     articleId = request.vars["articleId"]
-    art = db.t_articles[articleId]
+    art = Article.get_by_id(articleId)
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
@@ -913,12 +913,15 @@ def edit_my_article():
         if art.status in ["Pending", "Pre-submission"] :
             anchor = None
 
-            if art.coar_notification_id:
+            if art.coar_notification_id or art.pre_submission_token:
                 # alternative: if request.vars.key: # coar first time only
                 target_page = (
                         "fill_report_survey" if pciRRactivated else
                         "add_suggested_recommender"
                 )
+
+                Article.remove_pre_submission_token(art)
+
 
         redirect(URL(c="user", f=target_page, vars=page_vars, anchor=anchor))
 

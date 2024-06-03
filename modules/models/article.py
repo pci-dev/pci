@@ -271,6 +271,12 @@ class Article(Row):
         article.update_record()
 
 
+    @staticmethod
+    def remove_pre_submission_token(article: 'Article'):
+        article.pre_submission_token = None
+        article.update_record()
+
+
 def is_scheduled_submission(article: Article) -> bool:
     return scheduledSubmissionActivated and (
         article.scheduled_submission_date is not None

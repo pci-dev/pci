@@ -21,6 +21,10 @@ def complete_submission():
     
     if not _is_manager_or_author(article):
         raise HTTP(403, f"You are not article author or manager")
+    
+    if article.pre_submission_token is None:
+        current.session.flash = 'Article already submitted'
+        redirect(URL(c="user", f="recommendations", vars=dict(articleId=article_id)))
 
     mail_vars = getMailCommonVars()
     mail_vars["gtuLink"] = URL("about", "gtu", scheme=True)
