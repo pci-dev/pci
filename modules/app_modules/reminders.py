@@ -171,6 +171,7 @@ def getReminder(hashtag_template: str, review: Review):
     hash_temp = hash_temp.replace("Stage2", "")
     hash_temp = hash_temp.replace("ScheduledSubmission", "")
     hash_temp = hash_temp.replace("COAR", "")
+    hash_temp = hash_temp.replace("Biorxiv", "")
 
     if hash_temp in _review_reminders:
         if review:

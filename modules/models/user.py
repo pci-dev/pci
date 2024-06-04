@@ -1,6 +1,7 @@
 from datetime import datetime
 import time
 from typing import List, Optional as _, cast
+from pydal.validators import CRYPT
 
 from gluon.utils import web2py_uuid
 from pydal.objects import Row
@@ -43,6 +44,13 @@ class User(Row):
         db = current.db
         try: user = db.auth_user[id]
         except: user = None
+        return cast(_[User], user)
+    
+
+    @staticmethod
+    def get_by_email(email: str):
+        db = current.db
+        user = db(db.auth_user.email == email).select().first()
         return cast(_[User], user)
     
     
@@ -181,3 +189,37 @@ class User(Row):
         user.orcid = None
 
         user.update_record()
+
+    
+    @staticmethod
+    def generate_new_reset_password_key():
+        reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
+        return reset_password_key
+
+
+    @staticmethod
+    def create_new_user(first_name: str,
+                        last_name: str,
+                        email: str,
+                        reset_password_key: _[str] = None,
+                        institution: _[str] = None,
+                        country: _[str] = None,
+                        orcid: _[str] = None):
+        db = current.db
+        my_crypt = CRYPT(key=current.auth.settings.hmac_key)
+        crypt_pass = my_crypt(current.auth.random_password())[0]
+        
+        if not reset_password_key:
+            reset_password_key = User.generate_new_reset_password_key()
+
+        new_user_id = db.auth_user.insert(
+            email=email,
+            password=crypt_pass,
+            reset_password_key=reset_password_key,
+            first_name=first_name,
+            last_name=last_name,
+            institution=institution,
+            country=country,
+            orcid=orcid)
+        
+        return User.get_by_id(new_user_id)

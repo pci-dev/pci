@@ -4,6 +4,7 @@ from typing import Set, cast
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect
+from models.article import ArticleStatus
 from models.user import User
 from pydal.validators import IS_IN_SET
 from gluon.tools import Auth, Service, PluginManager, Mail
@@ -590,6 +591,7 @@ db.define_table(
     Field("manager_authors", type="string", length=50, default=""),
     Field("coar_notification_id", type="text", readable=False, writable=False),
     Field("coar_notification_closed", type="boolean", readable=False, writable=False),
+    Field("pre_submission_token", type="text", readable=False, writable=False),
     Field("translated_abstract", type="json", length=5000000, readable=False, writable=False),
     Field("translated_title", type="json", length=5000000, readable=False, writable=False),
     Field("translated_keywords", type="json", length=5000000, readable=False, writable=False),
@@ -652,6 +654,7 @@ def deltaStatus(s, f):
                 emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, o["id"])
                 # delete submitter reminder
                 emailing.delete_reminder_for_submitter(db, "#ReminderUserCompleteSubmissionCOAR", o["id"])
+                emailing.delete_reminder_for_submitter(db, "#ReminderUserCompleteSubmissionBiorxiv", o["id"])
 
             elif o.status == "Pending" and f["status"] == "Pre-submission":
                 # delete reminders
@@ -765,7 +768,7 @@ def deltaStatus(s, f):
 
 
 def newArticle(s, articleId):
-    if s.status == "Pending-survey": # pciRRactivated only
+    if s.status in (ArticleStatus.PENDING_SURVEY.value, ArticleStatus.PRE_SUBMISSION.value): # pciRRactivated only
         return
 
     if s.coar_notification_id:

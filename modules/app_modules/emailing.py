@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import html
 import os
 import datetime
 import time
@@ -3169,7 +3170,7 @@ def send_reset_password(user, link):
     emailing_tools.insertMailInQueue(current.auth, current.db, hashtag_template, mail_vars)
 
 ######################################################################################################################################################################
-def send_to_coar_requester(session, auth, db, user, article):
+def send_to_coar_requester(session: Session, auth: Auth, db, user: User, article: Article):
     mail_vars = emailing_tools.getMailCommonVars()
 
     mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
@@ -3521,6 +3522,65 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
     emailing_tools.getFlashMessage(session, reports)
+##################################################################################################################################################################
+
+def send_import_biorxiv_alert(xml_file_path: str):
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["destAddress"] = mail_vars["appGenericContactMail"]
+    pre_style = "overflow-y: scroll; max-width: 100%; height: 100%; color: #8e8c84; background-color: #f5f5f5; border: 1px solid #cccccc; border-radius: 4px; padding: 9.5px;"
+    with open(xml_file_path, 'r') as xml_file:
+        content = ""
+        for line in xml_file:
+            content += f"{html.escape(line)}<br/>"
+        mail_vars["xmlContent"] = f'<pre lang="xml" style="{pre_style}">{content}</pre>'
+
+    hashtag_template = "#BiorxivFTPAlert"
+
+    emailing_tools.insertMailInQueue(current.auth, current.db, hashtag_template, mail_vars)
+
+
+def send_to_biorxiv_requester(user: User, article: Article):
+    auth, db, session = current.auth, current.db, current.session
+
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
+    mail_vars["destAddress"] = user.email
+    mail_vars["ccAddresses"] = mail_vars["appContactMail"]
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+    mail_vars["completeSubmissionLink"] = URL("biorxiv", "complete_submission", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
+        vars=dict(articleId=article.id, key=user.reset_password_key),
+    )
+    mail_vars["cancelSubmissionLink"] = URL("biorxiv", "cancel_submission", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
+        vars=dict(articleId=article.id, pre_submission_token=article.pre_submission_token)
+    )
+
+    hashtag_template = "#UserCompleteSubmissionBiorxiv"
+
+    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, article_id=article.id)
+    create_reminder_user_complete_submission_biorxiv(article)
+
+    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
+    emailing_tools.getFlashMessage(session, reports)
+
+
+def create_reminder_user_complete_submission_biorxiv(article: Article):
+    auth, db = current.auth, current.db
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars["destAddress"] = User.get_by_id(article.user_id).email
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["message"] = MailQueue.get_mail_content(
+            MailQueue.get_by_article_and_template(article, "#UserCompleteSubmissionBiorxiv").first())
+
+    hashtag_template = "#ReminderUserCompleteSubmissionBiorxiv"
+
+    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
 
 ##################################################################################################################################################################
 def send_message_to_recommender_and_reviewers(auth, db, article_id):
