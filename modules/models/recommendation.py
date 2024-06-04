@@ -53,9 +53,13 @@ class Recommendation(Row):
         return cast(_[Recommendation], db.t_recommendations[id])
     
     @staticmethod
-    def get_by_article_id(article_id: int):
+    def get_by_article_id(article_id: int, order_by: ... = None):
         db = current.db
-        return cast(List[Recommendation], db(db.t_recommendations.article_id == article_id).select())
+        if order_by:
+            recommendations = db(db.t_recommendations.article_id == article_id).select(orderby=order_by)
+        else:
+            recommendations = db(db.t_recommendations.article_id == article_id).select()
+        return cast(List[Recommendation], recommendations)
 
 
     @staticmethod

@@ -6,7 +6,7 @@ import shutil
 import string
 from typing import Any, Dict, List, Optional
 
-from app_components.ongoing_recommendation import getRecommendationProcess
+from app_components.ongoing_recommendation import get_recommendation_process
 from app_modules.html_to_latex import HtmlToLatex
 from app_modules.common_small_html import build_citation, mkSimpleDOI
 from configparser import NoOptionError
@@ -155,7 +155,7 @@ class Clockss:
     
 
     def _replace_recommendation_process(self, var_title: str, template: str):
-        recommendation_process: Any = getRecommendationProcess(current.auth, current.db, current.response, self._article)
+        recommendation_process: Any = get_recommendation_process(self._article)
         recommendation_process = recommendation_process.components[0]
         latex_code: List[str] = []
         first_round = True

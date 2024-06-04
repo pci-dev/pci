@@ -117,7 +117,7 @@ def mkLinkDOI(doi: Optional[str]):
 
 
 ######################################################################################################################################################################
-def mkUser(auth, db, userId, linked=False, scheme=False, host=False, port=False, orcid: bool = False, orcid_exponant: bool = False):
+def mkUser(auth: Auth, db: DAL, userId: Optional[int], linked: bool = False, scheme: bool = False, host: bool = False, port: bool = False, orcid: bool = False, orcid_exponant: bool = False):
     if userId is not None:
         theUser = User.get_by_id(userId)
         if theUser:

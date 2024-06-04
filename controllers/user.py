@@ -161,7 +161,7 @@ def recommendations():
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
         recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(auth, db, response, art, printable)
-        myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
+        myContents = ongoing_recommendation.get_recommendation_process(art, printable)
 
         reviews = Review.get_all_active_reviews(db.get_last_recomm(art.id), auth.user_id)
         for review in reviews:

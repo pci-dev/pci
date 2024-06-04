@@ -158,7 +158,7 @@ def get_exclude_list(request):
         return None
 
 
-def check_coauthorship(user_id, article):
+def check_coauthorship(user_id: int, article: Article):
     manager_authors = (article.manager_authors or "").split(',')
     for manager in manager_authors:
         if manager == str(user_id): return True
