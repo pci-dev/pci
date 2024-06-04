@@ -654,12 +654,12 @@ def edit_my_article():
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
     articleId = request.vars["articleId"]
-    art = Article.get_by_id(articleId)
-    if art == None:
+    article = Article.get_by_id(articleId)
+    if article == None:
         session.flash = T("Unavailable")
         redirect(URL("my_articles", user_signature=True))
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    elif art.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission", "Scheduled submission revision"):
+    elif article.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission", "Scheduled submission revision"):
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
 
@@ -701,7 +701,7 @@ def edit_my_article():
 
         if not havingStage2Articles:
             db.t_articles.art_stage_1_id.requires = IS_EMPTY_OR(
-                IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != art.id)), "t_articles.id", "%(title)s")
+                IS_IN_DB(db((db.t_articles.user_id == auth.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.id != article.id)), "t_articles.id", "%(title)s")
             )
             pciRRjsScript = ""
         else:
@@ -735,12 +735,12 @@ def edit_my_article():
     db.t_articles.scheduled_submission_date.readable = False
     db.t_articles.scheduled_submission_date.writable = False
 
-    if parallelSubmissionAllowed and art.status == "Pending":
+    if parallelSubmissionAllowed and article.status == "Pending":
         db.t_articles.parallel_submission.label = T("This preprint is (or will be) also submitted to a journal")
         fields = []
         if pciRRactivated:
             fields = ["report_stage"]
-            if art.report_stage == "STAGE 2":
+            if article.report_stage == "STAGE 2":
                 fields += ["art_stage_1_id"]
                 db.t_articles.art_stage_1_id.readable = True
                 db.t_articles.art_stage_1_id.writable = True
@@ -796,7 +796,7 @@ def edit_my_article():
         fields = []
         if pciRRactivated:
             fields = ["report_stage"]
-            if art.report_stage == "STAGE 2":
+            if article.report_stage == "STAGE 2":
                 fields += ["art_stage_1_id"]
                 db.t_articles.art_stage_1_id.readable = True
                 db.t_articles.art_stage_1_id.writable = True
@@ -850,11 +850,11 @@ def edit_my_article():
             myScript = common_tools.get_script("new_field_responsiveness.js")
 
     buttons = [
-        A("Cancel", _class="btn btn-default", _href=URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
+        A("Cancel", _class="btn btn-default", _href=URL(c="user", f="recommendations", vars=dict(articleId=article.id), user_signature=True)),
         INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 
-    try: article_manager_coauthors = art.manager_authors
+    try: article_manager_coauthors = article.manager_authors
     except: article_manager_coauthors = False
     managers = common_tools.get_managers(db)
     manager_checks = {}
@@ -868,14 +868,14 @@ def edit_my_article():
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=deletable, showid=False, fields = fields, extra_fields = manager_label + manager_fields, buttons=buttons)
-    ArticleTranslator.add_edit_translation_buttons(art, form)
+    ArticleTranslator.add_edit_translation_buttons(article, form)
 
     try:
-        article_version = int(art.ms_version)
+        article_version = int(article.ms_version)
     except:
-        article_version = art.ms_version
+        article_version = article.ms_version
 
-    prev_picture = art.uploaded_picture
+    prev_picture = article.uploaded_picture
 
     if type(db.t_articles.uploaded_picture.requires) == list: # non-RR see db.py
         not_empty = db.t_articles.uploaded_picture.requires.pop()
@@ -884,7 +884,7 @@ def edit_my_article():
     def onvalidation(form):
         if not pciRRactivated:
             if isinstance(article_version, int):
-                if int(art.ms_version) > int(form.vars.ms_version):
+                if int(article.ms_version) > int(form.vars.ms_version):
                     form.errors.ms_version = "New version number must be greater than or same as previous version number"
             if not prev_picture and form.vars.uploaded_picture == b"":
                 form.errors.uploaded_picture = not_empty.error_message
@@ -896,7 +896,6 @@ def edit_my_article():
             except: pass
 
         response.flash = T("Article saved", lazy=False)
-        article = db.t_articles[articleId]
         if article.status == "Pre-submission":
             article.status = "Pending"
         if form.vars.report_stage == "STAGE 1":
@@ -905,22 +904,22 @@ def edit_my_article():
         article.update_record()
 
         manager_ids = common_tools.extract_manager_ids(form, manager_ids)
-        page_vars = dict(articleId=art.id, manager_authors=manager_ids)
+        page_vars = dict(articleId=article.id, manager_authors=manager_ids)
 
         target_page = "recommendations"
         anchor = "author-reply"
 
-        if art.status in ["Pending", "Pre-submission"] :
+        if article.status in ["Pending", "Pre-submission"] :
             anchor = None
 
-            if art.coar_notification_id or art.pre_submission_token:
+            if article.coar_notification_id or article.pre_submission_token:
                 # alternative: if request.vars.key: # coar first time only
                 target_page = (
                         "fill_report_survey" if pciRRactivated else
                         "add_suggested_recommender"
                 )
 
-                Article.remove_pre_submission_token(art)
+                Article.remove_pre_submission_token(article)
 
 
         redirect(URL(c="user", f=target_page, vars=page_vars, anchor=anchor))
