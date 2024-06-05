@@ -271,7 +271,7 @@ def map_dc(metadata, xml_str):
 
     # map to db.t_article columns
     metadata["title"] = get("title")
-    metadata["authors"] = ", ".join(get_all("creator"))
+    metadata["authors"] = "; ".join(get_all("creator"))
     metadata["article_year"] = get("date").split("-")[0]
     metadata["abstract"] = get("description")
     metadata["keywords"] = get("subject")
