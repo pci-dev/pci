@@ -422,13 +422,6 @@ td .ellipsis-over-350 {
   font-weight: bold !important;
 }
 
-.test-toto {
-  padding: 12px 16px;
-  border: 1px solid #dfd7ca;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
 h4 p,
 h3 p {
   margin: 0;
