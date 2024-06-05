@@ -77,6 +77,7 @@ def recommendations():
             "recommendation": {
                 "url": URL("articles", f"rec?id={recom.article_id}", scheme=True),
                 "doi": mkLinkDOI(recom.recommendation_doi),
+                "recommender": User.get_name(recom.recommender_id),
             },
             "article": {
                 "doi": recom.article_id.doi,
