@@ -78,6 +78,10 @@ def recommendations():
                 "url": URL("articles", f"rec?id={recom.article_id}", scheme=True),
                 "doi": mkLinkDOI(recom.recommendation_doi),
                 "recommender": User.get_name(recom.recommender_id),
+                "co-recommenders": [
+                    User.get_name(coreco.contributor_id)
+                        for coreco in Recommendation.get_co_recommenders(recom)
+                ],
             },
             "article": {
                 "doi": recom.article_id.doi,
