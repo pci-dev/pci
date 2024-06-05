@@ -27,13 +27,12 @@ init_db() {
 	PSQL < sql_dumps/pci_evolbiol_test.sql
 	PSQL < sql_dumps/t_status_article.sql
 	PSQL < sql_dumps/pci_evolbiol_test_data0.sql
-	PSQL < sql_dumps/insert_test_users.sql
 	utils/import-from-eb.sh
 }
 
 init_logos() {
 	mv small-$logo_base static/images/small-background.png
-	mv $logo static/images/background.png
+	mv       $logo_base static/images/background.png
 }
 
 update_crontab() {
@@ -53,11 +52,11 @@ update_gitauth() {
 
 chkconfig() {
        	ls {small-,}$logo_base > /dev/null
-	PSQL <<< '\d'
+	PSQL <<< '\d' > /dev/null
 }
 
 PSQL() {
-	(db=$PCI_DB; psql -t -h mydb1 -p 33648 -U peercom $db)
+	(db=$pci_db; psql -t -h mydb1 -p 33648 -U peercom $db)
 }
 
 

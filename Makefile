@@ -136,7 +136,7 @@ recreate.v_article:
 		< utils/re-create_v_article.sql; \
 	done
 
-setup.new-pci: dirs = errors/ uploads/ sessions/
+setup.new-pci: dirs = errors/ uploads/ sessions/ databases/ cron/
 setup.new-pci:
 	mkdir -p $(dirs)
 	chgrp www-data $(dirs) private
