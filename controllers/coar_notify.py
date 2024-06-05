@@ -197,9 +197,11 @@ def create_prefilled_submission(req, user):
     preprint_server = get_preprint_server(doi)
     guess_version(doi, meta_data)
 
+    if not meta_data["authors"]:
+        meta_data["authors"] = author_data["name"]
+
     return Article.create_prefilled_submission(user_id=user.id, 
                                                doi=doi, 
-                                               authors=author_data["name"],
                                                coar_notification_id=coar_req_id,
                                                preprint_server=preprint_server,
                                                **meta_data)
@@ -269,7 +271,7 @@ def map_dc(metadata, xml_str):
 
     # map to db.t_article columns
     metadata["title"] = get("title")
-    metadata["authors"] = ", ".join(get_all("creator"))
+    metadata["authors"] = "; ".join(get_all("creator"))
     metadata["article_year"] = get("date").split("-")[0]
     metadata["abstract"] = get("description")
     metadata["keywords"] = get("subject")
