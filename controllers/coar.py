@@ -40,10 +40,10 @@ def cancel_submission():
 
     article = db.t_articles[articleId or None]
 
-    if not article: return f"no article: {articleId}"
-    if not article.coar_notification_id: return "no coar id for this submission"
-    if not article.coar_notification_id == coarId: return "coar id does not match"
-    if article.coar_notification_closed: return "coar submission already closed"
+    if not article: fail(404, f"no article: {articleId}")
+    if not article.coar_notification_id: fail(404, "no coar id for this submission")
+    if not article.coar_notification_id == coarId: fail(404, "coar id does not match")
+    if article.coar_notification_closed: fail(404, "coar submission already closed")
 
     article.status = "Cancelled"
     article.coar_notification_closed = True
@@ -51,6 +51,10 @@ def cancel_submission():
 
     session.flash = f"Submission #{articleId} / coar-id {coarId} cancelled"
     redirect(URL("default", "index")) #request.home))
+
+
+def fail(code, message):
+    raise HTTP(code, message)
 
 
 _page_text = """
