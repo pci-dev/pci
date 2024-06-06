@@ -35,6 +35,16 @@ def complete_submission():
 
 
 def cancel_submission():
+    response.view = "default/myLayoutBot.html"
+    confirmCancel = XML(_confirm_cancel.format(
+        articleId=request.vars.articleId,
+        coarId=request.vars.coarId,
+    ))
+
+    return dict(customText=confirmCancel)
+
+
+def do_cancel_submission():
     articleId = request.vars.articleId
     coarId = request.vars.coarId
 
@@ -56,6 +66,16 @@ def cancel_submission():
 def fail(code, message):
     raise HTTP(code, message)
 
+
+_confirm_cancel = """
+<center>
+<h2>Please confirm you wish to cancel your submission</h2>
+<a class="btn btn-info"
+   href="do_cancel_submission?articleId={articleId}&coarId={coarId}"
+>
+Confirm submission cancellation
+</a></center>
+"""
 
 _page_text = """
 <h2>Please read the following information attentively</h2>
