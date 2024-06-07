@@ -891,6 +891,7 @@ def edit_my_article():
             app_forms.checklist_validation(form)
 
     if form.process(onvalidation=onvalidation).accepted:
+        article = Article.get_by_id(articleId)
         if prev_picture and form.vars.uploaded_picture:
             try: os.unlink(os.path.join(request.folder, "uploads", prev_picture))
             except: pass
