@@ -47,6 +47,16 @@ def complete_submission():
 
 
 def cancel_submission():
+    response.view = "default/myLayoutBot.html"
+    confirmCancel = XML(_confirm_cancel.format(
+        articleId=request.vars.articleId,
+        pre_submission_token=request.vars.pre_submission_token,
+    ))
+
+    return dict(customText=confirmCancel)
+
+
+def do_cancel_submission():
     article_id = get_article_id(current.request)
     if not article_id:
         raise HTTP(400, f"ArticleId missing in request") 
@@ -75,6 +85,17 @@ def cancel_submission():
 def _is_manager_or_author(article: Article):
     is_author = bool(article.user_id == current.auth.user_id)
     return is_author or bool(current.auth.has_membership(role=Role.MANAGER.value))
+
+
+_confirm_cancel = """
+<center>
+<h2>Please confirm you wish to cancel your submission</h2>
+<a class="btn btn-info"
+   href="do_cancel_submission?articleId={articleId}&pre_submission_token={pre_submission_token}"
+>
+Confirm submission cancellation
+</a></center>
+"""
 
 
 _page_text = """
