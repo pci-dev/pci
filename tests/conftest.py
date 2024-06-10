@@ -12,7 +12,7 @@ def get_driver():
     return webdriver.Firefox(options=options)
 
 def get_config():
-    base_url = "http://localhost:8000/pci"
+    base_url = "http://localhost:8000"
     users = [ "user", "reviewer", "recommender", "manager", "admin", "test" ]
     return Namespace(
             base_url = base_url,
