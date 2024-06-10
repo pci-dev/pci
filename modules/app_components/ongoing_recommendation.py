@@ -807,7 +807,7 @@ def _get_manager_button(article: Article, is_recommender: bool):
         return validate_stage_button(article)
     
 
-def _get_recommendation_process_components(article: Article, printable: bool = False):
+def get_recommendation_process_components(article: Article, printable: bool = False):
     auth, db = current.auth, current.db
     recommendation_process_components: List[Dict[str, Any]] = []
 
@@ -872,6 +872,9 @@ def _get_recommendation_process_components(article: Article, printable: bool = F
             authorsReplyTrackChangeFileLink=_get_authors_reply_track_change_file_link(recommendation),
             editAuthorsReplyLink=_get_author_reply_link(article, recommendation, printable, i_recommendation),
             recommendationAuthor=I(current.T("by "), B(who_did_it_html), SPAN(", " + recommendation.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recommendation.last_change else "")),
+            recommendationAuthorName=B(who_did_it_html),
+            recommendationDate=recommendation.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recommendation.last_change else "",
+            recommendationValidationDate=recommendation.validation_timestamp.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recommendation.validation_timestamp else "",
             manuscriptDoi=SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recommendation.doi)) if (recommendation.doi) else SPAN(""),
             recommendationVersion=SPAN(" " + current.T("version:") + " ", recommendation.ms_version) if (recommendation.ms_version) else SPAN(""),
             recommendationTitle=H4(common_small_html.md_to_html(recommendation.recommendation_title) or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hide_on_going_recommendation is False) else "",
@@ -914,7 +917,7 @@ def _get_recommendation_process_components(article: Article, printable: bool = F
 def get_recommendation_process(article: Article, printable: bool = False):
     response = current.response
     
-    process = _get_recommendation_process_components(article)
+    process = get_recommendation_process_components(article)
     process_components = cast(Dict[str, Any], process['components'])
     am_I_in_recommender_list= bool(process['am_I_in_recommender_list'])
     am_I_in_co_recommender_list = bool(process['am_I_in_co_recommender_list'])
