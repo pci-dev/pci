@@ -1,4 +1,3 @@
-from io import StringIO
 import os
 import ftplib
 import pathlib
@@ -6,7 +5,7 @@ import shutil
 import string
 from typing import Any, Dict, List, Optional
 
-from app_components.ongoing_recommendation import get_recommendation_process
+from app_components.ongoing_recommendation import get_recommendation_process_components
 from app_modules.html_to_latex import HtmlToLatex
 from app_modules.common_small_html import build_citation, mkSimpleDOI
 from configparser import NoOptionError
@@ -18,12 +17,10 @@ from app_modules import crossref
 from app_modules import common_tools
 
 from gluon.html import TAG
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon import current
 
 import zipfile as z
-import lxml.html
-import lxml.etree
 
 
 myconf = AppConfig(reload=True)
@@ -155,66 +152,129 @@ class Clockss:
     
 
     def _replace_recommendation_process(self, var_title: str, template: str):
-        recommendation_process: Any = get_recommendation_process(self._article)
-        recommendation_process = recommendation_process.components[0]
+        recommendation_process: Any = get_recommendation_process_components(self._article)
+        process = recommendation_process['components']
+        
         latex_code: List[str] = []
         first_round = True
 
-        for round in recommendation_process.components:
+        for round in process:
             if not round:
                 continue
 
-            html_parser = lxml.html.HTMLParser(encoding='utf-8', remove_comments=True)
-            tree: ... = lxml.html.parse(StringIO(str(round)), parser=html_parser) # type: ignore
-            root = tree.getroot()
             latex_round: List[str] = []
 
-            round_number: str = root.xpath('//h2[@class="pci2-revision-round-title"]//b[@class="pci2-main-color-text"]/text()')
-            if round_number and len(round_number) > 0:
-                round_number = round_number[0].replace('#', '')
-                latex_round.append(f"\\subsection*{{Round {round_number}}}")
-            else:
-                continue
+            round_number: int = round['roundNumber']
+            latex_round.append(f"\\subsection*{{Evaluation round #{round_number}}}")
 
-            author_reply = root.xpath('//h4[@id="author-reply"]/following-sibling::div/div')
-            if author_reply and len(author_reply) > 0:
-                author_reply = str(lxml.html.tostring(author_reply[0]).decode('utf-8')) # type: ignore
-                author_reply = self._html_to_latex.convert(author_reply)
-                latex_round.append(f"\\subsubsection*{{Authors' response}}")
-                latex_round.append(f"{author_reply}")
-            
-            recommender_decision = root.xpath('//div[@class="pci2-recomm-text"]')
-            if recommender_decision and len(recommender_decision) > 0 and not first_round:
-                recommender_decision = str(lxml.html.tostring(recommender_decision[0]).decode('utf-8')) # type: ignore
-                recommender_decision = self._remove_references_in_recommendation_decision(recommender_decision)
-                recommender_decision = self._html_to_latex.convert(recommender_decision)
-                latex_round.append(f"\\subsubsection*{{Decision by {{\\recommender}}}}")
-                latex_round.append(recommender_decision)
+            recommendation_manuscrit = self._html_to_latex.convert(self._str(round['manuscriptDoi']))
+            if recommendation_manuscrit:
+                recommendation_manuscrit = recommendation_manuscrit.lstrip("Manuscript:").strip()
+                if recommendation_manuscrit:
+                    latex_round.append(f"\nDOI or URL of the preprint: {recommendation_manuscrit}")
 
-            reviews = root.xpath('//div[@class="review"]')
-            if len(reviews) > 0:
-                latex_round.append("\\subsubsection*{{Reviews}}")
-                
-            for review in reviews:
-                review_author = review.xpath('h4/span/text()')
-                if review_author and len(review_author) > 0:
-                    review_author = str(review_author[0]).split(',')[0]
-                else:
-                    continue
+            recommendation_version = self._html_to_latex.convert(self._str(round['recommendationVersion']))
+            if recommendation_version:
+                recommendation_version = recommendation_version.lstrip('version:').strip()
+                if recommendation_version:
+                    latex_round.append(f"\nVersion of the preprint: {recommendation_version}")
 
-                review_content = review.xpath('div')
-                if review_content and len(review_content) > 0:
-                    review_content: ... = lxml.html.tostring(review_content[0]).decode('utf-8') # type: ignore
-                    review_content = self._html_to_latex.convert(review_content)
-                    latex_round.append(f"\\subsubsection*{{Review by {review_author}}}")
-                    latex_round.append(review_content)
+            latex_round.extend(self._get_round_author_reply(round))
+            latex_round.extend(self._get_round_recommender_decision(round, first_round))
+            latex_round.extend(self._get_round_reviews(round))
             
             if len(latex_round) > 1:
                 latex_code.extend(latex_round)
-                
+            
             first_round = False
-
+                
         return template.replace(f"[[{var_title.upper()}]]", "\n".join(latex_code))
+    
+
+    def _get_round_reviews(self, round: Dict[str, Any]):
+        latex_lines: List[str] = []
+        reviews: List[Dict[str, Any]] = round['reviewsList']
+                
+        for review in reviews:
+            review_author = self._html_to_latex.convert(self._str(review['authors']))
+            if not review_author:
+                continue
+
+            review_content = self._html_to_latex.convert(self._str(review['text']))
+            if review_content:
+                latex_lines.append(f"\\subsubsection*{{Reviewed by {review_author}}}")
+                latex_lines.append(review_content)
+
+            review_link = self._html_to_latex.convert(self._str(review['pdfLink']))
+            if review_link:
+                latex_lines.append(f"\n{review_link}")
+        return latex_lines
+
+
+    def _get_round_recommender_decision(self, round: Dict[str, Any], first_round: bool):
+        latex_lines: List[str] = []
+
+        recommender_decision = self._str(round['recommendationText'])
+        if recommender_decision:
+            recommender_decision = self._remove_references_in_recommendation_decision(recommender_decision)
+        recommender_decision = self._html_to_latex.convert(recommender_decision)
+
+        if recommender_decision and not first_round:
+            
+            recommendation_label = f"Decision"
+
+            recommendation_author = self._html_to_latex.convert(self._str(round['recommendationAuthorName']))
+            if recommendation_author:
+                recommendation_label += f" by {recommendation_author}"
+
+            recommendation_post_date = self._html_to_latex.convert(self._str(round['recommendationDate']))
+            if recommendation_post_date:
+                recommendation_label += f", posted {recommendation_post_date}"
+
+            recommendation_validation_date = self._html_to_latex.convert(self._str(round['recommendationValidationDate']))
+            if recommendation_validation_date:
+                recommendation_validation_date += f", validated {recommendation_validation_date}"
+
+            recommendation_status = self._html_to_latex.convert(self._str(round['recommendationStatus']))
+            if recommendation_status:
+                recommendation_label += f": {recommendation_status}"
+            latex_lines.append(f"\\subsubsection*{{{recommendation_label}}}")
+
+            recommendation_title = self._html_to_latex.convert(self._str(round['recommendationTitle']))
+            if recommendation_title:
+                latex_lines.append(f"\\subsubsubsection{{{recommendation_title}}}")
+                latex_lines.append(r"\smallbreak")
+            latex_lines.append(recommender_decision)
+        return latex_lines
+
+
+    def _get_round_author_reply(self, round: Dict[str, Any]):
+        latex_lines: List[str] = []
+        author_reply = self._html_to_latex.convert(self._str(round['authorsReply']))
+        author_reply_date = self._str(round['authorsReplyDate'])
+        if author_reply:
+            author_reply_title = "Authors' reply"
+            if author_reply_date:
+                author_reply_title += f", {author_reply_date}"
+            latex_lines.append(f"\\subsubsection*{{{author_reply_title}}}")
+            latex_lines.append(f"{author_reply}")
+
+        author_reply_pdf_link = self._html_to_latex.convert(self._str(round['authorsReplyPdfLink']))
+        if author_reply_pdf_link:
+            latex_lines.append(f"\n{author_reply_pdf_link}")
+
+        author_reply_track_change_file = self._html_to_latex.convert(self._str(round['authorsReplyTrackChangeFileLink']))
+        if author_reply_track_change_file:
+            latex_lines.append(f"\n{author_reply_track_change_file}")
+        
+        return latex_lines
+
+
+    def _str(self, value: ...):
+        if value is None:
+            return ''
+        else:
+            return str(value)
 
 
     def _remove_references_in_recommendation_decision(self, recommendation_decision: str):
