@@ -151,6 +151,9 @@ class HtmlToLatex:
 
 
     def convert(self, html: str):
+        if len(html) == 0:
+            return ''
+        
         html_parser = lxml.html.HTMLParser(encoding='utf-8', remove_comments=True)
         tree: ... = lxml.html.parse(StringIO(html), parser=html_parser) # type: ignore
         root = tree.getroot() 
