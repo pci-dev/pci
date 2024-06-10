@@ -37,7 +37,7 @@ Install, configure, run:
 	make start      # run the PCI server
 
 
-Browse the "empty" PCI at http://localhost:8000/pci
+Browse the "empty" PCI at http://localhost:8000/
 
 Note: this 'dev' PCI runs with no mail server configured, so no mail
 will fly out; outbound and scheduled mails are however generally
