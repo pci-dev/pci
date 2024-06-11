@@ -888,6 +888,12 @@ def setRecommendationDoi(s, _recomm):
 
     if not recomm: return # on delete user
 
+    if pciRRactivated:
+        article =  db.t_articles[recomm.article_id]
+        if article.status in ("Pre-recommended-private", "Recommended-private"):
+            _recomm.recommendation_doi = ""
+            return
+
     if (not recomm.recommendation_doi
         or hasattr(_recomm, "recommendation_doi") and
         not _recomm.recommendation_doi

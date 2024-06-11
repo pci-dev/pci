@@ -110,7 +110,7 @@ def do_recommend_article():
                 redirect(redir_url)
 
     # stage 1 recommended privately 
-    if art.status == "Pre-recommended-private":	
+    if art.status == "Pre-recommended-private":
         art.status = "Recommended-private"
         recomm.validation_timestamp = request.now
         recomm.update_record()
