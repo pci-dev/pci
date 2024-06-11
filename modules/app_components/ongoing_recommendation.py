@@ -579,6 +579,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
                 text=None,
                 pdfLink=None,
                 state=None,
+                review=review
             )
 
     hide_on_going_review = _get_hide_on_going_review_and_set_show_review_request(article, recommendation, review, am_I_co_recommender, review_vars, printable)
@@ -897,7 +898,8 @@ def get_recommendation_process_components(article: Article, printable: bool = Fa
             scheduledSubmissionEndingButton=_show_scheduled_submission_ending_button(article, recommendation, am_I_co_recommender, printable),
             suspend_submissions=_suspend_submissions(),
             isSchedulingTrack=(pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or is_scheduled_submission(article))),
-            pciRRactivated=pciRRactivated
+            pciRRactivated=pciRRactivated,
+            recommenderId=recommendation.recommender_id
         )
         
         recommendation_process_components.append(component_vars)

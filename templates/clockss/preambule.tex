@@ -68,7 +68,7 @@
 \RequirePackage[default,scale=0.90]{opensans}
 % Defining document colors
 \usepackage{xcolor}
-\definecolor{darkgray}{HTML}{808080}
+\definecolor{darkgray}{HTML}{555555}
 \definecolor{mediumgray}{HTML}{6D6E70}
 \definecolor{ligthgray}{HTML}{d9d9d9}
 \definecolor{pciblue}{HTML}{74adca}
@@ -79,12 +79,14 @@
 \usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,singlelinecheck=off]{caption}
 \usepackage[pdfborder={0 0 0},   
     colorlinks=true,
-    linkcolor=blue,
-    urlcolor=blue,
-    citecolor=blue]{hyperref}  % sets link border to white
+    linkcolor=pciblue,
+    urlcolor=pciblue,
+    citecolor=pciblue]{hyperref}  % sets link border to white
 
 
 % Headers and footers
+\usepackage{sectsty}
+\subsubsectionfont{\color{darkgray}}
 
 % Headers and footers
 \usepackage{fancyhdr}  % custom headers/footers
@@ -132,7 +134,7 @@ A recommendation by {\color{pciblue}{\recommender}} based on the peer reviews by
 \small{Copyright: This work is licensed under the Creative Commons Attribution 4.0 International License. To view a copy of this license, visit \url{https://creativecommons.org/licenses/by/4.0/}}
 \vspace*{0.5cm}
 
-\textbf{\large{\textsc{Recommendation text}}}
+\textbf{\large{\textsc{Recommendation}}}
 \end{flushleft}
 
 \recomtext\\

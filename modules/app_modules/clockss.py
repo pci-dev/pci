@@ -3,20 +3,20 @@ import ftplib
 import pathlib
 import shutil
 import string
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union, cast
 
 from app_components.ongoing_recommendation import get_recommendation_process_components
 from app_modules.html_to_latex import HtmlToLatex
-from app_modules.common_small_html import build_citation, mkSimpleDOI
+from app_modules.common_small_html import build_citation, mkSimpleDOI, mkUser
 from configparser import NoOptionError
 from models.article import Article
 from models.pdf import PDF
-from models.review import Review
+from models.review import Review, ReviewState
 from models.recommendation import Recommendation
 from app_modules import crossref
 from app_modules import common_tools
 
-from gluon.html import TAG
+from gluon.html import A, SPAN, TAG
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon import current
 
@@ -101,23 +101,24 @@ class Clockss:
         template = self._get_latex_template_content()
 
         simple_variables: Dict[str, Any] = {
-            'ARTICLE_AUTHORS': self._article.authors,
-            'ARTICLE_TITLE': self._article.title,
-            'RECOMMENDATION_ABSTRACT': self._remove_references_in_recommendation_decision(self._recommendation.recommendation_comments or ''),
-            'ARTICLE_YEAR': self._article.article_year,
-            'ARTICLE_VERSION': self._article.ms_version,
-            'ARTICLE_COVER_LETTER': self._article.cover_letter,
-            'RECOMMENDER_NAMES': Recommendation.get_recommenders_names(self._recommendation),
-            'REVIEWER_NAMES': Review.get_reviewers_name(self._article.id),
-            'RECOMMENDATION_TITLE': self._recommendation.recommendation_title,
-            'RECOMMENDATION_DOI': mkSimpleDOI(self._recommendation.doi),
-            'PREPRINT_SERVER': self._article.preprint_server,
-            'RECOMMENDATION_CITATION': build_citation(self._article, self._recommendation, True),
-            'RECOMMENDATION_VALIDATION_DATE': self._recommendation.validation_timestamp.strftime("%d %B %Y") if self._recommendation.validation_timestamp else None
+            # 'KEY_IN_TEMPLATE': (value: str, is_latex_code: bool)
+            'ARTICLE_AUTHORS': (self._article.authors, False),
+            'ARTICLE_TITLE': (self._article.title, False),
+            'RECOMMENDATION_ABSTRACT': (self._remove_references_in_recommendation_decision(self._recommendation.recommendation_comments or ''), False),
+            'ARTICLE_YEAR': (self._article.article_year, False),
+            'ARTICLE_VERSION': (self._article.ms_version, False),
+            'ARTICLE_COVER_LETTER': (self._article.cover_letter, False),
+            'REVIEWER_NAMES': (self._get_reviewers_names(), True),
+            'RECOMMENDATION_TITLE': (self._recommendation.recommendation_title, False),
+            'RECOMMENDATION_DOI': (mkSimpleDOI(self._recommendation.doi), False),
+            'PREPRINT_SERVER': (self._article.preprint_server, False),
+            'RECOMMENDATION_CITATION': (build_citation(self._article, self._recommendation, True), False),
+            'RECOMMENDATION_VALIDATION_DATE': (self._recommendation.validation_timestamp.strftime("%d %B %Y") if self._recommendation.validation_timestamp else None, False),
+            'RECOMMENDER_NAMES': (self._get_recommendater_name(), True),
         }
 
         for variable_name, variable_value in simple_variables.items():
-            template = self._replace_var_in_template(variable_name, variable_value, template)
+            template = self._replace_var_in_template(variable_name, variable_value[0], template, variable_value[1])
 
         template = self._replace_list_references_in_template('ARTICLE_DATA_DOI', template)
         template = self._replace_recommendation_process('RECOMMENDATION_PROCESS', template)
@@ -125,6 +126,61 @@ class Clockss:
 
         return template
     
+
+    def _get_reviewers_names(self):
+        reviews = Review.get_by_article_id_and_state(self._article.id, ReviewState.REVIEW_COMPLETED)
+        nb_anonymous = 0
+        names: List[str] = []
+        user_id: List[int] = []
+        for review in reviews:
+            if not review.anonymously and review.reviewer_id not in user_id:
+                reviewer_html: Union[A, SPAN] = mkUser(current.auth, current.db, review.reviewer_id, linked=True, orcid=True)
+                reviewer_name = self._html_to_latex.convert(self._str(reviewer_html))
+                if isinstance(reviewer_html, SPAN) and len(reviewer_html.components) == 2: # type: ignore
+                    reviewer_name = self._html_to_latex.convert(self._str(reviewer_html.components[0])) # type: ignore
+                    reviewer_orcid = str(reviewer_html.components[1].attributes['_href']) # type: ignore
+                    reviewer_name += f"\\href{{{reviewer_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=10px,height=10px]{{ORCID_ID.png}}}}"
+                
+                names.append(reviewer_name)
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
+        
+        user_id.clear()
+
+        for review in reviews:
+            if review.anonymously and review.reviewer_id not in user_id:
+                nb_anonymous += 1
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
+        
+        if (nb_anonymous > 0):
+            anonymous = str(nb_anonymous) + ' anonymous reviewer'
+            if (nb_anonymous > 1):
+                anonymous += 's'
+            names.append(anonymous)
+        
+        formatted_names = ''
+        for i, name in enumerate(names):
+            if i == 0:
+                formatted_names = name
+            elif i == len(names) - 1:
+                formatted_names += f' and {name}'
+            else:
+                formatted_names += f', {name}'
+
+        return formatted_names
+
+
+    def _get_recommendater_name(self):
+        recommender_html: Union[A, SPAN] = mkUser(current.auth, current.db, self._recommendation.recommender_id, linked=True, orcid=True)
+        recommender_name = self._html_to_latex.convert(self._str(recommender_html))
+        if isinstance(recommender_html, SPAN) and len(recommender_html.components) == 2: # type: ignore
+            recommender_name = self._html_to_latex.convert(self._str(recommender_html.components[0])) # type: ignore
+            recommender_orcid = str(recommender_html.components[1].attributes['_href']) # type: ignore
+            recommender_name += f"\\href{{{recommender_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=10px,height=10px]{{ORCID_ID.png}}}}"
+
+        return recommender_name
+
 
     def _replace_img_in_template(self, template: str):
         pci = str(myconf.take("app.description")).lower()
@@ -165,7 +221,7 @@ class Clockss:
             latex_round: List[str] = []
 
             round_number: int = round['roundNumber']
-            latex_round.append(f"\\subsection*{{Evaluation round #{round_number}}}")
+            latex_round.append(f"\\subsection*{{Evaluation round \\#{round_number}}}")
 
             recommendation_manuscrit = self._html_to_latex.convert(self._str(round['manuscriptDoi']))
             if recommendation_manuscrit:
@@ -200,10 +256,29 @@ class Clockss:
             if not review_author:
                 continue
 
+            review_instance = cast(Review, review['review'])
+            if review_instance and not review_instance.anonymously:
+                html_reviewer = mkUser(current.auth, current.db, review_instance.reviewer_id, True, orcid=True)
+                reviewer: Optional[Union[A, SPAN]] = html_reviewer
+                reviewer_orcid: Optional[str] = None
+                if isinstance(html_reviewer, SPAN) and len(html_reviewer.components) == 2: #type: ignore
+                    reviewer = cast(A, html_reviewer.components[0]) # type: ignore
+                    reviewer_orcid = str(html_reviewer.components[1].attributes['_href']) # type: ignore
+
+                if isinstance(reviewer, A):
+                    reviewer_link = str(reviewer.attributes['_href']) # type: ignore
+                    review_date = review_author.rsplit(', ', 1)[1]
+                    reviewer_name = review_author.rsplit(', ', 1)[0]
+                    review_author = f"\\href{{{reviewer_link}}}{{{reviewer_name}}}"
+                    if reviewer_orcid:
+                        review_author += f"\\href{{{reviewer_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=8px,height=8px]{{ORCID_ID.png}}}}"
+                    review_author += f", {review_date}"
+
             review_content = self._html_to_latex.convert(self._str(review['text']))
             if review_content:
                 latex_lines.append(f"\\subsubsection*{{Reviewed by {review_author}}}")
                 latex_lines.append(review_content)
+
 
             review_link = self._html_to_latex.convert(self._str(review['pdfLink']))
             if review_link:
@@ -227,6 +302,13 @@ class Clockss:
             if recommendation_author:
                 recommendation_label += f" by {recommendation_author}"
 
+            recommender_id = int(round['recommenderId'])
+            recommender = mkUser(current.auth, current.db, recommender_id, linked=False, orcid=True)
+            if isinstance(recommender, SPAN) and len(recommender.components) == 2: # type: ignore
+                recommender_orcid = str(recommender.components[1].attributes['_href']) # type: ignore
+                recommendation_label += f"\\href{{{recommender_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=8px,height=8px]{{ORCID_ID.png}}}}"
+
+
             recommendation_post_date = self._html_to_latex.convert(self._str(round['recommendationDate']))
             if recommendation_post_date:
                 recommendation_label += f", posted {recommendation_post_date}"
@@ -237,12 +319,12 @@ class Clockss:
 
             recommendation_status = self._html_to_latex.convert(self._str(round['recommendationStatus']))
             if recommendation_status:
-                recommendation_label += f": {recommendation_status}"
+                recommendation_label += f": {recommendation_status.upper()}"
             latex_lines.append(f"\\subsubsection*{{{recommendation_label}}}")
 
             recommendation_title = self._html_to_latex.convert(self._str(round['recommendationTitle']))
             if recommendation_title:
-                latex_lines.append(f"\\subsubsubsection{{{recommendation_title}}}")
+                latex_lines.append(recommendation_title)
                 latex_lines.append(r"\smallbreak")
             latex_lines.append(recommender_decision)
         return latex_lines
