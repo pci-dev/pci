@@ -889,7 +889,9 @@ def setRecommendationDoi(s, _recomm):
     if not recomm: return # on delete user
 
     if pciRRactivated:
-        if db.t_articles[recomm.article_id].report_stage != "STAGE 2":
+        article =  db.t_articles[recomm.article_id]
+        if article.status in ("Pre-recommended-private", "Recommended-private"):
+            _recomm.recommendation_doi = ""
             return
 
     if (not recomm.recommendation_doi

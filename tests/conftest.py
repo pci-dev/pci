@@ -156,6 +156,7 @@ def config_set_scheduled_track(value=getenv("RR_SCHEDULED_TRACK")):
 
 config.is_rr = w2p_config["config"].getboolean("registered_reports")
 config_set_scheduled_track()
+config.reco_private = getenv("reco_private")
 
 
 import sys

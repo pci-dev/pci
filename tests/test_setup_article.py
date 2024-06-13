@@ -129,7 +129,10 @@ def fill_survey():
     select("#q13YES").click()
     select("#t_report_survey_q16").send_keys("make public")
     select("#t_report_survey_q20").send_keys("yes")
-    select("#t_report_survey_q21").send_keys("publish")
+    if config.reco_private:
+        select("#t_report_survey_q21").send_keys("publish stage 1 and 2")
+    else:
+        select("#t_report_survey_q21").send_keys("publish stage 1 reviews")
     select("#t_report_survey_q22").send_keys("yes")
     select("#t_report_survey_q23").send_keys("6 months")
     select("#t_report_survey_q24").send_keys("2022-01-01")
