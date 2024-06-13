@@ -22,6 +22,8 @@ class Recommender_makes_decision:
     row.select(".btn", contains="Write or Edit".upper()).click()
 
     select("#opinion_recommend").click()
+    if config.reco_private: select("#opinion_recommend_private").click()
+
     select("#t_recommendations_recommendation_title").send_keys("Recommendation")
     with select("#t_recommendations_recommendation_comments_ifr").frame():
         select("body").send_keys("Recommendation")
@@ -42,7 +44,10 @@ class Manager_validates_decision:
  def validate_decision(_):
     select(".dropdown-toggle span", "For managers").click()
     select(".dropdown-menu span", contains="Pending validation").click()
-    select(".pci-status", "RECOMMENDATION PENDING VALIDATION")
+    if config.reco_private:
+        select(".pci-status", "PRE-RECOMMENDED-PRIVATE")
+    else:
+        select(".pci-status", "RECOMMENDATION PENDING VALIDATION")
 
     select("a", "View / Edit".upper()).click()
 
@@ -55,7 +60,9 @@ class Manager_validates_decision:
     select("#do_recommend_article").click()
     select('#confirm-change-modal .btn-info', 'Yes'.upper()).click()
 
-    select('.pci-status-big', 'Recommended'.upper())
+    select('.pci-status-big', ('Recommended'
+                                + "-Private" if config.reco_private else ""
+                            ).upper())
 
  def logout_manager(_):
     logout(manager)
