@@ -1,6 +1,5 @@
 routes_in = (
     ('/web2py$anything', '/admin$anything'),
-    ('/pci$anything', '/pci$anything'),
     ('/$anything', '/pci/$anything'),
 )
 routes_out = [(x, y) for (y, x) in routes_in]
