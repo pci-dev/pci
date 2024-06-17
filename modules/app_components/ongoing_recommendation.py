@@ -441,7 +441,13 @@ def _get_author_reply_date(recommendation: Recommendation, next_round: Optional[
     if (recommendation.reply is not None and len(recommendation.reply) > 0) or recommendation.reply_pdf is not None or recommendation.track_change is not None:
             if nb_round < nb_recommendations:
                 if next_round and next_round.recommendation_timestamp:
-                    return next_round.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT+ " %H:%M")
+                    return next_round.recommendation_timestamp
+
+
+def _get_author_reply_formatted_date(recommendation: Recommendation, next_round: Optional[Recommendation], nb_round: int, nb_recommendations: int):
+    date = _get_author_reply_date(recommendation, next_round, nb_round, nb_recommendations)
+    if date:
+        return date.strftime(DEFAULT_DATE_FORMAT+ " %H:%M")
 
 
 def _get_author_reply_link(article: Article, recommendation: Recommendation, printable: bool, i_recommendation: int):
@@ -565,7 +571,7 @@ def _get_hide_on_going_review_and_set_show_review_request(article: Article, reco
 def _build_review_vars(article: Article, recommendation: Recommendation, review: Review, am_I_co_recommender: bool, printable: bool, count_anonymous_review: int, role: Optional[Role]):
     auth, db = current.auth, current.db
 
-    review_vars: Dict[Any, Any] = dict(
+    review_vars: Dict[str, Any] = dict(
                 id=review.id,
                 review_duration=review.review_duration.lower() if review.review_duration else '',
                 due_date=Review.get_due_date(review),
@@ -579,7 +585,8 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
                 text=None,
                 pdfLink=None,
                 state=None,
-                review=review
+                review=review,
+                reviewDatetime=None
             )
 
     hide_on_going_review = _get_hide_on_going_review_and_set_show_review_request(article, recommendation, review, am_I_co_recommender, review_vars, printable)
@@ -596,6 +603,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
         review_date = review.last_change
     else:
         review_date = review.acceptation_timestamp
+    review_vars.update([("reviewDatetime", review_date)])
     review_date_str = review_date.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review_date else ""
 
     if not (hide_on_going_review):
@@ -868,14 +876,17 @@ def get_recommendation_process_components(article: Article, printable: bool = Fa
             nbRecomms=nb_recommendations,
             lastChanges=None,
             authorsReply=_get_author_reply(recommendation),
-            authorsReplyDate=_get_author_reply_date(recommendation, previous_recommendation, nb_round, nb_recommendations),
+            authorsReplyDate=_get_author_reply_formatted_date(recommendation, previous_recommendation, nb_round, nb_recommendations),
+            authorsReplyDatetime=_get_author_reply_date(recommendation, previous_recommendation, nb_round, nb_recommendations),
             authorsReplyPdfLink=_get_authors_reply_pdf_link(recommendation),
             authorsReplyTrackChangeFileLink=_get_authors_reply_track_change_file_link(recommendation),
             editAuthorsReplyLink=_get_author_reply_link(article, recommendation, printable, i_recommendation),
             recommendationAuthor=I(current.T("by "), B(who_did_it_html), SPAN(", " + recommendation.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recommendation.last_change else "")),
             recommendationAuthorName=B(who_did_it_html),
             recommendationDate=recommendation.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recommendation.last_change else "",
+            recommendationDatetime=recommendation.last_change,
             recommendationValidationDate=recommendation.validation_timestamp.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recommendation.validation_timestamp else "",
+            recommendationValidationDatetime=recommendation.validation_timestamp,
             manuscriptDoi=SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recommendation.doi)) if (recommendation.doi) else SPAN(""),
             recommendationVersion=SPAN(" " + current.T("version:") + " ", recommendation.ms_version) if (recommendation.ms_version) else SPAN(""),
             recommendationTitle=H4(common_small_html.md_to_html(recommendation.recommendation_title) or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hide_on_going_recommendation is False) else "",

@@ -22,6 +22,7 @@
 % Use Unicode characters
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{setspace}
 % Clean citations with biblatex
 %\usepackage[
 %backend=biber,
@@ -73,6 +74,7 @@
 \definecolor{mediumgray}{HTML}{6D6E70}
 \definecolor{ligthgray}{HTML}{d9d9d9}
 \definecolor{pciblue}{HTML}{74adca}
+\definecolor{link}{HTML}{1A0DAB}
 \definecolor{opengreen}{HTML}{77933c}
 % Use adjustwidth environment to exceed text width
 \usepackage{changepage}
@@ -80,14 +82,14 @@
 \usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,singlelinecheck=off]{caption}
 \usepackage[pdfborder={0 0 0},   
     colorlinks=true,
-    linkcolor=pciblue,
-    urlcolor=pciblue,
-    citecolor=pciblue]{hyperref}  % sets link border to white
+    linkcolor=link,
+    urlcolor=link,
+    citecolor=link]{hyperref}  % sets link border to white
 
 
 % Headers and footers
 \usepackage{sectsty}
-\subsubsectionfont{\color{darkgray}}
+\subsectionfont{\color{darkgray}}
 
 % Headers and footers
 \usepackage{fancyhdr}  % custom headers/footers
@@ -110,32 +112,36 @@
 
 \newcommand{\beginingpreprint}{
 
-\vspace*{3cm}
+\vspace*{2cm}
 \begin{flushleft}
 \baselineskip=10pt
 
 {\Huge
-\fontseries{sb}\selectfont{\fontsize{12pt}{14pt}\preprinttitle}}
+\fontseries{sb}\selectfont{\fontsize{12pt}{14pt}
+\begin{spacing}{1}\preprinttitle\end{spacing}}}
 \end{flushleft}
-\vspace*{0.25cm}
+\vspace*{-1cm}
 \begin{flushleft}
 \Large
-A recommendation by {\color{pciblue}{\recommender}} based on the peer reviews by {\reviewers} of the article:
+{\textit{{\recommender} based on peer reviews by {\reviewers}}}
 \bigbreak
 \fcolorbox{lightgray}{lightgray}{
 \parbox{\textwidth - 2\fboxsep}{
 \centering\large{\selectfont{\citeaspreprint}}\\
 }}
-\vspace*{0.5cm}
+\vspace{1mm}
 
-\small{\textbf{Cite the recommendation as:}}\\
+\small{\beforeciteas}
+\vspace*{1mm}
+
+\small{\textbf{Cite this recommendation as:}}\\
 \small{\citeas}\\
 \vspace*{0.2cm}
 \small{Published: \publishdate}\\
 \small{Copyright: This work is licensed under the Creative Commons Attribution 4.0 International License. To view a copy of this license, visit \url{https://creativecommons.org/licenses/by/4.0/}}
-\vspace*{0.5cm}
+\noindent\rule{\textwidth}{1pt}
 
-\textbf{\large{\textsc{Recommendation}}}
+\vspace*{2mm}
 \end{flushleft}
 
 \recomtext\\

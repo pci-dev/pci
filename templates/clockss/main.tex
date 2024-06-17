@@ -37,8 +37,10 @@
 \newcommand{\citeas}{[[RECOMMENDATION_CITATION]]}
 %%%%%%%%%%%%%%%%%
 
+\newcommand{\beforeciteas}{Submitted: [[ARTICLE_VALIDATION_DATE]], Recommended: [[RECOMMENDATION_VALIDATION_DATE]]}
+
 %%% SET THE 'CITE AS' of the recommended preprint   %%%
-\newcommand{\citeaspreprint}{[[ARTICLE_AUTHORS]] ([[ARTICLE_YEAR]]) [[ARTICLE_TITLE]]. [[PREPRINT_SERVER]], [[RECOMMENDATION_DOI]]}
+\newcommand{\citeaspreprint}{[[ARTICLE_AUTHORS]] ([[ARTICLE_YEAR]]) [[ARTICLE_TITLE]] [[PREPRINT_SERVER]], ver. [[ARTICLE_VERSION]], peer-reviewed and recommended by [[PCI_NAME]]. [[RECOMMENDATION_DOI]]}
 %%%%%%%%%%%%%%%%%
 
 \newcommand{\publishdate}{[[RECOMMENDATION_VALIDATION_DATE]]}
@@ -47,7 +49,9 @@
 \begin{document}
 \beginingpreprint
 
-\section*{\centering Editorial process}
+\begin{center}\Large\bfseries
+    \chapter{Reviews}
+\end{center}
 
 [[RECOMMENDATION_PROCESS]]
 
