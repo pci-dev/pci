@@ -1,6 +1,6 @@
 from gluon.contrib.appconfig import AppConfig
 from requests.models import Response
-from typing import Dict, Any, Union
+from typing import Dict, Any, Optional, Union
 from models.article import Article
 
 from app_modules.helper import *
@@ -29,9 +29,11 @@ class Hypothesis:
     
 
     @staticmethod
-    def may_have_annotation(article_doi: str) -> bool:
+    def may_have_annotation(article_doi: Optional[str]) -> bool:
+        if not article_doi:
+            return False
         return article_doi.lower().strip().startswith('https://doi.org/10.1101/') # doi biorxiv
-    
+        
 
     def has_already_annotation(self) -> bool:
         return self.get_annotation() != None
