@@ -266,33 +266,34 @@ class Clockss:
             if not round:
                 continue
 
-            if first_round:
-                first_round = False
-                continue
-
             latex_round: List[str] = []
 
             round_number: int = round['roundNumber']
             latex_round.append(f"\\section*{{Evaluation round \\#{round_number}}}")
 
-            recommendation_manuscrit = self._html_to_latex.convert(self._str(round['manuscriptDoi']))
-            if recommendation_manuscrit:
-                recommendation_manuscrit = recommendation_manuscrit.lstrip("Manuscript:").strip()
+            if not first_round:
+                recommendation_manuscrit = self._html_to_latex.convert(self._str(round['manuscriptDoi']))
                 if recommendation_manuscrit:
-                    latex_round.append(f"\nDOI or URL of the preprint: {recommendation_manuscrit}")
+                    recommendation_manuscrit = recommendation_manuscrit.lstrip("Manuscript:").strip()
+                    if recommendation_manuscrit:
+                        latex_round.append(f"\nDOI or URL of the preprint: {recommendation_manuscrit}")
 
-            recommendation_version = self._html_to_latex.convert(self._str(round['recommendationVersion']))
-            if recommendation_version:
-                recommendation_version = recommendation_version.lstrip('version:').strip()
+                recommendation_version = self._html_to_latex.convert(self._str(round['recommendationVersion']))
                 if recommendation_version:
-                    latex_round.append(f"\nVersion of the preprint: {recommendation_version}")
+                    recommendation_version = recommendation_version.lstrip('version:').strip()
+                    if recommendation_version:
+                        latex_round.append(f"\nVersion of the preprint: {recommendation_version}")
 
             latex_round.extend(self._get_round_author_reply(round))
-            latex_round.extend(self._get_round_recommender_decision(round))
+            if not first_round:
+                latex_round.extend(self._get_round_recommender_decision(round))
             latex_round.extend(self._get_round_reviews(round))
             
             if len(latex_round) > 1:
                 latex_code.extend(latex_round)
+
+            if first_round:
+                first_round = False
                             
         return template.replace(f"[[{var_title.upper()}]]", "\n".join(latex_code))
     
@@ -302,32 +303,35 @@ class Clockss:
         reviews: List[Dict[str, Any]] = round['reviewsList']
                 
         for review in reviews:
-            review_author = self._html_to_latex.convert(self._str(review['authors']))
-            if not review_author:
+            reviewer_name = self._html_to_latex.convert(self._str(review['authors']))
+            if not reviewer_name:
                 continue
 
             review_instance = cast(Review, review['review'])
-            if review_instance and not review_instance.anonymously:
-                html_reviewer = mkUser(current.auth, current.db, review_instance.reviewer_id, True, orcid=True)
-                reviewer: Optional[Union[A, SPAN]] = html_reviewer
-                reviewer_orcid: Optional[str] = None
-                if isinstance(html_reviewer, SPAN) and len(html_reviewer.components) == 2: #type: ignore
-                    reviewer = cast(A, html_reviewer.components[0]) # type: ignore
-                    reviewer_orcid = str(html_reviewer.components[1].attributes['_href']) # type: ignore
+            if review_instance:
+                review_date: datetime.datetime = review['reviewDatetime']
+                review_date_str = review_date.strftime(self.DATE_FORMAT)
+                reviewer_name = reviewer_name.rsplit(', ', 1)[0]
 
-                if isinstance(reviewer, A):
-                    reviewer_link = str(reviewer.attributes['_href']) # type: ignore
-                    review_date: datetime.datetime = review['reviewDatetime']
-                    review_date_str = review_date.strftime(self.DATE_FORMAT)
-                    reviewer_name = review_author.rsplit(', ', 1)[0]
-                    review_author = f"\\href{{{reviewer_link}}}{{{reviewer_name}}}"
-                    if reviewer_orcid:
-                        review_author += f"\\href{{{reviewer_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=9px,height=9px]{{ORCID_ID.png}}}}"
-                    review_author += f", {review_date_str}"
+                if not review_instance.anonymously:
+                    html_reviewer = mkUser(current.auth, current.db, review_instance.reviewer_id, True, orcid=True)
+                    reviewer: Optional[Union[A, SPAN]] = html_reviewer
+                    reviewer_orcid: Optional[str] = None
+                    if isinstance(html_reviewer, SPAN) and len(html_reviewer.components) == 2: #type: ignore
+                        reviewer = cast(A, html_reviewer.components[0]) # type: ignore
+                        reviewer_orcid = str(html_reviewer.components[1].attributes['_href']) # type: ignore
+
+                    if isinstance(reviewer, A):
+                        reviewer_link = str(reviewer.attributes['_href']) # type: ignore
+                        reviewer_name = f"\\href{{{reviewer_link}}}{{{reviewer_name}}}"
+                        if reviewer_orcid:
+                            reviewer_name += f"\\href{{{reviewer_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=9px,height=9px]{{ORCID_ID.png}}}}"
+                
+                reviewer_name += f", {review_date_str}"
 
             review_content = self._html_to_latex.convert(self._str(review['text']))
             if review_content:
-                latex_lines.append(f"\\subsection*{{Reviewed by {review_author}}}")
+                latex_lines.append(f"\\subsection*{{Reviewed by {reviewer_name}}}")
                 latex_lines.append(review_content)
 
 
