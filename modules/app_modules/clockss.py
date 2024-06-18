@@ -122,14 +122,13 @@ class Clockss:
             'RECOMMENDER_NAMES': (self._get_recommender_name(), True),
             'PCI_NAME': (str(myconf.take("app.description")), False),
             'ARTICLE_VALIDATION_DATE': (self._get_article_validation_date(), False),
+            'ARTICLE_DATA_DOI': (self._get_list_references_in_template(), True),
+            'RECOMMENDATION_PROCESS': (self._replace_recommendation_process(), True),
+            'PCI_IMG': (self._replace_img_in_template(), True)
         }
 
         for variable_name, variable_value in simple_variables.items():
             template = self._replace_var_in_template(variable_name, variable_value[0], template, variable_value[1])
-
-        template = self._replace_list_references_in_template('ARTICLE_DATA_DOI', template)
-        template = self._replace_recommendation_process('RECOMMENDATION_PROCESS', template)
-        template = self._replace_img_in_template(template)
 
         return template
     
@@ -242,7 +241,7 @@ class Clockss:
             return ' and '.join([', '.join(recommender_names[:-1]), recommender_names[-1]])
 
 
-    def _replace_img_in_template(self, template: str):
+    def _replace_img_in_template(self):
         pci = str(myconf.take("app.description")).lower()
         img_map = {
             'peer community in registered reports': 'logo_PDF_rr.jpg',
@@ -264,10 +263,10 @@ class Clockss:
             'peer community in computational statistics': 'logo_PDF_computationalstatistics.png'
         }
         img = img_map.get(pci, 'logo_PDF_evolbiol.jpg')
-        return self._replace_var_in_template('PCI_IMG', img, template)
+        return img
     
 
-    def _replace_recommendation_process(self, var_title: str, template: str):
+    def _replace_recommendation_process(self):
         recommendation_process: Any = get_recommendation_process_components(self._article)
         process = recommendation_process['components']
         
@@ -306,8 +305,8 @@ class Clockss:
 
             if first_round:
                 first_round = False
-                            
-        return template.replace(f"[[{var_title.upper()}]]", "\n".join(latex_code))
+
+        return "\n".join(latex_code)
     
 
     def _get_round_reviews(self, round: Dict[str, Any]):
@@ -460,21 +459,34 @@ class Clockss:
         content = str(var_content) or f"Missing {var_title.lower()}"
         if not latex_format:
             content = self._html_to_latex.convert(content)
+        content = self._replace_url_in_content(content)
         return template.replace(f"[[{var_title.upper()}]]", content)
     
 
-    def _replace_list_references_in_template(self, var_title: str, template: str):
+    def _replace_url_in_content(self, latex_content: str):
+        regex = r"(?<!\{)(https?://?[\w-]+\.[^;:<>{}\[\]\"\'\s~]*[^.,;?!:<>{}\[\]()\"\'\s~\\])(?!\})"
+        pattern = re.compile(regex)
+        match = pattern.search(latex_content)
+
+        if match:
+            replacement = r"\\url{\1}"
+            latex_content = re.sub(regex, replacement, latex_content)
+        
+        return latex_content
+    
+
+    def _get_list_references_in_template(self):
         references: List[str] = Recommendation.get_references(self._recommendation)
 
         if len(references) == 0:
-            return self._replace_var_in_template(var_title, 'No references', template)
+            return 'No references'
         
         content: List[str] = [r'\begin{itemize}']
         for reference in references:
             reference = self._html_to_latex.convert(reference)
             content.append(f"\\item[]{{}} {reference}")
         content.append(r'\end{itemize}')
-        return self._replace_var_in_template(var_title, '\n'.join(content), template, True)
+        return '\n'.join(content)
 
 
     def _get_latex_template_content(self):

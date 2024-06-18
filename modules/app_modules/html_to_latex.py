@@ -250,7 +250,7 @@ class HtmlToLatex:
         if latex_code.count("\\href{") != 1 or latex_code.count("\\url{") > 0:
             return latex_code
         
-        regex = r"\\href{.*}{(.*)(?P<url>https?://?\w+\.\S*[^.,;?!:<>{}\[\]()\"'\s])}+"
+        regex = r"\\href{.*}{(.*)(?P<url>https?://?[\w-]+\.[^;:<>{}\[\]\"\'\s~]*[^.,;?!:<>{}\[\]()\"\'\s~\\])}+"
         pattern = re.compile(regex)
         match = pattern.search(latex_code)
 
