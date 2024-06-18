@@ -224,7 +224,10 @@ class Clockss:
                 recommender_name += f"\\href{{{recommender_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=10px,height=10px]{{ORCID_ID.png}}}}"
             recommender_names.append(recommender_name)
 
-        return ', '.join(recommender_names[:-1]) + ' and ' + recommender_names[-1]
+        if len(recommender_names) == 1:
+            return recommender_names[0]
+        else:
+            return ' and '.join([', '.join(recommender_names[:-1]), recommender_names[-1]])
 
 
     def _replace_img_in_template(self, template: str):
