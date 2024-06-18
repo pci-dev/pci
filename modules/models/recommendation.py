@@ -123,17 +123,25 @@ class Recommendation(Row):
         start_reference = False
         lines = recommendation_text.splitlines() 
         for line in lines:
-            try:
-                line_text = str(TAG(line).flatten().lower().strip()) # type: ignore
-            except:
-                line_text = line
-            line_text = line_text.translate(str.maketrans('', '', string.punctuation))
-
-            if start_reference:
-                if len(line_text) > 0:
-                    references.append(line)
-            else:
+            
+            if not start_reference:
+                line_text = _get_reference_line_text(line)
                 if line_text in ['reference', 'references']:
                     start_reference = True
+            else:
+                sub_lines = line.split('<br>&nbsp;<br>')
+                for sub_line in sub_lines:
+                    sub_line_text = _get_reference_line_text(sub_line)
+                    if len(sub_line_text) > 4:
+                        references.append(sub_line)
 
         return references
+
+
+def _get_reference_line_text(line: str):
+    try:
+        line_text = str(TAG(line).flatten().lower().strip()) # type: ignore
+    except:
+        line_text = line
+    line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+    return line_text

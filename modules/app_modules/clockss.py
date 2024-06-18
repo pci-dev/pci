@@ -121,7 +121,7 @@ class Clockss:
             'RECOMMENDATION_VALIDATION_DATE': (self._recommendation.validation_timestamp.strftime(self.DATE_FORMAT) if self._recommendation.validation_timestamp else None, False),
             'RECOMMENDER_NAMES': (self._get_recommender_name(), True),
             'PCI_NAME': (str(myconf.take("app.description")), False),
-            'ARTICLE_VALIDATION_DATE': (self._article.validation_timestamp.strftime(self.DATE_FORMAT) if self._article.validation_timestamp else None, False),
+            'ARTICLE_VALIDATION_DATE': (self._get_article_validation_date(), False),
         }
 
         for variable_name, variable_value in simple_variables.items():
@@ -133,6 +133,18 @@ class Clockss:
 
         return template
     
+
+    def _get_article_validation_date(self):
+        validation_date: Optional[datetime.datetime] = None
+
+        if self._article.validation_timestamp:
+            validation_date = self._article.validation_timestamp
+        elif self._article.upload_timestamp:
+            validation_date = self._article.upload_timestamp
+
+        if validation_date:
+            return validation_date.strftime(self.DATE_FORMAT)
+
 
     def _get_formatted_article_title(self):
         title = self._article.title
@@ -334,22 +346,23 @@ class Clockss:
                 latex_lines.append(f"\\subsection*{{Reviewed by {reviewer_name}}}")
                 latex_lines.append(review_content)
 
-
             review_link = self._html_to_latex.convert(self._str(review['pdfLink']))
             if review_link:
                 latex_lines.append(f"\n{review_link}")
+
         return latex_lines
 
 
     def _get_round_recommender_decision(self, round: Dict[str, Any]):
         latex_lines: List[str] = []
 
+        recommendation_pdf_link = self._html_to_latex.convert(self._str(round['recommendationPdfLink']))
         recommender_decision = self._str(round['recommendationText'])
         if recommender_decision:
             recommender_decision = self._remove_references_in_recommendation_decision(recommender_decision)
         recommender_decision = self._html_to_latex.convert(recommender_decision)
 
-        if recommender_decision:
+        if recommender_decision or recommendation_pdf_link:
             
             recommendation_label = f"Decision"
 
@@ -362,7 +375,6 @@ class Clockss:
             if isinstance(recommender, SPAN) and len(recommender.components) == 2: # type: ignore
                 recommender_orcid = str(recommender.components[1].attributes['_href']) # type: ignore
                 recommendation_label += f"\\href{{{recommender_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=9px,height=9px]{{ORCID_ID.png}}}}"
-
 
             recommendation_post_date: Optional[datetime.datetime] = round['recommendationDatetime']
             if recommendation_post_date:
@@ -377,10 +389,17 @@ class Clockss:
             latex_lines.append(f"\\subsection*{{{recommendation_label}}}")
 
             recommendation_title = self._html_to_latex.convert(self._str(round['recommendationTitle']))
+
             if recommendation_title:
                 latex_lines.append(recommendation_title)
                 latex_lines.append(r"\smallbreak")
-            latex_lines.append(recommender_decision)
+
+            if recommender_decision:
+                latex_lines.append(recommender_decision)
+
+            if recommendation_pdf_link:
+                latex_lines.append(recommendation_pdf_link)
+                
         return latex_lines
 
 
@@ -388,19 +407,22 @@ class Clockss:
         latex_lines: List[str] = []
         author_reply = self._html_to_latex.convert(self._str(round['authorsReply']))
         author_reply_date: Optional[datetime.datetime] = round['authorsReplyDatetime']
-        if author_reply:
+        author_reply_pdf_link = self._html_to_latex.convert(self._str(round['authorsReplyPdfLink']))
+        author_reply_track_change_file = self._html_to_latex.convert(self._str(round['authorsReplyTrackChangeFileLink']))
+
+        if author_reply or author_reply_pdf_link or author_reply_track_change_file:
             author_reply_title = "Authors' reply"
             if author_reply_date:
                 author_reply_date_str = author_reply_date.strftime(self.DATE_FORMAT)
                 author_reply_title += f", {author_reply_date_str}"
             latex_lines.append(f"\\subsection*{{{author_reply_title}}}")
+        
+        if author_reply:
             latex_lines.append(f"{author_reply}")
 
-        author_reply_pdf_link = self._html_to_latex.convert(self._str(round['authorsReplyPdfLink']))
         if author_reply_pdf_link:
             latex_lines.append(f"\n{author_reply_pdf_link}")
-
-        author_reply_track_change_file = self._html_to_latex.convert(self._str(round['authorsReplyTrackChangeFileLink']))
+        
         if author_reply_track_change_file:
             latex_lines.append(f"\n{author_reply_track_change_file}")
         
@@ -447,12 +469,10 @@ class Clockss:
         if len(references) == 0:
             return self._replace_var_in_template(var_title, 'No references', template)
         
-        i = 1
         content: List[str] = [r'\begin{itemize}']
         for reference in references:
             reference = self._html_to_latex.convert(reference)
-            content.append(f"\\item[]{{}}[{i}] {reference}")
-            i += 1
+            content.append(f"\\item[]{{}} {reference}")
         content.append(r'\end{itemize}')
         return self._replace_var_in_template(var_title, '\n'.join(content), template, True)
 
