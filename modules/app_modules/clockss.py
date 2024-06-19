@@ -290,10 +290,11 @@ class Clockss:
             'peer community in neuroscience': 'logo_PDF_neuro.jpg',
             'peer community in ecotoxicology and environmental chemistry': 'logo_PDF_ecotoxenvchem.jpg',
             'peer community in infections': 'logo_PDF_infections.jpg',
-            'peer community in health and movement sciences': 'logo_PDF_healthandmovementsciences.png',
-            'peer community in microbiology': 'logo_PDF_microbiology.png',
-            'peer community in organization studies': 'logo_PDF_organizationstudies.png',
-            'peer community in computational statistics': 'logo_PDF_computationalstatistics.png'
+            'peer community in health and movement sciences': 'logo_PDF_healthandmovementsciences.jpg',
+            'peer community in microbiology': 'logo_PDF_microbiology.jpg',
+            'peer community in organization studies': 'logo_PDF_organizationstudies.jpg',
+            'peer community in computational statistics': 'logo_PDF_computationalstatistics.jpg',
+            'peer community in psychology': 'logo_PDF_psychology.jpg',
         }
         img = img_map.get(pci, 'logo_PDF_evolbiol.jpg')
         return img
