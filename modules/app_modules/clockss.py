@@ -114,7 +114,7 @@ class Clockss:
             'ARTICLE_VERSION': (self._article.ms_version, False),
             'ARTICLE_COVER_LETTER': (self._article.cover_letter, False),
             'REVIEWER_NAMES': (self._get_reviewers_names(), True),
-            'RECOMMENDATION_TITLE': (self._convert_stars_to_italic(self._recommendation.recommendation_title or ''), True),
+            'RECOMMENDATION_TITLE': (self._get_recommendation_title(), True),
             'RECOMMENDATION_DOI': (mkSimpleDOI(self._recommendation.doi), False),
             'PREPRINT_SERVER': (self._article.preprint_server, False),
             'RECOMMENDATION_CITATION': (build_citation(self._article, self._recommendation, True), False),
@@ -132,6 +132,17 @@ class Clockss:
 
         return template
     
+
+    def _get_recommendation_title(self):
+        title = self._recommendation.recommendation_title
+        if not title:
+            return
+        
+        title = title.strip()
+        title = self._html_to_latex.convert_LaTeX_special_chars(title)
+        title = self._convert_stars_to_italic(title)
+        return title
+
 
     def _get_article_validation_date(self):
         validation_date: Optional[datetime.datetime] = None
@@ -151,6 +162,7 @@ class Clockss:
             return
         
         title = title.strip()
+        title = self._html_to_latex.convert_LaTeX_special_chars(title)
         title = self._convert_stars_to_italic(title)
         
         has_punctuation = bool(re.search(r"[?!…¿;¡.]$", title))
@@ -456,10 +468,16 @@ class Clockss:
     
 
     def _replace_var_in_template(self, var_title: str, var_content: Optional[Any], template: str, latex_format: bool = False):
-        content = str(var_content) or f"Missing {var_title.lower()}"
-        if not latex_format:
-            content = self._html_to_latex.convert(content)
-        content = self._replace_url_in_content(content)
+        str_content = str(var_content)
+        content = str_content or f"Missing {var_title.lower()}"
+        
+        if str_content:
+            if not latex_format:
+                content = self._html_to_latex.convert(content)
+            content = self._replace_url_in_content(content)
+        else:
+            content = self._html_to_latex.convert_LaTeX_special_chars(content)
+
         return template.replace(f"[[{var_title.upper()}]]", content)
     
 

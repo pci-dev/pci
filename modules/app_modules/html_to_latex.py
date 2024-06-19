@@ -279,7 +279,7 @@ class HtmlToLatex:
             string = re.sub('[ ]+', ' ', string)
 
         if 'math-tex' not in el.attrib.get('class', ''):
-            string = self._convert_LaTeX_special_chars(string)
+            string = self.convert_LaTeX_special_chars(string)
         else:
             string = self._fix_math_annotation(string)
         
@@ -299,7 +299,7 @@ class HtmlToLatex:
         return string
     
 
-    def _convert_LaTeX_special_chars(self, string: str):
+    def convert_LaTeX_special_chars(self, string: str):
         string = string \
             .replace("&#", "&@-HASH-") \
             .replace("{", "\\{").replace("}", "\\}") \
