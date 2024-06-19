@@ -9,6 +9,7 @@ main() {
 	articles
 	reco
 	reviews
+	surveys
 	users
 
 	wc -l t_*.txt
@@ -27,6 +28,15 @@ reco() {
 	FILE=t_reco
 	TABLE=t_recommendations
 	USER_ID=recommender_id
+	LINK_ARTICLES="article_id in ($ARTICLES)"
+
+	export_table
+}
+
+surveys() {
+	FILE=t_surveys
+	TABLE=t_report_survey
+	USER_ID=
 	LINK_ARTICLES="article_id in ($ARTICLES)"
 
 	export_table
@@ -55,6 +65,8 @@ export_table() {
 	LINK_USERS="id in (select $USER_ID from $TABLE where $LINK_ARTICLES)"
 
 	PSQL <<< "copy (select * from $TABLE where $LINK_ARTICLES) to STDOUT ;" > $FILE.txt
+
+	[ "$USER_ID" ] && \
 	PSQL <<< "copy (select * from auth_user where $LINK_USERS) to STDOUT ;" > $FILE.users.txt
 	export_cols
 }

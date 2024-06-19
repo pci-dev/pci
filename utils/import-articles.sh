@@ -1,10 +1,13 @@
 #!/bin/bash
 
+DB=pci_test
+
 main() {
 	users
 	articles
 	reco
 	reviews
+	surveys
 }
 
 users() {
@@ -31,8 +34,14 @@ reviews() {
 	import
 }
 
+surveys() {
+	FILE="t_surveys"
+	TABLE="t_report_survey"
+	import
+}
+
 import() {
-	cat $FILE.txt | psql pci_test -c "copy $TABLE (`cat $FILE.exp.cols`) from STDIN"
+	cat $FILE.txt | psql $DB -c "copy $TABLE (`cat $FILE.exp.cols`) from STDIN"
 }
 
 main
