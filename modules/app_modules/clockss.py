@@ -28,6 +28,7 @@ import zipfile as z
 
 
 myconf = AppConfig(reload=True)
+pci_RR_activated = bool(myconf.get("config.registered_reports", default=False))
 
 @dataclass
 class TemplateVar():
@@ -124,18 +125,17 @@ class Clockss:
             'ARTICLE_YEAR': TemplateVar(self._article.article_year),
             'ARTICLE_VERSION': TemplateVar(self._article.ms_version),
             'ARTICLE_COVER_LETTER': TemplateVar(self._article.cover_letter),
-            'REVIEWER_NAMES': TemplateVar(self._get_reviewers_names(), True),
             'RECOMMENDATION_TITLE': TemplateVar(self._get_recommendation_title(), True),
             'RECOMMENDATION_DOI': TemplateVar(mkSimpleDOI(self._recommendation.doi)),
             'PREPRINT_SERVER': TemplateVar(self._article.preprint_server),
             'RECOMMENDATION_CITATION': TemplateVar(build_citation(self._article, self._recommendation, True)),
             'RECOMMENDATION_VALIDATION_DATE': TemplateVar(self._recommendation.validation_timestamp.strftime(self.DATE_FORMAT) if self._recommendation.validation_timestamp else None),
-            'RECOMMENDER_NAMES': TemplateVar(self._get_recommender_name(), True),
             'PCI_NAME': TemplateVar(self._str(myconf.take("app.description"))),
             'ARTICLE_VALIDATION_DATE': TemplateVar(self._get_article_validation_date()),
             'RECOMMENDATION_REFERENCES': TemplateVar(self._get_list_references_in_template(), True, True),
             'RECOMMENDATION_PROCESS': TemplateVar(self._replace_recommendation_process(), True),
-            'PCI_IMG': TemplateVar(self._replace_img_in_template(), True)
+            'PCI_IMG': TemplateVar(self._replace_img_in_template(), True),
+            'RECOMMENDATION_SUBTITLE': TemplateVar(self._get_recommendation_subtitle(), True)
         }
 
         for variable_name, variable_value in template_vars.items():
@@ -143,6 +143,15 @@ class Clockss:
 
         return template
     
+
+    def _get_recommendation_subtitle(self):
+        recommenders_name = self._get_recommender_name()
+        reviewers_name = self._get_reviewers_names()
+
+        subtitle = f"{recommenders_name} based on peer reviews by {reviewers_name}"
+        if pci_RR_activated and self._article.report_stage:
+            subtitle = f"A recommendation by {subtitle} of the {self._article.report_stage} REPORT:"
+        return subtitle
 
     def _get_recommendation_title(self):
         title = self._recommendation.recommendation_title
@@ -267,6 +276,7 @@ class Clockss:
     def _replace_img_in_template(self):
         pci = str(myconf.take("app.description")).lower()
         img_map = {
+            'peer community in registered reports (test)': 'logo_PDF_rr.jpg',
             'peer community in registered reports': 'logo_PDF_rr.jpg',
             'peer community in zoology': 'logo_PDF_zool.jpg',
             'peer community in ecology': 'logo_PDF_ecology.jpg',
