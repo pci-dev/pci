@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 import os
 import ftplib
@@ -27,6 +28,17 @@ import zipfile as z
 
 
 myconf = AppConfig(reload=True)
+
+@dataclass
+class TemplateVar():
+    value: Optional[Any]
+    is_latex_code: bool
+    avoid_missing_value: bool
+
+    def __init__(self, value: ..., is_latex_code: bool = False, avoid_missing_value: bool = False):
+        self.value = value
+        self.is_latex_code = is_latex_code
+        self.avoid_missing_value = avoid_missing_value
 
 
 class Clockss:
@@ -105,30 +117,29 @@ class Clockss:
     def _build_latex_content_from_template(self):
         template = self._get_latex_template_content()
 
-        simple_variables: Dict[str, Any] = {
-            # 'KEY_IN_TEMPLATE': (value: str, is_latex_code: bool)
-            'ARTICLE_AUTHORS': (self._article.authors, False),
-            'ARTICLE_TITLE': (self._get_formatted_article_title(), True),
-            'RECOMMENDATION_ABSTRACT': (self._remove_references_in_recommendation_decision(self._recommendation.recommendation_comments or ''), False),
-            'ARTICLE_YEAR': (self._article.article_year, False),
-            'ARTICLE_VERSION': (self._article.ms_version, False),
-            'ARTICLE_COVER_LETTER': (self._article.cover_letter, False),
-            'REVIEWER_NAMES': (self._get_reviewers_names(), True),
-            'RECOMMENDATION_TITLE': (self._get_recommendation_title(), True),
-            'RECOMMENDATION_DOI': (mkSimpleDOI(self._recommendation.doi), False),
-            'PREPRINT_SERVER': (self._article.preprint_server, False),
-            'RECOMMENDATION_CITATION': (build_citation(self._article, self._recommendation, True), False),
-            'RECOMMENDATION_VALIDATION_DATE': (self._recommendation.validation_timestamp.strftime(self.DATE_FORMAT) if self._recommendation.validation_timestamp else None, False),
-            'RECOMMENDER_NAMES': (self._get_recommender_name(), True),
-            'PCI_NAME': (str(myconf.take("app.description")), False),
-            'ARTICLE_VALIDATION_DATE': (self._get_article_validation_date(), False),
-            'ARTICLE_DATA_DOI': (self._get_list_references_in_template(), True),
-            'RECOMMENDATION_PROCESS': (self._replace_recommendation_process(), True),
-            'PCI_IMG': (self._replace_img_in_template(), True)
+        template_vars: Dict[str, Any] = {
+            'ARTICLE_AUTHORS': TemplateVar(self._article.authors),
+            'ARTICLE_TITLE': TemplateVar(self._get_formatted_article_title(), True),
+            'RECOMMENDATION_ABSTRACT': TemplateVar(self._remove_references_in_recommendation_decision(self._recommendation.recommendation_comments or '')),
+            'ARTICLE_YEAR': TemplateVar(self._article.article_year),
+            'ARTICLE_VERSION': TemplateVar(self._article.ms_version),
+            'ARTICLE_COVER_LETTER': TemplateVar(self._article.cover_letter),
+            'REVIEWER_NAMES': TemplateVar(self._get_reviewers_names(), True),
+            'RECOMMENDATION_TITLE': TemplateVar(self._get_recommendation_title(), True),
+            'RECOMMENDATION_DOI': TemplateVar(mkSimpleDOI(self._recommendation.doi)),
+            'PREPRINT_SERVER': TemplateVar(self._article.preprint_server),
+            'RECOMMENDATION_CITATION': TemplateVar(build_citation(self._article, self._recommendation, True)),
+            'RECOMMENDATION_VALIDATION_DATE': TemplateVar(self._recommendation.validation_timestamp.strftime(self.DATE_FORMAT) if self._recommendation.validation_timestamp else None),
+            'RECOMMENDER_NAMES': TemplateVar(self._get_recommender_name(), True),
+            'PCI_NAME': TemplateVar(self._str(myconf.take("app.description"))),
+            'ARTICLE_VALIDATION_DATE': TemplateVar(self._get_article_validation_date()),
+            'RECOMMENDATION_REFERENCES': TemplateVar(self._get_list_references_in_template(), True, True),
+            'RECOMMENDATION_PROCESS': TemplateVar(self._replace_recommendation_process(), True),
+            'PCI_IMG': TemplateVar(self._replace_img_in_template(), True)
         }
 
-        for variable_name, variable_value in simple_variables.items():
-            template = self._replace_var_in_template(variable_name, variable_value[0], template, variable_value[1])
+        for variable_name, variable_value in template_vars.items():
+            template = self._replace_var_in_template(variable_name, variable_value, template)
 
         return template
     
@@ -452,30 +463,39 @@ class Clockss:
         recommendation_text: List[str] = []
 
         lines = recommendation_comments.splitlines()
-        for line in lines:
-            try:
-                line_text = str(TAG(line).flatten().lower().strip()) # type: ignore
-            except:
-                line_text = line
-            line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+        reference_start = False
 
-            if line_text in ['reference', 'references']:
-                break
+        for line in lines:
+            sub_lines = line.split('<br>&nbsp;<br>')
+            for sub_line in sub_lines:
+                try:
+                    line_text = str(TAG(sub_line).flatten().lower().strip()) # type: ignore
+                except:
+                    line_text = sub_line
+                line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+
+                if line_text in ['reference', 'references']:
+                    reference_start = True
+                    break
+
+                recommendation_text.append(f"\n{sub_line}")
             
-            recommendation_text.append(line)
+            if reference_start:
+                break
 
         return '\n'.join(recommendation_text)
     
 
-    def _replace_var_in_template(self, var_title: str, var_content: Optional[Any], template: str, latex_format: bool = False):
-        str_content = str(var_content)
-        content = str_content or f"Missing {var_title.lower()}"
+    def _replace_var_in_template(self, var_title: str, template_var: TemplateVar, template: str):
+        content = self._str(template_var.value)
         
-        if str_content:
-            if not latex_format:
+        if content:
+            if not template_var.is_latex_code:
                 content = self._html_to_latex.convert(content)
             content = self._replace_url_in_content(content)
         else:
+            if not template_var.avoid_missing_value:
+                content = f"Missing {var_title.lower()}"
             content = self._html_to_latex.convert_LaTeX_special_chars(content)
 
         return template.replace(f"[[{var_title.upper()}]]", content)
@@ -497,13 +517,16 @@ class Clockss:
         references: List[str] = Recommendation.get_references(self._recommendation)
 
         if len(references) == 0:
-            return 'No references'
+            return
         
-        content: List[str] = [r'\begin{itemize}']
+        content: List[str] = [r'\textbf{\emph{References: }}',
+                              r'\begin{flushleft}',
+                              r'\begin{itemize}']
         for reference in references:
             reference = self._html_to_latex.convert(reference)
             content.append(f"\\item[]{{}} {reference}")
         content.append(r'\end{itemize}')
+        content.append(r'\end{flushleft}')
         return '\n'.join(content)
 
 
