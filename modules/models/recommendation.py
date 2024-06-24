@@ -53,9 +53,13 @@ class Recommendation(Row):
         return cast(_[Recommendation], db.t_recommendations[id])
     
     @staticmethod
-    def get_by_article_id(article_id: int):
+    def get_by_article_id(article_id: int, order_by: ... = None):
         db = current.db
-        return cast(List[Recommendation], db(db.t_recommendations.article_id == article_id).select())
+        if order_by:
+            recommendations = db(db.t_recommendations.article_id == article_id).select(orderby=order_by)
+        else:
+            recommendations = db(db.t_recommendations.article_id == article_id).select()
+        return cast(List[Recommendation], recommendations)
 
 
     @staticmethod
@@ -119,17 +123,24 @@ class Recommendation(Row):
         start_reference = False
         lines = recommendation_text.splitlines() 
         for line in lines:
-            try:
-                line_text = str(TAG(line).flatten().lower().strip()) # type: ignore
-            except:
-                line_text = line
-            line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+            sub_lines = line.split('<br>&nbsp;<br>')
+            for sub_line in sub_lines:
+                line_text = _get_reference_line_text(sub_line)
 
-            if start_reference:
-                if len(line_text) > 0:
-                    references.append(line)
-            else:
-                if line_text in ['reference', 'references']:
-                    start_reference = True
+                if not start_reference:
+                    if line_text in ['reference', 'references']:
+                        start_reference = True
+                else:
+                    if len(line_text) > 4:
+                        references.append(sub_line)
 
         return references
+
+
+def _get_reference_line_text(line: str):
+    try:
+        line_text = str(TAG(line).flatten().lower().strip()) # type: ignore
+    except:
+        line_text = line
+    line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+    return line_text

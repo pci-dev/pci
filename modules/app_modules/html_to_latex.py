@@ -1,5 +1,6 @@
 # Taken and freely adapted from https://github.com/daniel-j/html2latex
 
+from functools import partial
 from io import StringIO
 from typing import Any, Dict, Optional
 import lxml.html
@@ -151,6 +152,9 @@ class HtmlToLatex:
 
 
     def convert(self, html: str):
+        if len(html) == 0:
+            return ''
+        
         html_parser = lxml.html.HTMLParser(encoding='utf-8', remove_comments=True)
         tree: ... = lxml.html.parse(StringIO(html), parser=html_parser) # type: ignore
         root = tree.getroot() 
@@ -236,8 +240,37 @@ class HtmlToLatex:
 
         result.append(''.join(tails))
         result_str = ''.join(result)
+        result_str = self._fix_long_url(result_str)
+
         # strip whitespace at the start and end of lines
         return '\n'.join(map(str.strip, result_str.split('\n')))
+    
+
+    def _fix_long_url(self, latex_code: str):
+        if latex_code.count("\\href{") != 1 or latex_code.count("\\url{") > 0:
+            return latex_code
+        
+        regex = r"\\href{.*}{(.*)(?P<url>https?://?[\w-]+\.[^;:<>{}\[\]\"\'\s~]*[^.,;?!:<>{}\[\]()\"\'\s~\\])}+"
+        pattern = re.compile(regex)
+        match = pattern.search(latex_code)
+
+        if not match:
+            return latex_code
+        
+        url_label = match.group('url')
+        if not url_label:
+            return latex_code
+        
+        new_url_label = f"\\url{{{url_label}}}"
+
+        latex_code = re.sub(pattern, partial(self._replace_closure, 'url', new_url_label), latex_code)
+        return latex_code    
+    
+
+    def _replace_closure(self, subgroup: str, replacement: str, m: ...):
+        start = m.start(subgroup)
+        end = m.end(subgroup)
+        return str(m.group()[:start] + replacement + m.group()[end:])
     
 
     def _modify_characters(self, el: ..., string: str, leaveText: bool = False):
@@ -246,7 +279,7 @@ class HtmlToLatex:
             string = re.sub('[ ]+', ' ', string)
 
         if 'math-tex' not in el.attrib.get('class', ''):
-            string = self._convert_LaTeX_special_chars(string)
+            string = self.convert_LaTeX_special_chars(string)
         else:
             string = self._fix_math_annotation(string)
         
@@ -266,7 +299,7 @@ class HtmlToLatex:
         return string
     
 
-    def _convert_LaTeX_special_chars(self, string: str):
+    def convert_LaTeX_special_chars(self, string: str):
         string = string \
             .replace("&#", "&@-HASH-") \
             .replace("{", "\\{").replace("}", "\\}") \

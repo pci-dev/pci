@@ -29,7 +29,7 @@ def URL(a: Optional[str] = None,
         c: Optional[str] = None,
         f: Optional[str] = None,
         r: Optional[str] = None,
-        args: Optional[str] = None,
+        args: Optional[Any] = None,
         vars: Optional[Dict[str, Any]] = None,
         anchor: str ='',
         extension: Optional[str] = None,
@@ -158,7 +158,7 @@ def get_exclude_list(request):
         return None
 
 
-def check_coauthorship(user_id, article):
+def check_coauthorship(user_id: int, article: Article):
     manager_authors = (article.manager_authors or "").split(',')
     for manager in manager_authors:
         if manager == str(user_id): return True

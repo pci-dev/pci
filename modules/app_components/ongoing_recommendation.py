@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from re import sub
-from typing import List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 from dateutil.relativedelta import *
 
 import io
@@ -15,6 +15,7 @@ from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
 from gluon.sqlhtml import *
 from app_modules.helper import *
+from models.recommendation import Recommendation, RecommendationState
 from pydal import DAL
 
 from app_modules import common_tools
@@ -363,151 +364,216 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
 
 ########################################################################################################################################################################
 # Preprint recommendation process (rounds, recomms, reviews, author's reply)
-########################################################################################################################################################################
-def getRecommendationProcess(auth, db, response, art, printable=False, quiet=True):
-    recommendationRounds = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
-    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=~db.t_recommendations.id)
-    nbRecomms = len(recomms)
+def _am_I_engaged_in_stage2_process(article: Article):
+    db, auth = current.db, current.auth
 
-    amIEngagedInStage2Process = False
-    if pciRRactivated and art.art_stage_1_id is None:
-        authCpt = 0
+    am_I_engaged_in_stage2_process = False
+    if pciRRactivated and article.art_stage_1_id is None:
+        auth_cpt = 0
         # if currentUser is reviewer of a related stage 2
-        authCpt += db(
-            (db.t_articles.art_stage_1_id == art.id)
+        auth_cpt += int(db(
+            (db.t_articles.art_stage_1_id == article.id)
             & (db.t_recommendations.article_id == db.t_articles.id)
             & (db.t_recommendations.id == db.t_reviews.recommendation_id)
             & (db.t_reviews.reviewer_id == auth.user_id)
-            & (db.t_reviews.review_state != "Willing to review")
-        ).count()
+            & (db.t_reviews.review_state != ReviewState.WILLING_TO_REVIEW.value)
+        ).count())
         # if currentUser is reviewer of a related stage 2
-        authCpt += db(
-            (db.t_articles.art_stage_1_id == art.id) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommender_id == auth.user_id)
-        ).count()
+        auth_cpt += int(db(
+            (db.t_articles.art_stage_1_id == article.id) & (db.t_recommendations.article_id == db.t_articles.id) & (db.t_recommendations.recommender_id == auth.user_id)
+        ).count())
         # if currentUser is reviewer of a related stage 2
-        if art.status == "Recommended":
-            authCpt += 1
-        amIEngagedInStage2Process = authCpt > 0
+        if article.status == ArticleStatus.RECOMMENDED.value:
+            auth_cpt += 1
+        am_I_engaged_in_stage2_process = auth_cpt > 0
 
-    if pciRRactivated and art.status == "Recommended":
-        amIEngagedInStage2Process = True
+    if pciRRactivated and article.status == ArticleStatus.RECOMMENDED.value:
+        am_I_engaged_in_stage2_process = True
 
-    isPendingRecommenderAcceptation = db(
-          (db.t_recommendations.article_id == art.id)
+    return am_I_engaged_in_stage2_process
+
+
+def _is_pending_recommender_acceptation(article: Article):
+    db, auth = current.db, current.auth
+
+    return bool(db(
+          (db.t_recommendations.article_id == article.id)
         & (db.t_recommendations.id == db.t_reviews.recommendation_id)
         & (db.t_reviews.reviewer_id == auth.user_id)
-        & (db.t_reviews.review_state == "Willing to review")
-    ).count() > 0
+        & (db.t_reviews.review_state == ReviewState.WILLING_TO_REVIEW.value)
+    ).count() > 0)
 
-    ###NOTE: here start recommendations display
-    amIinRecommenderList = False
-    amIinCoRecommenderList = False
-    iRecomm = 0
-    roundNb = nbRecomms + 1
-    for recomm in recomms:
-        iRecomm += 1
-        roundNb -= 1
-        nbCompleted = 0
-        nbOnGoing = 0
-        whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable),
-                        host=host, port=port, scheme=scheme,
-                        this_recomm_only=True,
-                        )
 
-        # Am I a recommender?
-        if recomm.recommender_id == auth.user_id:
-            amIinRecommenderList = True
-        # Am I a co recommender?
-        amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
-        if amICoRecommender:
-            amIinCoRecommenderList = True
-        # Am I a reviewer?
-        amIReviewer = (
-            db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count() > 0
-        )
-        # During recommendation, no one is not allowed to see last (unclosed) recommendation
-        hideOngoingRecomm = ((art.status in ("Under consideration", "Scheduled submission under consideration")) or (art.status.startswith("Pre-"))) and not (recomm.is_closed)  # (iRecomm==1)
-        #  ... unless he/she is THE recommender
-        if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender):
-            hideOngoingRecomm = False
-        # or a manager
-        if auth.has_membership(role="manager") and (art.user_id != auth.user_id):
-            hideOngoingRecomm = False
+def _current_user_is_recommender(recommendation: Recommendation):
+    db, auth = current.db, current.auth
+    return bool(db((db.t_press_reviews.recommendation_id == recommendation.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0)
 
-        authorsReply = None
-        authorsReplyDate = None
-        if (recomm.reply is not None) and (len(recomm.reply) > 0):
-            authorsReply = DIV(WIKI(recomm.reply or "", safe_mode=False))
 
-        authorsReplyPdfLink = None
-        if recomm.reply_pdf:
-            authorsReplyPdfLink = A(
-                I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
-                current.T("Download author's reply (PDF file)"),
-                _href=URL("default", "download", args=recomm.reply_pdf, scheme=scheme, host=host, port=port),
-                _style="font-weight: bold; margin-bottom: 5px; display:block",
-            )
+def _current_user_is_reviewer(article: Article):
+    db, auth = current.db, current.auth
 
-        scheduledSubmissionRevision = None
-        if (art.status == "Scheduled submission revision") and (art.user_id == auth.user_id) and not (printable):
-            scheduledSubmissionRevision = URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True, scheme=scheme, host=host, port=port)
-
-        authorsReplyTrackChangeFileLink = None
-        if recomm.track_change:
-            authorsReplyTrackChangeFileLink = A(
-                I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
-                current.T("Download tracked changes file"),
-                _href=URL("default", "download", args=recomm.track_change, scheme=scheme, host=host, port=port),
-                _style="font-weight: bold; margin-bottom: 5px; display:block",
-            )
-
-        if (recomm.reply is not None and len(recomm.reply) > 0) or recomm.reply_pdf is not None or recomm.track_change is not None:
-            authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT+ " %H:%M") \
-                    if roundNb < nbRecomms else None
-        nextRound = recomm # iteration is most recent first; last round (final reco) has no author's reply
-            
-        editAuthorsReplyLink = None
-        if (art.user_id == auth.user_id) and (art.status == "Awaiting revision") and not (printable) and (iRecomm == 1):
-            editAuthorsReplyLink = URL(c="user", f="edit_reply", vars=dict(recommId=recomm.id), user_signature=True, scheme=scheme, host=host, port=port)
-
-        # Check for reviews
-        existOngoingReview = False
-        reviewsList = []
-
-        # If the recommender is also a reviewer, did he/she already completed his/her review?
-        recommReviewFilledOrNull = False  # Let's say no by default
-        # Get reviews states for this case
-        recommenderOwnReviewStates = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.reviewer_id == recomm.recommender_id)).select(db.t_reviews.review_state)
-        if len(recommenderOwnReviewStates) == 0:
-            # The recommender is not also a reviewer
-            recommReviewFilledOrNull = True  # He/she is allowed to see other's reviews
-        else:
-            # The recommender is also a reviewer
-            for recommenderOwnReviewState in recommenderOwnReviewStates:
-                if recommenderOwnReviewState.review_state == "Review completed":
-                    recommReviewFilledOrNull = True  # Yes, his/her review is completed
-
-        reviews = cast(List[Review], db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Declined manually") & (db.t_reviews.review_state != "Declined") & (db.t_reviews.review_state != "Cancelled")).select(
-            orderby=db.t_reviews.id
+    return bool((
+            db((db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.reviewer_id == auth.user_id)).count() > 0
         ))
 
-        manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
-        if manager_coauthor: break
 
-        count_anon = 0
-        for review in reviews:
-            if review.review_state == "Awaiting review":
-                existOngoingReview = True
-                nbOnGoing += 1
-            if review.review_state == "Review completed":
-                nbCompleted += 1
+def _must_hide_on_going_recommendation(article: Article, recommendation: Recommendation, am_I_co_recommender: bool):
+    auth = current.auth
 
-            # No one is allowd to see ongoing reviews ...
-            hideOngoingReview = True
-            reviewVars = dict(
+    if auth.has_membership(role=Role.RECOMMENDER.value) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender):
+        return False
+    # or a manager
+    if auth.has_membership(role=Role.MANAGER.value) and (article.user_id != auth.user_id):
+        return False
+    
+    return ((article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)) or (article.status.startswith("Pre-"))) and not (recommendation.is_closed)  # (iRecomm==1)
+
+    
+def _get_author_reply(recommendation: Recommendation):
+    authors_reply: Optional[DIV] = None
+    if (recommendation.reply is not None) and (len(recommendation.reply) > 0):
+        authors_reply = DIV(WIKI(recommendation.reply or "", safe_mode=''))
+    return authors_reply
+
+
+def _get_author_reply_date(recommendation: Recommendation, next_round: Optional[Recommendation], nb_round: int, nb_recommendations: int):
+    if (recommendation.reply is not None and len(recommendation.reply) > 0) or recommendation.reply_pdf is not None or recommendation.track_change is not None:
+            if nb_round < nb_recommendations:
+                if next_round and next_round.recommendation_timestamp:
+                    return next_round.recommendation_timestamp
+
+
+def _get_author_reply_formatted_date(recommendation: Recommendation, next_round: Optional[Recommendation], nb_round: int, nb_recommendations: int):
+    date = _get_author_reply_date(recommendation, next_round, nb_round, nb_recommendations)
+    if date:
+        return date.strftime(DEFAULT_DATE_FORMAT+ " %H:%M")
+
+
+def _get_author_reply_link(article: Article, recommendation: Recommendation, printable: bool, i_recommendation: int):
+    auth = current.auth
+
+    if (article.user_id == auth.user_id) and (article.status == ArticleStatus.AWAITING_REVISION.value) and not (printable) and (i_recommendation == 1):
+        return common_tools.URL(c="user", f="edit_reply", vars=dict(recommId=recommendation.id), user_signature=True, scheme=scheme, host=host, port=port)
+
+
+def _get_authors_reply_pdf_link(recommendation: Recommendation):
+    if recommendation.reply_pdf:
+        return A(
+            I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+            current.T("Download author's reply (PDF file)"),
+            _href=common_tools.URL("default", "download", args=recommendation.reply_pdf, scheme=scheme, host=host, port=port),
+            _style="font-weight: bold; margin-bottom: 5px; display:block",
+        )
+
+
+def _is_scheduled_submission_revision(article: Article, printable: bool):
+    auth = current.auth
+
+    if (article.status == ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value) and (article.user_id == auth.user_id) and not (printable):
+        return common_tools.URL(c="user_actions", f="article_revised", vars=dict(articleId=article.id), user_signature=True, scheme=scheme, host=host, port=port)
+    
+
+def _get_authors_reply_track_change_file_link(recommendation: Recommendation):
+    if recommendation.track_change:
+        return A(
+            I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+            current.T("Download tracked changes file"),
+            _href=common_tools.URL("default", "download", args=recommendation.track_change, scheme=scheme, host=host, port=port),
+            _style="font-weight: bold; margin-bottom: 5px; display:block",
+        )
+    
+
+def _is_recommendation_review_filled_or_null(recommendation: Recommendation):
+    db = current.db
+
+    # If the recommender is also a reviewer, did he/she already completed his/her review?
+    recommendation_review_filled_or_null = False  # Let's say no by default
+    # Get reviews states for this case
+    recommender_own_reviews = cast(List[Review], db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.reviewer_id == recommendation.recommender_id)).select())
+    if len(recommender_own_reviews) == 0:
+        # The recommender is not also a reviewer
+        recommendation_review_filled_or_null = True  # He/she is allowed to see other's reviews
+    else:
+        # The recommender is also a reviewer
+        for recommender_own_review in recommender_own_reviews:
+            if recommender_own_review.review_state == ReviewState.REVIEW_COMPLETED.value:
+                recommendation_review_filled_or_null = True  # Yes, his/her review is completed
+    return recommendation_review_filled_or_null
+
+
+def _get_hide_on_going_review_and_set_show_review_request(article: Article, recommendation: Recommendation, review: Review, am_I_co_recommender: bool, review_vars: Dict[str, Any], printable: bool):
+    auth = current.auth
+    recommendation_review_filled_or_null = _is_recommendation_review_filled_or_null(recommendation)
+
+    hide_on_going_review = True
+
+    # ... but:
+    # ... the author for a closed decision/recommendation ...
+    if (article.user_id == auth.user_id) and (recommendation.is_closed or article.status in (ArticleStatus.AWAITING_REVISION.value, ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value)):
+        hide_on_going_review = False
+    # ...  the reviewer himself once accepted ...
+    if (review.reviewer_id == auth.user_id) and (review.review_state in (ReviewState.AWAITING_REVIEW.value, ReviewState.REVIEW_COMPLETED.value)):
+        hide_on_going_review = False
+    # ...  a reviewer himself once the decision made up ...
+    if (
+        (_current_user_is_reviewer(article))
+        and (recommendation.recommendation_state in (RecommendationState.RECOMMENDED.value, RecommendationState.REJECTED.value, RecommendationState.REVISION.value))
+        and recommendation.is_closed
+        and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.RECOMMENDED.value, ArticleStatus.REJECTED.value, ArticleStatus.AWAITING_REVISION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value))
+    ):
+        hide_on_going_review = False
+    # ... or he/she is THE recommender and he/she already filled his/her own review ...
+    if auth.has_membership(role=Role.RECOMMENDER.value) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender) and recommendation_review_filled_or_null:
+        hide_on_going_review = False
+    # ... or he/she is A CO-recommender and he/she already filled his/her own review ...
+    if auth.has_membership(role=Role.RECOMMENDER.value) and am_I_co_recommender and recommendation_review_filled_or_null:
+        hide_on_going_review = False
+    # ... or a manager, unless submitter
+    if auth.has_membership(role=Role.MANAGER.value) and not (article.user_id == auth.user_id):
+        hide_on_going_review = False
+
+    # ... or if engaged in stage 2 process (pci RR)
+    if review.review_state == ReviewState.REVIEW_COMPLETED.value and _am_I_engaged_in_stage2_process(article):
+        hide_on_going_review = False
+
+    if auth.has_membership(role=Role.RECOMMENDER.value) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender) and (review.review_state == ReviewState.WILLING_TO_REVIEW.value) and (article.status == ArticleStatus.UNDER_CONSIDERATION.value):
+        review_vars.update([("showReviewRequest", True)])
+
+    if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recommendation.recommender_id) and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_PENDING.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)) and not (printable):
+        if review.review_state == ReviewState.AWAITING_RESPONSE.value:
+            # reviewer's buttons in order to accept/decline pending review
+            review_vars.update([("showInvitationButtons", True)])
+        elif review.review_state == ReviewState.WILLING_TO_REVIEW.value or review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
+            # reviewer's buttons in order to accept/decline pending review
+            review_vars.update([("showPendingAskForReview", True)])
+            if review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
+                review_vars.update([("declinedByRecommender", True)])
+
+    elif review.review_state == ReviewState.AWAITING_RESPONSE.value or review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
+        hide_on_going_review = True
+
+    if (recommendation.recommender_id != auth.user_id and am_I_co_recommender == False) and review.review_state == ReviewState.WILLING_TO_REVIEW.value:
+        review_vars.update([("showReviewRequest", False)])
+        hide_on_going_review = True
+        
+    if auth.has_membership(role=Role.MANAGER.value)  and review.review_state == ReviewState.WILLING_TO_REVIEW.value:
+        review_vars.update([("showReviewRequest", True)])
+        hide_on_going_review = False
+
+    if (review.reviewer_id == auth.user_id) and review.review_state == ReviewState.WILLING_TO_REVIEW.value:
+        review_vars.update([("showReviewRequest", False)])
+        hide_on_going_review = False
+
+    return hide_on_going_review
+
+
+def _build_review_vars(article: Article, recommendation: Recommendation, review: Review, am_I_co_recommender: bool, printable: bool, count_anonymous_review: int, role: Optional[Role]):
+    auth, db = current.auth, current.db
+
+    review_vars: Dict[str, Any] = dict(
                 id=review.id,
-                review_duration=review.review_duration.lower(),
+                review_duration=review.review_duration.lower() if review.review_duration else '',
                 due_date=Review.get_due_date(review),
                 showInvitationButtons=False,
                 showReviewRequest=False,
@@ -519,255 +585,367 @@ def getRecommendationProcess(auth, db, response, art, printable=False, quiet=Tru
                 text=None,
                 pdfLink=None,
                 state=None,
+                review=review,
+                reviewDatetime=None
             )
-            # ... but:
-            # ... the author for a closed decision/recommendation ...
-            if (art.user_id == auth.user_id) and (recomm.is_closed or art.status in ("Awaiting revision", "Scheduled submission revision")):
-                hideOngoingReview = False
-            # ...  the reviewer himself once accepted ...
-            if (review.reviewer_id == auth.user_id) and (review.review_state in ("Awaiting review", "Review completed")):
-                hideOngoingReview = False
-            # ...  a reviewer himself once the decision made up ...
-            if (
-                (amIReviewer)
-                and (recomm.recommendation_state in ("Recommended", "Rejected", "Revision"))
-                and recomm.is_closed
-                and (art.status in ("Under consideration", "Recommended", "Rejected", "Awaiting revision", "Scheduled submission under consideration"))
-            ):
-                hideOngoingReview = False
-            # ... or he/she is THE recommender and he/she already filled his/her own review ...
-            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and recommReviewFilledOrNull:
-                hideOngoingReview = False
-            # ... or he/she is A CO-recommender and he/she already filled his/her own review ...
-            if auth.has_membership(role="recommender") and amICoRecommender and recommReviewFilledOrNull:
-                hideOngoingReview = False
-            # ... or a manager, unless submitter
-            if auth.has_membership(role="manager") and not (art.user_id == auth.user_id):
-                hideOngoingReview = False
 
-            # ... or if engaged in stage 2 process (pci RR)
-            if review.review_state == "Review completed" and amIEngagedInStage2Process:
-                hideOngoingReview = False
+    hide_on_going_review = _get_hide_on_going_review_and_set_show_review_request(article, recommendation, review, am_I_co_recommender, review_vars, printable)
 
-            if auth.has_membership(role="recommender") and (recomm.recommender_id == auth.user_id or amICoRecommender) and (review.review_state == "Willing to review") and (art.status == "Under consideration"):
-                reviewVars.update([("showReviewRequest", True)])
+    if auth.has_membership(role=Role.MANAGER.value) and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+        review_vars.update([("showReviewExtraTimeButtons", True)])
 
-            if (review.reviewer_id == auth.user_id) and (review.reviewer_id != recomm.recommender_id) and (art.status in ("Under consideration", "Scheduled submission pending", "Scheduled submission under consideration")) and not (printable):
-                if review.review_state == "Awaiting response":
-                    # reviewer's buttons in order to accept/decline pending review
-                    reviewVars.update([("showInvitationButtons", True)])
-                elif review.review_state == "Willing to review" or review.review_state == "Declined by recommender":
-                    # reviewer's buttons in order to accept/decline pending review
-                    reviewVars.update([("showPendingAskForReview", True)])
-                    if review.review_state == "Declined by recommender":
-                        reviewVars.update([("declinedByRecommender", True)])
+    # reviewer's buttons in order to edit/complete pending review
+    if (review.reviewer_id == auth.user_id) and (review.review_state == ReviewState.AWAITING_REVIEW.value) and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)) and not (printable):
+        review_vars.update([("showEditButtons", True)])
 
-            elif review.review_state == "Awaiting response" or review.review_state == "Declined by recommender":
-                hideOngoingReview = True
+    review_date: Optional[datetime.datetime] = None
+    if review.review_state == ReviewState.REVIEW_COMPLETED.value:
+        review_date = review.last_change
+    else:
+        review_date = review.acceptation_timestamp
+    review_vars.update([("reviewDatetime", review_date)])
+    review_date_str = review_date.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review_date else ""
 
-            if (recomm.recommender_id != auth.user_id and amICoRecommender == False) and review.review_state == "Willing to review":
-                reviewVars.update([("showReviewRequest", False)])
-                hideOngoingReview = True
-                
-            if auth.has_membership(role="manager")  and review.review_state == "Willing to review":
-                reviewVars.update([("showReviewRequest", True)])
-                hideOngoingReview = False
-
-            if (review.reviewer_id == auth.user_id) and review.review_state == "Willing to review":
-                reviewVars.update([("showReviewRequest", False)])
-                hideOngoingReview = False
-
-            if auth.has_membership(role="manager") and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
-                reviewVars.update([("showReviewExtraTimeButtons", True)])
-
-            # reviewer's buttons in order to edit/complete pending review
-            if (review.reviewer_id == auth.user_id) and (review.review_state == "Awaiting review") and (art.status in ("Under consideration", "Scheduled submission under consideration")) and not (printable):
-                reviewVars.update([("showEditButtons", True)])
-
-            review_date: Optional[datetime.datetime] = None
-            if review.review_state == ReviewState.REVIEW_COMPLETED.value:
-                review_date = review.last_change
-            else:
-                review_date = review.acceptation_timestamp
-            review_date_str = review_date.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review_date else ""
-
-            if not (hideOngoingReview):
-                # display the review
-                if review.anonymously:
-                    count_anon += 1
-                    reviewer_number = common_tools.find_reviewer_number(db, review, count_anon)
-                    reviewVars.update(
-                        [
-                            (
-                                "authors",
-                                SPAN(
-                                    current.T("anonymous reviewer " + reviewer_number),
-                                    (", " + review_date_str),
-                                ),
-                            )
-                        ]
+    if not (hide_on_going_review):
+        # display the review
+        if review.anonymously:
+            count_anonymous_review += 1
+            reviewer_number = common_tools.find_reviewer_number(db, review, count_anonymous_review)
+            review_vars.update(
+                [
+                    (
+                        "authors",
+                        SPAN(
+                            current.T("anonymous reviewer " + reviewer_number),
+                            (", " + review_date_str),
+                        ),
                     )
-                else:
-                    reviewVars.update(
-                        [
-                            (
-                                "authors",
-                                SPAN(
-                                    Review.get_reviewer_name(review) or
-                                    common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
-                                    (", " + review_date_str),
-                                ),
-                            )
-                        ]
-                    )
-
-                if len(review.review or "") > 2:
-                    reviewVars.update([("text", WIKI(review.review, safe_mode=False))])
-
-                if review.review_pdf:
-                    pdfLink = A(
-                        I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
-                        current.T("Download the review (PDF file)"),
-                        _href=URL("default", "download", args=review.review_pdf, scheme=scheme, host=host, port=port),
-                        _style="font-weight: bold; margin-bottom: 5px; display:block",
-                    )
-                    reviewVars.update([("pdfLink", pdfLink)])
-            reviewVars.update([("state", review.review_state)])
-            reviewsList.append(reviewVars)
-
-        # Reommendation label
-        if recomm.recommendation_state == "Recommended":
-            if recomm.recommender_id == auth.user_id:
-                recommendationLabel = current.T("Your recommendation")
-            elif amICoRecommender:
-                recommendationLabel = current.T("Your co-recommendation")
-            elif auth.has_membership(role="manager"):
-                recommendationLabel = current.T("Decision")
-            else:
-                recommendationLabel = current.T("Recommendation")
+                ]
+            )
         else:
-            if recomm.recommender_id == auth.user_id:
-                recommendationLabel = current.T("Your decision")
-            elif amICoRecommender:
-                recommendationLabel = current.T("Your co-decision")
-            elif recomm.is_closed:
-                recommendationLabel = current.T("Decision")
-            else:
-                recommendationLabel = current.T("Decision")
+            review_vars.update(
+                [
+                    (
+                        "authors",
+                        SPAN(
+                            Review.get_reviewer_name(review) or
+                            common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
+                            (", " + review_date_str),
+                        ),
+                    )
+                ]
+            )
 
-        # Recommender buttons
-        editRecommendationLink = None
-        editRecommendationDisabled = None
-        editRecommendationButtonText = None
-        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status == "Under consideration") and not (printable):
-            # recommender's button for recommendation edition
-            editRecommendationButtonText = current.T("Write or edit your decision / recommendation")
-            editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id), scheme=scheme, host=host, port=port)
-            if pciRRactivated:
-                pass
-            elif (nbCompleted >= 2 and nbOnGoing == 0) or roundNb > 1:
-                pass
-            else:
-                editRecommendationDisabled = True
-                editRecommendationButtonText = current.T("Write your decision / recommendation")
+        if len(review.review or "") > 2:
+            review_vars.update([("text", WIKI(review.review, safe_mode=''))])
 
-        scheduledSubmissionEndingButton = False
-        if pciRRactivated and (recomm.recommender_id == auth.user_id or amICoRecommender or auth.has_membership(role="manager")) and (art.status == "Scheduled submission under consideration") and not (printable):
-            scheduledSubmissionEndingButton = True
-
-        recommendationPdfLink = None
-        if hideOngoingRecomm is False and recomm.recommender_file:
-            recommendationPdfLink = A(
+        if review.review_pdf:
+            pdfLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
-                current.T("Download recommender's annotations (PDF)"),
-                _href=URL("default", "download", args=recomm.recommender_file, scheme=scheme, host=host, port=port),
+                current.T("Download the review (PDF file)"),
+                _href=common_tools.URL("default", "download", args=review.review_pdf, scheme=scheme, host=host, port=port),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
-        
-        def mk_link(role, action, rev):
-            return URL(c=role+"_actions", f=action+"_review_request", vars=dict(reviewId=rev["id"]), scheme=scheme, host=host, port=port)
+            review_vars.update([("pdfLink", pdfLink)])
+    review_vars.update([("state", review.review_state)])
 
-        role = ("manager" if auth.has_membership(role="manager") else
-                "recommender" if auth.has_membership(role="recommender") else
-                None)
 
-        for rev in reviewsList:
-            if rev["showReviewRequest"] and role:
-                rev.update([
-                    ("acceptReviewRequestLink", mk_link(role, "accept", rev)),
-                    ("rejectReviewRequestLink", mk_link(role, "decline", rev)),
-                ])
+    if review_vars["showReviewRequest"] and role:
+            review_vars.update([
+                ("acceptReviewRequestLink", _mk_link(role, "accept", review_vars)),
+                ("rejectReviewRequestLink", _mk_link(role, "decline", review_vars)),
+            ])
 
-        inviteReviewerLink = None
-        showRemoveSearchingForReviewersButton = None
-        if not (recomm.is_closed) and (recomm.recommender_id == auth.user_id or amICoRecommender or auth.has_membership(role="manager")) and (art.status in ("Under consideration", "Scheduled submission under consideration")):
-            inviteReviewerLink = URL(c="recommender", f="reviewers", vars=dict(recommId=recomm.id), scheme=scheme, host=host, port=port)
-            showRemoveSearchingForReviewersButton = art.is_searching_reviewers
+    return (review_vars, count_anonymous_review)
+    
 
-        recommendationText = ""
-        if len(recomm.recommendation_comments or "") > 2:
-            recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False) if (hideOngoingRecomm is False) else ""
+def _get_recommendation_label(recommendation: Recommendation, am_I_co_recommender: bool):
+    auth = current.auth
 
-        replyButtonDisabled = (
-            recomm.recommendation_state == "Revision" and art.request_submission_change
+    if recommendation.recommendation_state == RecommendationState.RECOMMENDED.value:
+        if recommendation.recommender_id == auth.user_id:
+            recommendation_label = current.T("Your recommendation")
+        elif am_I_co_recommender:
+            recommendation_label = current.T("Your co-recommendation")
+        elif auth.has_membership(role=Role.MANAGER.value):
+            recommendation_label = current.T("Decision")
+        else:
+            recommendation_label = current.T("Recommendation")
+    else:
+        if recommendation.recommender_id == auth.user_id:
+            recommendation_label = current.T("Your decision")
+        elif am_I_co_recommender:
+            recommendation_label = current.T("Your co-decision")
+        elif recommendation.is_closed:
+            recommendation_label = current.T("Decision")
+        else:
+            recommendation_label = current.T("Decision")
+
+    return recommendation_label
+
+
+def _get_recommender_buttons(article: Article, recommendation: Recommendation, am_I_co_recommender: bool, nb_completed: int, nb_on_going: int, nb_round: int, printable: bool):
+    auth = current.auth
+
+    edit_recommendation_link = None
+    edit_recommendation_disabled = None
+    edit_recommendation_button_text = None
+
+    if not (recommendation.is_closed) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender) and (article.status == ArticleStatus.UNDER_CONSIDERATION.value) and not (printable):
+        # recommender's button for recommendation edition
+        edit_recommendation_button_text = current.T("Write or edit your decision / recommendation")
+        edit_recommendation_link = common_tools.URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id), scheme=scheme, host=host, port=port)
+        if pciRRactivated:
+            pass
+        elif (nb_completed >= 2 and nb_on_going == 0) or nb_round > 1:
+            pass
+        else:
+            edit_recommendation_disabled = True
+            edit_recommendation_button_text = current.T("Write your decision / recommendation")
+
+    return dict(
+        edit_recommendation_link=edit_recommendation_link,
+        edit_recommendation_disabled=edit_recommendation_disabled,
+        edit_recommendation_button_text=edit_recommendation_button_text)
+
+
+def _get_invite_reviewer_links(article: Article, recommendation: Recommendation, am_I_co_recommender: bool):
+    auth = current.auth
+
+    invite_reviewer_link = None
+    show_remove_searching_for_reviewers_button = None
+    if not (recommendation.is_closed) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender or auth.has_membership(role=Role.MANAGER.value)) and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)):
+        invite_reviewer_link = common_tools.URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id), scheme=scheme, host=host, port=port)
+        show_remove_searching_for_reviewers_button = article.is_searching_reviewers
+    
+    return dict(
+        invite_reviewer_link=invite_reviewer_link,
+        show_remove_searching_for_reviewers_button=show_remove_searching_for_reviewers_button
+    )
+
+
+def _show_scheduled_submission_ending_button(article: Article, recommendation: Recommendation, am_I_co_recommender: bool, printable: bool):
+    auth = current.auth
+
+    scheduled_submission_ending_button = False
+    if pciRRactivated and (recommendation.recommender_id == auth.user_id or am_I_co_recommender or auth.has_membership(role=Role.MANAGER.value)) and (article.status == ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value) and not (printable):
+        scheduled_submission_ending_button = True
+
+    return scheduled_submission_ending_button
+
+
+def _get_recommendation_text(recommendation: Recommendation, hide_on_going_recommendation: bool):
+    recommendation_text = ""
+    if len(recommendation.recommendation_comments or "") > 2:
+        recommendation_text = WIKI(recommendation.recommendation_comments or "", safe_mode='') if (hide_on_going_recommendation is False) else ""
+    return recommendation_text
+
+
+def _get_recommendation_pdf_link(recommendation: Recommendation, hide_on_going_recommendation: bool):
+    recommendation_pdf_link = None
+    if hide_on_going_recommendation is False and recommendation.recommender_file:
+        recommendation_pdf_link = A(
+            I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
+            current.T("Download recommender's annotations (PDF)"),
+            _href=common_tools.URL("default", "download", args=recommendation.recommender_file, scheme=scheme, host=host, port=port),
+            _style="font-weight: bold; margin-bottom: 5px; display:block",
+        )
+    return recommendation_pdf_link
+
+
+def _mk_link(role: Role, action: str, review_item: Dict[Any, Any]):
+    return common_tools.URL(c=role.value+"_actions", f=action+"_review_request", vars=dict(reviewId=review_item["id"]), scheme=scheme, host=host, port=port)
+
+
+def _get_role_current_user():
+    auth = current.auth
+
+    role: Optional[Role] = None
+    if auth.has_membership(role=Role.MANAGER.value):
+        role = Role.MANAGER
+    elif auth.has_membership(role=Role.RECOMMENDER.value):
+        role = Role.RECOMMENDER
+    return role
+
+
+def _reply_button_disabled(article: Article, recommendation: Recommendation):
+    return (
+            recommendation.recommendation_state == RecommendationState.REVISION.value and article.request_submission_change
             and not pciRRactivated
         )
 
-        suspend_submissions = False
-        status = db.config[1]
-        if pciRRactivated and status['allow_submissions'] is False:
-            suspend_submissions = True
 
-        componentVars = dict(
-            articleId=art.id,
-            recommId=recomm.id,
-            printable=printable,
-            roundNumber=roundNb,
-            nbRecomms=nbRecomms,
-            lastChanges=None,
-            authorsReply=authorsReply,
-            authorsReplyDate=authorsReplyDate,
-            authorsReplyPdfLink=authorsReplyPdfLink,
-            authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
-            editAuthorsReplyLink=editAuthorsReplyLink,
-            recommendationAuthor=I(current.T("by "), B(whoDidIt), SPAN(", " + recomm.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recomm.last_change else "")),
-            manuscriptDoi=SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recomm.doi)) if (recomm.doi) else SPAN(""),
-            recommendationVersion=SPAN(" " + current.T("version:") + " ", recomm.ms_version) if (recomm.ms_version) else SPAN(""),
-            recommendationTitle=H4(common_small_html.md_to_html(recomm.recommendation_title) or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hideOngoingRecomm is False) else "",
-            recommendationLabel=recommendationLabel,
-            recommendationText=recommendationText,
-            recommendationStatus=recomm.recommendation_state,
-            recommendationPdfLink=recommendationPdfLink,
-            inviteReviewerLink=inviteReviewerLink,
-            editRecommendationButtonText=editRecommendationButtonText,
-            editRecommendationLink=editRecommendationLink,
-            editRecommendationDisabled=editRecommendationDisabled,
-            reviewsList=reviewsList,
-            showSearchingForReviewersButton=False,
-            showRemoveSearchingForReviewersButton=showRemoveSearchingForReviewersButton,
-            scheduledSubmissionRevision=scheduledSubmissionRevision,
-            isScheduledSubmission=is_scheduled_submission(art),
-            isScheduledReviewOpen=is_scheduled_review_open(art),
-            isArticleSubmitter=(art.user_id == auth.user_id),
-            replyButtonDisabled=replyButtonDisabled,
-            scheduledSubmissionEndingButton=scheduledSubmissionEndingButton,
-            suspend_submissions=suspend_submissions,
-            isSchedulingTrack=(pciRRactivated and art.report_stage == "STAGE 1" and (art.is_scheduled or is_scheduled_submission(art))),
-            pciRRactivated=pciRRactivated
-        )
+def _suspend_submissions():
+    suspend_submissions = False
+    status = current.db.config[1]
+    if pciRRactivated and status['allow_submissions'] is False:
+        suspend_submissions = True
+    return suspend_submissions
 
-        recommendationRounds.append(XML(response.render("components/recommendation_process.html", componentVars)))
 
-        # show only current round if user is pending RecommenderAcceptation
-        if roundNb == nbRecomms and isPendingRecommenderAcceptation:
+def _get_active_reviews(recommendation: Recommendation):
+    db = current.db
+
+    return cast(List[Review], db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state != ReviewState.DECLINED_MANUALLY.value) & (db.t_reviews.review_state != ReviewState.DECLINED.value) & (db.t_reviews.review_state != ReviewState.CANCELLED.value)).select(
+            orderby=db.t_reviews.id
+        ))
+
+
+def _get_manager_button(article: Article, is_recommender: bool):
+    auth = current.auth
+
+    if article.user_id == auth.user_id:
+        return None
+
+    if pciRRactivated and (auth.has_membership(role="recommender") or auth.has_membership(role="manager")):
+        if article.status == "Scheduled submission pending":
+            return validate_scheduled_submission_button(articleId=article.id, recommender=auth.user_id)
+
+    if not auth.has_membership(role="manager"):
+        return None
+
+    if pciRRactivated and is_scheduled_track(article) and is_stage_1(article):
+        return validate_stage_button(article)
+
+    manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
+    if is_recommender:
+        return sorry_you_are_recommender_note()
+    elif manager_coauthor:
+        return sorry_you_are_coauthor_note()
+    else:
+        return validate_stage_button(article)
+    
+
+def get_recommendation_process_components(article: Article, printable: bool = False):
+    auth, db = current.auth, current.db
+    recommendation_process_components: List[Dict[str, Any]] = []
+
+    am_I_in_recommender_list: bool = False
+    am_I_in_co_recommender_list: bool = False
+    i_recommendation: int = 0
+    recommendations = Recommendation.get_by_article_id(article.id, ~current.db.t_recommendations.id)
+    nb_recommendations = len(recommendations)
+    nb_round = nb_recommendations + 1
+    previous_recommendation: Optional[Recommendation] = None
+
+    for recommendation in recommendations:
+        manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
+        if manager_coauthor:
             break
 
+        i_recommendation += 1
+        nb_round -= 1
+        nb_completed: int = 0
+        nb_on_going: int = 0
+        who_did_it_html = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recommendation, with_reviewers=False, linked=not (printable),
+                        host=host, port=port, scheme=scheme,
+                        this_recomm_only=True,
+                        )
+
+        if recommendation.recommender_id == auth.user_id:
+            am_I_in_recommender_list = True
+
+        am_I_co_recommender = _current_user_is_recommender(recommendation)
+        if am_I_co_recommender:
+            am_I_in_co_recommender_list = True
+
+        role = _get_role_current_user()
+        hide_on_going_recommendation = _must_hide_on_going_recommendation(article, recommendation, am_I_co_recommender)
+
+        reviews = _get_active_reviews(recommendation)
+
+        reviews_list: List[Any] = []
+        count_anonymous_review: int = 0
+        for review in reviews:
+            if review.review_state == ReviewState.AWAITING_REVIEW.value:
+                nb_on_going += 1
+            if review.review_state == ReviewState.REVIEW_COMPLETED.value:
+                nb_completed += 1
+            
+            review_vars, count_anonymous_review = _build_review_vars(article, recommendation, review, am_I_co_recommender, printable, count_anonymous_review, role)
+            reviews_list.append(review_vars)            
+
+        recommender_buttons = _get_recommender_buttons(article, recommendation, am_I_co_recommender, nb_completed, nb_on_going, nb_round, printable)
+        invite_reviewer_links_buttons= _get_invite_reviewer_links(article, recommendation, am_I_co_recommender)
+
+        component_vars = dict(
+            articleId=article.id,
+            recommId=recommendation.id,
+            printable=printable,
+            roundNumber=nb_round,
+            nbRecomms=nb_recommendations,
+            lastChanges=None,
+            authorsReply=_get_author_reply(recommendation),
+            authorsReplyDate=_get_author_reply_formatted_date(recommendation, previous_recommendation, nb_round, nb_recommendations),
+            authorsReplyDatetime=_get_author_reply_date(recommendation, previous_recommendation, nb_round, nb_recommendations),
+            authorsReplyPdfLink=_get_authors_reply_pdf_link(recommendation),
+            authorsReplyTrackChangeFileLink=_get_authors_reply_track_change_file_link(recommendation),
+            editAuthorsReplyLink=_get_author_reply_link(article, recommendation, printable, i_recommendation),
+            recommendationAuthor=I(current.T("by "), B(who_did_it_html), SPAN(", " + recommendation.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recommendation.last_change else "")),
+            recommendationAuthorName=B(who_did_it_html),
+            recommendationDate=recommendation.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recommendation.last_change else "",
+            recommendationDatetime=recommendation.last_change,
+            recommendationValidationDate=recommendation.validation_timestamp.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if recommendation.validation_timestamp else "",
+            recommendationValidationDatetime=recommendation.validation_timestamp,
+            manuscriptDoi=SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recommendation.doi)) if (recommendation.doi) else SPAN(""),
+            recommendationVersion=SPAN(" " + current.T("version:") + " ", recommendation.ms_version) if (recommendation.ms_version) else SPAN(""),
+            recommendationTitle=H4(common_small_html.md_to_html(recommendation.recommendation_title) or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hide_on_going_recommendation is False) else "",
+            recommendationLabel=_get_recommendation_label(recommendation, am_I_co_recommender),
+            recommendationText=_get_recommendation_text(recommendation, hide_on_going_recommendation),
+            recommendationStatus=recommendation.recommendation_state,
+            recommendationPdfLink=_get_recommendation_pdf_link(recommendation, hide_on_going_recommendation),
+            inviteReviewerLink=invite_reviewer_links_buttons['invite_reviewer_link'],
+            editRecommendationButtonText=recommender_buttons['edit_recommendation_button_text'],
+            editRecommendationLink=recommender_buttons['edit_recommendation_link'],
+            editRecommendationDisabled=recommender_buttons['edit_recommendation_disabled'],
+            reviewsList=reviews_list,
+            showSearchingForReviewersButton=False,
+            showRemoveSearchingForReviewersButton=invite_reviewer_links_buttons['show_remove_searching_for_reviewers_button'],
+            scheduledSubmissionRevision=_is_scheduled_submission_revision(article, printable),
+            isScheduledSubmission=is_scheduled_submission(article),
+            isScheduledReviewOpen=is_scheduled_review_open(article),
+            isArticleSubmitter=(article.user_id == auth.user_id),
+            replyButtonDisabled=_reply_button_disabled(article, recommendation),
+            scheduledSubmissionEndingButton=_show_scheduled_submission_ending_button(article, recommendation, am_I_co_recommender, printable),
+            suspend_submissions=_suspend_submissions(),
+            isSchedulingTrack=(pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or is_scheduled_submission(article))),
+            pciRRactivated=pciRRactivated,
+            recommenderId=recommendation.recommender_id
+        )
+        
+        recommendation_process_components.append(component_vars)
+        previous_recommendation = recommendation # iteration is most recent first; last round (final reco) has no author's reply
+
+        # show only current round if user is pending RecommenderAcceptation
+        if nb_round == nb_recommendations and _is_pending_recommender_acceptation(article):
+            break
+
+    return dict(
+        am_I_in_recommender_list=am_I_in_recommender_list,
+        am_I_in_co_recommender_list=am_I_in_co_recommender_list,
+        components=recommendation_process_components
+    )
+
+
+def get_recommendation_process(article: Article, printable: bool = False):
+    response = current.response
+    
+    process = get_recommendation_process_components(article)
+    process_components = cast(Dict[str, Any], process['components'])
+    am_I_in_recommender_list= bool(process['am_I_in_recommender_list'])
+    am_I_in_co_recommender_list = bool(process['am_I_in_co_recommender_list'])
+        
+    recommendation_rounds_html = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
+    for component in process_components:
+        recommendation_rounds_html.append(XML(response.render("components/recommendation_process.html", component))) # type: ignore
+
     # Manager button
-    managerButton = getManagerButton(art, auth, amIinRecommenderList or amIinCoRecommenderList) \
+    manager_button = _get_manager_button(article, am_I_in_recommender_list or am_I_in_co_recommender_list) \
             if not printable else None
 
-    return DIV(recommendationRounds, BR(), managerButton or "")
+    return DIV(recommendation_rounds_html, BR(), manager_button or "")
 
+########################################################################################################################################################################
 
 def is_scheduled_review_open(article):
     return scheduledSubmissionActivated and (
@@ -783,29 +961,6 @@ def is_scheduled_track(article):
 
 def is_stage_1(article):
     return article.report_stage == "STAGE 1"
-
-
-def getManagerButton(art, auth, isRecommender):
-    if art.user_id == auth.user_id:
-        return None
-
-    if pciRRactivated and (auth.has_membership(role="recommender") or auth.has_membership(role="manager")):
-        if art.status == "Scheduled submission pending":
-            return validate_scheduled_submission_button(articleId=art.id, recommender=auth.user_id)
-
-    if not auth.has_membership(role="manager"):
-        return None
-
-    if pciRRactivated and is_scheduled_track(art) and is_stage_1(art):
-        return validate_stage_button(art)
-
-    manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
-    if isRecommender:
-        return sorry_you_are_recommender_note()
-    elif manager_coauthor:
-        return sorry_you_are_coauthor_note()
-    else:
-        return validate_stage_button(art)
 
 
 def sorry_you_are_coauthor_note():

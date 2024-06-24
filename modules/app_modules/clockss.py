@@ -1,32 +1,45 @@
-from io import StringIO
+from dataclasses import dataclass
+import datetime
 import os
 import ftplib
 import pathlib
+import re
 import shutil
 import string
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union, cast
 
-from app_components.ongoing_recommendation import getRecommendationProcess
+from app_components.ongoing_recommendation import get_recommendation_process_components
 from app_modules.html_to_latex import HtmlToLatex
-from app_modules.common_small_html import build_citation, mkSimpleDOI
+from app_modules.common_small_html import build_citation, mkSimpleDOI, mkUser
 from configparser import NoOptionError
 from models.article import Article
 from models.pdf import PDF
-from models.review import Review
+from models.press_reviews import PressReview
+from models.review import Review, ReviewState
 from models.recommendation import Recommendation
 from app_modules import crossref
 from app_modules import common_tools
 
-from gluon.html import TAG
-from gluon.contrib.appconfig import AppConfig
+from gluon.html import A, SPAN, TAG
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon import current
 
 import zipfile as z
-import lxml.html
-import lxml.etree
 
 
 myconf = AppConfig(reload=True)
+pci_RR_activated = bool(myconf.get("config.registered_reports", default=False))
+
+@dataclass
+class TemplateVar():
+    value: Optional[Any]
+    is_latex_code: bool
+    avoid_missing_value: bool
+
+    def __init__(self, value: ..., is_latex_code: bool = False, avoid_missing_value: bool = False):
+        self.value = value
+        self.is_latex_code = is_latex_code
+        self.avoid_missing_value = avoid_missing_value
 
 
 class Clockss:
@@ -37,6 +50,8 @@ class Clockss:
 
     LATEX_TEMPLATE_FILENAME = 'main.tex'
     PDFLATEX_BIN: Optional[str] = myconf.get("latex.pdflatex")
+
+    DATE_FORMAT = "%d %B %Y"
     
     _article: Article
     _prefix: str
@@ -103,35 +118,165 @@ class Clockss:
     def _build_latex_content_from_template(self):
         template = self._get_latex_template_content()
 
-        simple_variables: Dict[str, Any] = {
-            'ARTICLE_AUTHORS': self._article.authors,
-            'ARTICLE_TITLE': self._article.title,
-            'RECOMMENDATION_ABSTRACT': self._remove_references_in_recommendation_decision(self._recommendation.recommendation_comments or ''),
-            'ARTICLE_YEAR': self._article.article_year,
-            'ARTICLE_VERSION': self._article.ms_version,
-            'ARTICLE_COVER_LETTER': self._article.cover_letter,
-            'RECOMMENDER_NAMES': Recommendation.get_recommenders_names(self._recommendation),
-            'REVIEWER_NAMES': Review.get_reviewers_name(self._article.id),
-            'RECOMMENDATION_TITLE': self._recommendation.recommendation_title,
-            'RECOMMENDATION_DOI': mkSimpleDOI(self._recommendation.doi),
-            'PREPRINT_SERVER': self._article.preprint_server,
-            'RECOMMENDATION_CITATION': build_citation(self._article, self._recommendation, True),
-            'RECOMMENDATION_VALIDATION_DATE': self._recommendation.validation_timestamp.strftime("%d %B %Y") if self._recommendation.validation_timestamp else None
+        template_vars: Dict[str, Any] = {
+            'ARTICLE_AUTHORS': TemplateVar(self._article.authors),
+            'ARTICLE_TITLE': TemplateVar(self._get_formatted_article_title(), True),
+            'RECOMMENDATION_ABSTRACT': TemplateVar(self._remove_references_in_recommendation_decision(self._recommendation.recommendation_comments or '')),
+            'ARTICLE_YEAR': TemplateVar(self._article.article_year),
+            'ARTICLE_VERSION': TemplateVar(self._article.ms_version),
+            'ARTICLE_COVER_LETTER': TemplateVar(self._article.cover_letter),
+            'RECOMMENDATION_TITLE': TemplateVar(self._get_recommendation_title(), True),
+            'RECOMMENDATION_DOI': TemplateVar(mkSimpleDOI(self._recommendation.doi)),
+            'PREPRINT_SERVER': TemplateVar(self._article.preprint_server),
+            'RECOMMENDATION_CITATION': TemplateVar(build_citation(self._article, self._recommendation, True)),
+            'RECOMMENDATION_VALIDATION_DATE': TemplateVar(self._recommendation.validation_timestamp.strftime(self.DATE_FORMAT) if self._recommendation.validation_timestamp else None),
+            'PCI_NAME': TemplateVar(self._str(myconf.take("app.description"))),
+            'ARTICLE_VALIDATION_DATE': TemplateVar(self._get_article_validation_date()),
+            'RECOMMENDATION_REFERENCES': TemplateVar(self._get_list_references_in_template(), True, True),
+            'RECOMMENDATION_PROCESS': TemplateVar(self._replace_recommendation_process(), True),
+            'PCI_IMG': TemplateVar(self._replace_img_in_template(), True),
+            'RECOMMENDATION_SUBTITLE': TemplateVar(self._get_recommendation_subtitle(), True)
         }
 
-        for variable_name, variable_value in simple_variables.items():
+        for variable_name, variable_value in template_vars.items():
             template = self._replace_var_in_template(variable_name, variable_value, template)
-
-        template = self._replace_list_references_in_template('ARTICLE_DATA_DOI', template)
-        template = self._replace_recommendation_process('RECOMMENDATION_PROCESS', template)
-        template = self._replace_img_in_template(template)
 
         return template
     
 
-    def _replace_img_in_template(self, template: str):
+    def _get_recommendation_subtitle(self):
+        recommenders_name = self._get_recommender_name()
+        reviewers_name = self._get_reviewers_names()
+
+        subtitle = f"{recommenders_name} based on peer reviews by {reviewers_name}"
+        if pci_RR_activated and self._article.report_stage:
+            subtitle = f"A recommendation by {subtitle} of the {self._article.report_stage} REPORT:"
+        return subtitle
+
+    def _get_recommendation_title(self):
+        title = self._recommendation.recommendation_title
+        if not title:
+            return
+        
+        title = title.strip()
+        title = self._html_to_latex.convert_LaTeX_special_chars(title)
+        title = self._convert_stars_to_italic(title)
+        return title
+
+
+    def _get_article_validation_date(self):
+        validation_date: Optional[datetime.datetime] = None
+
+        if self._article.validation_timestamp:
+            validation_date = self._article.validation_timestamp
+        elif self._article.upload_timestamp:
+            validation_date = self._article.upload_timestamp
+
+        if validation_date:
+            return validation_date.strftime(self.DATE_FORMAT)
+
+
+    def _get_formatted_article_title(self):
+        title = self._article.title
+        if not title:
+            return
+        
+        title = title.strip()
+        title = self._html_to_latex.convert_LaTeX_special_chars(title)
+        title = self._convert_stars_to_italic(title)
+        
+        has_punctuation = bool(re.search(r"[?!…¿;¡.]$", title))
+        if has_punctuation:
+            return title
+        else:
+            return f"{title}."
+    
+
+    def _convert_stars_to_italic(self, text: str):
+        text = re.sub(r'\*(.*?)\*', r'\\textit{\1}', text)
+        return text
+
+
+    def _get_reviewers_names(self):
+        reviews = Review.get_by_article_id_and_state(self._article.id, ReviewState.REVIEW_COMPLETED)
+        nb_anonymous = 0
+        names: List[str] = []
+        user_id: List[int] = []
+        for review in reviews:
+            if not review.anonymously and review.reviewer_id not in user_id:
+                reviewer_html: Union[A, SPAN] = mkUser(current.auth, current.db, review.reviewer_id, linked=True, orcid=True)
+                reviewer_name = self._html_to_latex.convert(self._str(reviewer_html))
+                if isinstance(reviewer_html, SPAN) and len(reviewer_html.components) == 2: # type: ignore
+                    reviewer_name = self._html_to_latex.convert(self._str(reviewer_html.components[0])) # type: ignore
+                    reviewer_orcid = str(reviewer_html.components[1].attributes['_href']) # type: ignore
+                    reviewer_name += f"\\href{{{reviewer_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=10px,height=10px]{{ORCID_ID.png}}}}"
+                
+                names.append(reviewer_name)
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
+        
+        user_id.clear()
+
+        for review in reviews:
+            if review.anonymously and review.reviewer_id not in user_id:
+                nb_anonymous += 1
+                if review.reviewer_id:
+                    user_id.append(review.reviewer_id)
+        
+        if (nb_anonymous > 0):
+            anonymous = str(nb_anonymous) + ' anonymous reviewer'
+            if (nb_anonymous > 1):
+                anonymous += 's'
+            names.append(anonymous)
+        
+        formatted_names = ''
+        for i, name in enumerate(names):
+            if i == 0:
+                formatted_names = name
+            elif i == len(names) - 1:
+                formatted_names += f' and {name}'
+            else:
+                formatted_names += f', {name}'
+
+        return formatted_names
+
+
+    def _get_recommender_name(self):
+        db = current.db
+
+        recommendations = cast(List[Recommendation], db(db.t_recommendations.id == self._recommendation.id)\
+            .select(db.t_recommendations.ALL, distinct=db.t_recommendations.recommender_id))
+        press_reviews = cast(List[PressReview], db((db.t_recommendations.id == self._recommendation.id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id))\
+            .select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id))
+        
+        recommenders_id: List[int] = []
+        for recommendation in recommendations:
+            recommenders_id.append(recommendation.recommender_id)
+
+        for press_review in press_reviews:
+            if press_review.contributor_id:
+                recommenders_id.append(press_review.contributor_id)
+
+        recommender_names: List[str] = []
+        for recommender_id in recommenders_id:
+            recommender_html: Union[A, SPAN] = mkUser(current.auth, current.db, recommender_id, linked=True, orcid=True)
+            recommender_name = self._html_to_latex.convert(self._str(recommender_html))
+            if isinstance(recommender_html, SPAN) and len(recommender_html.components) == 2: # type: ignore
+                recommender_name = self._html_to_latex.convert(self._str(recommender_html.components[0])) # type: ignore
+                recommender_orcid = str(recommender_html.components[1].attributes['_href']) # type: ignore
+                recommender_name += f"\\href{{{recommender_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=10px,height=10px]{{ORCID_ID.png}}}}"
+            recommender_names.append(recommender_name)
+
+        if len(recommender_names) == 1:
+            return recommender_names[0]
+        else:
+            return ' and '.join([', '.join(recommender_names[:-1]), recommender_names[-1]])
+
+
+    def _replace_img_in_template(self):
         pci = str(myconf.take("app.description")).lower()
         img_map = {
+            'peer community in registered reports (test)': 'logo_PDF_rr.jpg',
             'peer community in registered reports': 'logo_PDF_rr.jpg',
             'peer community in zoology': 'logo_PDF_zool.jpg',
             'peer community in ecology': 'logo_PDF_ecology.jpg',
@@ -145,76 +290,183 @@ class Clockss:
             'peer community in neuroscience': 'logo_PDF_neuro.jpg',
             'peer community in ecotoxicology and environmental chemistry': 'logo_PDF_ecotoxenvchem.jpg',
             'peer community in infections': 'logo_PDF_infections.jpg',
-            'peer community in health and movement sciences': 'logo_PDF_healthandmovementsciences.png',
-            'peer community in microbiology': 'logo_PDF_microbiology.png',
-            'peer community in organization studies': 'logo_PDF_organizationstudies.png',
-            'peer community in computational statistics': 'logo_PDF_computationalstatistics.png'
+            'peer community in health and movement sciences': 'logo_PDF_healthandmovementsciences.jpg',
+            'peer community in microbiology': 'logo_PDF_microbiology.jpg',
+            'peer community in organization studies': 'logo_PDF_organizationstudies.jpg',
+            'peer community in computational statistics': 'logo_PDF_computationalstatistics.jpg',
+            'peer community in psychology': 'logo_PDF_psychology.jpg',
         }
         img = img_map.get(pci, 'logo_PDF_evolbiol.jpg')
-        return self._replace_var_in_template('PCI_IMG', img, template)
+        return img
     
 
-    def _replace_recommendation_process(self, var_title: str, template: str):
-        recommendation_process: Any = getRecommendationProcess(current.auth, current.db, current.response, self._article)
-        recommendation_process = recommendation_process.components[0]
+    def _replace_recommendation_process(self):
+        recommendation_process: Any = get_recommendation_process_components(self._article)
+        process = recommendation_process['components']
+        
         latex_code: List[str] = []
         first_round = True
 
-        for round in recommendation_process.components:
+        for round in process:
             if not round:
                 continue
 
-            html_parser = lxml.html.HTMLParser(encoding='utf-8', remove_comments=True)
-            tree: ... = lxml.html.parse(StringIO(str(round)), parser=html_parser) # type: ignore
-            root = tree.getroot()
             latex_round: List[str] = []
 
-            round_number: str = root.xpath('//h2[@class="pci2-revision-round-title"]//b[@class="pci2-main-color-text"]/text()')
-            if round_number and len(round_number) > 0:
-                round_number = round_number[0].replace('#', '')
-                latex_round.append(f"\\subsection*{{Round {round_number}}}")
-            else:
-                continue
+            round_number: int = round['roundNumber']
+            latex_round.append(f"\\section*{{Evaluation round \\#{round_number}}}")
 
-            author_reply = root.xpath('//h4[@id="author-reply"]/following-sibling::div/div')
-            if author_reply and len(author_reply) > 0:
-                author_reply = str(lxml.html.tostring(author_reply[0]).decode('utf-8')) # type: ignore
-                author_reply = self._html_to_latex.convert(author_reply)
-                latex_round.append(f"\\subsubsection*{{Authors' response}}")
-                latex_round.append(f"{author_reply}")
-            
-            recommender_decision = root.xpath('//div[@class="pci2-recomm-text"]')
-            if recommender_decision and len(recommender_decision) > 0 and not first_round:
-                recommender_decision = str(lxml.html.tostring(recommender_decision[0]).decode('utf-8')) # type: ignore
-                recommender_decision = self._remove_references_in_recommendation_decision(recommender_decision)
-                recommender_decision = self._html_to_latex.convert(recommender_decision)
-                latex_round.append(f"\\subsubsection*{{Decision by {{\\recommender}}}}")
-                latex_round.append(recommender_decision)
+            if not first_round:
+                recommendation_manuscrit = self._html_to_latex.convert(self._str(round['manuscriptDoi']))
+                if recommendation_manuscrit:
+                    recommendation_manuscrit = recommendation_manuscrit.lstrip("Manuscript:").strip()
+                    if recommendation_manuscrit:
+                        latex_round.append(f"\nDOI or URL of the preprint: {recommendation_manuscrit}")
 
-            reviews = root.xpath('//div[@class="review"]')
-            if len(reviews) > 0:
-                latex_round.append("\\subsubsection*{{Reviews}}")
-                
-            for review in reviews:
-                review_author = review.xpath('h4/span/text()')
-                if review_author and len(review_author) > 0:
-                    review_author = str(review_author[0]).split(',')[0]
-                else:
-                    continue
+                recommendation_version = self._html_to_latex.convert(self._str(round['recommendationVersion']))
+                if recommendation_version:
+                    recommendation_version = recommendation_version.lstrip('version:').strip()
+                    if recommendation_version:
+                        latex_round.append(f"\nVersion of the preprint: {recommendation_version}")
 
-                review_content = review.xpath('div')
-                if review_content and len(review_content) > 0:
-                    review_content: ... = lxml.html.tostring(review_content[0]).decode('utf-8') # type: ignore
-                    review_content = self._html_to_latex.convert(review_content)
-                    latex_round.append(f"\\subsubsection*{{Review by {review_author}}}")
-                    latex_round.append(review_content)
+            latex_round.extend(self._get_round_author_reply(round))
+            if not first_round:
+                latex_round.extend(self._get_round_recommender_decision(round))
+            latex_round.extend(self._get_round_reviews(round))
             
             if len(latex_round) > 1:
                 latex_code.extend(latex_round)
-                
-            first_round = False
 
-        return template.replace(f"[[{var_title.upper()}]]", "\n".join(latex_code))
+            if first_round:
+                first_round = False
+
+        return "\n".join(latex_code)
+    
+
+    def _get_round_reviews(self, round: Dict[str, Any]):
+        latex_lines: List[str] = []
+        reviews: List[Dict[str, Any]] = round['reviewsList']
+                
+        for review in reviews:
+            reviewer_name = self._html_to_latex.convert(self._str(review['authors']))
+            if not reviewer_name:
+                continue
+
+            review_instance = cast(Review, review['review'])
+            if review_instance:
+                review_date: datetime.datetime = review['reviewDatetime']
+                review_date_str = review_date.strftime(self.DATE_FORMAT)
+                reviewer_name = reviewer_name.rsplit(', ', 1)[0]
+
+                if not review_instance.anonymously:
+                    html_reviewer = mkUser(current.auth, current.db, review_instance.reviewer_id, True, orcid=True)
+                    reviewer: Optional[Union[A, SPAN]] = html_reviewer
+                    reviewer_orcid: Optional[str] = None
+                    if isinstance(html_reviewer, SPAN) and len(html_reviewer.components) == 2: #type: ignore
+                        reviewer = cast(A, html_reviewer.components[0]) # type: ignore
+                        reviewer_orcid = str(html_reviewer.components[1].attributes['_href']) # type: ignore
+
+                    if isinstance(reviewer, A):
+                        reviewer_link = str(reviewer.attributes['_href']) # type: ignore
+                        reviewer_name = f"\\href{{{reviewer_link}}}{{{reviewer_name}}}"
+                        if reviewer_orcid:
+                            reviewer_name += f"\\href{{{reviewer_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=9px,height=9px]{{ORCID_ID.png}}}}"
+                
+                reviewer_name += f", {review_date_str}"
+
+            review_content = self._html_to_latex.convert(self._str(review['text']))
+            if review_content:
+                latex_lines.append(f"\\subsection*{{Reviewed by {reviewer_name}}}")
+                latex_lines.append(review_content)
+
+            review_link = self._html_to_latex.convert(self._str(review['pdfLink']))
+            if review_link:
+                latex_lines.append(f"\n{review_link}")
+
+        return latex_lines
+
+
+    def _get_round_recommender_decision(self, round: Dict[str, Any]):
+        latex_lines: List[str] = []
+
+        recommendation_pdf_link = self._html_to_latex.convert(self._str(round['recommendationPdfLink']))
+        recommender_decision = self._str(round['recommendationText'])
+        if recommender_decision:
+            recommender_decision = self._remove_references_in_recommendation_decision(recommender_decision)
+        recommender_decision = self._html_to_latex.convert(recommender_decision)
+
+        if recommender_decision or recommendation_pdf_link:
+            
+            recommendation_label = f"Decision"
+
+            recommendation_author = self._html_to_latex.convert(self._str(round['recommendationAuthorName']))
+            if recommendation_author:
+                recommendation_label += f" by {recommendation_author}"
+
+            recommender_id = int(round['recommenderId'])
+            recommender = mkUser(current.auth, current.db, recommender_id, linked=False, orcid=True)
+            if isinstance(recommender, SPAN) and len(recommender.components) == 2: # type: ignore
+                recommender_orcid = str(recommender.components[1].attributes['_href']) # type: ignore
+                recommendation_label += f"\\href{{{recommender_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=9px,height=9px]{{ORCID_ID.png}}}}"
+
+            recommendation_post_date: Optional[datetime.datetime] = round['recommendationDatetime']
+            if recommendation_post_date:
+                recommendation_post_date_str = recommendation_post_date.strftime(self.DATE_FORMAT)
+                recommendation_label += f", posted {recommendation_post_date_str}"
+
+            recommendation_validation_date: Optional[datetime.datetime] = round['recommendationValidationDatetime']
+            if recommendation_validation_date:
+                recommendation_validation_date_str = recommendation_validation_date.strftime(self.DATE_FORMAT)
+                recommendation_label += f", validated {recommendation_validation_date_str}"
+
+            latex_lines.append(f"\\subsection*{{{recommendation_label}}}")
+
+            recommendation_title = self._html_to_latex.convert(self._str(round['recommendationTitle']))
+
+            if recommendation_title:
+                latex_lines.append(recommendation_title)
+                latex_lines.append(r"\smallbreak")
+
+            if recommender_decision:
+                latex_lines.append(recommender_decision)
+
+            if recommendation_pdf_link:
+                latex_lines.append(recommendation_pdf_link)
+                
+        return latex_lines
+
+
+    def _get_round_author_reply(self, round: Dict[str, Any]):
+        latex_lines: List[str] = []
+        author_reply = self._html_to_latex.convert(self._str(round['authorsReply']))
+        author_reply_date: Optional[datetime.datetime] = round['authorsReplyDatetime']
+        author_reply_pdf_link = self._html_to_latex.convert(self._str(round['authorsReplyPdfLink']))
+        author_reply_track_change_file = self._html_to_latex.convert(self._str(round['authorsReplyTrackChangeFileLink']))
+
+        if author_reply or author_reply_pdf_link or author_reply_track_change_file:
+            author_reply_title = "Authors' reply"
+            if author_reply_date:
+                author_reply_date_str = author_reply_date.strftime(self.DATE_FORMAT)
+                author_reply_title += f", {author_reply_date_str}"
+            latex_lines.append(f"\\subsection*{{{author_reply_title}}}")
+        
+        if author_reply:
+            latex_lines.append(f"{author_reply}")
+
+        if author_reply_pdf_link:
+            latex_lines.append(f"\n{author_reply_pdf_link}")
+        
+        if author_reply_track_change_file:
+            latex_lines.append(f"\n{author_reply_track_change_file}")
+        
+        return latex_lines
+
+
+    def _str(self, value: ...):
+        if value is None:
+            return ''
+        else:
+            return str(value)
 
 
     def _remove_references_in_recommendation_decision(self, recommendation_decision: str):
@@ -222,42 +474,71 @@ class Clockss:
         recommendation_text: List[str] = []
 
         lines = recommendation_comments.splitlines()
-        for line in lines:
-            try:
-                line_text = str(TAG(line).flatten().lower().strip()) # type: ignore
-            except:
-                line_text = line
-            line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+        reference_start = False
 
-            if line_text in ['reference', 'references']:
-                break
+        for line in lines:
+            sub_lines = line.split('<br>&nbsp;<br>')
+            for sub_line in sub_lines:
+                try:
+                    line_text = str(TAG(sub_line).flatten().lower().strip()) # type: ignore
+                except:
+                    line_text = sub_line
+                line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+
+                if line_text in ['reference', 'references']:
+                    reference_start = True
+                    break
+
+                recommendation_text.append(f"\n{sub_line}")
             
-            recommendation_text.append(line)
+            if reference_start:
+                break
 
         return '\n'.join(recommendation_text)
     
 
-    def _replace_var_in_template(self, var_title: str, var_content: Optional[Any], template: str, latex_format: bool = False):
-        content = str(var_content) or f"Missing {var_title.lower()}"
-        if not latex_format:
-            content = self._html_to_latex.convert(content)
+    def _replace_var_in_template(self, var_title: str, template_var: TemplateVar, template: str):
+        content = self._str(template_var.value)
+        
+        if content:
+            if not template_var.is_latex_code:
+                content = self._html_to_latex.convert(content)
+            content = self._replace_url_in_content(content)
+        else:
+            if not template_var.avoid_missing_value:
+                content = f"Missing {var_title.lower()}"
+            content = self._html_to_latex.convert_LaTeX_special_chars(content)
+
         return template.replace(f"[[{var_title.upper()}]]", content)
     
 
-    def _replace_list_references_in_template(self, var_title: str, template: str):
+    def _replace_url_in_content(self, latex_content: str):
+        regex = r"(?<!\{)(https?://?[\w-]+\.[^;:<>{}\[\]\"\'\s~]*[^.,;?!:<>{}\[\]()\"\'\s~\\])(?!\})"
+        pattern = re.compile(regex)
+        match = pattern.search(latex_content)
+
+        if match:
+            replacement = r"\\url{\1}"
+            latex_content = re.sub(regex, replacement, latex_content)
+        
+        return latex_content
+    
+
+    def _get_list_references_in_template(self):
         references: List[str] = Recommendation.get_references(self._recommendation)
 
         if len(references) == 0:
-            return self._replace_var_in_template(var_title, 'No references', template)
+            return
         
-        i = 1
-        content: List[str] = [r'\begin{itemize}']
+        content: List[str] = [r'\textbf{\emph{References: }}',
+                              r'\begin{flushleft}',
+                              r'\begin{itemize}']
         for reference in references:
             reference = self._html_to_latex.convert(reference)
-            content.append(f"\\item[]{{}}[{i}] {reference}")
-            i += 1
+            content.append(f"\\item[]{{}} {reference}")
         content.append(r'\end{itemize}')
-        return self._replace_var_in_template(var_title, '\n'.join(content), template, True)
+        content.append(r'\end{flushleft}')
+        return '\n'.join(content)
 
 
     def _get_latex_template_content(self):

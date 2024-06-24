@@ -443,7 +443,7 @@ def recommendations():
     if art.already_published:
         myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
     else:
-        myContents = ongoing_recommendation.getRecommendationProcess(auth, db, response, art, printable)
+        myContents = ongoing_recommendation.get_recommendation_process(art, printable)
 
     isStage2 = art.art_stage_1_id is not None
     stage1Link = None
