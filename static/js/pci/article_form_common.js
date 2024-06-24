@@ -74,7 +74,9 @@ initUploadedPictureField('t_articles_uploaded_picture', sessionStorage);
 ////
 
 document.getElementById('save-article-form-button').addEventListener('click', saveForm);
-document.getElementById('clean-save-article-form-button').addEventListener('click', cleanFormSaved);
+document.getElementById('clean-save-article-form-button').addEventListener('click', () => {
+    cleanFormSaved();
+});
 
 function getSaveFormUploadedPictureLabel() {
     return `save-form-${window.location.pathname}-t_articles_uploaded_picture`;
