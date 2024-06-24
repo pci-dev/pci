@@ -604,7 +604,7 @@ def fill_new_article():
     if pciRRactivated:
         form.element(_type="submit")["_value"] = T("Continue your submission")
     else:
-        form.element(_type="submit")["_value"] = T("Complete your submission")
+        form.element(_type="submit")["_value"] = "Save & Complete your submission"
 
     form.element(_type="submit")["_class"] = "btn btn-success"
     form.element(_type="submit")["_name"] = "submit"
