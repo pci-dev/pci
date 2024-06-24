@@ -101,7 +101,7 @@ def recommendations():
         # Create related stage 1 link
         if pciRRactivated and isStage2:
             urlArticle = URL(c="user", f="recommendations", vars=dict(articleId=art.art_stage_1_id))
-            stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art.art_stage_1_id, urlArticle)
+            stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(art.art_stage_1_id, urlArticle)
 
         # Create related stage 2 list
         elif pciRRactivated and not isStage2:
@@ -109,7 +109,7 @@ def recommendations():
             stage2List = []
             for art_st_2 in stage2Articles:
                 urlArticle = URL(c="user", f="recommendations", vars=dict(articleId=art_st_2.id))
-                stage2List.append(common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art_st_2.id, urlArticle))
+                stage2List.append(common_small_html.mkRepresentArticleLightLinkedWithStatus(art_st_2.id, urlArticle))
 
         # Scheduled Submission form (doi + manuscript version)
         isScheduledSubmission = False
@@ -142,7 +142,7 @@ def recommendations():
                 art.status = "Scheduled submission pending"
                 art.update_record()
 
-                emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", art.id)
+                emailing.delete_reminder_for_submitter("#SubmitterScheduledSubmissionOpen", art.id)
 
                 session.flash = T("Article submitted successfully")
                 redirect(URL(c="user", f="recommendations", vars=dict(articleId=articleId)))
@@ -153,14 +153,14 @@ def recommendations():
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
 
         if pciRRactivated and art.user_id != auth.user_id:
-            recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, False)
+            recommHeaderHtml = article_components.get_article_infos_card(art, printable, False)
         else:
-            recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, True)
+            recommHeaderHtml = article_components.get_article_infos_card(art, printable, True)
 
-        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "user", request, True, printable, quiet=False)
-        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+        recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, True, printable, quiet=False)
+        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(art, printable, quiet=False)
 
-        recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(auth, db, response, art, printable)
+        recommendationProgression = ongoing_recommendation.getRecommendationProcessForSubmitter(art, printable)
         myContents = ongoing_recommendation.get_recommendation_process(art, printable)
 
         reviews = Review.get_all_active_reviews(db.get_last_recomm(art.id), auth.user_id)
@@ -184,7 +184,7 @@ def recommendations():
             recommHeaderHtml=recommHeaderHtml,
             recommStatusHeader=recommStatusHeader,
             recommTopButtons=recommTopButtons or "",
-            pageHelp=getHelp(request, auth, db, "#UserRecommendations"),
+            pageHelp=getHelp("#UserRecommendations"),
             myContents=myContents,
             recommendationProgression=recommendationProgression["content"],
             roundNumber=recommendationProgression["roundNumber"],
@@ -206,7 +206,7 @@ def recommendations():
 def search_recommenders():
     whatNext = request.vars["whatNext"]
     articleId = request.vars.articleId
-    excludeList = common_tools.get_exclude_list(request)
+    excludeList = common_tools.get_exclude_list()
     if excludeList is None:
         return "invalid parameter: exclude"
 
@@ -256,7 +256,7 @@ def search_recommenders():
         users.id.label = "Name"
         users.id.readable = True
         users.id.represent = lambda uid, row: DIV(
-                common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]),
+                common_small_html.mkReviewerInfo(db.auth_user[uid]),
                 _class="pci-w300Cell")
 
         for f in users.fields:
@@ -266,7 +266,7 @@ def search_recommenders():
         def mkButton(func, modus):
             return lambda row: "" if row.auth_user.id in excludeList else (
                     "" if str(row.auth_user.id) in (art.manager_authors or "").split(',')
-                    else DIV( func(auth, db, row, art.id, excludeList, request.vars),
+                    else DIV( func(row, art.id, excludeList, request.vars),
                               INPUT(_type="checkbox", _id='checkbox_%s_%s'%(modus, str(row.auth_user.id)), _class="multiple-choice-checks %s"%modus, _onclick='update_parameter_for_selection(this)'),
                               _class="min15w"))
 
@@ -346,10 +346,10 @@ def search_recommenders():
         select_all_script = common_tools.get_script("select_all.js")
         response.view = "default/gab_list_layout.html"
         return dict(
-            pageHelp=getHelp(request, auth, db, "#UserSearchRecommenders"),
-            customText=getText(request, auth, db, "#UserSearchRecommendersText"),
+            pageHelp=getHelp("#UserSearchRecommenders"),
+            customText=getText("#UserSearchRecommendersText"),
             titleIcon="search",
-            pageTitle=getTitle(request, auth, db, "#UserSearchRecommendersTitle"),
+            pageTitle=getTitle("#UserSearchRecommendersTitle"),
             myUpperBtn=myUpperBtn,
             myAcceptBtn=myAcceptBtn,
             myFinalScript=common_tools.get_script("popover.js"),
@@ -369,8 +369,8 @@ def new_submission():
     submitPreprintLink = None
 
 
-    pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle")
-    customText=getText(request, auth, db, "#SubmissionOnHoldInfo")
+    pageTitle=getTitle("#UserBeforeSubmissionTitle")
+    customText=getText("#SubmissionOnHoldInfo")
 
     db.config.allow_submissions.writable = True
     db.config.allow_submissions.readable = True
@@ -390,8 +390,8 @@ def new_submission():
     
 
     if status['allow_submissions']:
-        pageTitle=getTitle(request, auth, db, "#UserBeforeSubmissionTitle")
-        customText=getText(request, auth, db, "#NewRecommendationRequestInfo")
+        pageTitle=getTitle("#UserBeforeSubmissionTitle")
+        customText=getText("#NewRecommendationRequestInfo")
         
         if auth.user:
             submitPreprintLink = URL("user", "check_title" if pciRRactivated else "fill_new_article", user_signature=True)
@@ -434,10 +434,10 @@ def check_title():
     myScript = common_tools.get_script("check_title.js")
     response.view = "default/myLayout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
-        customText=getText(request, auth, db, "#UserEditArticleText"),
+        pageHelp=getHelp("#UserSubmitNewArticle"),
+        customText=getText("#UserEditArticleText"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
+        pageTitle=getTitle("#UserSubmitNewArticleTitle"),
         myFinalScript=myScript,
         form=form
     )
@@ -562,7 +562,7 @@ def fill_new_article():
     if parallelSubmissionAllowed:
         fields += ["parallel_submission"]
 
-    managers = common_tools.get_managers(db)
+    managers = common_tools.get_managers()
     manager_ids = [m[0] for m in managers]
     manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are members of the managing board) if they are co-authors of the article')]
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=False, label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
@@ -626,19 +626,19 @@ def fill_new_article():
         response.flash = T("Form has errors", lazy=False)
 
 
-    customText = getText(request, auth, db, "#UserSubmitNewArticleText", maxWidth="800")
+    customText = getText("#UserSubmitNewArticleText", maxWidth="800")
     if pciRRactivated:
         customText = ""
 
     if status['allow_submissions'] is False:
-        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
+        form = getText("#SubmissionOnHoldInfo")
 
     myScript = common_tools.get_script("fill_new_article.js")
     response.view = "default/gab_form_layout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserSubmitNewArticle"),
+        pageHelp=getHelp("#UserSubmitNewArticle"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#UserSubmitNewArticleTitle"),
+        pageTitle=getTitle("#UserSubmitNewArticleTitle"),
         customText=customText,
         form=form,
         myFinalScript=myScript or "",
@@ -856,7 +856,7 @@ def edit_my_article():
 
     try: article_manager_coauthors = article.manager_authors
     except: article_manager_coauthors = False
-    managers = common_tools.get_managers(db)
+    managers = common_tools.get_managers()
     manager_checks = {}
     for m in managers:
         manager_checks[m[0]] = False
@@ -929,14 +929,14 @@ def edit_my_article():
         response.flash = T("Form has errors", lazy=False)
 
     if pciRRactivated and status['allow_submissions'] is False:
-        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
+        form = getText("#SubmissionOnHoldInfo")
 
     manager_script = common_tools.get_script("manager_selection.js")
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserEditArticle"),
-        customText=getText(request, auth, db, "#UserEditArticleText"),
+        pageHelp=getHelp("#UserEditArticle"),
+        customText=getText("#UserEditArticleText"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#UserEditArticleTitle"),
+        pageTitle=getTitle("#UserEditArticleTitle"),
         form=form,
         myFinalScript=myScript,
         managerScript = manager_script,
@@ -969,15 +969,15 @@ def fill_report_survey():
         session.flash = T("Forbidden access")
         redirect(URL("my_articles", user_signature=True))
 
-    form = app_forms.report_survey(auth, session, art, db, controller="user_fill")
+    form = app_forms.report_survey(art, controller="user_fill")
 
     myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#FillReportSurvey"),
+        pageHelp=getHelp("#FillReportSurvey"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#FillReportSurveyTitle"),
-        customText=getText(request, auth, db, "#FillReportSurveyText", maxWidth="800"),
+        pageTitle=getTitle("#FillReportSurveyTitle"),
+        customText=getText("#FillReportSurveyText", maxWidth="800"),
         form=form,
         myFinalScript=myScript,
     )
@@ -1018,22 +1018,22 @@ def edit_report_survey():
                 <= db.full_upload_opening_offset.days
     )
 
-    form = app_forms.report_survey(auth, session, art, db, survey, "user_edit",
+    form = app_forms.report_survey(art, survey, "user_edit",
                                     do_validate=not fullSubmissionOpened)
 
     if fullSubmissionOpened:
         form.element("#t_report_survey_q10")["_disabled"] = 1
 
     if pciRRactivated and status['allow_submissions'] is False:
-        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
+        form = getText("#SubmissionOnHoldInfo")
 
     myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#EditReportSurvey"),
+        pageHelp=getHelp("#EditReportSurvey"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#EditReportSurveyTitle"),
-        customText=getText(request, auth, db, "#EditReportSurveyText", maxWidth="800"),
+        pageTitle=getTitle("#EditReportSurveyTitle"),
+        customText=getText("#EditReportSurveyText", maxWidth="800"),
         form=form,
         myFinalScript=myScript,
     )
@@ -1064,9 +1064,9 @@ def suggested_recommenders():
     return dict(
         myBackButton=common_small_html.mkBackButton(),
         titleIcon="education",
-        pageTitle=getTitle(request, auth, db, "#SuggestedRecommendersTitle"),
-        customText=getText(request, auth, db, "#SuggestedRecommendersText"),
-        pageHelp=getHelp(request, auth, db, "#SuggestedRecommenders"),
+        pageTitle=getTitle("#SuggestedRecommendersTitle"),
+        customText=getText("#SuggestedRecommendersText"),
+        pageHelp=getHelp("#SuggestedRecommenders"),
         grid=grid,
     )
 
@@ -1091,7 +1091,7 @@ def suggested_recommenders():
     else:
         query = (db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
         db.t_suggested_recommenders._id.readable = False
-        db.t_suggested_recommenders.suggested_recommender_id.represent = lambda userId, row: common_small_html.mkUser(auth, db, userId)
+        db.t_suggested_recommenders.suggested_recommender_id.represent = lambda userId, row: common_small_html.mkUser(userId)
         grid = SQLFORM.grid(
             query,
             details=False,
@@ -1108,10 +1108,10 @@ def suggested_recommenders():
         )
         return dict(
             # myBackButton=common_small_html.mkBackButton(),
-            pageHelp=getHelp(request, auth, db, "#UserSuggestedRecommenders"),
-            customText=getText(request, auth, db, "#UserSuggestedRecommendersText"),
+            pageHelp=getHelp("#UserSuggestedRecommenders"),
+            customText=getText("#UserSuggestedRecommendersText"),
             titleIcon="education",
-            pageTitle=getTitle(request, auth, db, "#UserSuggestedRecommendersTitle"),
+            pageTitle=getTitle("#UserSuggestedRecommendersTitle"),
             grid=grid,
         )
 
@@ -1132,10 +1132,10 @@ def my_articles():
     db.t_articles.report_stage.writable = False
     db.t_articles.report_stage.readable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(
-        auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
+        text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
     )
     db.t_articles.status.writable = False
-    db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(auth, db, row)
+    db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(row)
     db.t_articles._id.label = T("Article")
     db.t_articles.doi.readable = False
     db.t_articles.title.readable = False
@@ -1149,10 +1149,10 @@ def my_articles():
     db.t_articles.scheduled_submission_date.writable = False
 
     # db.t_articles.anonymous_submission.label = T("Anonymous submission")
-    # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(auth, db, anon)
+    # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(anon)
     links = [
-        dict(header=T("Suggested recommenders"), body=lambda row: user_module.mkSuggestedRecommendersUserButton(auth, db, row)),
-        dict(header=T("Recommender(s)"), body=lambda row: user_module.getRecommender(auth, db, row)),
+        dict(header=T("Suggested recommenders"), body=lambda row: user_module.mkSuggestedRecommendersUserButton(row)),
+        dict(header=T("Recommender(s)"), body=lambda row: user_module.getRecommender(row)),
         dict(
             header="",
             body=lambda row: A(
@@ -1215,12 +1215,10 @@ def my_articles():
         _class="web2py_grid action-button-absolute",
     )
     return dict(
-        # myBackButton=common_small_html.mkBackButton(),
-        pageHelp=getHelp(request, auth, db, "#UserMyArticles"),
-        customText=getText(request, auth, db, "#UserMyArticlesText"),
+        pageHelp=getHelp("#UserMyArticles"),
+        customText=getText("#UserMyArticlesText"),
         titleIcon="duplicate",
-        pageTitle=getTitle(request, auth, db, "#UserMyArticlesTitle"),
-        #grid=DIV(grid, _style="max-width:100%; overflow-x:auto;"),
+        pageTitle=getTitle("#UserMyArticlesTitle"),
         grid=DIV(grid, _style=""),
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
@@ -1243,21 +1241,21 @@ def my_reviews():
             & (db.t_reviews.review_state == "Awaiting response")
             & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
         )
-        pageTitle = getTitle(request, auth, db, "#UserMyReviewsRequestsTitle")
-        customText = getText(request, auth, db, "#UserMyReviewsRequestsText")
+        pageTitle = getTitle("#UserMyReviewsRequestsTitle")
+        customText = getText("#UserMyReviewsRequestsText")
         btnTxt = current.T("Accept or decline")
     else:
         query = (query
             & (db.t_reviews.review_state != "Awaiting response")
         )
-        pageTitle = getTitle(request, auth, db, "#UserMyReviewsTitle")
-        customText = getText(request, auth, db, "#UserMyReviewsText")
+        pageTitle = getTitle("#UserMyReviewsTitle")
+        customText = getText("#UserMyReviewsText")
         btnTxt = current.T("View")
 
     # db.t_articles._id.readable = False
-    db.t_articles._id.represent = lambda aId, row: common_small_html.mkRepresentArticleLight(auth, db, aId)
+    db.t_articles._id.represent = lambda aId, row: common_small_html.mkRepresentArticleLight(aId)
     db.t_articles._id.label = T("Article")
-    db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(auth, db, rId)
+    db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(rId)
     db.t_recommendations._id.label = T("Recommendation")
 
     db.t_articles.art_stage_1_id.writable = False
@@ -1265,7 +1263,7 @@ def my_reviews():
     db.t_articles.report_stage.writable = False
     db.t_articles.report_stage.readable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(
-        auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
+        text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
     )
 
     db.t_reviews.last_change.label = T("Days elapsed")
@@ -1274,7 +1272,7 @@ def my_reviews():
     # db.t_reviews.recommendation_id.writable = False
     # db.t_reviews.recommendation_id.label = T('Member in charge of the recommendation process')
     db.t_reviews.recommendation_id.label = T("Recommender")
-    db.t_reviews.recommendation_id.represent = lambda text, row: user_module.mkRecommendation4ReviewFormat(auth, db, row.t_reviews)
+    db.t_reviews.recommendation_id.represent = lambda text, row: user_module.mkRecommendation4ReviewFormat(row.t_reviews)
 
     db.t_articles.scheduled_submission_date.readable = False
     db.t_articles.scheduled_submission_date.writable = False
@@ -1302,7 +1300,7 @@ def my_reviews():
             header=T("Review as text"),
             body=lambda row: DIV(
                 DIV(
-                    DIV(B("Review status : ", _style="margin-top: -2px; font-size: 14px"), common_small_html.mkReviewStateDiv(auth, db, row.t_reviews["review_state"])),
+                    DIV(B("Review status : ", _style="margin-top: -2px; font-size: 14px"), common_small_html.mkReviewStateDiv(row.t_reviews["review_state"])),
                     _style="border-bottom: 1px solid #ddd",
                     _class="pci2-flex-row pci2-align-items-center",
                 ),
@@ -1381,7 +1379,7 @@ def my_reviews():
         titleIcon = "eye-open"
 
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserMyReviews"),
+        pageHelp=getHelp("#UserMyReviews"),
         titleIcon=titleIcon,
         pageTitle=pageTitle,
         customText=customText,
@@ -1421,21 +1419,21 @@ def ask_to_review():
     if ethics_not_signed:
         redirect(URL(c="about", f="ethics", vars=dict(_next=URL("user", "ask_to_review", vars=dict(articleId=articleId) if articleId else ""))))
 
-    disclaimerText = DIV(getText(request, auth, db, "#ConflictsForReviewers"))
+    disclaimerText = DIV(getText("#ConflictsForReviewers"))
     actionFormUrl = URL("user_actions", "do_ask_to_review")
     amISubmitter = article.user_id == auth.user_id
     recomm = db(db.t_recommendations.article_id == articleId).select().last()
-    amIReviewer = auth.user_id in user_module.getReviewers(recomm, db)
+    amIReviewer = auth.user_id in user_module.getReviewers(recomm)
     amIRecommender = recomm.recommender_id == auth.user_id
 
     rev = db(db.t_reviews.recommendation_id == recomm.id).select().last()
     dueTime = rev.review_duration.lower() if rev else 'three weeks'
     # FIXME: set parallel reviews default = three weeks (hardcoded) in user select form
 
-    recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, article, False, True)
+    recommHeaderHtml = article_components.get_article_infos_card(article, False, True)
 
-    pageTitle = getTitle(request, auth, db, "#AskForReviewTitle")
-    customText = getText(request, auth, db, "#AskForReviewText")
+    pageTitle = getTitle("#AskForReviewTitle")
+    customText = getText("#AskForReviewText")
 
     response.view = "controller/user/ask_to_review.html"
     return dict(
@@ -1544,12 +1542,12 @@ def edit_review():
     anonymousDialog = common_small_html.confirmationDialog("anonymousReviewerConfirmDialogMessage")
 
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserEditReview"),
+        pageHelp=getHelp("#UserEditReview"),
         myBackButton=common_small_html.mkBackButton(),
         anonymousReviewerConfirmDialog=anonymousDialog,
-        customText=getText(request, auth, db, "#UserEditReviewText"),
+        customText=getText("#UserEditReviewText"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#UserEditReviewTitle"),
+        pageTitle=getTitle("#UserEditReviewTitle"),
         form=form,
         myFinalScript=myScript,
         deleteFileButtonsScript=common_tools.get_script("add_delete_review_file_buttons_user.js"),
@@ -1578,11 +1576,11 @@ def add_suggested_recommender():
         for con in recommendersListSel:
             reviewersIds.append(con.auth_user.id)
             if con.t_suggested_recommenders.declined:
-                recommendersList.append(LI(common_small_html.mkUser(auth, db, con.auth_user.id), I(T("(declined)"))))
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(T("(declined)"))))
             else:
                 recommendersList.append(
                     LI(
-                        common_small_html.mkUser(auth, db, con.auth_user.id),
+                        common_small_html.mkUser(con.auth_user.id),
                         A(
                             "Remove",
                             _class="btn btn-warning",
@@ -1599,7 +1597,7 @@ def add_suggested_recommender():
             reviewersIds.append(user_id)
             excludedRecommenders.append(
                     LI(
-                        common_small_html.mkUser(auth, db, user_id),
+                        common_small_html.mkUser(user_id),
                         A(
                             "Remove",
                             _class="btn btn-warning",
@@ -1636,9 +1634,9 @@ def add_suggested_recommender():
         )
         return dict(
             titleIcon="education",
-            pageTitle=getTitle(request, auth, db, "#UserAddSuggestedRecommenderTitle"),
-            customText=getText(request, auth, db, "#UserAddSuggestedRecommenderText"),
-            pageHelp=getHelp(request, auth, db, "#UserAddSuggestedRecommender"),
+            pageTitle=getTitle("#UserAddSuggestedRecommenderTitle"),
+            customText=getText("#UserAddSuggestedRecommenderText"),
+            pageHelp=getHelp("#UserAddSuggestedRecommender"),
             myUpperBtn=myUpperBtn,
             content=myContents,
             form="",
@@ -1672,22 +1670,17 @@ def edit_reply():
     form = SQLFORM(db.t_recommendations, record=recommId, fields=["id", "reply", "reply_pdf", "track_change"], buttons=buttons, upload=URL("default", "download"), showid=False)
 
     if form.process().accepted:
-        # if request.vars.completed:
-        #     session.flash = T("Reply completed", lazy=False)
-        #     redirect(URL(c="user_actions", f="article_revised", vars=dict(articleId=art.id), user_signature=True))
-        # else:
         session.flash = T("Reply saved", lazy=False)
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True, anchor="author-reply"))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
     if pciRRactivated and status['allow_submissions'] is False:
-        form = getText(request, auth, db, "#SubmissionOnHoldInfo")
+        form = getText("#SubmissionOnHoldInfo")
     return dict(
-        pageHelp=getHelp(request, auth, db, "#UserEditReply"),
-        # myBackButton = common_small_html.mkBackButton(),
+        pageHelp=getHelp("#UserEditReply"),
         titleIcon="edit",
-        customText=getText(request, auth, db, "#UserEditReplyText"),
-        pageTitle=getTitle(request, auth, db, "#UserEditReplyTitle"),
+        customText=getText("#UserEditReplyText"),
+        pageTitle=getTitle("#UserEditReplyTitle"),
         form=form,
         deleteFileButtonsScript=common_tools.get_script("add_delete_recommendation_file_buttons_user.js"),
     )
@@ -1736,7 +1729,7 @@ def articles_awaiting_reviewers():
     ]
 
     def article_html(art_id):
-        return common_small_html.mkRepresentArticleLight(auth, db, art_id)
+        return common_small_html.mkRepresentArticleLight(art_id)
 
     articles.id.readable = True
     articles.id.represent = lambda text, row: article_html(row.id)
@@ -1791,10 +1784,10 @@ def articles_awaiting_reviewers():
     grid = adjust_grid.adjust_grid_basic(original_grid, 'articles_temp', remove_options, integer_fields)
 
     return dict(
-        pageHelp=getHelp(request, auth, db, "#ArticlesAwaitingReviewers"),
-        customText=getText(request, auth, db, "#ArticlesAwaitingReviewersText"),
+        pageHelp=getHelp("#ArticlesAwaitingReviewers"),
+        customText=getText("#ArticlesAwaitingReviewersText"),
         titleIcon="inbox",
-        pageTitle=getTitle(request, auth, db, "#ArticlesAwaitingReviewersTitle"),
+        pageTitle=getTitle("#ArticlesAwaitingReviewersTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )

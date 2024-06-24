@@ -262,8 +262,8 @@ def recommenders_map():
 
     return dict(
         grid=grid,
-        pageTitle=getTitle(request, auth, db, "#RecMapTextTitle"),
-        customText=getText(request, auth, db, "#RecMapTextText"),
-        pageHelp=getHelp(request, auth, db, "#RecMapHelpTexts"),
+        pageTitle=getTitle("#RecMapTextTitle"),
+        customText=getText("#RecMapTextText"),
+        pageHelp=getHelp("#RecMapHelpTexts"),
     )
 

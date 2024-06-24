@@ -19,7 +19,9 @@ applongname = myconf.take("app.longname")
 
 ######################################################################################################################################################################
 # New common modules
-def searchByThematic(auth, db, myVars, allowBlank=True,redirectSearchArticle=False):
+def searchByThematic(myVars, allowBlank=True,redirectSearchArticle=False):
+    db, auth = current.db, current.auth
+
     keywords = None
     if "qyKeywords" in myVars:
         keywords = myVars["qyKeywords"]
@@ -144,8 +146,9 @@ def cc_widget(field, value):
 
 from app_modules import emailing_tools
 
-def update_mail_content_keep_editing_form(form, db, request, response):
-
+def update_mail_content_keep_editing_form(form):
+    db, request, response = current.db, current.request, current.response
+    
     mail = db.mail_queue[request.vars.id]
     content_saved = process_mail_content(mail, form)
 
@@ -240,14 +243,16 @@ def article_add_mandatory_checkboxes(form, pciRRactivated):
         form[0].insert(-1, field)
 
 #######################################################################################
-def report_survey(auth: Auth, session: Session, article: Article, db: DAL, survey: Optional[ReportSurvey] = None, controller: Optional[str] = None, do_validate: bool = True):
+def report_survey(article: Article, survey: Optional[ReportSurvey] = None, controller: Optional[str] = None, do_validate: bool = True):
+    db, auth = current.db, current.auth
+    session = current.session
     db.t_report_survey._id.readable = False
     db.t_report_survey._id.writable = False
 
     if article.report_stage == "STAGE 1":
-        fields = get_from_fields_report_survey_stage1(db)
+        fields = get_from_fields_report_survey_stage1()
     else:
-        fields = get_from_fields_report_survey_stage2(db, auth, article)
+        fields = get_from_fields_report_survey_stage2(article)
 
     form = SQLFORM(db.t_report_survey, survey.id if survey else "", fields=fields, keepvalues=True,)
     form.append(STYLE(".calendar tbody td.weekend { pointer-events:none; }"))
@@ -291,8 +296,8 @@ def report_survey(auth: Auth, session: Session, article: Article, db: DAL, surve
         session.flash = current.T("Article submitted", lazy=False)
 
         if controller == "user_fill":
-            emailing.send_to_submitter_acknowledgement_submission(session, auth, db, article.id)
-            emailing.create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, article.id)
+            emailing.send_to_submitter_acknowledgement_submission(article.id)
+            emailing.create_reminder_for_submitter_suggested_recommender_needed(article.id)
             redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
 
         if controller == "manager_edit":
@@ -338,7 +343,8 @@ def report_survey_on_validation(form: FORM, article: Article, do_validate: bool)
         form.errors.q4 = "This box needs to be ticked"
 
 
-def get_from_fields_report_survey_stage1(db: DAL):
+def get_from_fields_report_survey_stage1():
+    db = current.db
     db.t_report_survey.q1.requires = IS_IN_SET(("COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW", "RR SNAPSHOT FOR SCHEDULED REVIEW"))
     db.t_report_survey.q2.requires = IS_IN_SET(("REGULAR RR", "PROGRAMMATIC RR"))
     db.t_report_survey.q3.requires = IS_IN_SET(("FULLY PUBLIC", "PRIVATE"))
@@ -412,7 +418,9 @@ def get_from_fields_report_survey_stage1(db: DAL):
     ]
 
 
-def get_from_fields_report_survey_stage2(db: DAL, auth: Auth, article: Article):
+def get_from_fields_report_survey_stage2(article: Article):
+    db, auth = current.db, current.auth
+
     if auth.has_membership(role="manager") or auth.has_membership(role="recommender"):
         dbset = db((db.t_articles.user_id == article.user_id) & (db.t_articles.art_stage_1_id == None) & (db.t_articles.status.belongs("Recommended", "Recommended-private")) | (db.t_articles.id == article.art_stage_1_id))
     else:
@@ -479,19 +487,20 @@ def checklist_validation(form):
         
 
 ########################################################
-def recommender_decline_invitation_form(request, session, db, auth, articleId):
+def recommender_decline_invitation_form(articleId):
+    request, session, db, auth = current.request, current.session, current.db, current.auth
     Field.CC = db.Field.CC
     art = db.t_articles[articleId]
     contact = myconf.take("contacts.managers")
     sender_email = db(db.auth_user.id == auth.user_id).select().last().email
-    mail_template = emailing_tools.getMailTemplateHashtag(db, "#RecommenderRejectMail")
+    mail_template = emailing_tools.getMailTemplateHashtag("#RecommenderRejectMail")
 
     # template variables, along with all other locals()+
-    recommenderPerson = common_small_html.mkUser(auth, db, auth.user_id)
+    recommenderPerson = common_small_html.mkUser(auth.user_id)
     articleTitle = common_small_html.md_to_html(art.title)
     articleAuthors = emailing.mkAuthors(art)
     appName = myconf.take("app.name")
-    managers_mails = ", ".join(emailing_vars.getManagersMails(db))
+    managers_mails = ", ".join(emailing_vars.getManagersMails())
 
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
     default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
@@ -512,7 +521,7 @@ def recommender_decline_invitation_form(request, session, db, auth, articleId):
         form['replyto'] = '%s, %s'%(sender_email, contact)
         form['subject'] = default_subject
         try:
-            emailing.send_submitter_generic_mail(session, auth, db, contact, articleId, form, "#RecommenderRejectMail")
+            emailing.send_submitter_generic_mail(contact, articleId, form, "#RecommenderRejectMail")
         except Exception as e:
             session.flash = (session.flash or "") + current.T("Email failed.")
             raise e 

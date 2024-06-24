@@ -74,7 +74,7 @@ class Clockss:
 
     def _build_xml(self):
         filename = f"{self.attachments_dir}/{self._prefix}.xml"
-        crossref.init_conf(current.db)
+        crossref.init_conf()
         recommendation_xml = crossref.crossref_xml(self._recommendation)
         with open(filename, 'wb') as file:
             file.write(recommendation_xml.encode('utf8'))
@@ -204,7 +204,7 @@ class Clockss:
         user_id: List[int] = []
         for review in reviews:
             if not review.anonymously and review.reviewer_id not in user_id:
-                reviewer_html: Union[A, SPAN] = mkUser(current.auth, current.db, review.reviewer_id, linked=True, orcid=True)
+                reviewer_html: Union[A, SPAN] = mkUser(review.reviewer_id, linked=True, orcid=True)
                 reviewer_name = self._html_to_latex.convert(self._str(reviewer_html))
                 if isinstance(reviewer_html, SPAN) and len(reviewer_html.components) == 2: # type: ignore
                     reviewer_name = self._html_to_latex.convert(self._str(reviewer_html.components[0])) # type: ignore
@@ -259,7 +259,7 @@ class Clockss:
 
         recommender_names: List[str] = []
         for recommender_id in recommenders_id:
-            recommender_html: Union[A, SPAN] = mkUser(current.auth, current.db, recommender_id, linked=True, orcid=True)
+            recommender_html: Union[A, SPAN] = mkUser(recommender_id, linked=True, orcid=True)
             recommender_name = self._html_to_latex.convert(self._str(recommender_html))
             if isinstance(recommender_html, SPAN) and len(recommender_html.components) == 2: # type: ignore
                 recommender_name = self._html_to_latex.convert(self._str(recommender_html.components[0])) # type: ignore
@@ -359,7 +359,7 @@ class Clockss:
                 reviewer_name = reviewer_name.rsplit(', ', 1)[0]
 
                 if not review_instance.anonymously:
-                    html_reviewer = mkUser(current.auth, current.db, review_instance.reviewer_id, True, orcid=True)
+                    html_reviewer = mkUser(review_instance.reviewer_id, True, orcid=True)
                     reviewer: Optional[Union[A, SPAN]] = html_reviewer
                     reviewer_orcid: Optional[str] = None
                     if isinstance(html_reviewer, SPAN) and len(html_reviewer.components) == 2: #type: ignore
@@ -404,7 +404,7 @@ class Clockss:
                 recommendation_label += f" by {recommendation_author}"
 
             recommender_id = int(round['recommenderId'])
-            recommender = mkUser(current.auth, current.db, recommender_id, linked=False, orcid=True)
+            recommender = mkUser(recommender_id, linked=False, orcid=True)
             if isinstance(recommender, SPAN) and len(recommender.components) == 2: # type: ignore
                 recommender_orcid = str(recommender.components[1].attributes['_href']) # type: ignore
                 recommendation_label += f"\\href{{{recommender_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=9px,height=9px]{{ORCID_ID.png}}}}"

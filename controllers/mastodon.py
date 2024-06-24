@@ -39,7 +39,7 @@ def post_form():
         redirect(URL("mastodon", f"post_form?article_id={article_id}"))
         return
 
-    mastodon_client = Mastodon(db)
+    mastodon_client = Mastodon()
     mastodon_instance_name = merge_instance_name(mastodon_client)
 
     toots_text: List[str] = []
@@ -47,7 +47,7 @@ def post_form():
     already_send = len(toots_in_db) > 0
 
     if not already_send:
-        toots_text = mastodon_client.generate_post(db, article, recommendation)
+        toots_text = mastodon_client.generate_post(article, recommendation)
     else:
         for toot in toots_in_db:
             toots_text.append(toot.text_content)

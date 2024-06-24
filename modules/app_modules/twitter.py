@@ -1,6 +1,5 @@
 from typing import Any, List, Union, cast
 from models.post import  Post, PostTable
-from pydal.base import DAL
 from requests_oauthlib import OAuth1Session
 
 from app_modules.social_network import SocialNetwork
@@ -10,8 +9,8 @@ class Twitter(SocialNetwork):
 
     POST_MAX_LENGTH = 280
 
-    def __init__(self, db: DAL):
-        super().__init__(db, self.POST_MAX_LENGTH, PostTable.TWEETS)
+    def __init__(self):
+        super().__init__(self.POST_MAX_LENGTH, PostTable.TWEETS)
 
         self.__general_api_key = self.get_config('general_api_key')
         self.__general_api_secret = self.get_config('general_api_secret')

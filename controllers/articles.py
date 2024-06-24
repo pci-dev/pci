@@ -66,7 +66,7 @@ def rec():
     nbReviews = nbRevs + (nbRecomms - 1)
 
     # Recommendation Header and Metadata
-    recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(auth, db, response, art, finalRecomm, printable)
+    recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(art, finalRecomm, printable)
     recommHeaderHtml = recommendationHeader["headerHtml"]
     recommMetadata = recommendationHeader["recommMetadata"]
     dublin_core = recommendationHeader["dublin_core"]
@@ -74,12 +74,11 @@ def rec():
     if len(recommMetadata) > 0:
         response.meta = recommMetadata
 
-    reviewRounds = DIV(public_recommendation.getPublicReviewRoundsHtml(auth, db, response, art.id))
+    reviewRounds = DIV(public_recommendation.getPublicReviewRoundsHtml(art.id))
 
     commentsTreeAndForm = None
     if with_comments:
-        # Get user comments list and form
-        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(auth, db, response, session, art.id, request.vars["replyTo"])
+        commentsTreeAndForm = public_recommendation.getRecommCommentListAndForm(art.id, request.vars["replyTo"])
 
     if printable:
         printableClass = "printable"
@@ -118,16 +117,16 @@ def tracking():
         query_already_published_articles = db(db.t_articles.already_published == False).select(orderby=~db.t_articles.last_status_change)
 
         for article in query_already_published_articles:
-            article_html_card = article_components.getArticleTrackcRowCard(auth, db, response, article)
+            article_html_card = article_components.getArticleTrackcRowCard(article)
             if article_html_card:
                 article_list.append(article_html_card)
 
         response.view = "default/gab_list_layout.html"
         resu = dict(
-            pageHelp=getHelp(request, auth, db, "#Tracking"),
+            pageHelp=getHelp("#Tracking"),
             titleIcon="tasks",
-            pageTitle=getTitle(request, auth, db, "#TrackingTitle"),
-            customText=getText(request, auth, db, "#TrackingText"),
+            pageTitle=getTitle("#TrackingTitle"),
+            customText=getText("#TrackingText"),
             grid=DIV(article_list, _class="pci2-flex-center"),
         )
         return resu
@@ -160,14 +159,14 @@ def pub_reviews():
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
     else:
-        myContents = DIV(old_common.reviewsOfCancelled(auth, db, art))
+        myContents = DIV(old_common.reviewsOfCancelled(art))
 
     response.view = "default/myLayout.html"
     resu = dict(
         titleIcon="eye-open",
-        pageTitle=getTitle(request, auth, db, "#TrackReviewsTitle"),
-        pageHelp=getHelp(request, auth, db, "#TrackReviews"),
-        customText=getText(request, auth, db, "#TrackReviewsText"),
+        pageTitle=getTitle("#TrackReviewsTitle"),
+        pageHelp=getHelp("#TrackReviews"),
+        customText=getText("#TrackReviewsText"),
         grid=myContents,
     )
     return resu
