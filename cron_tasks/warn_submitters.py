@@ -27,4 +27,4 @@ if pciRRactivated:
         if warning_sent(survey.t_articles.id):
             delete_submission(survey.t_articles.id)
         else:
-            emailing.send_warning_to_submitters(session, auth, db, survey.t_articles.id)
+            emailing.send_warning_to_submitters(survey.t_articles.id)

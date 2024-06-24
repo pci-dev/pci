@@ -14,7 +14,6 @@ from gluon.html import *
 from gluon.template import render
 from gluon.contrib.appconfig import AppConfig
 from gluon.validators import IS_EMAIL
-from pydal import DAL
 
 from gluon.custom_import import track_changes
 from models.article import Article
@@ -56,8 +55,8 @@ def mkAuthors(article):
 
 
 ######################################################################################################################################################################
-def getMailer(auth):
-    mail = auth.settings.mailer
+def getMailer():
+    mail = current.auth.settings.mailer
     mail.settings.server = myconf.take("smtp.server")
     mail.settings.sender = myconf.take("smtp.sender")
     mail.settings.login = myconf.take("smtp.login")
@@ -85,15 +84,17 @@ def getMailCommonVars():
 
 ######################################################################################################################################################################
 
-def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, recommender: str, new_round: Optional[str] = None):
+def getMailForRecommenderCommonVars(sender: User, article: Article, recommendation: Recommendation, recommender: str, new_round: Optional[str] = None):
+    db, auth = current.db, current.auth
+
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    is_co_recommender = helper.is_co_recommender(auth, db, recommendation.id)
+    is_co_recommender = helper.is_co_recommender(recommendation.id)
 
     mail_vars = getMailCommonVars()
-    _recomm = common_tools.get_prev_recomm(db, recommendation) if new_round else recommendation
-    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
+    _recomm = common_tools.get_prev_recomm(recommendation) if new_round else recommendation
+    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(_recomm.id)
     r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
     trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
     # use: r2r_url = r2r_url['_href'] if r2r_url else "(no author's reply)"
@@ -129,7 +130,7 @@ def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: 
         mail_vars["articleTitle"] = mail_vars["art_title"]
 
     if auth.user_id == recommendation.recommender_id:
-        mail_vars["sender"] = common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+        mail_vars["sender"] = common_small_html.mkUser(recommendation.recommender_id).flatten()
         mail_vars["Institution"] = sender.institution
         mail_vars["Department"] = sender.laboratory
         mail_vars["country"] = sender.country
@@ -139,7 +140,7 @@ def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: 
 
     elif is_co_recommender:
         sender = cast(User, auth.user)
-        mail_vars["sender"] = common_small_html.mkUser(auth, db, auth.user_id).flatten() + "[co-recommender]"
+        mail_vars["sender"] = common_small_html.mkUser(auth.user_id).flatten() + "[co-recommender]"
         mail_vars["Institution"] = sender.institution
         mail_vars["Department"] = sender.laboratory
         mail_vars["country"] = sender.country
@@ -150,7 +151,7 @@ def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: 
     elif auth.has_membership(role="manager"):
         recommender = User.get_by_id(recommendation.recommender_id)
         if recommender:
-            mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+            mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(recommendation.recommender_id).flatten()
             mail_vars["Institution"] = recommender.institution
             mail_vars["Department"] = recommender.laboratory
             mail_vars["country"] = recommender.country
@@ -163,15 +164,16 @@ def getMailForRecommenderCommonVars(auth: Auth, db: DAL, sender: User, article: 
 
 ######################################################################################################################################################################
 
-def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str] = None, new_round: Optional[bool] = False) :
+def getMailForReviewerCommonVars(sender: User, article: Article, recommendation: Recommendation, reviewer_last_name: Optional[str] = None, new_round: Optional[bool] = False) :
+    db, auth = current.db, current.auth
     scheme = myconf.take("alerts.scheme")
     host = myconf.take("alerts.host")
     port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    is_co_recommender = helper.is_co_recommender(auth, db, recommendation.id)
+    is_co_recommender = helper.is_co_recommender(recommendation.id)
 
     mail_vars = getMailCommonVars()
-    _recomm = common_tools.get_prev_recomm(db, recommendation) if new_round else recommendation
-    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
+    _recomm = common_tools.get_prev_recomm(recommendation) if new_round else recommendation
+    r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(_recomm.id)
     r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
     trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
     # use: r2r_url = r2r_url['_href'] if r2r_url else "(no author's reply)"
@@ -208,7 +210,7 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
         mail_vars["articleTitle"] = mail_vars["art_title"]
 
     if auth.user_id == recommendation.recommender_id:
-        mail_vars["sender"] = common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+        mail_vars["sender"] = common_small_html.mkUser(recommendation.recommender_id).flatten()
         mail_vars["Institution"] = sender.institution
         mail_vars["Department"] = sender.laboratory
         mail_vars["country"] = sender.country
@@ -218,7 +220,7 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
 
     elif is_co_recommender:
         sender = cast(User, auth.user)
-        mail_vars["sender"] = common_small_html.mkUser(auth, db, auth.user_id).flatten() + "[co-recommender]"
+        mail_vars["sender"] = common_small_html.mkUser(auth.user_id).flatten() + "[co-recommender]"
         mail_vars["Institution"] = sender.institution
         mail_vars["Department"] = sender.laboratory
         mail_vars["country"] = sender.country
@@ -229,7 +231,7 @@ def getMailForReviewerCommonVars(auth: Auth, db: DAL, sender: User, article: Art
     elif auth.has_membership(role="manager"):
         recommender = User.get_by_id(recommendation.recommender_id)
         if recommender:
-            mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recommendation.recommender_id).flatten()
+            mail_vars["sender"] = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(recommendation.recommender_id).flatten()
             mail_vars["Institution"] = recommender.institution
             mail_vars["Department"] = recommender.laboratory
             mail_vars["country"] = recommender.country
@@ -265,7 +267,8 @@ def list_addresses(addresses):
                 if addresses else []
 
 #######################################################################################################################################################################
-def exempt_addresses(db, addresses, hashtag_template):
+def exempt_addresses(addresses, hashtag_template):
+    db = current.db
     for address in addresses:
         user_id = db(db.auth_user.email == address).select(db.auth_user.id).last()
         if user_id:
@@ -305,7 +308,8 @@ def clean_addresses(dirty_string_adresses):
     return ','.join(contacts), ', '.join(errors)
 
 ######################################################################################################################################################################
-def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
+def getMailTemplateHashtag(hashTag, myLanguage="default"):
+    db = current.db
     query = (db.mail_templates.hashtag == hashTag) & (db.mail_templates.lang == myLanguage)
     item = db(query).select().first()
 
@@ -313,23 +317,24 @@ def getMailTemplateHashtag(db, hashTag, myLanguage="default"):
         return dict(subject=item.subject, content=item.contents)
     else:
         if scheduledSubmissionActivated and pciRRactivated:
-            return generateNewMailTemplates(db, hashTag, myLanguage)
+            return generateNewMailTemplates(hashTag, myLanguage)
         else:
             return dict(error=True, message="hashtag not found")
 
 
 ######################################################################################################################################################################
-def generateNewMailTemplates(db, hashTag, myLanguage):
+def generateNewMailTemplates(hashTag, myLanguage):
+    db = current.db
     baseHashtag = hashTag
     baseHashtag = baseHashtag.replace("Stage1", "")
     baseHashtag = baseHashtag.replace("Stage2", "")
     baseHashtag = baseHashtag.replace("ScheduledSubmission", "")
 
     # Create stage 1 template
-    result1 = insertNewTemplateInDB(db, baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
+    result1 = insertNewTemplateInDB(baseHashtag + "Stage1ScheduledSubmission", baseHashtag + "Stage1", myLanguage)
 
     # Create stage 2 template
-    result2 = insertNewTemplateInDB(db, baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
+    result2 = insertNewTemplateInDB(baseHashtag + "Stage2ScheduledSubmission", baseHashtag + "Stage2", myLanguage)
 
     if "Stage1" in hashTag:
         return result1
@@ -342,7 +347,8 @@ def generateNewMailTemplates(db, hashTag, myLanguage):
 
 
 ######################################################################################################################################################################
-def insertNewTemplateInDB(db, newHashTag, baseHashtag, myLanguage):
+def insertNewTemplateInDB(newHashTag, baseHashtag, myLanguage):
+    db = current.db
     query = (db.mail_templates.hashtag == baseHashtag) & (db.mail_templates.lang == myLanguage)
     item = db(query).select().first()
 
@@ -366,7 +372,8 @@ def createMailReport(mail_resu, destPerson, reports):
 
 
 ######################################################################################################################################################################
-def getFlashMessage(session, reports):
+def getFlashMessage(reports):
+    session = current.session
     messages = []
 
     for report in reports:
@@ -391,7 +398,7 @@ def getMailFooter():
 
 ######################################################################################################################################################################
 # Footer for all mails
-def mkFooter(db):
+def mkFooter():
     # init mail_vars with common infos
     mail_vars = getMailCommonVars()
 
@@ -407,7 +414,7 @@ def mkFooter(db):
         port=mail_vars["port"],
     )
 
-    footer_template = getMailTemplateHashtag(db, "#EmailFooterTemplate")
+    footer_template = getMailTemplateHashtag("#EmailFooterTemplate")
     if 'content' in footer_template and footer_template["content"]:
         footer_content = replaceMailVars(footer_template["content"], mail_vars)
         return XML(footer_content)
@@ -417,8 +424,6 @@ def mkFooter(db):
 
 ######################################################################################################################################################################
 def insertMailInQueue(
-    auth,
-    db,
     hashtag_template,
     mail_vars,
     recommendation_id=None,
@@ -431,8 +436,9 @@ def insertMailInQueue(
     alternative_subject=None, # for edit/resend mails
     alternative_content=None, # for edit/resend mails
 ):
+    db, auth = current.db, current.auth
+
     mail = buildMail(
-        db,
         hashtag_template,
         mail_vars,
         recommendation=recommendation,
@@ -446,7 +452,7 @@ def insertMailInQueue(
     )
     ccAddresses = mail_vars.get("ccAddresses") or None
     if pciRRactivated and ccAddresses:
-        ccAddresses = exempt_addresses(db, ccAddresses, hashtag_template)
+        ccAddresses = exempt_addresses(ccAddresses, hashtag_template)
 
     if alternative_subject:
         subject = alternative_subject
@@ -471,8 +477,6 @@ def insertMailInQueue(
 
 ######################################################################################################################################################################
 def insertReminderMailInQueue(
-    auth,
-    db,
     hashtag_template,
     mail_vars,
     recommendation_id=None,
@@ -488,12 +492,14 @@ def insertReminderMailInQueue(
     sugg_recommender_buttons: Optional[DIV]=None
 ):
 
+    db, auth = current.db, current.auth
+
     reminder = getReminder(hashtag_template, db.t_reviews[review_id])
 
     ccAddresses = mail_vars.get("ccAddresses") or None
     replytoAddresses = mail_vars.get("replytoAddresses") or None
     if pciRRactivated and ccAddresses and "OverDue" not in hashtag_template:
-            ccAddresses = exempt_addresses(db, ccAddresses, hashtag_template)
+            ccAddresses = exempt_addresses(ccAddresses, hashtag_template)
 
     if reminder:
         elapsed_days = reminder["elapsed_days"][0]
@@ -507,7 +513,7 @@ def insertReminderMailInQueue(
     if True:
 
         mail = buildMail(
-            db, hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons,
+            hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons,
             article_id=article_id, sugg_recommender_buttons=sugg_recommender_buttons
         )
 
@@ -531,8 +537,6 @@ def insertReminderMailInQueue(
 
 ######################################################################################################################################################################
 def insertNewsLetterMailInQueue(
-    auth,
-    db,
     mail_vars,
     hashtag_template,
     newRecommendations=None,
@@ -543,8 +547,9 @@ def insertNewsLetterMailInQueue(
     newPreprintRequiringRecommenderCount=0,
 ):
 
+    db, auth = current.db, current.auth
+
     mail = buildNewsLetterMail(
-        db,
         mail_vars,
         hashtag_template,
         newRecommendations,
@@ -561,11 +566,11 @@ def insertNewsLetterMailInQueue(
 
 
 ######################################################################################################################################################################
-def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None,
+def buildMail(hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None,
         article_id=None, alternative_subject=None, alternative_content=None,
     ):
 
-    mail_template = getMailTemplateHashtag(db, hashtag_template)
+    mail_template = getMailTemplateHashtag(hashtag_template)
 
     if alternative_subject:
         subject = alternative_subject
@@ -590,7 +595,7 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None,
             applogo=applogo,
             appname=mail_vars["appName"],
             content=XML(content),
-            footer=mkFooter(db),
+            footer=mkFooter(),
             recommendation=recommendation,
             review=review,
             authors_reply=authors_reply,
@@ -604,7 +609,6 @@ def buildMail(db, hashtag_template, mail_vars, recommendation=None, review=None,
 
 ######################################################################################################################################################################
 def buildNewsLetterMail(
-    db,
     mail_vars,
     hashtag_template,
     newRecommendations=None,
@@ -614,7 +618,7 @@ def buildNewsLetterMail(
     newPreprintRequiringRecommender=None,
     newPreprintRequiringRecommenderCount=0,
 ):
-    mail_template = getMailTemplateHashtag(db, hashtag_template)
+    mail_template = getMailTemplateHashtag(hashtag_template)
 
     subject = replaceMailVars(mail_template["subject"], mail_vars)
     content = replaceMailVars(mail_template["content"], mail_vars)
@@ -645,7 +649,7 @@ def buildNewsLetterMail(
             newPreprintRequiringRecommender=XML(newPreprintRequiringRecommender),
             newPreprintRequiringRecommenderCount=newPreprintRequiringRecommenderCount,
             pciRRactivated=pciRRactivated,
-            footer=mkFooter(db),
+            footer=mkFooter(),
             mail_vars=mail_vars,
         ),
     )
@@ -675,11 +679,11 @@ def replaceMailVars(text, mail_vars):
 
 ############################################
 
-def replace_mail_vars_set_not_considered_mail(auth: Auth, db: DAL, article: Article, subject: str, message: str):
+def replace_mail_vars_set_not_considered_mail(article: Article, subject: str, message: str):
     form = Storage(subject=subject, message=message, cc=contact)
 
     mail_vars = getMailCommonVars()
-    mail_vars['destPerson'] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars['destPerson'] = common_small_html.mkUser(article.user_id)
     mail_vars['articleTitle'] = common_small_html.md_to_html(article.title)
     mail_vars['unconsider_limit_days'] = myconf.get("config.unconsider_limit_days", default=20)
     
@@ -689,7 +693,8 @@ def replace_mail_vars_set_not_considered_mail(auth: Auth, db: DAL, article: Arti
     return form
 
 ####################################################################################################
-def get_recommenders_and_reviewers_mails(auth, db, article_id):
+def get_recommenders_and_reviewers_mails(article_id):
+    db, auth = current.db, current.auth
     emails = []
     recomm = db.get_last_recomm(article_id)
     recommender = db((db.t_recommendations.article_id == article_id) & (db.auth_user.id == db.t_recommendations.recommender_id)).select(db.auth_user.email)

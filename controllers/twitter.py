@@ -39,14 +39,14 @@ def post_form():
         redirect(URL("twitter", f"post_form?article_id={article_id}"))
         return
 
-    twitter_client = Twitter(db)
+    twitter_client = Twitter()
 
     tweets_text: List[str] = []
     tweets_in_db = twitter_client.get_posts_from_db(article_id, recommendation.id)
     already_send = len(tweets_in_db) > 0
 
     if not already_send:
-        tweets_text = twitter_client.generate_post(db, article, recommendation)
+        tweets_text = twitter_client.generate_post(article, recommendation)
     else:
         for tweet in tweets_in_db:
             tweets_text.append(tweet.text_content)

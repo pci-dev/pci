@@ -96,7 +96,7 @@ def do_accept_new_article_to_recommend():
         article.status = ArticleStatus.UNDER_CONSIDERATION.value
         article.update_record()
         if is_scheduled_submission(article):
-            emailing.create_reminders_for_submitter_scheduled_submission(session, auth, db, article)
+            emailing.create_reminders_for_submitter_scheduled_submission(article)
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
     else:
         if article.status == ArticleStatus.UNDER_CONSIDERATION.value:
@@ -224,7 +224,7 @@ def decline_article_confirmed():
             sug_rec.update_record()
             db.commit()
             
-            emailing.delete_reminder_for_one_suggested_recommender(db, "#ReminderSuggestedRecommenderInvitation", article_id, auth.user_id)
+            emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article_id, auth.user_id)
             session.flash = T("Suggestion declined")
         else: 
             raise HTTP(404, "404: " + T("Unavailable"))
@@ -250,7 +250,7 @@ def _decline_article_page(message: str, article_id: int):
 def decline_article_confirmed_send_message():
     article_id = request.vars["articleId"]
     if article_id:
-        form = app_forms.recommender_decline_invitation_form(request, session, db, auth, article_id)
+        form = app_forms.recommender_decline_invitation_form(article_id)
         return _decline_article_send_message_page(form)
 
 
@@ -284,7 +284,7 @@ def suggest_review_to():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    if recomm.recommender_id != auth.user_id and not is_co_recommender(auth, db, recomm.id) and not (auth.has_membership(role="manager")):
+    if recomm.recommender_id != auth.user_id and not is_co_recommender(recomm.id) and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
@@ -506,7 +506,7 @@ def make_preprint_searching_for_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    co_recommender = is_co_recommender(auth, db, recomm.id)
+    co_recommender = is_co_recommender(recomm.id)
     if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or co_recommender or auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -516,7 +516,7 @@ def make_preprint_searching_for_reviewers():
         art.is_searching_reviewers = True
         art.update_record()
         db.commit()
-        emailing.delete_reminder_for_managers(db, ["#ManagersRecommenderAgreedAndNeedsToTakeAction"], recomm.id)
+        emailing.delete_reminder_for_managers(["#ManagersRecommenderAgreedAndNeedsToTakeAction"], recomm.id)
         session.flash = 'Preprint now appear in the "In need of reviewers" list'
         redirect(request.env.http_referer)
 
@@ -533,7 +533,7 @@ def make_preprint_not_searching_for_reviewers():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
 
-    co_recommender = is_co_recommender(auth, db, recomm.id)
+    co_recommender = is_co_recommender(recomm.id)
     if recomm.recommender_id != auth.user_id and not recomm.is_closed and not (auth.has_membership(role="administrator") or co_recommender or auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -617,12 +617,12 @@ def do_end_scheduled_submission():
         ).select()
         for review in awaitingReviews:
             reviewId = review["t_reviews.id"]
-            emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId)
-            emailing.create_reminder_for_reviewer_review_due(session, auth, db, reviewId)
-            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId)
-            emailing.delete_reminder_for_reviewer(db, ["#ReminderScheduledReviewComingSoon"], reviewId)
+            emailing.create_reminder_for_reviewer_review_soon_due(reviewId)
+            emailing.create_reminder_for_reviewer_review_due(reviewId)
+            emailing.create_reminder_for_reviewer_review_over_due(reviewId)
+            emailing.delete_reminder_for_reviewer(["#ReminderScheduledReviewComingSoon"], reviewId)
 
-        emailing.delete_reminder_for_submitter(db, "#SubmitterScheduledSubmissionOpen", articleId)
+        emailing.delete_reminder_for_submitter("#SubmitterScheduledSubmissionOpen", articleId)
 
         session.flash = T("Submission now available to reviewers")
     controller = "recommender"
@@ -697,7 +697,7 @@ def accept_new_delay_to_reviewing():
 
     if review.acceptation_timestamp and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
         Review.set_review_status(review, ReviewState.AWAITING_REVIEW)
-        emailing.send_decision_new_delay_review_mail(session, auth, db, True, review)
+        emailing.send_decision_new_delay_review_mail(True, review)
         return _new_delay_to_reviewing_redirection(True)
     else:
         session.flash = T("Unable to validate")
@@ -720,7 +720,7 @@ def decline_new_delay_to_reviewing():
 
     if review.acceptation_timestamp and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
         Review.set_review_status(review, ReviewState.DECLINED_BY_RECOMMENDER)
-        emailing.send_decision_new_delay_review_mail(session, auth, db, False, review)
+        emailing.send_decision_new_delay_review_mail(False, review)
         return _new_delay_to_reviewing_redirection(False)
     else:
         session.flash = T("Unable to decline")
@@ -791,22 +791,22 @@ def change_review_due_date():
             session.flash =  T('Wrong date: ') + error.args[0]
             redirect(request.env.http_referer)
 
-        soon_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewSoonDue"], review.id) or 0) == 0
-        review_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewDue"], review.id) or 0) == 0
-        over_due_sent = (emailing.delete_reminder_for_reviewer(db, ["#ReminderReviewerReviewOverDue"], review.id) or 0) == 0
+        soon_due_sent = (emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewSoonDue"], review.id) or 0) == 0
+        review_due_sent = (emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewDue"], review.id) or 0) == 0
+        over_due_sent = (emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewOverDue"], review.id) or 0) == 0
 
         if soon_due_sent and review_due_sent:
-            emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
-            emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
+            emailing.create_reminder_for_reviewer_review_due(review.id)
+            emailing.create_reminder_for_reviewer_review_over_due(review.id)
         else:
             if not soon_due_sent:
-                emailing.create_reminder_for_reviewer_review_soon_due(session, auth, db, review.id)
+                emailing.create_reminder_for_reviewer_review_soon_due(review.id)
             if not review_due_sent:
-                emailing.create_reminder_for_reviewer_review_due(session, auth, db, review.id)
+                emailing.create_reminder_for_reviewer_review_due(review.id)
             if not over_due_sent:
-                emailing.create_reminder_for_reviewer_review_over_due(session, auth, db, review.id)
+                emailing.create_reminder_for_reviewer_review_over_due(review.id)
 
-        emailing.send_alert_reviewer_due_date_change(session, auth, db, review)
+        emailing.send_alert_reviewer_due_date_change(review)
 
         session.flash = f"Review date changed to {form.vars['review_duration']}"
         

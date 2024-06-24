@@ -34,7 +34,9 @@ not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", defaul
 ######################################################################################################################################################################
 ## Manager Modules
 ######################################################################################################################################################################
-def mkSuggestedRecommendersManagerButton(row, whatNext, auth, db):
+def mkSuggestedRecommendersManagerButton(row, whatNext):
+    db, auth = current.db, current.auth
+
     if row.already_published:
         return ""
 
@@ -63,7 +65,8 @@ def mkSuggestedRecommendersManagerButton(row, whatNext, auth, db):
 ######################################################################################################################################################################
 # From common.py
 ######################################################################################################################################################################
-def mkLastRecommendation(auth, db, articleId):
+def mkLastRecommendation(articleId):
+    db = current.db
     lastRecomm = db.get_last_recomm(articleId)
     if lastRecomm:
         return DIV(common_small_html.md_to_html(lastRecomm.recommendation_title) or "", _class="pci-w200Cell")
@@ -72,7 +75,7 @@ def mkLastRecommendation(auth, db, articleId):
 
 
 ######################################################################################################################################################################
-def mkViewEditRecommendationsManagerButton(auth, db, row):
+def mkViewEditRecommendationsManagerButton(row):
     return A(
         SPAN(current.T("View / Edit"), _class="buttontext btn btn-default pci-button"),
         _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.article_id)),

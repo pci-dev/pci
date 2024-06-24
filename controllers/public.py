@@ -38,9 +38,9 @@ def user_public_page():
         return profile_page(user)
     except:
         return dict(
-            pageHelp=getHelp(request, auth, db, "#PublicUserCard"),
+            pageHelp=getHelp("#PublicUserCard"),
             titleIcon="briefcase",
-            pageTitle=getTitle(request, auth, db, "#PublicUserCardTitle"),
+            pageTitle=getTitle("#PublicUserCardTitle"),
             customText=B(T(custom_text))
         )
 
@@ -115,7 +115,7 @@ def profile_page(user: User):
                 nbRecomms = len(recommsQy)
                 recomms = []
                 for row in recommsQy:
-                    recomms.append(article_components.getRecommArticleRowCard(auth, db, response, row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    recomms.append(article_components.getRecommArticleRowCard(row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
 
                 # reviews
                 reviews = []
@@ -131,10 +131,10 @@ def profile_page(user: User):
 
                 nbReviews = len(reviewsQy)
                 for row in reviewsQy:
-                    reviews.append(article_components.getRecommArticleRowCard(auth, db, response, row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    reviews.append(article_components.getRecommArticleRowCard(row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
 
                 return dict(
-                    pageHelp=getHelp(request, auth, db, "#PublicUserCard"),
+                    pageHelp=getHelp("#PublicUserCard"),
                     titleIcon="briefcase",
                     pageTitle=pageTitle,
                     uneditableTitle=True,
