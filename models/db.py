@@ -501,7 +501,10 @@ db.define_table(
     Field("picture_rights_ok",  widget=widget(_type="hidden") if not pciRRactivated else "",type="boolean", label=T("Picture right")),
     RequiredField("uploaded_picture", type="upload", label=T("Picture"),
         length=100, # filename max len (ish, see Field.store in sqlhtml.py). Linux extfs has max filename len=255
-        requires=RESIZE(500,500) if pciRRactivated else [RESIZE(500,500), IS_NOT_EMPTY(error_message=T("Please upload a picture"))]),
+        requires=RESIZE(500,500) if pciRRactivated else [RESIZE(500,500), IS_NOT_EMPTY(error_message=T("Please upload a picture"))]) if not pciRRactivated else
+    Field("uploaded_picture", type="upload", label=T("Picture"),
+        length=100, # filename max len (ish, see Field.store in sqlhtml.py). Linux extfs has max filename len=255
+        requires=RESIZE(500,500)),
     RequiredField("abstract", type="text", length=2097152, label=T("Abstract")),
     Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
     RequiredField("data_doi", 

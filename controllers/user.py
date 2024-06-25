@@ -609,8 +609,10 @@ def fill_new_article():
     form.element(_type="submit")["_class"] = "btn btn-success"
     form.element(_type="submit")["_name"] = "submit"
     form.element(_type="submit")["_id"] = "submit-article-btn"
-    form.element(_type="submit").parent.components.insert(0, BUTTON('Save', _id="save-article-form-button", _name="save", _class="btn btn-primary"))
-    form.element(_type="submit").parent.components.insert(0, BUTTON('Clean Save', _id="clean-save-article-form-button", _name="clean_save", _class="btn btn-danger", _style="display: none"))
+
+    if not pciRRactivated:
+        form.element(_type="submit").parent.components.insert(0, BUTTON('Save', _id="save-article-form-button", _name="save", _class="btn btn-primary"))
+        form.element(_type="submit").parent.components.insert(0, BUTTON('Clean Save', _id="clean-save-article-form-button", _name="clean_save", _class="btn btn-danger", _style="display: none"))
 
 
     def onvalidation(form):
