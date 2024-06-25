@@ -608,6 +608,7 @@ def fill_new_article():
 
     form.element(_type="submit")["_class"] = "btn btn-success"
     form.element(_type="submit")["_name"] = "submit"
+    form.element(_type="submit")["_id"] = "submit-article-btn"
     form.element(_type="submit").parent.components.insert(0, BUTTON('Save', _id="save-article-form-button", _name="save", _class="btn btn-primary"))
     form.element(_type="submit").parent.components.insert(0, BUTTON('Clean Save', _id="clean-save-article-form-button", _name="clean_save", _class="btn btn-danger", _style="display: none"))
 
@@ -898,7 +899,7 @@ def edit_my_article():
 
     buttons = [
         A("Cancel", _class="btn btn-default", _href=URL(c="user", f="recommendations", vars=dict(articleId=article.id), user_signature=True)),
-        INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
+        INPUT(_id="submit-article-btn", _type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 
     try: article_manager_coauthors = article.manager_authors

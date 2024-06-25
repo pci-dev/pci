@@ -127,3 +127,45 @@ function loadFormSaved() {
     document.getElementById('clean-save-article-form-button').style.display = 'inline-block';
 }
 loadFormSaved();
+
+
+////////
+
+var formHasModification = false;
+
+document.getElementsByTagName('form')[0]?.addEventListener('input', () => {
+    formHasModification = true;
+});
+
+
+var observerForTinyMce = new MutationObserver(() => {
+    document.querySelectorAll('.tox-edit-area__iframe').forEach((tinymceForm) => {
+        tinymceForm.contentWindow.document.addEventListener('input', () => {
+            formHasModification = true;
+        });
+    });    
+});
+observerForTinyMce.observe(document.body, { childList: true, subtree: true });
+
+window.addEventListener('beforeunload', (e) => {
+    const thereAreValues = JSON.parse(localStorage.getItem(`save-form-${window.location.pathname}`));
+
+    const sumbitBtnIds = [
+        'save-article-form-button',
+        'submit-article-btn',
+        'myModal',
+        'bpt'
+    ];
+
+    const isSubmitAction = sumbitBtnIds.indexOf(e.target.activeElement.id) > -1;
+
+    if (!formHasModification) {
+        return;
+    }
+
+    if (formHasModification && isSubmitAction) {
+        return;
+    }
+
+    return e.preventDefault();
+});
