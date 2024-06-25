@@ -52,6 +52,10 @@ function initUploadedPictureField(storageKey, storage) {
 
 
 async function saveUploadedPictureInStorage(fileInput, storageKey, storage) {
+    if (fileInput == null) {
+        return;
+    }
+
     const base64Data = await getBase64(fileInput);
     storage.setItem(storageKey, JSON.stringify({
         pathName: window.location.pathname,
@@ -73,8 +77,8 @@ initUploadedPictureField('t_articles_uploaded_picture', sessionStorage);
 
 ////
 
-document.getElementById('save-article-form-button').addEventListener('click', saveForm);
-document.getElementById('clean-save-article-form-button').addEventListener('click', () => {
+document.getElementById('save-article-form-button')?.addEventListener('click', saveForm);
+document.getElementById('clean-save-article-form-button')?.addEventListener('click', () => {
     cleanFormSaved();
 });
 
