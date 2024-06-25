@@ -251,6 +251,49 @@ function fillFormFields(data) {
       "t_articles_abstract_ifr"
     ).contentDocument.body.innerHTML = "";
   }
+
+  const preprintServerField = document.getElementById('t_articles_preprint_server');
+  if (preprintServerField != null) {
+    preprintServerField.value = getPrepintServer(data_json);
+  }
+
+  const yearField = document.getElementById('t_articles_article_year');
+  if (yearField != null) {
+    yearField.value = getDate(data_json);
+  }
+}
+
+function getPrepintServer(data_json) {
+  let server = data_json.message.institution?.[0]?.name;
+  if (server != null) {
+    return server;
+  }
+
+  server = data_json.message['group-title'];
+  if (server != null) {
+    return server;
+  }
+}
+
+function getDate(data_json) {
+  const indexedDate = data_json.message.indexed?.['date-parts']?.[0]?.[0] ?? 0;
+  const postedDate = data_json.message.posted?.['date-parts']?.[0]?.[0] ?? 0;
+  const acceptedDate = data_json.message.accepted?.['date-parts']?.[0]?.[0] ?? 0;
+  const createdDate = data_json.message.created?.['date-parts']?.[0]?.[0] ?? 0;
+  const depositedDate = data_json.message.deposited?.['date-parts']?.[0]?.[0] ?? 0;
+  const issuedDate = data_json.message.issued?.['date-parts']?.[0]?.[0] ?? 0;
+  const publishedDate = data_json.message.published?.['date-parts']?.[0]?.[0] ?? 0;
+
+  const lastDate = Math.max(
+    indexedDate,
+    postedDate,
+    acceptedDate,
+    createdDate,
+    depositedDate,
+    issuedDate,
+    publishedDate);
+
+    return lastDate;
 }
 
 // radio button with details box
