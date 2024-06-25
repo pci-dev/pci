@@ -11,7 +11,7 @@ recommender = users.recommender
 reviewer = users.reviewer
 
 class article:
-    doi = "http://DOI"
+    doi = "http://DOI.org"
     title = "Title [%s]" % time.strftime("%a %-d %b %Y %H:%M:%S")
     authors = "Author-1, Author-2"
     year = time.strftime("%Y")
@@ -43,6 +43,7 @@ class User_submits:
     select("#t_articles_title").send_keys(article.title)
     select("#t_articles_authors").send_keys(article.authors)
     select("#t_articles_article_year").send_keys(article.year)
+    select("#t_articles_doi").clear()
     select("#t_articles_doi").send_keys(article.doi)
     select("#t_articles_preprint_server").send_keys("Preprint server")
 
@@ -57,6 +58,7 @@ class User_submits:
         select("#t_articles_no_results_based_on_data").click()
         select("#t_articles_no_scripts_used_for_result").click()
         select("#t_articles_codes_used_in_study").click()
+        select("#t_articles_codes_doi").clear()
         select("#t_articles_codes_doi").send_keys("https://github.com/")
         select("#t_articles_funding").send_keys("The authors declare that they have received no specific funding for this study")
 
