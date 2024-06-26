@@ -89,13 +89,28 @@ function getSaveFormUploadedPictureLabel() {
 
 async function saveForm(e) {
     const values = {
-        data_doi: []
+        data_doi: [],
+        scripts_doi: [],
+        codes_doi: []
     };
 
     const data_doi_ul = document.getElementById('t_articles_data_doi_grow_input');
+    const scripts_doi_ul = document.getElementById('t_articles_scripts_doi_grow_input');
+    const codes_doi_ul = document.getElementById('t_articles_codes_doi_grow_input');
+
     const data_doi_inputs = data_doi_ul.getElementsByTagName('input');
     for (const input of data_doi_inputs) {
       values.data_doi.push(input.value)
+    }
+
+    const scripts_doi_inputs = scripts_doi_ul.getElementsByTagName('input');
+    for (const input of scripts_doi_inputs) {
+      values.scripts_doi.push(input.value)
+    }
+
+    const codes_doi_inputs = codes_doi_ul.getElementsByTagName('input');
+    for (const input of codes_doi_inputs) {
+      values.codes_doi.push(input.value)
     }
 
     localStorage.setItem(`save-form-${window.location.pathname}`, JSON.stringify(values));
@@ -112,8 +127,19 @@ function loadFormSaved() {
     }
 
     const data_doi_ul = document.getElementById('t_articles_data_doi_grow_input');
+    const scripts_doi_ul = document.getElementById('t_articles_scripts_doi_grow_input');
+    const codes_doi_ul = document.getElementById('t_articles_codes_doi_grow_input');
+
     if (values.data_doi.length > 0) {
-        data_doi_ul.innerHTML = ''
+        data_doi_ul.innerHTML = '';
+    }
+
+    if (values.scripts_doi.length > 0) {
+        scripts_doi_ul.innerHTML = '';
+    }
+
+    if (values.codes_doi.length > 0) {
+        codes_doi_ul.innerHTML = '';
     }
 
     for (const value of values.data_doi) {
@@ -121,6 +147,24 @@ function loadFormSaved() {
         <li>
             <div class="input-group" style="width: 100%">
                 <input class="string form-control" id="t_articles_data_doi" name="data_doi" type="text" value="${value}">
+            </div>
+        </li>`;
+    }
+
+    for (const value of values.scripts_doi) {
+        scripts_doi_ul.innerHTML += `
+        <li>
+            <div class="input-group" style="width: 100%">
+                <input class="string form-control" id="t_articles_scripts_doi" name="scripts_doi" type="text" value="${value}">
+            </div>
+        </li>`;
+    }
+
+    for (const value of values.codes_doi) {
+        codes_doi_ul.innerHTML += `
+        <li>
+            <div class="input-group" style="width: 100%">
+                <input class="string form-control" id="t_articles_codes_doi" name="codes_doi" type="text" value="${value}">
             </div>
         </li>`;
     }
