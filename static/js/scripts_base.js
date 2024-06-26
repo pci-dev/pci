@@ -97,3 +97,18 @@ function activate_submit_btn() {
     }
     catch { }
   };
+
+
+function cleanUploadedPictureArticleForm() {
+    const fileItem = JSON.parse(sessionStorage.getItem('t_articles_uploaded_picture'));
+    if (fileItem == null) {
+        return;
+    }
+
+    const currentPathName = window.location.pathname;
+    if (currentPathName !== fileItem.pathName) {
+        sessionStorage.removeItem('t_articles_uploaded_picture');
+    }
+}
+cleanUploadedPictureArticleForm();
+

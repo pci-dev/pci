@@ -26,6 +26,7 @@ from app_modules.orcid import OrcidTools
 from app_modules.article_translator import ArticleTranslator
 from gluon.http import redirect
 
+from gluon.sqlhtml import SQLFORM
 from models.review import Review, ReviewState
 from models.article import Article, TranslatedFieldType, clean_vars_doi, clean_vars_doi_list
 from models.report_survey import ReportSurvey
@@ -577,11 +578,23 @@ def fill_new_article():
 
     app_forms.article_add_mandatory_checkboxes(form, pciRRactivated)
 
-    def fixup_radio_group(name):
+    data_doi_form = form.elements(_id="t_articles_results_based_on_data__row")
+    if data_doi_form:
+        data_code_script_label = LABEL("Data, code and scripts", SPAN(" * ", _style="color:red;"), _class="control-label col-sm-3")
+        data_doi_form[0].insert(0, data_code_script_label)
+
+    def fixup_radio_group(name: str):
+        """
+        Just for test.
+        """
         elements = form.elements(_name=name)
-        elements[0].update(_id=name+"_group")
-        elements[1].update(_id="t_articles_no_"+name)
-        elements[2].update(_id="t_articles_"+name)
+        elements[0].update(_id=name + "_group")
+
+        elements[1].update(_id="t_articles_no_" + name)
+        elements[1].parent.components[1].update(_for="t_articles_no_" + name)
+
+        elements[2].update(_id="t_articles_" + name)
+        elements[2].parent.components[1].update(_for="t_articles_" + name)
 
     if not pciRRactivated:
         fixup_radio_group("results_based_on_data")
@@ -591,11 +604,19 @@ def fill_new_article():
     if pciRRactivated:
         form.element(_type="submit")["_value"] = T("Continue your submission")
     else:
-        form.element(_type="submit")["_value"] = T("Complete your submission")
+        form.element(_type="submit")["_value"] = "Save & Complete your submission"
 
     form.element(_type="submit")["_class"] = "btn btn-success"
+    form.element(_type="submit")["_name"] = "submit"
+    form.element(_type="submit")["_id"] = "submit-article-btn"
+
+    if not pciRRactivated:
+        form.element(_type="submit").parent.components.insert(0, BUTTON('Save', _id="save-article-form-button", _name="save", _class="btn btn-primary"))
+        form.element(_type="submit").parent.components.insert(0, BUTTON('Clean Save', _id="clean-save-article-form-button", _name="clean_save", _class="btn btn-danger", _style="display: none"))
+
 
     def onvalidation(form):
+        _save_article_form(form)
         if not pciRRactivated:
             app_forms.checklist_validation(form)
         if pciRRactivated:
@@ -606,6 +627,8 @@ def fill_new_article():
         form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
         form.vars.scripts_doi = clean_vars_doi_list(form.vars.scripts_doi)
 
+    _load_article_form_saved(form)
+    
     if form.process(onvalidation=onvalidation).accepted:
         articleId = form.vars.id
         if pciRRactivated:
@@ -614,15 +637,19 @@ def fill_new_article():
             session.flash = T("Article submitted", lazy=False)
 
         manager_ids = common_tools.extract_manager_ids(form, manager_ids)
-        myVars = dict(articleId=articleId, manager_authors=manager_ids)
+        myVars = dict(articleId=articleId, manager_authors=manager_ids, clean_form_saved=request.env.path_info)
         # for thema in form.vars.thematics:
         # myVars['qy_'+thema] = 'on'
         # myVars['qyKeywords'] = form.vars.keywords
+        _clean_article_form_saved(False)
+        
         if pciRRactivated:
             redirect(URL(c="user", f="fill_report_survey", vars=myVars, user_signature=True))
         else:
             redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
     elif form.errors:
+        _save_article_form(form)
+        _clean_article_form_saved(True)
         response.flash = T("Form has errors", lazy=False)
 
 
@@ -634,6 +661,8 @@ def fill_new_article():
         form = getText("#SubmissionOnHoldInfo")
 
     myScript = common_tools.get_script("fill_new_article.js")
+    article_form_clean_script = common_tools.get_script('clean_saved_article_form.js')
+    article_form_common_script = common_tools.get_script("article_form_common.js")
     response.view = "default/gab_form_layout.html"
     return dict(
         pageHelp=getHelp("#UserSubmitNewArticle"),
@@ -641,9 +670,30 @@ def fill_new_article():
         pageTitle=getTitle("#UserSubmitNewArticleTitle"),
         customText=customText,
         form=form,
-        myFinalScript=myScript or "",
+        myFinalScript=[myScript or "", article_form_clean_script, article_form_common_script],
     )
 
+
+def _save_article_form(form: SQLFORM):
+    if request.post_vars.save:
+        form.vars.pop('uploaded_picture')
+        session.article_form_data = form.vars
+        session.flash = 'The form data has been saved.'
+        redirect(URL(args=request.args, vars=request.get_vars))
+
+
+def _load_article_form_saved(form: SQLFORM):
+    if not request.post_vars.save and not request.post_vars.submit and session.article_form_data:
+        session.flash = 'Saved form data have been loaded.'
+        form.vars = session.article_form_data
+
+    
+def _clean_article_form_saved(form_with_error: bool):
+    if request.post_vars.submit and not form_with_error:
+        session.article_form_data = None
+    if request.post_vars.clean_save:
+        session.article_form_data = None
+        redirect(URL(args=request.args, vars=request.get_vars))
 
 ######################################################################################################################################################################
 @auth.requires_login()
@@ -851,7 +901,7 @@ def edit_my_article():
 
     buttons = [
         A("Cancel", _class="btn btn-default", _href=URL(c="user", f="recommendations", vars=dict(articleId=article.id), user_signature=True)),
-        INPUT(_type="Submit", _name="save", _class="btn btn-success", _value="Save"),
+        INPUT(_id="submit-article-btn", _type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 
     try: article_manager_coauthors = article.manager_authors
@@ -932,13 +982,14 @@ def edit_my_article():
         form = getText("#SubmissionOnHoldInfo")
 
     manager_script = common_tools.get_script("manager_selection.js")
+    article_form_common_script = common_tools.get_script("article_form_common.js")
     return dict(
         pageHelp=getHelp("#UserEditArticle"),
         customText=getText("#UserEditArticleText"),
         titleIcon="edit",
         pageTitle=getTitle("#UserEditArticleTitle"),
         form=form,
-        myFinalScript=myScript,
+        myFinalScript=[myScript, article_form_common_script],
         managerScript = manager_script,
         pciRRjsScript=pciRRjsScript,
     )
@@ -971,6 +1022,7 @@ def fill_report_survey():
 
     form = app_forms.report_survey(art, controller="user_fill")
 
+    article_form_clean_script = common_tools.get_script('clean_saved_article_form.js')
     myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
@@ -979,7 +1031,7 @@ def fill_report_survey():
         pageTitle=getTitle("#FillReportSurveyTitle"),
         customText=getText("#FillReportSurveyText", maxWidth="800"),
         form=form,
-        myFinalScript=myScript,
+        myFinalScript=[myScript, article_form_clean_script],
     )
 
 
@@ -1632,6 +1684,9 @@ def add_suggested_recommender():
             _style="margin-top:16px; text-align:left;",
             _class="pci2-complete-ur-submission",
         )
+
+        article_form_clean_script = common_tools.get_script('clean_saved_article_form.js')
+
         return dict(
             titleIcon="education",
             pageTitle=getTitle("#UserAddSuggestedRecommenderTitle"),
@@ -1641,7 +1696,7 @@ def add_suggested_recommender():
             content=myContents,
             form="",
             myAcceptBtn=myAcceptBtn,
-            # myFinalScript=myScript,
+            myFinalScript=article_form_clean_script,
         )
 
 

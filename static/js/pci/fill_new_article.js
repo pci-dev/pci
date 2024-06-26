@@ -29,12 +29,12 @@ jQuery(document).ready(function() {
     jQuery("#t_articles_article_source__row").show();
   } else {
     jQuery("#t_articles_article_source__row").hide();
-    jQuery(":submit").prop("disabled", true);
+    jQuery("input[type=submit]").prop("disabled", true);
   }
 
   if (jQuery("#t_articles_already_published").length)
     if (all_prerequisites()) {
-      jQuery(":submit").prop("disabled", false);
+      jQuery("input[type=submit]").prop("disabled", false);
     }
 
   if (jQuery("#t_articles_is_not_reviewed_elsewhere").prop("checked")) {
@@ -47,10 +47,10 @@ jQuery(document).ready(function() {
     jQuery("#t_articles_i_am_an_author").prop("checked")
   ) {
     if (all_prerequisites()) {
-      jQuery(":submit").prop("disabled", false);
+      jQuery("input[type=submit]").prop("disabled", false);
     }
   } else {
-    jQuery(":submit").prop("disabled", true);
+    jQuery("input[type=submit]").prop("disabled", true);
   }
 
   jQuery("#t_articles_picture_rights_ok").change(function() {
@@ -83,10 +83,10 @@ jQuery(document).ready(function() {
       jQuery("#t_articles_i_am_an_author").prop("checked")
     ) {
       if (all_prerequisites()) {
-        jQuery(":submit").prop("disabled", false);
+        jQuery("input[type=submit]").prop("disabled", false);
       }
     } else {
-      jQuery(":submit").prop("disabled", true);
+      jQuery("input[type=submit]").prop("disabled", true);
     }
   });
   jQuery("#t_articles_i_am_an_author").change(function() {
@@ -96,10 +96,10 @@ jQuery(document).ready(function() {
       jQuery("#t_articles_i_am_an_author").prop("checked")
     ) {
       if (all_prerequisites()) {
-        jQuery(":submit").prop("disabled", false);
+        jQuery("input[type=submit]").prop("disabled", false);
       }
     } else {
-      jQuery(":submit").prop("disabled", true);
+      jQuery("input[type=submit]").prop("disabled", true);
     }
   });
   jQuery("#t_articles_parallel_submission").change(function() {
@@ -115,10 +115,10 @@ jQuery(document).ready(function() {
       jQuery("#t_articles_i_am_an_author").prop("checked")
     ) {
       if (all_prerequisites()) {
-        jQuery(":submit").prop("disabled", false);
+        jQuery("input[type=submit]").prop("disabled", false);
       }
     } else {
-      jQuery(":submit").prop("disabled", true);
+      jQuery("input[type=submit]").prop("disabled", true);
     }
   });
 
@@ -142,16 +142,16 @@ jQuery(document).ready(function() {
       if (parallel_submission != null) {
         if ((not_reviewed_elsewhere.checked == true | parallel_submission.checked == true) &
             i_am_author.checked == true & all_prerequisites()) {
-            document.querySelector("#submit_record__row .btn-success").disabled = false; }
+            document.querySelector("#submit_record__row input[type=submit]").disabled = false; }
         else {
-          document.querySelector("#submit_record__row .btn-success").disabled = true; 
+          document.querySelector("#submit_record__row input[type=submit]").disabled = true; 
         }
       }
       else {
         if (not_reviewed_elsewhere.checked == true & i_am_author.checked == true & all_prerequisites()) {
-              document.querySelector("#submit_record__row .btn-success").disabled = false; }
+              document.querySelector("#submit_record__row input[type=submit]").disabled = false; }
         else {
-              document.querySelector("#submit_record__row .btn-success").disabled = true; 
+              document.querySelector("#submit_record__row input[type=submit]").disabled = true; 
         }
       }
     }
@@ -251,6 +251,49 @@ function fillFormFields(data) {
       "t_articles_abstract_ifr"
     ).contentDocument.body.innerHTML = "";
   }
+
+  const preprintServerField = document.getElementById('t_articles_preprint_server');
+  if (preprintServerField != null) {
+    preprintServerField.value = getPrepintServer(data_json);
+  }
+
+  const yearField = document.getElementById('t_articles_article_year');
+  if (yearField != null) {
+    yearField.value = getDate(data_json);
+  }
+}
+
+function getPrepintServer(data_json) {
+  let server = data_json.message.institution?.[0]?.name;
+  if (server != null) {
+    return server;
+  }
+
+  server = data_json.message['group-title'];
+  if (server != null) {
+    return server;
+  }
+}
+
+function getDate(data_json) {
+  const indexedDate = data_json.message.indexed?.['date-parts']?.[0]?.[0] ?? 0;
+  const postedDate = data_json.message.posted?.['date-parts']?.[0]?.[0] ?? 0;
+  const acceptedDate = data_json.message.accepted?.['date-parts']?.[0]?.[0] ?? 0;
+  const createdDate = data_json.message.created?.['date-parts']?.[0]?.[0] ?? 0;
+  const depositedDate = data_json.message.deposited?.['date-parts']?.[0]?.[0] ?? 0;
+  const issuedDate = data_json.message.issued?.['date-parts']?.[0]?.[0] ?? 0;
+  const publishedDate = data_json.message.published?.['date-parts']?.[0]?.[0] ?? 0;
+
+  const lastDate = Math.max(
+    indexedDate,
+    postedDate,
+    acceptedDate,
+    createdDate,
+    depositedDate,
+    issuedDate,
+    publishedDate);
+
+    return lastDate;
 }
 
 // radio button with details box
