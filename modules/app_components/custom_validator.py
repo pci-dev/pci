@@ -1,7 +1,7 @@
 from typing import Optional
 
 from urllib.parse import urlparse
-from gluon.packages.dal.pydal.validators import IS_HTTP_URL
+from pydal.validators import IS_HTTP_URL
 from pydal.validators import Validator
 
 class CUSTOM_VALID_URL(Validator):
