@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import cast
+from app_components.ongoing_recommendation import is_stage_1
 from app_modules.common_small_html import custom_mail_dialog
 from app_modules.emailing_tools import getMailTemplateHashtag, replace_mail_vars_set_not_considered_mail
 from app_modules.helper import *
@@ -121,6 +122,9 @@ def do_recommend_article():
         recomm.validation_timestamp = request.now
         recomm.update_record()
         art.update_record()
+
+    if is_stage_1(art):
+        redirect(redir_url)
 
     if not pciRRactivated:
         Hypothesis(art).post_annotation()
