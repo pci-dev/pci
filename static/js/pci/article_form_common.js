@@ -1,3 +1,7 @@
+var userId = getCookie('user_id');
+
+//////////////
+
 function getBase64(file) {
     return new Promise((resolve,reject)=>{
         var reader = new FileReader();
@@ -69,11 +73,11 @@ document.getElementById('t_articles_uploaded_picture')?.addEventListener('change
     if (e.target.files.length === 0) {
         return;
     }
-    saveUploadedPictureInStorage(e.target.files[0], 't_articles_uploaded_picture', sessionStorage);
+    saveUploadedPictureInStorage(e.target.files[0], `t_articles_uploaded_picture-${userId}`, sessionStorage);
 });
 
 
-initUploadedPictureField('t_articles_uploaded_picture', sessionStorage);
+initUploadedPictureField(`t_articles_uploaded_picture-${userId}`, sessionStorage);
 
 ////
 
@@ -83,7 +87,7 @@ document.getElementById('clean-save-article-form-button')?.addEventListener('cli
 });
 
 function getSaveFormUploadedPictureLabel() {
-    return `save-form-${window.location.pathname}-t_articles_uploaded_picture`;
+    return `save-form-${window.location.pathname}-t_articles_uploaded_picture-${userId}`;
 }
 
 
@@ -113,7 +117,7 @@ async function saveForm(e) {
       values.codes_doi.push(input.value)
     }
 
-    localStorage.setItem(`save-form-${window.location.pathname}`, JSON.stringify(values));
+    localStorage.setItem(`save-form-${window.location.pathname}-${userId}`, JSON.stringify(values));
 
     const uploadedPicture = document.getElementById('t_articles_uploaded_picture')?.files[0];
     saveUploadedPictureInStorage(uploadedPicture, getSaveFormUploadedPictureLabel(), localStorage);
@@ -121,7 +125,7 @@ async function saveForm(e) {
 
 
 function loadFormSaved() {
-    const values = JSON.parse(localStorage.getItem(`save-form-${window.location.pathname}`));
+    const values = JSON.parse(localStorage.getItem(`save-form-${window.location.pathname}-${userId}`));
     if (values == null) {
         return;
     }
@@ -196,7 +200,7 @@ var observerForTinyMce = new MutationObserver(() => {
 observerForTinyMce.observe(document.body, { childList: true, subtree: true });
 
 window.addEventListener('beforeunload', (e) => {
-    const thereAreValues = JSON.parse(localStorage.getItem(`save-form-${window.location.pathname}`));
+    const thereAreValues = JSON.parse(localStorage.getItem(`save-form-${window.location.pathname}-${userId}`));
 
     const sumbitBtnIds = [
         'save-article-form-button',
