@@ -147,7 +147,7 @@ def pub_reviews():
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
     # NOTE: check id is numeric!
-    if not articleId.isdigit():
+    if not str(articleId).isdigit():
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
 
