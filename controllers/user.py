@@ -666,6 +666,12 @@ def fill_new_article():
     article_form_clean_script = common_tools.get_script('clean_saved_article_form.js')
     article_form_common_script = common_tools.get_script("article_form_common.js")
     response.view = "default/gab_form_layout.html"
+
+    response.cookies['user_id'] = current.auth.user_id
+    response.cookies['user_id']['expires'] = 24 * 3600
+    response.cookies['user_id']['path'] = '/'
+    response.cookies['user_id']['samesite'] = 'Strict'
+
     return dict(
         pageHelp=getHelp("#UserSubmitNewArticle"),
         titleIcon="edit",
