@@ -27,10 +27,12 @@ from app_modules.article_translator import ArticleTranslator
 from gluon.http import redirect
 
 from gluon.sqlhtml import SQLFORM
+from gluon.storage import Storage
 from models.review import Review, ReviewState
 from models.article import Article, TranslatedFieldType, clean_vars_doi, clean_vars_doi_list
 from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
+from models.user import User
 
 
 # frequently used constants
@@ -677,22 +679,33 @@ def fill_new_article():
 def _save_article_form(form: SQLFORM):
     if request.post_vars.save:
         form.vars.pop('uploaded_picture')
-        session.article_form_data = form.vars
-        session.flash = 'The form data has been saved.'
+        current_user = User.get_by_id(current.auth.user_id)
+        if current_user:
+            User.set_in_new_article_cache(current_user, form.vars)
+            session.flash = 'The form data has been saved.'
         redirect(URL(args=request.args, vars=request.get_vars))
 
 
 def _load_article_form_saved(form: SQLFORM):
-    if not request.post_vars.save and not request.post_vars.submit and session.article_form_data:
+    if not request.post_vars.save and not request.post_vars.submit:
         session.flash = 'Saved form data have been loaded.'
-        form.vars = session.article_form_data
+        current_user = User.get_by_id(current.auth.user_id)
+        if current_user and current_user.new_article_cache:
+            form_values = Storage(current_user.new_article_cache)
+            form.vars = form_values
 
     
 def _clean_article_form_saved(form_with_error: bool):
     if request.post_vars.submit and not form_with_error:
-        session.article_form_data = None
+        current_user = User.get_by_id(current.auth.user_id)
+        if current_user:
+            User.clear_new_article_cache(current_user)
+
     if request.post_vars.clean_save:
-        session.article_form_data = None
+        current_user = User.get_by_id(current.auth.user_id)
+        if current_user:
+            User.clear_new_article_cache(current_user)
+            
         redirect(URL(args=request.args, vars=request.get_vars))
 
 ######################################################################################################################################################################

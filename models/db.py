@@ -287,6 +287,7 @@ auth.settings.extra_fields["auth_user"] = [
     ),
     Field("recover_email", label=T("Recover e-mail address"), unique=True, type="string", writable=False, readable=False),
     Field("recover_email_key", label=T("Recover e-mail key"), unique=True, type="string", writable=False, readable=False),
+    Field("new_article_cache", type="json", readable=False, writable=False, length=5000000),
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user._singular = T("User")

@@ -1,6 +1,6 @@
 from datetime import datetime
 import time
-from typing import List, Optional as _, cast
+from typing import Any, Dict, List, Optional as _, cast
 from pydal.validators import CRYPT
 
 from gluon.utils import web2py_uuid
@@ -38,6 +38,7 @@ class User(Row):
     orcid: _[str]
     no_orcid: bool
     deleted: bool
+    new_article_cache: _[Dict[Any, Any]]
 
     @staticmethod
     def get_by_id(id: int):
@@ -223,3 +224,15 @@ class User(Row):
             orcid=orcid)
         
         return User.get_by_id(new_user_id)
+
+
+    @staticmethod
+    def set_in_new_article_cache(user: 'User', article_data: Dict[Any, Any]):
+        user.new_article_cache = article_data
+        return user.update_record()
+
+
+    @staticmethod
+    def clear_new_article_cache(user: 'User'):
+        user.new_article_cache = None
+        return user.update_record()
