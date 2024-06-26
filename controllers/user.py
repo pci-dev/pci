@@ -1203,7 +1203,7 @@ def my_articles():
     # db.t_articles.anonymous_submission.label = T("Anonymous submission")
     # db.t_articles.anonymous_submission.represent = lambda anon, r: common_small_html.mkAnonymousMask(anon)
     links = [
-        dict(header=T("Suggested recommenders"), body=lambda row: user_module.mkSuggestedRecommendersUserButton(row)),
+        dict(header=T("Suggested recommenders"), body=lambda row: user_module.mk_suggested_recommenders_user_button(row)),
         dict(header=T("Recommender(s)"), body=lambda row: user_module.getRecommender(row)),
         dict(
             header="",

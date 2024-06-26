@@ -1,37 +1,38 @@
 # -*- coding: utf-8 -*-
-
-import re
-import copy
-import datetime
+from typing import Any, List
 from app_modules import common_tools
 
 from gluon import current
-from gluon.contrib.markdown import WIKI
 
 from app_modules.helper import *
 
 from app_modules import common_small_html
+from models.article import ArticleStatus
+from models.suggested_recommender import SuggestedRecommender
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 ######################################################################################################################################################################
-def mkSuggestedRecommendersUserButton(row):
-    db, auth = current.db, current.auth
-    butts = []
-    suggRecomsTxt = []
+def mk_suggested_recommenders_user_button(row: Any):
+    auth = current.auth
+    butts: List[Any] = []
+    suggested_recommender_txt: List[Any] = []
     # exclude = [str(auth.user_id)]
-    excludeList = [auth.user_id]
-    suggRecomms = db(db.t_suggested_recommenders.article_id == row["t_articles.id"]).select()
-    for sr in suggRecomms:
-        # excludeList.append(str(sr.suggested_recommender_id))
-        excludeList.append(sr.suggested_recommender_id)
-        if sr.declined:
-            suggRecomsTxt.append(common_small_html.mkUser(sr.suggested_recommender_id) + I(XML("&nbsp;declined")) + BR())
-        else:
-            suggRecomsTxt.append(common_small_html.mkUser(sr.suggested_recommender_id) + BR())
-    if len(suggRecomsTxt) > 0:
-        butts += suggRecomsTxt
-    if row["t_articles.status"] in ("Pending", "Awaiting consideration"):
-        myVars = dict(articleId=row["t_articles.id"], exclude=excludeList)
-        butts.append(A(current.T("Add / Remove"), _class="btn btn-default pci-submitter", _href=URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True)))
+    exclude_list: List[int] = [auth.user_id]
+    suggested_recommenders = SuggestedRecommender.get_suggested_recommender_by_article(row["t_articles.id"])
+    if suggested_recommenders:
+        for suggested_recommender in suggested_recommenders:
+            if not suggested_recommender.suggested_recommender_id:
+                continue
+
+            exclude_list.append(suggested_recommender.suggested_recommender_id)
+            if suggested_recommender.declined:
+                suggested_recommender_txt.append(common_small_html.mkUser(suggested_recommender.suggested_recommender_id) + I(XML("&nbsp;declined")) + BR())
+            else:
+                suggested_recommender_txt.append(common_small_html.mkUser(suggested_recommender.suggested_recommender_id) + BR())
+    if len(suggested_recommender_txt) > 0:
+        butts += suggested_recommender_txt
+    if row["t_articles.status"] in (ArticleStatus.PENDING.value, ArticleStatus.AWAITING_CONSIDERATION.value):
+        vars = dict(articleId=row["t_articles.id"], exclude=exclude_list)
+        butts.append(A(current.T("Add / Remove"), _class="btn btn-default pci-submitter", _href=common_tools.URL(c="user", f="add_suggested_recommender", vars=vars, user_signature=True)))
     return DIV(butts, _class="pci-w200Cell")
 
 
