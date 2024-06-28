@@ -30,7 +30,7 @@ def rec():
     if "reviews" in request.vars:
         redirect(URL(c="articles", f="rec", vars=dict(id=articleId)))
 
-    if not articleId.isdigit():
+    if not str(articleId).isdigit():
         session.flash = T("Article id must be a digit")
         redirect(request.home)
 
@@ -147,7 +147,7 @@ def pub_reviews():
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
     # NOTE: check id is numeric!
-    if not articleId.isdigit():
+    if not str(articleId).isdigit():
         session.flash = T("Unavailable")
         redirect(redirect(request.env.http_referer))
 
