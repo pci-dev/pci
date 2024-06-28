@@ -197,7 +197,7 @@ def create_prefilled_submission(req, user):
     preprint_server = get_preprint_server(doi)
     guess_version(doi, meta_data)
 
-    if not meta_data["authors"]:
+    if not "authors" in meta_data or not meta_data["authors"]:
         meta_data["authors"] = author_data["name"]
 
     return Article.create_prefilled_submission(user_id=user.id, 
