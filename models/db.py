@@ -25,6 +25,7 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules.country import Country
 from app_modules.orcid import ORCID_NUMBER_FIELD_TYPE, ORCID_NUMBER_LENGTH_WITH_HYPHEN, OrcidTools, OrcidValidator
+from app_components.ongoing_recommendation import is_stage_1
 
 from models.review import ReviewDuration, ReviewState, Review
 
@@ -890,7 +891,7 @@ def setRecommendationDoi(s, _recomm):
 
     if pciRRactivated:
         article =  db.t_articles[recomm.article_id]
-        if article.status in ("Pre-recommended-private", "Recommended-private"):
+        if is_stage_1(article):
             _recomm.recommendation_doi = ""
             return
 
