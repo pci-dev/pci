@@ -61,6 +61,10 @@ class COARNotifier:
         target_inbox = get_target_inbox(article)
 
         notification = self.add_base_notification_properties(notification, target_inbox)
+        if article.coar_notification_id:
+            notification.update({
+                "inReplyTo": article.coar_notification_id,
+            })
         self._send_notification(notification, target_inbox)
 
     def add_base_notification_properties(self, notification, target_inbox):
