@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
 
+from typing import Any, List
 from gluon.custom_import import track_changes
 from gluon.html import SPAN, URL
+from gluon import current
+from models.user import User
+from app_modules import common_tools
 
 track_changes(True)
 
@@ -172,11 +176,13 @@ def _AdminMenu():
 # Appends personnal menu
 def _UserMenu():
     ctr = request.controller
+    current_user = User.get_by_id(current.auth.user_id)
+    has_new_article_in_cache = current_user and current_user.new_article_cache
     isActive = False
     if ctr == "user":
         isActive = True
 
-    myContributionsMenu = []
+    myContributionsMenu: List[Any] = []
     nRevOngoing = 0
     nRevTot = 0
     revClass = ""
@@ -198,6 +204,9 @@ def _UserMenu():
         contribMenuClass = "pci-enhancedMenuItem"
         notificationPin = DIV(nRevPend, _class="pci2-notif-pin")
 
+    if has_new_article_in_cache: 
+        contribMenuClass = "pci-enhancedMenuItem"
+
     myContributionsMenu += [
         (txtRevPend, False, URL("user", "my_reviews", vars=dict(pendingOnly=True), user_signature=True)),
     ]
@@ -213,8 +222,12 @@ def _UserMenu():
 
     myContributionsMenu += [
         menu_entry("Submit a preprint", "glyphicon-edit", URL("user", "new_submission", user_signature=True)),
-        divider(),
     ]
+
+    if current_user and current_user.new_article_cache:
+        myContributionsMenu.append(menu_entry("Your incomplete submission", "glyphicon-edit", common_tools.URL("user", "fill_new_article", user_signature=True), _class="pci-enhancedMenuItem"))
+
+    myContributionsMenu.append(divider())
 
     nRevTot = db((db.t_reviews.reviewer_id == auth.user_id)).count()
     nRevOngoing = db((db.t_reviews.reviewer_id == auth.user_id) & (db.t_reviews.review_state == "Awaiting review")).count()
