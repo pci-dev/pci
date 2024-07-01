@@ -450,6 +450,8 @@ def check_title():
 ######################################################################################################################################################################
 @auth.requires_login()
 def fill_new_article():
+    current_user = User.get_by_id(current.auth.user_id)
+
     title = request.vars.title
     report_stage = request.vars.report_stage
     db.t_articles.article_source.writable = False
@@ -613,8 +615,10 @@ def fill_new_article():
     form.element(_type="submit")["_id"] = "submit-article-btn"
 
     if not pciRRactivated:
+        has_saved_new_article = current_user and current_user.new_article_cache
+
         form.element(_type="submit").parent.components.insert(0, BUTTON('Save', _id="save-article-form-button", _name="save", _class="btn btn-primary"))
-        form.element(_type="submit").parent.components.insert(0, BUTTON('Clean Save', _id="clean-save-article-form-button", _name="clean_save", _class="btn btn-danger", _style="display: none"))
+        form.element(_type="submit").parent.components.insert(0, BUTTON('Reset', _id="clean-save-article-form-button", _name="clean_save", _class="btn btn-danger", _style="" if has_saved_new_article else "display: none"))
 
 
     def onvalidation(form):
@@ -688,17 +692,21 @@ def _save_article_form(form: SQLFORM):
         current_user = User.get_by_id(current.auth.user_id)
         if current_user:
             User.set_in_new_article_cache(current_user, form.vars)
-            session.flash = 'The form data has been saved.'
+            if current_user.new_article_cache:
+                session.flash = 'Your incomplete submission has been updated. You can resume the submission now or later by choosing the menu "For contributors > Your incomplete submission"'
+            else:
+                session.flash = 'Your incomplete submission has been saved. You can resume the submission now or later by choosing the menu "For contributors > Your incomplete submission"'
         redirect(URL(args=request.args, vars=request.get_vars))
 
 
 def _load_article_form_saved(form: SQLFORM):
     if not request.post_vars.save and not request.post_vars.submit:
-        session.flash = 'Saved form data have been loaded.'
         current_user = User.get_by_id(current.auth.user_id)
         if current_user and current_user.new_article_cache:
             form_values = Storage(current_user.new_article_cache)
             form.vars = form_values
+            if not response.flash and not session.flash:
+                response.flash = 'Saved form data have been loaded.'
 
     
 def _clean_article_form_saved(form_with_error: bool):
