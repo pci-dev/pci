@@ -259,7 +259,7 @@ VALUES
 (E'#UserSearchRecommendersText',E'default',NULL),
 (E'#UserSearchRecommendersTitle',E'default',E'Suggest recommenders for your preprint'),
 (E'#UserSubmitNewArticle',E'default',NULL),
-(E'#UserSubmitNewArticleText',E'default',E'<p><span style="line-height: 1.2em;"> You cannot upload your preprint on this website. Your preprint must have been deposited on a preprint server or an open archive such as bioRxiv or arXiv and must have a DOI or a unique ID.</span></p>\n<blockquote>\n<ul>\n<li>Make sure data, scripts and codes are available to the reader (in case the article is based on data, scripts and codes).</li>\n<li>Keep up to date the \'Manuscript most recent version\'.</li>\n</ul>\n</blockquote>'),
+(E'#UserSubmitNewArticleText',E'default',E'<p>You cannot upload your preprint on this website. Your preprint must have been deposited on a preprint server or an open archive such as bioRxiv, Zenodo, arXiv, HAL, OSF preprints... and must have a DOI or a specific URL.</p><p><span style="color: red; font-weight: bold;">*</span> <span style="color: #000000;">Mandatory information</span></p>'),
 (E'#UserSubmitNewArticleTitle',E'default',E'Submit your preprint'),
 (E'#UserSuggestedRecommendersTitle',E'default',E'Suggested recommenders'),
 (E'#WelcomingMessage',E'default',E'This search engine is devoted to look for manuscripts that have been recommended by {{description}}. Reviews, text of recommendations and manuscript information can be found here.\n\nOn this page, you may also submit a preprint manuscript you authored (not reviewed yet and deposited in an open archive).  \n\nMembers of {{description}} can also start a recommendation process.'),
