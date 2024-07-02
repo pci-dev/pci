@@ -3,6 +3,7 @@ function cleanFormSaved(pathName = window.location.pathname) {
 
     localStorage.removeItem(`save-form-${pathName}-${userId}`);
     localStorage.removeItem(`save-form-${pathName}-t_articles_uploaded_picture-${userId}`);
+    sessionStorage.removeItem(`t_articles_uploaded_picture-${userId}`);
 }
 
 

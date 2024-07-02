@@ -633,7 +633,7 @@ def fill_new_article():
         form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
         form.vars.scripts_doi = clean_vars_doi_list(form.vars.scripts_doi)
 
-    _load_article_form_saved(form)
+    final_scripts = _load_article_form_saved(form)
     
     if form.process(onvalidation=onvalidation).accepted:
         articleId = form.vars.id
@@ -676,13 +676,15 @@ def fill_new_article():
     response.cookies['user_id']['path'] = '/'
     response.cookies['user_id']['samesite'] = 'Strict'
 
+    final_scripts.extend([myScript or "", article_form_clean_script, article_form_common_script])
+
     return dict(
         pageHelp=getHelp("#UserSubmitNewArticle"),
         titleIcon="edit",
         pageTitle=getTitle("#UserSubmitNewArticleTitle"),
         customText=customText,
         form=form,
-        myFinalScript=[myScript or "", article_form_clean_script, article_form_common_script],
+        myFinalScript=final_scripts
     )
 
 
@@ -691,7 +693,8 @@ def _save_article_form(form: SQLFORM):
         form.vars.pop('uploaded_picture')
         current_user = User.get_by_id(current.auth.user_id)
         if current_user:
-            User.set_in_new_article_cache(current_user, form.vars)
+            form_values = dict(form=form.vars, list_str=current.request.vars.list_str, saved_picture=current.request.vars.saved_picture)
+            User.set_in_new_article_cache(current_user, form_values)
             if current_user.new_article_cache:
                 session.flash = 'Your incomplete submission has been updated. You can resume the submission now or later by choosing the menu "For contributors > Your incomplete submission"'
             else:
@@ -700,13 +703,20 @@ def _save_article_form(form: SQLFORM):
 
 
 def _load_article_form_saved(form: SQLFORM):
+    saved_var: List[str] = []
     if not request.post_vars.save and not request.post_vars.submit:
         current_user = User.get_by_id(current.auth.user_id)
         if current_user and current_user.new_article_cache:
-            form_values = Storage(current_user.new_article_cache)
+            form_values = Storage(current_user.new_article_cache['form'])
             form.vars = form_values
+            if 'list_str' in current_user.new_article_cache and current_user.new_article_cache['list_str']:
+                saved_var.append(SCRIPT(f"var savedListStr = {current_user.new_article_cache['list_str']};"))
+            if 'saved_picture' in current_user.new_article_cache and current_user.new_article_cache['saved_picture']:
+                saved_var.append(SCRIPT(f"var savedPicture = {current_user.new_article_cache['saved_picture']};"))
+                
             if not response.flash and not session.flash:
                 response.flash = 'Saved form data have been loaded.'
+    return saved_var
 
     
 def _clean_article_form_saved(form_with_error: bool):
