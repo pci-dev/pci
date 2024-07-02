@@ -1116,6 +1116,11 @@ def edit_article():
     if type(db.t_articles.uploaded_picture.requires) == list: # non-RR see db.py
         not_empty = db.t_articles.uploaded_picture.requires.pop()
 
+    data_doi_form = form.elements(_id="t_articles_results_based_on_data__row")
+    if data_doi_form:
+        data_code_script_label = LABEL("Data, code and scripts", SPAN(" * ", _style="color:red;"), _class="control-label col-sm-3", _style="margin-top: 12px")
+        data_doi_form[0].insert(0, data_code_script_label)
+
     def onvalidation(form):
         if not pciRRactivated:
             if not prev_picture and form.vars.uploaded_picture == b"":
@@ -1150,6 +1155,8 @@ def edit_article():
         response.flash = T("Form has errors", lazy=False)
 
     confirmationScript = common_tools.get_script("confirmation.js")
+    article_form_common_script = common_tools.get_script("article_form_common.js")
+
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
         pageHelp=getHelp(request, auth, db, "#ManagerEditArticle"),
@@ -1157,7 +1164,7 @@ def edit_article():
         titleIcon="edit",
         pageTitle=getTitle(request, auth, db, "#ManagerEditArticleTitle"),
         form=form,
-        myFinalScript=myFinalScript,
+        myFinalScript=[myFinalScript, article_form_common_script],
         confirmationScript=confirmationScript,
     )
 

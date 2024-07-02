@@ -435,7 +435,7 @@
     "Modified On": "Modified On",
     "More": "More",
     "More...": "More...",
-    "Most recent DOI (or URL)": "Please add below the DOI of your preprint on the form https://doi.org/xxx when it exists (ie for bioRxiv, arXiv, OSF, Zenodo…). If your preprint is on HAL or on an archive that does not provide a DOI, please add the URL (eg https://hal.science/hal-xxx). Do NOT add URL such as https://www.biorxiv.org/content/xxx or https://zenodo.org/records/xxx, in the case of a preprint deposited on bioRxiv or Zenodo, respectively, but indicate the DOI of the preprint instead.",
+    "Most recent DOI (or URL)": "Please add below the DOI of your preprint on the form https://doi.org/xxx (ie for bioRxiv, arXiv, OSF, Zenodo…). If your preprint is on HAL or on an archive that does not provide a DOI, please add the URL (eg https://hal.science/hal-xxx). Do NOT add URL such as https://www.biorxiv.org/content/xxx or https://zenodo.org/records/xxx, in the case of a preprint deposited on bioRxiv or Zenodo, respectively, but indicate the DOI of the preprint instead.",
     "Most recent recommendations in:": "Most recent recommendations in:",
     "Most recent version of the manuscript": "Most recent version of the manuscript",
     "My closed articles recommendations": "My closed articles recommendations",
