@@ -80,8 +80,18 @@ document.getElementById('t_articles_uploaded_picture')?.addEventListener('change
 initUploadedPictureField(`t_articles_uploaded_picture-${userId}`, sessionStorage);
 
 ////
+document.getElementsByTagName('form')[0]?.addEventListener('submit', (e) => {
+    if (e.submitter.id !== 'save-article-form-button') {
+        return;
+    }
 
-document.getElementById('save-article-form-button')?.addEventListener('click', saveForm);
+    e.preventDefault();
+    saveForm(e).then(() => {
+        sendPostVar('save', 'save');
+        HTMLFormElement.prototype.submit.call(e.target)
+    });
+});
+
 document.getElementById('clean-save-article-form-button')?.addEventListener('click', () => {
     cleanFormSaved();
 });
@@ -117,68 +127,112 @@ async function saveForm(e) {
       values.codes_doi.push(input.value)
     }
 
-    localStorage.setItem(`save-form-${window.location.pathname}-${userId}`, JSON.stringify(values));
 
     const uploadedPicture = document.getElementById('t_articles_uploaded_picture')?.files[0];
-    saveUploadedPictureInStorage(uploadedPicture, getSaveFormUploadedPictureLabel(), localStorage);
+    if (uploadedPicture != null) {
+        const base64Data = await getBase64(uploadedPicture);
+        const img = { filename: uploadedPicture.name, base64: base64Data };
+        sendPostVar('saved_picture', JSON.stringify(img));
+    }
+    
+    sendPostVar('list_str', JSON.stringify(values));
+}
+
+
+function sendPostVar(key, value) {
+    const form = document.getElementsByTagName('form')[0];
+
+    let input = document.getElementById(key);
+    let alreadyExistsInput = false;
+    if (input == null) {
+        input = document.createElement('input');
+    } else {
+        alreadyExistsInput = true;
+    }
+
+    input.name = key;
+    input.id = key;
+    input.type = 'hidden';
+    input.value = value;
+
+    if (!alreadyExistsInput) {
+        form.appendChild(input);
+    }
 }
 
 
 function loadFormSaved() {
-    const values = JSON.parse(localStorage.getItem(`save-form-${window.location.pathname}-${userId}`));
-    if (values == null) {
-        return;
+    if (typeof savedListStr !== 'undefined' && savedListStr != null) {
+        const data_doi_ul = document.getElementById('t_articles_data_doi_grow_input');
+        const scripts_doi_ul = document.getElementById('t_articles_scripts_doi_grow_input');
+        const codes_doi_ul = document.getElementById('t_articles_codes_doi_grow_input');
+
+        if (savedListStr.data_doi.length > 0) {
+            data_doi_ul.innerHTML = '';
+        }
+
+        if (savedListStr.scripts_doi.length > 0) {
+            scripts_doi_ul.innerHTML = '';
+        }
+
+        if (savedListStr.codes_doi.length > 0) {
+            codes_doi_ul.innerHTML = '';
+        }
+
+        for (const value of savedListStr.data_doi) {
+            data_doi_ul.innerHTML += `
+            <li>
+                <div class="input-group" style="width: 100%">
+                    <input class="string form-control" id="t_articles_data_doi" name="data_doi" type="text" value="${value}">
+                </div>
+            </li>`;
+        }
+
+        for (const value of savedListStr.scripts_doi) {
+            scripts_doi_ul.innerHTML += `
+            <li>
+                <div class="input-group" style="width: 100%">
+                    <input class="string form-control" id="t_articles_scripts_doi" name="scripts_doi" type="text" value="${value}">
+                </div>
+            </li>`;
+        }
+
+        for (const value of savedListStr.codes_doi) {
+            codes_doi_ul.innerHTML += `
+            <li>
+                <div class="input-group" style="width: 100%">
+                    <input class="string form-control" id="t_articles_codes_doi" name="codes_doi" type="text" value="${value}">
+                </div>
+            </li>`;
+        }
     }
 
-    const data_doi_ul = document.getElementById('t_articles_data_doi_grow_input');
-    const scripts_doi_ul = document.getElementById('t_articles_scripts_doi_grow_input');
-    const codes_doi_ul = document.getElementById('t_articles_codes_doi_grow_input');
-
-    if (values.data_doi.length > 0) {
-        data_doi_ul.innerHTML = '';
+    if (typeof savedPicture !== 'undefined' && savedPicture != null) {
+        const uploadedPicture = document.getElementById('t_articles_uploaded_picture');
+        initSavedUploadedPictureField();
     }
-
-    if (values.scripts_doi.length > 0) {
-        scripts_doi_ul.innerHTML = '';
-    }
-
-    if (values.codes_doi.length > 0) {
-        codes_doi_ul.innerHTML = '';
-    }
-
-    for (const value of values.data_doi) {
-        data_doi_ul.innerHTML += `
-        <li>
-            <div class="input-group" style="width: 100%">
-                <input class="string form-control" id="t_articles_data_doi" name="data_doi" type="text" value="${value}">
-            </div>
-        </li>`;
-    }
-
-    for (const value of values.scripts_doi) {
-        scripts_doi_ul.innerHTML += `
-        <li>
-            <div class="input-group" style="width: 100%">
-                <input class="string form-control" id="t_articles_scripts_doi" name="scripts_doi" type="text" value="${value}">
-            </div>
-        </li>`;
-    }
-
-    for (const value of values.codes_doi) {
-        codes_doi_ul.innerHTML += `
-        <li>
-            <div class="input-group" style="width: 100%">
-                <input class="string form-control" id="t_articles_codes_doi" name="codes_doi" type="text" value="${value}">
-            </div>
-        </li>`;
-    }
-
-    const uploadedPicture = document.getElementById('t_articles_uploaded_picture');
-    initUploadedPictureField(getSaveFormUploadedPictureLabel(), localStorage);
-
-    document.getElementById('clean-save-article-form-button').style.display = 'inline-block';
 }
 loadFormSaved();
+
+function initSavedUploadedPictureField() {
+        const uploadFileInput = document.getElementById('t_articles_uploaded_picture');
+        if (!uploadFileInput) {
+            return;
+        }
+    
+        if (savedPicture == null) {
+            return;
+        }
+    
+        const base64Data = savedPicture.base64;
+        const mimeType = getMimeType(base64Data);
+        const blob = dataURItoBlob(base64Data, mimeType);
+        const file = new File([blob], savedPicture.filename, {type: mimeType, lastModified: new Date().getTime() });
+    
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        uploadFileInput.files = dataTransfer.files;
+}
 
 
 ////////
