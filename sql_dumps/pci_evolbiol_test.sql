@@ -3128,3 +3128,7 @@ ADD COLUMN IF NOT EXISTS methods_require_specific_expertise text;
 --- 2024-05-27 updates/BiorxivFTPAlert_template.sql
 ALTER table t_articles
 ADD COLUMN if not exists pre_submission_token text;
+
+--- 2024-06-26 updates/fill_new_article.sql
+ALTER TABLE auth_user 
+ADD COLUMN IF NOT EXISTS new_article_cache jsonb;

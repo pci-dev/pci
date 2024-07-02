@@ -27,10 +27,12 @@ from app_modules.article_translator import ArticleTranslator
 from gluon.http import redirect
 
 from gluon.sqlhtml import SQLFORM
+from gluon.storage import Storage
 from models.review import Review, ReviewState
 from models.article import Article, TranslatedFieldType, clean_vars_doi, clean_vars_doi_list
 from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
+from models.user import User
 
 
 # frequently used constants
@@ -448,6 +450,8 @@ def check_title():
 ######################################################################################################################################################################
 @auth.requires_login()
 def fill_new_article():
+    current_user = User.get_by_id(current.auth.user_id)
+
     title = request.vars.title
     report_stage = request.vars.report_stage
     db.t_articles.article_source.writable = False
@@ -611,8 +615,10 @@ def fill_new_article():
     form.element(_type="submit")["_id"] = "submit-article-btn"
 
     if not pciRRactivated:
+        has_saved_new_article = current_user and current_user.new_article_cache
+
         form.element(_type="submit").parent.components.insert(0, BUTTON('Save', _id="save-article-form-button", _name="save", _class="btn btn-primary"))
-        form.element(_type="submit").parent.components.insert(0, BUTTON('Clean Save', _id="clean-save-article-form-button", _name="clean_save", _class="btn btn-danger", _style="display: none"))
+        form.element(_type="submit").parent.components.insert(0, BUTTON('Reset', _id="clean-save-article-form-button", _name="clean_save", _class="btn btn-danger", _style="" if has_saved_new_article else "display: none"))
 
 
     def onvalidation(form):
@@ -627,7 +633,7 @@ def fill_new_article():
         form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
         form.vars.scripts_doi = clean_vars_doi_list(form.vars.scripts_doi)
 
-    _load_article_form_saved(form)
+    final_scripts = _load_article_form_saved(form)
     
     if form.process(onvalidation=onvalidation).accepted:
         articleId = form.vars.id
@@ -664,35 +670,66 @@ def fill_new_article():
     article_form_clean_script = common_tools.get_script('clean_saved_article_form.js')
     article_form_common_script = common_tools.get_script("article_form_common.js")
     response.view = "default/gab_form_layout.html"
+
+    response.cookies['user_id'] = current.auth.user_id
+    response.cookies['user_id']['expires'] = 24 * 3600
+    response.cookies['user_id']['path'] = '/'
+    response.cookies['user_id']['samesite'] = 'Strict'
+
+    final_scripts.extend([myScript or "", article_form_clean_script, article_form_common_script])
+
     return dict(
         pageHelp=getHelp("#UserSubmitNewArticle"),
         titleIcon="edit",
         pageTitle=getTitle("#UserSubmitNewArticleTitle"),
         customText=customText,
         form=form,
-        myFinalScript=[myScript or "", article_form_clean_script, article_form_common_script],
+        myFinalScript=final_scripts
     )
 
 
 def _save_article_form(form: SQLFORM):
     if request.post_vars.save:
         form.vars.pop('uploaded_picture')
-        session.article_form_data = form.vars
-        session.flash = 'The form data has been saved.'
+        current_user = User.get_by_id(current.auth.user_id)
+        if current_user:
+            form_values = dict(form=form.vars, list_str=current.request.vars.list_str, saved_picture=current.request.vars.saved_picture)
+            User.set_in_new_article_cache(current_user, form_values)
+            if current_user.new_article_cache:
+                session.flash = 'Your incomplete submission has been updated. You can resume the submission now or later by choosing the menu "For contributors > Your incomplete submission"'
+            else:
+                session.flash = 'Your incomplete submission has been saved. You can resume the submission now or later by choosing the menu "For contributors > Your incomplete submission"'
         redirect(URL(args=request.args, vars=request.get_vars))
 
 
 def _load_article_form_saved(form: SQLFORM):
-    if not request.post_vars.save and not request.post_vars.submit and session.article_form_data:
-        session.flash = 'Saved form data have been loaded.'
-        form.vars = session.article_form_data
+    saved_var: List[str] = []
+    if not request.post_vars.save and not request.post_vars.submit:
+        current_user = User.get_by_id(current.auth.user_id)
+        if current_user and current_user.new_article_cache:
+            form_values = Storage(current_user.new_article_cache['form'])
+            form.vars = form_values
+            if 'list_str' in current_user.new_article_cache and current_user.new_article_cache['list_str']:
+                saved_var.append(SCRIPT(f"var savedListStr = {current_user.new_article_cache['list_str']};"))
+            if 'saved_picture' in current_user.new_article_cache and current_user.new_article_cache['saved_picture']:
+                saved_var.append(SCRIPT(f"var savedPicture = {current_user.new_article_cache['saved_picture']};"))
+                
+            if not response.flash and not session.flash:
+                response.flash = 'Saved form data have been loaded.'
+    return saved_var
 
     
 def _clean_article_form_saved(form_with_error: bool):
     if request.post_vars.submit and not form_with_error:
-        session.article_form_data = None
+        current_user = User.get_by_id(current.auth.user_id)
+        if current_user:
+            User.clear_new_article_cache(current_user)
+
     if request.post_vars.clean_save:
-        session.article_form_data = None
+        current_user = User.get_by_id(current.auth.user_id)
+        if current_user:
+            User.clear_new_article_cache(current_user)
+            
         redirect(URL(args=request.args, vars=request.get_vars))
 
 ######################################################################################################################################################################
