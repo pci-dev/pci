@@ -461,7 +461,7 @@ def recommendations():
 
     response.title = art.title or myconf.take("app.longname")
 
-    recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, True)
+    recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, True, for_manager=True)
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
     
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)

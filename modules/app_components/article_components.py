@@ -196,6 +196,7 @@ def get_article_infos_card(auth: Auth, db: DAL, response: Response, article: Art
         submitted_by: bool = True,
         abstract: bool = True,
         keywords: bool = False,
+        for_manager: bool = False
     ):
 
     article_img = ""
@@ -262,7 +263,8 @@ def get_article_infos_card(auth: Auth, db: DAL, response: Response, article: Art
             ("articleStage", article_stage),
             ("isRecommended", is_recommended_article),
             ("translations", _get_article_translation(article)),
-            ("Lang", Lang)
+            ("Lang", Lang),
+            ("for_manager", for_manager),
         ]
     )
     if article.data_doi and policy_2:

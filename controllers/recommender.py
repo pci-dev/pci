@@ -775,7 +775,7 @@ def recommendations():
 
         # New recommendation function (WIP)
         finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
-        recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, True)
+        recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, True, for_manager=True)
         recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "recommender", request, False, printable, quiet=False)
         recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
 
