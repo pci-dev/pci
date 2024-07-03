@@ -63,6 +63,10 @@ input[name=email_options]+label {
     font-weight: normal;
 }
 
+#t_articles_uploaded_picture__label {
+    padding-top: 0px;
+}
+
 /* End Common Forms styles */
 #submit_record__row {
     margin-bottom: 15px;
