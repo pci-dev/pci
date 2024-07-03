@@ -695,10 +695,7 @@ def _save_article_form(form: SQLFORM):
         if current_user:
             form_values = dict(form=form.vars, list_str=current.request.vars.list_str, saved_picture=current.request.vars.saved_picture)
             User.set_in_new_article_cache(current_user, form_values)
-            if current_user.new_article_cache:
-                session.flash = 'Your incomplete submission has been updated. You can resume the submission now or later by choosing the menu "For contributors > Your incomplete submission"'
-            else:
-                session.flash = 'Your incomplete submission has been saved. You can resume the submission now or later by choosing the menu "For contributors > Your incomplete submission"'
+            session.flash = 'Your incomplete submission has been saved. You can resume the submission now or later by choosing the menu "For contributors > Your incomplete submission"'
         redirect(URL(args=request.args, vars=request.get_vars))
 
 
