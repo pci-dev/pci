@@ -33,6 +33,7 @@ from app_modules import emailing_tools
 from app_modules import emailing_vars
 from app_modules import emailing
 
+from models.group import Role
 from models.user import User
 from models.recommendation import Recommendation
 from models.article import Article
@@ -1060,6 +1061,7 @@ def reviews():
             grid=grid,
             myFinalScript=myScript,
             absoluteButtonScript=common_tools.absoluteButtonScript,
+            deleteFileButtonsScript=common_tools.get_script("add_delete_review_file_buttons_user.js") if auth.has_membership(role=Role.MANAGER.value) else ""
         )
 
 ######################################################################################################################################################################
