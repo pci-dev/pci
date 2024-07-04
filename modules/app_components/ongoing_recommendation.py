@@ -200,7 +200,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
 
     if not (art.status in ["Pending", "Pending-survey", "Pre-submission"]):
         submissionValidatedClassClass = "step-done"
-    uploadDate = art.upload_timestamp.strftime("%d %B %Y")
+    uploadDate = art.upload_timestamp.strftime("%d %B %Y") if art.upload_timestamp else ''
 
     suggestedRecommendersCount = db(db.t_suggested_recommenders.article_id == art.id).count()
 
@@ -247,7 +247,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 orderby=db.t_reviews.id
             ))
 
-            lastReviewDate = None
+            lastReviewDate: Optional[datetime.datetime] = None
             for review in reviews:
                 reviewCount += 1
                 if review.review_state == "Awaiting review":
@@ -255,7 +255,11 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 if review.review_state == "Review completed":
                     acceptedReviewCount += 1
                     completedReviewCount += 1
-                lastReviewDate = review.last_change.strftime("%d %B %Y")
+                if review.last_change:
+                    if not lastReviewDate:
+                        lastReviewDate = review.last_change
+                    elif review.last_change > lastReviewDate:
+                        lastReviewDate = review.last_change
 
             if acceptedReviewCount >= 2:
                 reviewInvitationsAcceptedClass = "step-done"
@@ -297,7 +301,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 recommenderName=recommenderName,
                 reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
                 reviewCount=reviewCount,
-                lastReviewDate=lastReviewDate,
+                lastReviewDate=lastReviewDate.strftime("%d %B %Y") if lastReviewDate else '',
                 acceptedReviewCount=acceptedReviewCount,
                 reviewsStepDoneClass=reviewsStepDoneClass,
                 completedReviewCount=completedReviewCount,
@@ -321,7 +325,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
     else:
         managerDecisionDoneStepClass = "progress-last-step-div"
         recommDate = False
-        lastReviewDate = False
+        lastReviewDate = None
         authorsReplyDate = False
         validationDate = False
 
@@ -335,7 +339,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             recommenderName=recommenderName,
             reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
             reviewCount=reviewCount,
-            lastReviewDate=lastReviewDate,
+            lastReviewDate=lastReviewDate.strftime("%d %B %Y") if lastReviewDate else '',
             acceptedReviewCount=acceptedReviewCount,
             reviewsStepDoneClass=reviewsStepDoneClass,
             completedReviewCount=completedReviewCount,
