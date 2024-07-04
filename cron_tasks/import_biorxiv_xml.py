@@ -148,7 +148,7 @@ def clean_xml(xml_file: str, failed: bool):
           dest_folder = FAILED_FOLDER
      else:
           dest_folder = DONE_FOLDER
-     shutil.move(xml_file, dest_folder)
+     move_file(xml_file, dest_folder)
      print(f"{xml_file} moved to {dest_folder}")
 
 
@@ -163,6 +163,27 @@ def clean_folder(folder_path: str):
           if file_age <= max_life_time:
                os.remove(file)
                print(f"{file} has been removed")
+
+
+def move_file(file_path: str, dest_folder: str):
+     file_path_obj = Path(file_path)
+
+     file_name = file_path_obj.name
+     origin_folder = file_path_obj.resolve().parent
+     base_name = file_path_obj.stem
+     extension = file_path_obj.suffix
+
+     if not os.path.exists(f"{dest_folder}/{file_name}"):
+          return shutil.move(file_path, dest_folder)
+
+     i = 1
+     new_file_name = f"{base_name}-{i}{extension}"
+     while os.path.exists(f"{dest_folder}/{new_file_name}"):
+          i += 1
+          new_file_name = f"{base_name}-{i}{extension}"
+
+     return shutil.move(f"{origin_folder}/{file_name}", f"{dest_folder}/{new_file_name}")
+
 
 
 if __name__ == '__main__':
