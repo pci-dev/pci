@@ -184,6 +184,7 @@ def get_article_infos_card(article: Article, printable: bool,
         submitted_by: bool = True,
         abstract: bool = True,
         keywords: bool = False,
+        for_manager: bool = False
     ):
 
     auth, db = current.auth, current.db
@@ -252,7 +253,8 @@ def get_article_infos_card(article: Article, printable: bool,
             ("articleStage", article_stage),
             ("isRecommended", is_recommended_article),
             ("translations", _get_article_translation(article)),
-            ("Lang", Lang)
+            ("Lang", Lang),
+            ("for_manager", for_manager),
         ]
     )
     if article.data_doi and policy_2:
