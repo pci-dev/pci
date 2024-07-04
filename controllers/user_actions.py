@@ -12,6 +12,7 @@ from app_components import app_forms
 from app_modules import emailing
 from gluon.globals import Request
 from gluon.http import redirect
+from models.group import Role
 from models.review import Review, ReviewState
 from models.user import User
 from pydal import DAL
@@ -564,14 +565,16 @@ def delete_review_file():
         raise HTTP(404, "404: " + T("Unavailable"))
 
     art = db.t_articles[recomm.article_id]
+
+    if not auth.has_membership(role=Role.MANAGER.value):
     # Check if article have correct status
-    if review.reviewer_id != auth.user_id or review.review_state != "Awaiting review" or art.status != "Under consideration":
-        session.flash = T("Unauthorized", lazy=False)
-        redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
-    # Check if article is Scheduled submission without doi
-    elif scheduledSubmissionActivated and ((art.scheduled_submission_date is not None) or (art.status.startswith("Scheduled submission"))):
-        session.flash = T("Unauthorized", lazy=False)
-        redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        if review.reviewer_id != auth.user_id or review.review_state != "Awaiting review" or art.status != "Under consideration":
+            session.flash = T("Unauthorized", lazy=False)
+            redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
+        # Check if article is Scheduled submission without doi
+        elif scheduledSubmissionActivated and ((art.scheduled_submission_date is not None) or (art.status.startswith("Scheduled submission"))):
+            session.flash = T("Unauthorized", lazy=False)
+            redirect(URL(c="user", f="recommendations", vars=dict(articleId=art.id), user_signature=True))
 
     if not ("fileType" in request.vars):
         session.flash = T("Unavailable")
