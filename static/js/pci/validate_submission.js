@@ -35,4 +35,5 @@ function createLinkFromText() {
   a.href = 'https://crosscheck.ithenticate.com/en_us/folder';
   a.target = '_blank';
   plagiarism_label.append(a)
+  plagiarism_label.append(' - plagiarism check is not needed for bioRxiv and medRxiv preprints')
 }
