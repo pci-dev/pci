@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from typing import Set, cast
+from app_components.custom_validator import CUSTOM_VALID_URL
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect
 from models.article import ArticleStatus
 from models.user import User
-from pydal.validators import IS_IN_SET
+from app_components.custom_field import RequiredField
+from pydal.validators import IS_IN_SET, IS_EMPTY_OR, IS_INT_IN_RANGE, IS_LENGTH, IS_NOT_EMPTY, Validator, IS_GENERIC_URL, IS_HTTP_URL
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.storage import Storage # for db.get_last_recomms()
 from pydal.objects import OpRow
-from pydal import Field
+from pydal import Field, DAL
 
 from gluon.custom_import import track_changes
 from gluon import current
@@ -227,30 +229,30 @@ auth.settings.extra_fields["auth_user"] = [
     Field("no_orcid", type="boolean", default=True, writable=False, readable=False),
     Field("uploaded_picture", type="upload", uploadfield="picture_data", label=T("Picture")),
     Field("picture_data", type="blob"),
-    Field("laboratory", type="string", label=SPAN(T("Department")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
-    Field("institution", type="string", label=SPAN(T("Institution")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
-    Field("city", type="string", label=SPAN(T("City")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
-    Field(
+    RequiredField("laboratory", type="string", label=T("Department")),
+    RequiredField("institution", type="string", label=T("Institution")),
+    RequiredField("city", type="string", label=T("City")),
+    RequiredField(
         "country",
         type="string",
-        label=SPAN(T("Country")) + SPAN(" * ", _style="color:red;"),
+        label=T("Country"),
         requires=IS_IN_SET([country.value for country in Country]),
         represent=lambda t, r: t if t else "",
     ),
-    Field(
+    RequiredField(
         "thematics",
         type="list:string",
-        label=SPAN(T("Thematic fields")) + SPAN(" * ", _style="color:red;"),
-        requires=[IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True), IS_NOT_EMPTY()],
+        label=T("Thematic fields"),
+        requires=IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True),
         widget=SQLFORM.widgets.checkboxes.widget,
     ),
-    Field("cv", type="text", length=2097152, label=SPAN(T("Areas of expertise")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
-    Field("keywords", type="string", length=1024, label=SPAN(T("Keywords")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
+    RequiredField("cv", type="text", length=2097152, label=T("Areas of expertise")),
+    RequiredField("keywords", type="string", length=1024, label=T("Keywords")),
     Field("email_options", type="list:string", label=SPAN(T("Opt in/out of being cc'ed")), 
           requires=[IS_EMPTY_OR(IS_IN_SET(email_options, multiple=True))], 
           widget=SQLFORM.widgets.checkboxes.widget, default=list(email_options)
     ),
-    Field("website", type="string", length=4096, label=SPAN(T("Link to your website, profile page, google scholar profile or any other professional website")) + SPAN(" * ", _style="color:red;"), requires=IS_NOT_EMPTY()),
+    RequiredField("website", type="string", length=4096, label=T("Link to your website, profile page, google scholar profile or any other professional website")),
     Field(
         "alerts",
         type="string",
@@ -285,6 +287,7 @@ auth.settings.extra_fields["auth_user"] = [
     ),
     Field("recover_email", label=T("Recover e-mail address"), unique=True, type="string", writable=False, readable=False),
     Field("recover_email_key", label=T("Recover e-mail key"), unique=True, type="string", writable=False, readable=False),
+    Field("new_article_cache", type="json", readable=False, writable=False, length=5000000),
 ]
 auth.define_tables(username=False, signature=False, migrate=False)
 db.auth_user._singular = T("User")
@@ -483,44 +486,47 @@ db.define_table(
                 URL(c="/..", f="help", scheme=scheme, host=host, port=port))
     )),
     Field("has_manager_in_authors", type="boolean", label=T("One or more authors of this article are members of the %s Managing Board" % appName), default=False),
-    Field("title", type="string", length=1024, label=T("Title"), requires=[IS_NOT_EMPTY(), IS_LENGTH(1024, 0)], comment="use asterix (*) to get italics"),
-    Field("authors", type="string", length=4096, label=T("Authors"), requires=[IS_NOT_EMPTY(), IS_LENGTH(4096, 0)], represent=lambda t, r: ("") if (r.anonymous_submission) else (t),
+    RequiredField("title", type="string", length=1024, label=T("Title"), requires=IS_LENGTH(1024, 0), comment="use asterix (*) to get italics"),
+    RequiredField("authors", type="string", length=4096, label=T("Authors"), requires=IS_LENGTH(4096, 0), represent=lambda t, r: ("") if (r.anonymous_submission) else (t),
           comment=B('Please use the format "First name initials family name" as in "Marie S. Curie, Niels H. D. Bohr, Albert Einstein, John R. R. Tolkien, Donna T. Strickland"')),
-    Field("article_year", type="integer", label=T("Year"), requires=IS_NOT_EMPTY()),
+    RequiredField("article_year", type="integer", label=T("Year")),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
-    Field("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, default="https://", represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), comment=SPAN(T("URL must start with http:// or https://"), BR(), T("Note: for Stage 1 submissions, please make sure the link points exclusively to the manuscript file (and not to the broader project folder), and that any other links to supplementary materials, appendices, data, code, etc. are all within the manuscript file") if pciRRactivated else "")),
-    Field("preprint_server", type="string", length=512, requires=[IS_NOT_EMPTY(), IS_LENGTH(512, 0)], label=
+    RequiredField("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, default="https://", represent=lambda text, row: common_small_html.mkDOI(text), requires=CUSTOM_VALID_URL(), comment=SPAN(T("Note: for Stage 1 submissions, please make sure the link points exclusively to the manuscript file (and not to the broader project folder), and that any other links to supplementary materials, appendices, data, code, etc. are all within the manuscript file") if pciRRactivated else "")),
+    RequiredField("preprint_server", type="string", length=512, requires=IS_LENGTH(512, 0), label=
         T("Name of the server or open archive where your report has been deposited (eg OSF, Zenodo, arXiv, bioRxiv, HAL...)")
             if pciRRactivated else
         T("Name of the preprint server or open archive (eg bioRxiv, Zenodo, arXiv, HAL, OSF prepints...) where your preprint has been posted")
     ),
-    Field("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(' (e.g. 1)')), default="",
-        requires=[IS_NOT_EMPTY(), IS_INT_IN_RANGE(1, 101)] if not pciRRactivated else IS_NOT_EMPTY()),
+    RequiredField("ms_version", type="string", length=1024, label=SPAN(T("Most recent version of the manuscript"), T(' (e.g. 1)')), default="",
+        requires=IS_INT_IN_RANGE(1, 101) if not pciRRactivated else None),
     Field("picture_rights_ok",  widget=widget(_type="hidden") if not pciRRactivated else "",type="boolean", label=T("Picture right")),
+    RequiredField("uploaded_picture", type="upload", label=T("Picture"),
+        length=100, # filename max len (ish, see Field.store in sqlhtml.py). Linux extfs has max filename len=255
+        requires=RESIZE(500,500) if pciRRactivated else [RESIZE(500,500), IS_NOT_EMPTY(error_message=T("Please upload a picture"))]) if not pciRRactivated else
     Field("uploaded_picture", type="upload", label=T("Picture"),
         length=100, # filename max len (ish, see Field.store in sqlhtml.py). Linux extfs has max filename len=255
-        requires=RESIZE(500,500) if pciRRactivated else [RESIZE(500,500), IS_NOT_EMPTY(error_message=T("Please upload a picture"))]),
-    Field("abstract", type="text", length=2097152, label=T("Abstract"), requires=IS_NOT_EMPTY()),
+        requires=RESIZE(500,500)),
+    RequiredField("abstract", type="text", length=2097152, label=T("Abstract")),
     Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
-    Field("data_doi", 
+    RequiredField("data_doi", 
         type="list:string",
-        requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
+        requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
         label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact "), appContactLink, ").", T(" In case all raw data are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'All or part of the results presented in this preprint are based on data'. URL must start with http:// or https://")
     ),
     Field("scripts_used_for_result", type="string", label="", requires=IS_IN_SET(db.script_choices), widget=SQLFORM.widgets.radio.widget,),
-    Field("scripts_doi", 
+    RequiredField("scripts_doi", 
         type="list:string",
-        requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
+        requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
         label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact "), appContactLink, ").", T(" In case all raw scripts are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'Scripts were used to obtain or analyze the results'. URL must start with http:// or https://")
     ),
     Field("codes_used_in_study", type="string", label="", requires=IS_IN_SET(db.code_choices), widget=SQLFORM.widgets.radio.widget,),
-    Field("codes_doi",
+    RequiredField("codes_doi",
         type="list:string",
-        requires=IS_LIST_OF(IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https'))),
+        requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
         label=SPAN(T("Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "), appContactLink, ").", T(" In case all raw codes are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")
@@ -532,14 +538,14 @@ db.define_table(
     Field("status", type="string", length=50, default="Pending", label=T("Article status")),
     Field("last_status_change", type="datetime", default=request.now, label=T("Last status change")),
     Field("request_submission_change", type="boolean", default=False, label=T("Ask submitter to edit submission")),
-    Field("funding", type="string", length=1024, label=T("Fundings"), requires=[IS_NOT_EMPTY(), IS_LENGTH(1024, 0)], comment="Indicate in this box the origin of the funding of your study. If your study has not been supported by particular funding, please indicate \"The authors declare that they have received no specific funding for this study\"."),
-    Field("keywords", type="string", length=4096, label=T("Keywords"), requires=IS_EMPTY_OR(IS_LENGTH(4096, 0))),
+    RequiredField("funding", type="string", length=1024, label=T("Fundings"), requires=IS_LENGTH(1024, 0), comment="Indicate in this box the origin of the funding of your study. If your study has not been supported by particular funding, please indicate \"The authors declare that they have received no specific funding for this study\"."),
+    Field("keywords", type="string", length=4096, label="Keywords (optional)", requires=IS_EMPTY_OR(IS_LENGTH(4096, 0))),
     Field("methods_require_specific_expertise", type="string", length=4096, requires=IS_EMPTY_OR(IS_LENGTH(4096, 0)), label="Methods that require specific expertise (optional)", comment="Please indicate the methods that may require specialised expertise during the peer review process (use a comma to separate various required expertises)."),
-    Field(
+    RequiredField(
         "thematics",
         type="list:string",
         label=T("Thematic fields"),
-        requires=[IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True), IS_NOT_EMPTY()],
+        requires=[IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True)],
         widget=SQLFORM.widgets.checkboxes.widget,
     ),
     Field("already_published", type="boolean", label=T("Postprint"), default=False),

@@ -1105,6 +1105,8 @@ def edit_article():
     manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True, extra_fields = manager_label + manager_fields,)
+    form.element(_type="submit")["_id"] = "submit-article-btn"
+    
     ArticleTranslator.add_edit_translation_buttons(art, form)
     try:
         article_version = int(art.ms_version)
@@ -1115,6 +1117,11 @@ def edit_article():
 
     if type(db.t_articles.uploaded_picture.requires) == list: # non-RR see db.py
         not_empty = db.t_articles.uploaded_picture.requires.pop()
+
+    data_doi_form = form.elements(_id="t_articles_results_based_on_data__row")
+    if data_doi_form:
+        data_code_script_label = LABEL("Data, code and scripts", SPAN(" * ", _style="color:red;"), _class="control-label col-sm-3", _style="margin-top: 12px")
+        data_doi_form[0].insert(0, data_code_script_label)
 
     def onvalidation(form):
         if not pciRRactivated:
@@ -1150,6 +1157,8 @@ def edit_article():
         response.flash = T("Form has errors", lazy=False)
 
     confirmationScript = common_tools.get_script("confirmation.js")
+    article_form_common_script = common_tools.get_script("article_form_common.js")
+
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
         pageHelp=getHelp("#ManagerEditArticle"),
@@ -1157,7 +1166,7 @@ def edit_article():
         titleIcon="edit",
         pageTitle=getTitle("#ManagerEditArticleTitle"),
         form=form,
-        myFinalScript=myFinalScript,
+        myFinalScript=[myFinalScript, article_form_common_script],
         confirmationScript=confirmationScript,
     )
 
