@@ -792,9 +792,6 @@ def edit_and_resend_email():
     if form.process().accepted:
         try:
             emailing.resend_mail(
-                session, 
-                auth, 
-                db, 
                 form,
                 articleId=articleId,
                 hashtag=hashtag,
