@@ -35,19 +35,18 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 # RSS MODULES
 ######################################################################################################################################################################
-def mkRecommArticleRss(auth, db, row):
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+def mkRecommArticleRss(row):
+    db = current.db
+
     recomm = db((db.t_recommendations.article_id == row.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if recomm is None:
         return None
     if row.uploaded_picture is not None and row.uploaded_picture != "":
-        img = IMG(_alt="article picture", _src=URL("static", "uploads", scheme=scheme, host=host, port=port, args=row.uploaded_picture), _style="padding:8px;")
+        img = IMG(_alt="article picture", _src=URL("static", "uploads", scheme=True, args=row.uploaded_picture), _style="padding:8px;")
     else:
         img = None
-    link = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=scheme, host=host, port=port)
-    whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=row, with_reviewers=False, linked=False, host=host, port=port, scheme=scheme)
+    link = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=True)
+    whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=row, with_reviewers=False, linked=False, fullURL=True)
     desc = DIV()
     article = DIV(CENTER(I(row.title), BR(), SPAN(row.authors), BR(), common_small_html.mkDOI(row.doi)), _style="border:2px solid #cccccc; margin-bottom:8px; font-size:larger;")
     desc.append(article)
@@ -76,7 +75,7 @@ def mkRecommArticleRss(auth, db, row):
 
 
 ######################################################################################################################################################################
-def mkRecommArticleRss4bioRxiv(auth, db, row):
+def mkRecommArticleRss4bioRxiv(row):
     ## Template:
     # <link providerId="PCI">
     # <resource>
@@ -90,19 +89,18 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
     # </resource>
     # <doi>10.1101/273367</doi>
     # </link>
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+    auth, db = current.auth, current.db
+    
     recomm = db((db.t_recommendations.article_id == row.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if recomm is None:
         return None
     version = recomm.ms_version or ""
     pci = myconf.take("app.description")
     title = "Version %(version)s of this preprint has been peer-reviewed and recommended by %(pci)s" % locals()
-    url = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=scheme, host=host, port=port)
+    url = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=True)
 
-    recommendersStr = common_small_html.mkRecommendersString(auth, db, recomm)
-    reviewersStr = common_small_html.mkReviewersString(auth, db, row.id)
+    recommendersStr = common_small_html.mkRecommendersString(recomm)
+    reviewersStr = common_small_html.mkReviewersString(row.id)
 
     local = pytz.timezone("Europe/Paris")
     local_dt = local.localize(row.last_status_change, is_dst=None)
@@ -119,7 +117,7 @@ def mkRecommArticleRss4bioRxiv(auth, db, row):
         recommender=recommendersStr,
         reviewers=reviewersStr,
         date=created_on.strftime(DEFAULT_DATE_FORMAT),
-        logo=XML(URL(c="static", f="images/small-background.png", scheme=scheme, host=host, port=port)),
+        logo=XML(URL(c="static", f="images/small-background.png", scheme=True)),
         doi=row.doi,
         recomm_doi=recomm_doi,
     )

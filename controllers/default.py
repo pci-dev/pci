@@ -68,7 +68,7 @@ def index():
     recomms = db.get_last_recomms()
 
     def articleRow(row):
-        return article_components.getRecommArticleRowCard(auth, db, response,
+        return article_components.getRecommArticleRowCard(
                         row,
                         recomms.get(row.id),
                         withDate=True,
@@ -183,9 +183,9 @@ def index():
             if grid and grid.element(".web2py_table") else None
 
     return dict(
-            pageTitle=getTitle(request, auth, db, "#HomeTitle"),
-            customText=getText(request, auth, db, "#HomeInfo"),
-            pageHelp=getHelp(request, auth, db, "#Home"),
+            pageTitle=getTitle("#HomeTitle"),
+            customText=getText("#HomeInfo"),
+            pageHelp=getHelp("#Home"),
             grid = grid,
             shareable=True,
             currentUrl=URL(c="default", f="index"),
@@ -256,9 +256,9 @@ def user():
             intercept_reset_password_login()
 
             titleIcon = "log-in"
-            pageTitle = getTitle(request, auth, db, "#LogInTitle")
-            pageHelp = getHelp(request, auth, db, "#LogIn")
-            customText = getText(request, auth, db, "#LogInText")
+            pageTitle = getTitle("#LogInTitle")
+            pageHelp = getHelp("#LogIn")
+            customText = getText("#LogInText")
 
             form.add_button(T("Lost password?"), get_lost_password_url(),
                     _class="pci2-lost-password-link")
@@ -273,13 +273,13 @@ def user():
             if auth.user_id:
                 redirect(URL('default','index'))
             titleIcon = "edit"
-            pageTitle = getTitle(request, auth, db, "#CreateAccountTitle")
-            pageHelp = getHelp(request, auth, db, "#CreateAccount")
-            customText = getText(request, auth, db, "#ProfileText")
-            myBottomText = getText(request, auth, db, "#ProfileBottomText")
+            pageTitle = getTitle("#CreateAccountTitle")
+            pageHelp = getHelp("#CreateAccount")
+            customText = getText("#ProfileText")
+            myBottomText = getText("#ProfileBottomText")
             db.auth_user.ethical_code_approved.requires = IS_IN_SET(["on"])
             form.element(_type="submit")["_class"] = "btn btn-success"
-            OrcidTools.add_orcid_auth_user_form(session, request, form,
+            OrcidTools.add_orcid_auth_user_form(form,
                     URL(c="default", f="user", args="register", scheme=True, vars={"_next": suite or ""}))
             form.element('#auth_user_password_two__label').components[0] = SPAN(T("Confirm Password")) + SPAN(" * ", _style="color:red;")
 
@@ -291,16 +291,16 @@ def user():
 
         elif request.args[0] == "profile":
             titleIcon = "user"
-            pageTitle = getTitle(request, auth, db, "#ProfileTitle")
-            pageHelp = getHelp(request, auth, db, "#Profile")
-            customText = getText(request, auth, db, "#ProfileText")
-            myBottomText = getText(request, auth, db, "#ProfileBottomText")
+            pageTitle = getTitle("#ProfileTitle")
+            pageHelp = getHelp("#Profile")
+            customText = getText("#ProfileText")
+            myBottomText = getText("#ProfileBottomText")
             form.element(_type="submit")["_class"] = "btn btn-success"
             if not (auth.has_membership(role="recommender") and pciRRactivated):
                 form.element("#auth_user_email_options__row")["_style"] = "display: none;"
             form.element(_name="orcid")["_maxlength"] = 19
 
-            OrcidTools.add_orcid_auth_user_form(session, request, form,
+            OrcidTools.add_orcid_auth_user_form(form,
                     URL(c="default", f="user", args="profile", scheme=True, vars={"_next": suite or ""}))
             form.components[1].insert(len(form.components[1]) - 1, unsubscribe_checkbox())
             if suite:
@@ -308,9 +308,9 @@ def user():
 
         elif request.args[0] == "request_reset_password":
             titleIcon = "lock"
-            pageTitle = getTitle(request, auth, db, "#ResetPasswordTitle")
-            pageHelp = getHelp(request, auth, db, "#ResetPassword")
-            customText = getText(request, auth, db, "#ResetPasswordText")
+            pageTitle = getTitle("#ResetPasswordTitle")
+            pageHelp = getHelp("#ResetPassword")
+            customText = getText("#ResetPasswordText")
             user = db(db.auth_user.email == request.vars["email"]).select().last()
             form.element(_type="submit")["_class"] = "btn btn-success"
             form.element(_name="email")["_value"] = request.vars.email
@@ -322,10 +322,10 @@ def user():
 
         elif request.args[0] == "reset_password":
             titleIcon = "lock"
-            pageTitle = getTitle(request, auth, db, "#ResetPasswordTitle")
-            pageHelp = getHelp(request, auth, db, "#ResetPassword")
-            customText = getText(request, auth, db, "#ResetPasswordText")
-            vkey = get_reset_password_key(request)
+            pageTitle = getTitle("#ResetPasswordTitle")
+            pageHelp = getHelp("#ResetPassword")
+            customText = getText("#ResetPasswordText")
+            vkey = get_reset_password_key()
             user = User.get_by_reset_password_key(vkey)
             form.element(_type="submit")["_class"] = "btn btn-success"
             if (vkey is not None) and (suite is not None) and (user is None):
@@ -335,8 +335,8 @@ def user():
 
         elif request.args[0] == "change_password":
             titleIcon = "lock"
-            pageTitle = getTitle(request, auth, db, "#ChangePasswordTitle")
-            customText = getText(request, auth, db, "#ResetPasswordText")
+            pageTitle = getTitle("#ChangePasswordTitle")
+            customText = getText("#ResetPasswordText")
             form.element(_type="submit")["_class"] = "btn btn-success"
 
     return dict(titleIcon=titleIcon,
@@ -461,9 +461,9 @@ def reset_password():
     response.view = "default/myLayoutBot.html"
     return dict(
             titleIcon="lock",
-            pageTitle=getTitle(request, auth, db, "#ResetPasswordTitle"),
-            customText=getText(request, auth, db, "#ResetPasswordText"),
-            pageHelp=getHelp(request, auth, db, "#ResetPassword"),
+            pageTitle=getTitle("#ResetPasswordTitle"),
+            customText=getText("#ResetPasswordText"),
+            pageHelp=getHelp("#ResetPassword"),
             form=form)
 
 
@@ -493,10 +493,10 @@ def show_account_menu_dialog():
     
     dialog = None
     if not is_profile_completed:
-        next = get_next(request)
+        next = get_next()
         dialog = complete_profile_dialog(next)
     elif not current_user.orcid and not current_user.no_orcid:
-        dialog = complete_orcid_dialog(db)
+        dialog = complete_orcid_dialog()
     return dialog
 
 
@@ -520,7 +520,7 @@ def orcid_choice():
     
 
 def redirect_ORCID_authentication():
-    OrcidTools.redirect_ORCID_authentication(session, request)
+    OrcidTools.redirect_ORCID_authentication()
 
 
 @auth.requires_signature()
@@ -533,7 +533,7 @@ def unsubscribe():
     if not current_user:
         return redirect(URL("default", "index"))
     
-    send_unsubscription_alert_for_manager(auth, db)
+    send_unsubscription_alert_for_manager()
 
     try:
         delete_user_from_PCI(current_user)
@@ -612,7 +612,7 @@ def change_email():
         try:
             new_email = cast(str, form.vars.new_email)
             recover_email_key = User.change_email(auth.user_id, new_email)
-            emailing.send_change_mail(session, auth, db, auth.user_id, new_email, recover_email_key)
+            emailing.send_change_mail(auth.user_id, new_email, recover_email_key)
             session.flash = f"An email has been sent to {new_email} to confirm it"
         except Exception as e:
             session.flash = f"Error: {e}"
@@ -620,7 +620,7 @@ def change_email():
             return redirect(URL('default', 'index'))
 
     response.flash = None
-    return dict(titleIcon="envelope", pageTitle=getTitle(request, auth, db, "#ChangeMailTitle"), customText=getText(request, auth, db, "#ChangeMail"), form=form)
+    return dict(titleIcon="envelope", pageTitle=getTitle("#ChangeMailTitle"), customText=getText("#ChangeMail"), form=form)
 
 
 def confirm_new_address():
@@ -690,7 +690,7 @@ def invitation_to_review():
     if pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or is_scheduled_submission(article)):
         more_delay = False
 
-    reset_password_key = get_reset_password_key(request)
+    reset_password_key = get_reset_password_key()
     user: Optional[User] = None
 
     if reset_password_key and not auth.user_id:
@@ -711,10 +711,10 @@ def invitation_to_review():
         redirect(URL(c='user_actions', f='decline_review',  vars=dict(reviewId=review.id, key=review.quick_decline_key)))
         return
     
-    recommHeaderHtml = cast(XML, article_components.get_article_infos_card(auth, db, response, article, printable=False))
+    recommHeaderHtml = cast(XML, article_components.get_article_infos_card(article, printable=False))
     response.view = "default/invitation_to_review.html"
 
-    form = invitation_to_review_form(request, auth, db, article, user, review, more_delay)
+    form = invitation_to_review_form(article, user, review, more_delay)
 
     if form.process().accepted:
         if request.vars.no_conflict_of_interest == 'yes' and request.vars.anonymous_agreement == 'yes' and request.vars.ethics_approved == 'true' and (request.vars.cgu_checkbox == 'yes' or user.ethical_code_approved):
@@ -757,11 +757,11 @@ def invitation_to_review_preprint(): # legacy
 
 
 def invitation_to_review_acceptation():
-    article_id = get_article_id(request)
-    review_id = get_review_id(request)
+    article_id = get_article_id()
+    review_id = get_review_id()
     more_delay = cast(bool, request.vars['more_delay'] == 'true')
 
-    reset_password_key = get_reset_password_key(request)
+    reset_password_key = get_reset_password_key()
     user: Optional[User] = None
     if reset_password_key and not auth.user_id:
         user = User.get_by_reset_password_key(reset_password_key)
@@ -786,7 +786,7 @@ def invitation_to_review_acceptation():
             if not review.acceptation_timestamp:
                 if more_delay:
                     Review.accept_review(review, article, True, ReviewState.NEED_EXTRA_REVIEW_TIME)
-                    send_conditional_acceptation_review_mail(session, auth, db, review)
+                    send_conditional_acceptation_review_mail(review)
                 else:
                     Review.accept_review(review, article, True)
 

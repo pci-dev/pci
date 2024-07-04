@@ -21,7 +21,7 @@ from pydal import DAL
 myconf = AppConfig(reload=True)
 db = cast(DAL, db)
 
-crossref.init_conf(db)
+crossref.init_conf()
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 contact = myconf.take("contacts.managers")
 
@@ -180,18 +180,18 @@ def do_reject_article():
         recomm.update_record()
         art.update_record()
         if art.is_scheduled:
-            cancel_decided_article_pending_reviews(db, recomm)
+            cancel_decided_article_pending_reviews(recomm)
             cc=  ", ".join([recommender.email, contact])
             form = Storage(
                 subject=recomm.recommendation_title, message=recomm.recommendation_comments, cc=cc, replyto=cc
             )
-            emailing.send_submitter_generic_mail(session, auth, db, author.email, art.id, form, "#SubmitterScheduledSubmissionDeskReject")
+            emailing.send_submitter_generic_mail(author.email, art.id, form, "#SubmitterScheduledSubmissionDeskReject")
             recomm.update_record(recommendation_title="", recommendation_comments="")
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
+@auth.requires(auth.has_membership(role="manager") or is_recommender())
 def do_validate_scheduled_submission():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
@@ -215,7 +215,7 @@ def do_validate_scheduled_submission():
         art.update_record()
         session.flash = T("Submission validated")
 
-    if is_recommender(auth, request):
+    if is_recommender():
         redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=articleId)))
 
     redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
@@ -286,7 +286,7 @@ def set_not_considered():
         session.flash = T('Article set "Not considered"')
         article.status = ArticleStatus.NOT_CONSIDERED.value
         article.update_record()
-        emailing.send_set_not_considered_mail(session, auth, db, subject, message, article, author)
+        emailing.send_set_not_considered_mail(subject, message, article, author)
     return redirect(request.env.http_referer, client_side=True)
 
 
@@ -298,8 +298,8 @@ def get_not_considered_dialog():
         session.flash = auth.not_authorized()
         return redirect(request.env.http_referer, client_side=True)
 
-    template = getMailTemplateHashtag(db, "#SubmitterNotConsideredSubmission")
-    content = replace_mail_vars_set_not_considered_mail(auth, db, article, template['subject'], template['content'])
+    template = getMailTemplateHashtag("#SubmitterNotConsideredSubmission")
+    content = replace_mail_vars_set_not_considered_mail(article, template['subject'], template['content'])
     submit_url = cast(str, URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=article_id), user_signature=True))
     return custom_mail_dialog(article.id, content.subject, content.message, submit_url)
 

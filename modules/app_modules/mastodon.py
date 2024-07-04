@@ -2,8 +2,6 @@ import re
 from typing import Any, List, Union, cast
 from models.post import Post, PostTable
 
-from pydal import DAL
-
 from app_modules.social_network import SocialNetwork
 from app_modules.httpClient import HttpClient
 
@@ -12,8 +10,8 @@ class Mastodon(SocialNetwork) :
 
     POST_MAX_LENGTH = 500
 
-    def __init__(self, db: DAL):
-        super().__init__(db, self.POST_MAX_LENGTH, PostTable.TOOTS)
+    def __init__(self):
+        super().__init__(self.POST_MAX_LENGTH, PostTable.TOOTS)
 
         self.__general_access_token = self.get_config('general_access_token')
         self.__general_instance_url = self.__get_instance_url()

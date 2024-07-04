@@ -51,11 +51,11 @@ def list_users():
         selectable = [
             (
                 T("Add role 'recommender' to selected users"),
-                lambda ids: [admin_module.set_as_recommender(ids, auth, db)],
+                lambda ids: [admin_module.set_as_recommender(ids)],
                 "btn btn-info pci-admin",
             )
         ]
-        links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row, auth, db))]
+        links = [dict(header=T("Roles"), body=lambda row: admin_module.mkRoles(row))]
 
     db.auth_user.email.represent = lambda text, row: A(text, _href="mailto:%s" % text)
 
@@ -120,11 +120,11 @@ def list_users():
         ]
 
     db.auth_user._id.readable = True
-    db.auth_user._id.represent = lambda i, row: common_small_html.mkUserId(auth, db, i, linked=True)
+    db.auth_user._id.represent = lambda i, row: common_small_html.mkUserId(i, linked=True)
     db.t_reviews.recommendation_id.label = T("Article DOI")
     db.t_articles.anonymous_submission.label = T("Anonymous submission")
-    db.t_articles.anonymous_submission.represent = lambda text, row: common_small_html.mkAnonymousMask(auth, db, text)
-    db.t_articles.already_published.represent = lambda text, row: common_small_html.mkJournalImg(auth, db, text)
+    db.t_articles.anonymous_submission.represent = lambda text, row: common_small_html.mkAnonymousMask(text)
+    db.t_articles.already_published.represent = lambda text, row: common_small_html.mkJournalImg(text)
     db.auth_user.registration_key.represent = lambda text, row: SPAN(text, _class="pci-blocked") if (text == "blocked" or text == "disabled") else text
     db.auth_user.last_alert.readable = True
     db.auth_user.last_alert.writable = True
@@ -181,9 +181,9 @@ def list_users():
     response.view = "default/myLayout.html"
     return dict(
         titleIcon="user",
-        pageTitle=getTitle(request, auth, db, "#AdministrateUsersTitle"),
-        pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
-        customText=getText(request, auth, db, "#AdministrateUsersText"),
+        pageTitle=getTitle("#AdministrateUsersTitle"),
+        pageHelp=getHelp("#AdministrateUsers"),
+        customText=getText("#AdministrateUsersText"),
         grid=grid,
         
     )
@@ -274,9 +274,9 @@ def mailing_lists():
 
     return dict(
         titleIcon="earphone",
-        pageTitle=getTitle(request, auth, db, "#EmailsListsUsersTitle"),
-        customText=getText(request, auth, db, "#EmailsListsUsersText"),
-        pageHelp=getHelp(request, auth, db, "#EmailsListsUsers"),
+        pageTitle=getTitle("#EmailsListsUsersTitle"),
+        customText=getText("#EmailsListsUsersText"),
+        pageHelp=getHelp("#EmailsListsUsers"),
         content=myContents,
         grid="",
     )
@@ -307,9 +307,9 @@ def thematics_list():
     )
     return dict(
         titleIcon="tags",
-        pageTitle=getTitle(request, auth, db, "#AdministrateThematicFieldsTitle"),
-        pageHelp=getHelp(request, auth, db, "#AdministrateThematicFields"),
-        customText=getText(request, auth, db, "#AdministrateThematicFieldsText"),
+        pageTitle=getTitle("#AdministrateThematicFieldsTitle"),
+        pageHelp=getHelp("#AdministrateThematicFields"),
+        customText=getText("#AdministrateThematicFieldsText"),
         grid=grid,
     )
 
@@ -326,18 +326,18 @@ def allRecommCitations():
     for myRecomm in allRecomms:
         grid.append(
             LI(
-                common_small_html.mkRecommCitation(auth, db, myRecomm),
+                common_small_html.mkRecommCitation(myRecomm),
                 BR(),
                 B("Recommends: "),
-                common_small_html.mkArticleCitation(auth, db, myRecomm),
+                common_small_html.mkArticleCitation(myRecomm),
                 P(),
             )
         )
     return dict(
         titleIcon="education",
-        pageTitle=getTitle(request, auth, db, "#allRecommCitationsTextTitle"),
-        customText=getText(request, auth, db, "#allRecommCitationsTextText"),
-        pageHelp=getHelp(request, auth, db, "#allRecommCitationsHelpTexts"),
+        pageTitle=getTitle("#allRecommCitationsTextTitle"),
+        customText=getText("#allRecommCitationsTextText"),
+        pageHelp=getHelp("#allRecommCitationsHelpTexts"),
         grid=grid,
     )
 
@@ -351,7 +351,7 @@ def article_status():
 
     write_auth = auth.has_membership("developer")
     db.t_status_article._id.label = T("Coded representation")
-    db.t_status_article._id.represent = lambda text, row: common_small_html.mkStatusDiv(auth, db, row.status)
+    db.t_status_article._id.represent = lambda text, row: common_small_html.mkStatusDiv(row.status)
     db.t_status_article.status.writable = write_auth
     grid = SQLFORM.grid(
         db.t_status_article,
@@ -373,12 +373,12 @@ def article_status():
         ],
         orderby=db.t_status_article.priority_level,
     )
-    common_small_html.mkStatusArticles(db)
+    common_small_html.mkStatusArticles()
     return dict(
         titleIcon="bookmark",
-        pageTitle=getTitle(request, auth, db, "#AdministrateArticleStatusTitle"),
-        pageHelp=getHelp(request, auth, db, "#AdministrateArticleStatus"),
-        customText=getText(request, auth, db, "#AdministrateArticleStatusText"),
+        pageTitle=getTitle("#AdministrateArticleStatusTitle"),
+        pageHelp=getHelp("#AdministrateArticleStatus"),
+        customText=getText("#AdministrateArticleStatusText"),
         grid=grid,
     )
 
@@ -398,7 +398,7 @@ def manage_pdf():
     for q in myQy:
         myList.append(q[0])
     mySet = db((db.t_recommendations.id.belongs(myList)))
-    db.t_recommendations._format = lambda row: admin_module.mkRecommendationFormat2(auth, db, row)
+    db.t_recommendations._format = lambda row: admin_module.mkRecommendationFormat2(row)
     db.t_pdf.recommendation_id.requires = IS_IN_DB(mySet, "t_recommendations.id", db.t_recommendations._format, orderby=db.t_recommendations.id)
     db.t_pdf.recommendation_id.widget = SQLFORM.widgets.radio.widget
     grid = SQLFORM.grid(
@@ -417,8 +417,8 @@ def manage_pdf():
     )
     return dict(
         titleIcon="duplicate",
-        pageTitle=getTitle(request, auth, db, "#AdminPdfTitle"),
-        customText=getText(request, auth, db, "#AdminPdfText"),
+        pageTitle=getTitle("#AdminPdfTitle"),
+        customText=getText("#AdminPdfText"),
         grid=grid,
     )
 
@@ -575,8 +575,8 @@ def recap_reviews():
     db.executesql("DROP TABLE IF EXISTS _t_%(runId)s;" % locals())
     return dict(
         titleIcon="list-alt",
-        customText=getText(request, auth, db, "#AdminRecapReviews"),
-        pageTitle=getTitle(request, auth, db, "#AdminRecapReviewsTitle"),
+        customText=getText("#AdminRecapReviews"),
+        pageTitle=getTitle("#AdminRecapReviewsTitle"),
         grid=DIV(grid, _style="width:100%; overflow-x:scroll;"),
     )
 
@@ -671,7 +671,7 @@ def mailing_queue():
         _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
         _class="btn btn-default",
         _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
+    ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(row, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
     
     links = [
         dict(
@@ -719,8 +719,8 @@ def mailing_queue():
 
     return dict(
         titleIcon="send",
-        pageTitle=getTitle(request, auth, db, "#AdminMailQueueTitle"),
-        customText=getText(request, auth, db, "#AdminMailQueueText"),
+        pageTitle=getTitle("#AdminMailQueueTitle"),
+        customText=getText("#AdminMailQueueText"),
         grid=grid,
         myFinalScript=myScript,
         absoluteButtonScript=common_tools.absoluteButtonScript,
@@ -728,7 +728,7 @@ def mailing_queue():
 
 
 def mail_form_processing(form):
-    app_forms.update_mail_content_keep_editing_form(form, db, request, response)
+    app_forms.update_mail_content_keep_editing_form(form)
 
     if form.content_saved:
         redirect(URL("admin", "mailing_queue", args=request.args, user_signature=True))
@@ -807,10 +807,10 @@ def edit_and_resend_email():
 
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        pageHelp=getHelp("#EmailForRegisterdReviewer"),
         titleIcon="envelope",
         html_string=html_string,
         resent=resent,
-        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText("#EmailForRegisteredReviewerInfo"),
     )

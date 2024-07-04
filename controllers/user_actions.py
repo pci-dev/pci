@@ -61,14 +61,11 @@ def suggest_article_to():
     recommenderId = int(request.vars["recommenderId"])
     exclude = request.vars["exclude"]
     myVars = request.vars
-    user_module.do_suggest_article_to(auth, db, articleId, recommenderId)
+    user_module.do_suggest_article_to(articleId, recommenderId)
     excludeList = exclude if type(exclude) is list else exclude.split(",")
     excludeList.append(str(recommenderId))
     myVars["exclude"] = ",".join(excludeList)
-    session.flash = T('Suggested recommender "%s" added.') % common_small_html.mkUser(auth, db, recommenderId).flatten()
-    # redirect(request.env.http_referer)
-    # redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-    # redirect(URL(c='user', f='search_recommenders', vars=dict(articleId=articleId, exclude=excludeList), user_signature=True))
+    session.flash = T('Suggested recommender "%s" added.') % common_small_html.mkUser(recommenderId).flatten()
     redirect(URL(c="user", f="search_recommenders", vars=myVars, user_signature=True))
 
 ######################################################################################################################################################################
@@ -84,13 +81,13 @@ def suggest_all_selected():
     excludeList = exclude if type(exclude) is list else exclude.split(",")
     for recommenderId in recommenderIds.split(','):
         if recommenderId == '': continue
-        recommender_names += common_small_html.mkUser(auth, db, recommenderId).flatten() + ', '
-        user_module.do_suggest_article_to(auth, db, articleId, recommenderId)
+        recommender_names += common_small_html.mkUser(recommenderId).flatten() + ', '
+        user_module.do_suggest_article_to(articleId, recommenderId)
         excludeList.append(str(recommenderId))
     for recommenderId in exclusionIds.split(','):
         if recommenderId == '': continue
-        exclude_names += common_small_html.mkUser(auth, db, recommenderId).flatten() + ', '
-        user_module.do_exclude_article_from(auth, db, articleId, recommenderId)
+        exclude_names += common_small_html.mkUser(recommenderId).flatten() + ', '
+        user_module.do_exclude_article_from(articleId, recommenderId)
         excludeList.append(str(recommenderId))
     myVars["exclude"] = ",".join(excludeList)
     flash_news = ''
@@ -108,11 +105,11 @@ def exclude_article_from():
     recommenderId = int(request.vars["recommenderId"])
     exclude = request.vars["exclude"]
     myVars = request.vars
-    user_module.do_exclude_article_from(auth, db, articleId, recommenderId)
+    user_module.do_exclude_article_from(articleId, recommenderId)
     excludeList = exclude if type(exclude) is list else exclude.split(",")
     excludeList.append(str(recommenderId))
     myVars["exclude"] = excludeList
-    session.flash = T('Recommender "%s" excluded from article.') % common_small_html.mkUser(auth, db, recommenderId).flatten()
+    session.flash = T('Recommender "%s" excluded from article.') % common_small_html.mkUser(recommenderId).flatten()
     redirect(URL(c="user", f="search_recommenders", vars=myVars, user_signature=True))
 
 
@@ -152,7 +149,6 @@ def article_revised():
         if art.status == "Scheduled submission revision":
             art.update_record(status="Scheduled submission pending")
         else:
-        # print('article_revised')
             art.status = "Under consideration"
             art.update_record()
             last_recomm = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id).last()
@@ -273,7 +269,7 @@ def accept_review_confirmed(): # no auth required
     '''
     if reviewer accepts invitation, also ask them for more reviewer suggestions
     '''
-    review_id = get_review_id(request)
+    review_id = get_review_id()
     if not review_id:
         session.flash = current.T('No review id found')
         redirect(URL('default','index'))
@@ -285,7 +281,7 @@ def accept_review_confirmed(): # no auth required
         redirect(URL('default','index'))
         return
 
-    next = get_next(request)
+    next = get_next()
     if next and review.suggested_reviewers_send:
         redirect(next)
 
@@ -307,7 +303,7 @@ def accept_review_confirmed(): # no auth required
 
 def send_suggestion_page():
     default_next =cast(str, URL(c="user_actions", f="suggestion_sent_page"))
-    review_id = get_review_id(request)
+    review_id = get_review_id()
     if not review_id:
         session.flash = current.T('No review id found')
         redirect(URL('default','index'))
@@ -319,7 +315,7 @@ def send_suggestion_page():
         redirect(URL('default','index'))
         return
     
-    next = get_next(request)
+    next = get_next()
     if review.suggested_reviewers_send:
         if next:
             redirect(next)
@@ -393,7 +389,7 @@ def send_suggested_reviewers():
     text = request.post_vars.suggested_reviewers_text
     review = db(db.t_reviews.quick_decline_key == request.post_vars.declineKey).select().last()
     no_suggestions_clicked = request.post_vars.noluck
-    next = get_next(request)
+    next = get_next()
     text = (text or "").strip()
 
     if not text or not review or no_suggestions_clicked or review.suggested_reviewers_send:
@@ -407,7 +403,7 @@ def send_suggested_reviewers():
     article = db((db.t_recommendations.id == review.recommendation_id) & (db.t_recommendations.article_id == db.t_articles.id)).select()
     add_suggest_reviewers_to_article(article, review, text)
 
-    emailing.send_to_recommender_reviewers_suggestions(session, auth, db, review, text)
+    emailing.send_to_recommender_reviewers_suggestions(review, text)
     Review.set_suggested_reviewers_send(review)
 
     response.view = "default/info.html"
@@ -467,7 +463,7 @@ def do_ask_to_review():
         raise HTTP(403, "403: " + T("ERROR: No conflict of interest not checked"))
     recomm = db(db.t_recommendations.article_id == articleId).select(
                 orderby=db.t_recommendations.id).last()
-    amIReviewer = auth.user_id in user_module.getReviewers(recomm, db)
+    amIReviewer = auth.user_id in user_module.getReviewers(recomm)
 
     if amIReviewer:
         session.flash = T("Already reviewer on this article")
@@ -593,34 +589,3 @@ def delete_review_file():
     session.flash = T("File successfully deleted")
     
     redirect(request.env.http_referer)
-
-######################################################################################################################################################################
-## (gab) Unused ?
-######################################################################################################################################################################
-# @auth.requires_login()
-# def do_delete_article():
-# 	articleId = request.vars['articleId']
-# 	if articleId is None:
-# 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-# 	art = db.t_articles[articleId]
-# 	if art is None:
-# 		raise HTTP(404, "404: "+T('Unavailable')) # Forbidden access
-# 	# NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-# 	if art.user_id != auth.user_id:
-# 		session.flash = auth.not_authorized()
-# 		redirect(request.env.http_referer)
-# 	else:
-# 		db(db.t_articles.id == articleId).delete()
-# 		session.flash = T('Preprint submission deleted')
-# 		redirect(URL(c='user', f='my_articles', user_signature=True))
-
-
-# ######################################################################################################################################################################
-# def suggest_article_to_all(articleId, recommenderIds):
-# 	added = []
-# 	for recommenderId in recommenderIds:
-# 		do_suggest_article_to(auth, db, articleId, recommenderId)
-# 		added.append(common_small_html.mkUser(auth, db, recommenderId))
-# 	#redirect(URL(c='user', f='add_suggested_recommender', vars=dict(articleId=articleId), user_signature=True))
-# 	session.flash = T('Suggested recommenders %s added.') % (', '.join(added))
-# 	redirect(request.env.http_referer)

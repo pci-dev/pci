@@ -40,10 +40,10 @@ def getArticleImage(article):
     return article_img
 
 
-def makeArticleWithRecommRow(auth, db, article):
+def makeArticleWithRecommRow(article):
     recomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
 
-    recomm_authors = common_small_html.getRecommAndReviewAuthors(auth, db, article=article, with_reviewers=True, linked=True, host=host, port=port, scheme=scheme)
+    recomm_authors = common_small_html.getRecommAndReviewAuthors(article=article, with_reviewers=True, linked=True, fullURL=True)
 
     article_img = getArticleImage(article)
 

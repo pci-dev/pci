@@ -30,32 +30,30 @@ from models.review import Review, ReviewState
 
 myconf = AppConfig(reload=True)
 
-scheme = myconf.take("alerts.scheme")
-host = myconf.take("alerts.host")
-port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ########################################################################################################################################################################
-def getRecommStatusHeader(auth: Auth, db: DAL, response: Response, art: Article, controller_name: str, request: Request, userDiv: DIV, printable: bool, quiet: bool = True):
+def getRecommStatusHeader(art: Article, userDiv: bool, printable: bool, quiet: bool = True):
+    db, auth, request = current.db, current.auth, current.request
+
     lastRecomm = db.get_last_recomm(art.id)
     if lastRecomm:
-        co_recommender = is_co_recommender(auth, db, lastRecomm.id)
+        co_recommender = is_co_recommender(lastRecomm.id)
 
     if userDiv:
         statusDiv = DIV(
-            common_small_html.mkStatusBigDivUser(auth, db, art.status, printable),
+            common_small_html.mkStatusBigDivUser(art.status, printable),
             _class="pci2-flex-center pci2-full-width",
         )
     else:
-        statusDiv = DIV(common_small_html.mkStatusBigDiv(auth, db, art.status, printable), _class="pci2-flex-center pci2-full-width")
+        statusDiv = DIV(common_small_html.mkStatusBigDiv(art.status, printable), _class="pci2-flex-center pci2-full-width")
 
 
     myTitle = DIV(
-        IMG(_src=URL(r=request, c="static", f="images/small-background.png", scheme=scheme, host=host, port=port)),
+        IMG(_src=URL(r=request, c="static", f="images/small-background.png", scheme=True)),
         DIV(statusDiv, _class="pci2-flex-grow"),
         _class="pci2-flex-row",
     )
@@ -70,13 +68,13 @@ def getRecommStatusHeader(auth: Auth, db: DAL, response: Response, art: Article,
     if (lastRecomm or art.status == "Under consideration") and auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRecomms = True
 
-    back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
+    back2 = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=True)
 
     allowManageRequest = False
     manageRecommendersButton = None
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRequest = True
-        manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2, auth, db)
+        manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2)
     
     if pciRRactivated and lastRecomm and ((lastRecomm.recommender_id == auth.user_id or co_recommender) and lastRecomm.recommendation_state in ("Ongoing", "Revision")) and auth.has_membership(role="recommender") and not(quiet):
        allowManageRequest = True
@@ -84,14 +82,14 @@ def getRecommStatusHeader(auth: Auth, db: DAL, response: Response, art: Article,
     printableUrl = None
     verifyUrl = None
     if auth.has_membership(role="manager"):
-        printableUrl = URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), user_signature=True, scheme=scheme, host=host, port=port)
+        printableUrl = URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), scheme=True)
     
     if (auth.has_membership(role="recommender") or auth.has_membership(role="manager")) and art.user_id != auth.user_id:
-        verifyUrl = URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=art.id, printable=True), user_signature=True, scheme=scheme, host=host, port=port)
+        verifyUrl = URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=art.id, printable=True), scheme=True)
 
     recommenderSurveyButton = None
     if lastRecomm and (auth.user_id == lastRecomm.recommender_id or co_recommender):
-        printableUrl = URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=art.id), user_signature=True, scheme=scheme, host=host, port=port)
+        printableUrl = URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=art.id), scheme=True)
         recommenderSurveyButton = True
 
     componentVars = dict(
@@ -109,11 +107,12 @@ def getRecommStatusHeader(auth: Auth, db: DAL, response: Response, art: Article,
         recommenderSurveyButton=recommenderSurveyButton
     )
 
-    return XML(response.render("components/recommendation_header.html", componentVars))
+    return XML(current.response.render("components/recommendation_header.html", componentVars))
 
 
 ######################################################################################################################################################################
-def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True):
+def getRecommendationTopButtons(art, printable=False, quiet=True):
+    db, auth = current.db, current.auth
 
     myContents = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
     nbRecomms = db(db.t_recommendations.article_id == art.id).count()
@@ -131,7 +130,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True):
         btsAccDec = [
             A(
                 SPAN(current.T("Yes, I would like to handle the evaluation process"), _class="buttontext btn btn-success pci-recommender"),
-                _href=URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), user_signature=True, scheme=scheme, host=host, port=port),
+                _href=URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), scheme=True),
                 _class="button",
             ),
 
@@ -146,7 +145,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True):
             btsAccDec.append(
                 A(
                     SPAN(current.T("No, I would rather not"), _class="buttontext btn btn-warning pci-recommender"),
-                    _href=URL(c="recommender_actions", f="decline_new_article_to_recommend", vars=dict(articleId=art.id), user_signature=True, scheme=scheme, host=host, port=port),
+                    _href=URL(c="recommender_actions", f="decline_new_article_to_recommend", vars=dict(articleId=art.id), scheme=True),
                     _class="button",
                 ),
             )
@@ -179,7 +178,7 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True):
             DIV(
                 A(
                     SPAN(current.T("I wish to cancel my submission"), _class="buttontext btn btn-warning pci-submitter"),
-                    _href=URL(c="user_actions", f="do_cancel_article", vars=dict(articleId=art.id), user_signature=True, scheme=scheme, host=host, port=port),
+                    _href=URL(c="user_actions", f="do_cancel_article", vars=dict(articleId=art.id), scheme=True),
                     _title=current.T("Click here in order to cancel this submission"),
                 ),
                 _class="pci-EditButtons pci2-flex-grow pci2-flex-center",
@@ -193,7 +192,9 @@ def getRecommendationTopButtons(auth, db, art, printable=False, quiet=True):
 
 
 ########################################################################################################################################################################
-def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
+def getRecommendationProcessForSubmitter(art, printable):
+    db = current.db
+
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
     submissionValidatedClassClass = "step-default"
@@ -241,7 +242,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
                 authorsReplyDate = None # current round
 
             recommenderName = common_small_html.getRecommAndReviewAuthors(
-                auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme
+                recomm=recomm, with_reviewers=False, linked=not (printable), fullURL=True,
             )
 
             recommStatus = None
@@ -291,7 +292,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
 
             recommendationLink = None
             if recommStatus == "Recommended" and managerDecisionDoneClass == "step-done":
-                recommendationLink = URL(c="articles", f="rec", vars=dict(id=art.id), user_signature=True, scheme=scheme, host=host, port=port)
+                recommendationLink = URL(c="articles", f="rec", vars=dict(id=art.id), scheme=True)
 
             componentVars = dict(
                 printable=printable,
@@ -320,7 +321,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
                 recommendationLink=recommendationLink,
                 uploadDate=uploadDate,
             )
-            recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
+            recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars)))
 
             roundNumber += 1
 
@@ -356,7 +357,7 @@ def getRecommendationProcessForSubmitter(auth, db, response, art, printable):
             uploadDate=uploadDate,
         )
 
-        recommendationDiv.append(XML(response.render("components/recommendation_process_for_submitter.html", componentVars)))
+        recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars)))
     if (managerDecisionDoneClass == "step-done") or (managerDecisionDoneClass == "step-default" and art.status == "Recommended-private"):
         isRecommAvalaibleToSubmitter = True
     return dict(roundNumber=totalRecomm, isRecommAvalaibleToSubmitter=isRecommAvalaibleToSubmitter, content=recommendationDiv)
@@ -454,7 +455,7 @@ def _get_author_reply_link(article: Article, recommendation: Recommendation, pri
     auth = current.auth
 
     if (article.user_id == auth.user_id) and (article.status == ArticleStatus.AWAITING_REVISION.value) and not (printable) and (i_recommendation == 1):
-        return common_tools.URL(c="user", f="edit_reply", vars=dict(recommId=recommendation.id), user_signature=True, scheme=scheme, host=host, port=port)
+        return common_tools.URL(c="user", f="edit_reply", vars=dict(recommId=recommendation.id), user_signature=True, scheme=True)
 
 
 def _get_authors_reply_pdf_link(recommendation: Recommendation):
@@ -462,7 +463,7 @@ def _get_authors_reply_pdf_link(recommendation: Recommendation):
         return A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download author's reply (PDF file)"),
-            _href=common_tools.URL("default", "download", args=recommendation.reply_pdf, scheme=scheme, host=host, port=port),
+            _href=common_tools.URL("default", "download", args=recommendation.reply_pdf, scheme=True),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
 
@@ -471,7 +472,7 @@ def _is_scheduled_submission_revision(article: Article, printable: bool):
     auth = current.auth
 
     if (article.status == ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value) and (article.user_id == auth.user_id) and not (printable):
-        return common_tools.URL(c="user_actions", f="article_revised", vars=dict(articleId=article.id), user_signature=True, scheme=scheme, host=host, port=port)
+        return common_tools.URL(c="user_actions", f="article_revised", vars=dict(articleId=article.id), user_signature=True, scheme=True)
     
 
 def _get_authors_reply_track_change_file_link(recommendation: Recommendation):
@@ -479,7 +480,7 @@ def _get_authors_reply_track_change_file_link(recommendation: Recommendation):
         return A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download tracked changes file"),
-            _href=common_tools.URL("default", "download", args=recommendation.track_change, scheme=scheme, host=host, port=port),
+            _href=common_tools.URL("default", "download", args=recommendation.track_change, scheme=True),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
     
@@ -610,7 +611,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
         # display the review
         if review.anonymously:
             count_anonymous_review += 1
-            reviewer_number = common_tools.find_reviewer_number(db, review, count_anonymous_review)
+            reviewer_number = common_tools.find_reviewer_number(review, count_anonymous_review)
             review_vars.update(
                 [
                     (
@@ -629,7 +630,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
                         "authors",
                         SPAN(
                             Review.get_reviewer_name(review) or
-                            common_small_html.mkUser(auth, db, review.reviewer_id, linked=True),
+                            common_small_html.mkUser(review.reviewer_id, linked=True),
                             (", " + review_date_str),
                         ),
                     )
@@ -643,7 +644,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
             pdfLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download the review (PDF file)"),
-                _href=common_tools.URL("default", "download", args=review.review_pdf, scheme=scheme, host=host, port=port),
+                _href=common_tools.URL("default", "download", args=review.review_pdf, scheme=True),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
             review_vars.update([("pdfLink", pdfLink)])
@@ -694,7 +695,7 @@ def _get_recommender_buttons(article: Article, recommendation: Recommendation, a
     if not (recommendation.is_closed) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender) and (article.status == ArticleStatus.UNDER_CONSIDERATION.value) and not (printable):
         # recommender's button for recommendation edition
         edit_recommendation_button_text = current.T("Write or edit your decision / recommendation")
-        edit_recommendation_link = common_tools.URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id), scheme=scheme, host=host, port=port)
+        edit_recommendation_link = common_tools.URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id), scheme=True)
         if pciRRactivated:
             pass
         elif (nb_completed >= 2 and nb_on_going == 0) or nb_round > 1:
@@ -715,7 +716,7 @@ def _get_invite_reviewer_links(article: Article, recommendation: Recommendation,
     invite_reviewer_link = None
     show_remove_searching_for_reviewers_button = None
     if not (recommendation.is_closed) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender or auth.has_membership(role=Role.MANAGER.value)) and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)):
-        invite_reviewer_link = common_tools.URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id), scheme=scheme, host=host, port=port)
+        invite_reviewer_link = common_tools.URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id), scheme=True)
         show_remove_searching_for_reviewers_button = article.is_searching_reviewers
     
     return dict(
@@ -747,14 +748,14 @@ def _get_recommendation_pdf_link(recommendation: Recommendation, hide_on_going_r
         recommendation_pdf_link = A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download recommender's annotations (PDF)"),
-            _href=common_tools.URL("default", "download", args=recommendation.recommender_file, scheme=scheme, host=host, port=port),
+            _href=common_tools.URL("default", "download", args=recommendation.recommender_file, scheme=True),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
     return recommendation_pdf_link
 
 
 def _mk_link(role: Role, action: str, review_item: Dict[Any, Any]):
-    return common_tools.URL(c=role.value+"_actions", f=action+"_review_request", vars=dict(reviewId=review_item["id"]), scheme=scheme, host=host, port=port)
+    return common_tools.URL(c=role.value+"_actions", f=action+"_review_request", vars=dict(reviewId=review_item["id"]), scheme=True)
 
 
 def _get_role_current_user():
@@ -837,8 +838,7 @@ def get_recommendation_process_components(article: Article, printable: bool = Fa
         nb_round -= 1
         nb_completed: int = 0
         nb_on_going: int = 0
-        who_did_it_html = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recommendation, with_reviewers=False, linked=not (printable),
-                        host=host, port=port, scheme=scheme,
+        who_did_it_html = common_small_html.getRecommAndReviewAuthors(recomm=recommendation, with_reviewers=False, linked=not (printable),
                         this_recomm_only=True,
                         )
 
@@ -1186,7 +1186,8 @@ def validation_checklist(validation_type):
 ######################################################################################################################################
 # Postprint recommendation process
 ######################################################################################################################################
-def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=True):
+def getPostprintRecommendation(art, printable=False, quiet=True):
+    db, auth = current.db, current.auth
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
 
     recomm = db.get_last_recomm(art.id)
@@ -1195,7 +1196,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
         recommendationDiv.append("NO RECOMMENDATION")
         return recommendationDiv
 
-    whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=False, linked=not (printable), host=host, port=port, scheme=scheme)
+    whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=recomm, with_reviewers=False, linked=not (printable), fullURL=True)
 
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
@@ -1211,12 +1212,12 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
     cancelSubmissionLink = None
     if (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status in ("Under consideration", "Scheduled submission under consideration")) and not (recomm.is_closed) and not (printable):
         # recommender's button allowing recommendation edition
-        editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id), user_signature=True, scheme=scheme, host=host, port=port)
+        editRecommendationLink = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id), scheme=True)
 
         minimal_number_of_corecommenders = 0
 
         if len(contributors) >= minimal_number_of_corecommenders:
-            sendRecommendationLink = URL(c="recommender_actions", f="recommend_article", vars=dict(recommId=recomm.id), user_signature=True, scheme=scheme, host=host, port=port)
+            sendRecommendationLink = URL(c="recommender_actions", f="recommend_article", vars=dict(recommId=recomm.id), scheme=True)
             if recomm.recommendation_comments is not None:
                 if len(recomm.recommendation_comments) > 50:
                     # recommender's button allowing recommendation submission, provided there are co-recommenders
@@ -1225,10 +1226,10 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
                 isRecommendationTooShort = True
         else:
             # otherwise button for adding co-recommender(s)
-            addContributorLink = URL(c="recommender", f="add_contributor", vars=dict(recommId=recomm.id), user_signature=True, scheme=scheme, host=host, port=port)
+            addContributorLink = URL(c="recommender", f="add_contributor", vars=dict(recommId=recomm.id), scheme=True)
 
         # recommender's button allowing cancellation
-        cancelSubmissionLink = URL(c="recommender_actions", f="do_cancel_press_review", vars=dict(recommId=recomm.id), user_signature=True, scheme=scheme, host=host, port=port)
+        cancelSubmissionLink = URL(c="recommender_actions", f="do_cancel_press_review", vars=dict(recommId=recomm.id), scheme=True)
 
     showRecommendation = False
     if recomm.is_closed or art.status == "Awaiting revision" or art.user_id != auth.user_id:
@@ -1241,7 +1242,7 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
     validateRecommendationLink = None
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable):
         if art.status == "Pre-recommended":
-            validateRecommendationLink = URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), user_signature=True, scheme=scheme, host=host, port=port)
+            validateRecommendationLink = URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), scheme=True)
 
     componentVars = dict(
         printable=printable,
@@ -1260,6 +1261,6 @@ def getPostprintRecommendation(auth, db, response, art, printable=False, quiet=T
         cancelSubmissionLink=cancelSubmissionLink,
         validateRecommendationLink=validateRecommendationLink,
     )
-    recommendationDiv.append(XML(response.render("components/postprint_recommendation.html", componentVars)))
+    recommendationDiv.append(XML(current.response.render("components/postprint_recommendation.html", componentVars)))
 
     return recommendationDiv

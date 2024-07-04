@@ -3,12 +3,13 @@ import requests
 import re
 from time import sleep
 
-from pydal import DAL
+from gluon import current
 from gluon.html import TAG
 from app_modules.common_small_html import md_to_html
 
 
-def init_conf(db: DAL):
+def init_conf():
+ db = current.db
 
  class pci:
     host = db.cfg.host

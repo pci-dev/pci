@@ -29,7 +29,6 @@ from models.article import Article
 from models.press_reviews import PressReview
 from models.review import Review
 from models.user import User
-from pydal import DAL
 
 
 from app_modules import common_small_html
@@ -43,11 +42,8 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
 # Show reviews of cancelled articles for CNeuro
-def reviewsOfCancelled(auth, db, art):
-    scheme = myconf.take("alerts.scheme")
-    host = myconf.take("alerts.host")
-    port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
-    applongname = myconf.take("app.longname")
+def reviewsOfCancelled(art):
+    db, auth = current.db, current.auth
     track = None
     printable = False
     with_reviews = True
@@ -74,7 +70,7 @@ def reviewsOfCancelled(auth, db, art):
 
         for recomm in recomms:
 
-            whoDidIt = common_small_html.getRecommAndReviewAuthors(auth, db, recomm=recomm, with_reviewers=True, linked=not (printable), host=host, port=port, scheme=scheme)
+            whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=recomm, with_reviewers=True, linked=not (printable), fullURL=True)
 
             myReviews = ""
             myReviews = []
@@ -98,7 +94,7 @@ def reviewsOfCancelled(auth, db, art):
                             H4(
                                 current.T("Reviewed by"),
                                 " ",
-                                common_small_html.mkUser(auth, db, review.reviewer_id, linked=not (printable)),
+                                common_small_html.mkUser(review.reviewer_id, linked=not (printable)),
                                 (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT + " %H:%M") if review.last_change else ""),
                             )
                         )
@@ -152,16 +148,12 @@ def reviewsOfCancelled(auth, db, art):
                     H3("Revision round #%s" % recommRound),
                     SPAN(I(recomm.last_change.strftime(DEFAULT_DATE_FORMAT) + " ")) if recomm.last_change else "",
                     H2(recomm.recommendation_title if ((recomm.recommendation_title or "") != "") else T("Decision")),
-                    H4(current.T(" by "), SPAN(whoDidIt))  # mkUserWithAffil(auth, db, recomm.recommender_id, linked=not(printable)))
-                    # ,SPAN(SPAN(current.T('Recommendation:')+' '), common_small_html.mkDOI(recomm.recommendation_doi), BR()) if ((recomm.recommendation_doi or '')!='') else ''
-                    # ,DIV(SPAN('A recommendation of:', _class='pci-recommOf'), myArticle, _class='pci-recommOfDiv')
-                    ,
+                    H4(current.T(" by "), SPAN(whoDidIt)),
                     DIV(WIKI(recomm.recommendation_comments or "", safe_mode=False), _class="pci-bigtext"),
                     DIV(I(current.T("Preprint DOI:") + " "), common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else "",
                     DIV(myReviews, _class="pci-reviews") if len(myReviews) > 0 else "",
                     reply,
                     _class="pci-recommendation-div"
-                    # , _style='margin-left:%spx' % (leftShift)
                 )
             )
             recommRound -= 1

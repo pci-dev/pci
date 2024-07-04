@@ -17,7 +17,6 @@ from models.membership import Membership
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
 from models.user import User
-from pydal import DAL
 
 from gluon.contrib.appconfig import AppConfig # type: ignore
 
@@ -107,7 +106,8 @@ def pci_redirect(url):
 
 
 ###################################################################
-def get_prev_recomm(db, recomm):
+def get_prev_recomm(recomm):
+    db = current.db
     last_recomm = db(
             (db.t_recommendations.article_id == recomm.article_id) &
             (db.t_recommendations.id < recomm.id)
@@ -147,7 +147,8 @@ def handle_multiple_uploads(review, files):
     review.update_record(review_pdf=filename, review_pdf_data=data)
 
 
-def get_exclude_list(request):
+def get_exclude_list():
+    request = current.request
     excludeList = request.vars.exclude
 
     if type(excludeList) is str:
@@ -165,7 +166,8 @@ def check_coauthorship(user_id: int, article: Article):
     return False
 
 
-def get_manager_coauthors(db, artId):
+def get_manager_coauthors(artId):
+    db = current.db
     article = db(db.t_articles.id == artId).select().last()
     manager_authors = (article.manager_authors or "").split(',')
     
@@ -182,7 +184,8 @@ def extract_manager_ids(form, manager_ids):
     return ','.join(manager_authors)
 
 
-def get_managers(db):
+def get_managers():
+    db = current.db
     # collect managers (that are not admins)
     admins = [row.user_id for row in db(
             (db.auth_membership.group_id == db.auth_group.id) &
@@ -203,7 +206,8 @@ def get_managers(db):
     return users
 
 
-def get_exclude_suggested_recommender(auth: Auth, db: DAL, article_id: int) -> List[int]:
+def get_exclude_suggested_recommender(article_id: int) -> List[int]:
+    db, auth = current.db, current.auth
     article = Article.get_by_id(article_id)
     if not article:
         return []
@@ -239,7 +243,8 @@ def generate_recommendation_doi(article_id: int):
 absoluteButtonScript = get_script("web2py_button_absolute.js")
 
 ####################################################################
-def cancel_decided_article_pending_reviews(db, recomm):
+def cancel_decided_article_pending_reviews(recomm):
+    db = current.db
     reviews = db(db.t_reviews.recommendation_id == recomm.id).select()
     for review in reviews:
         if review.review_state == "Willing to review" or review.review_state == "Awaiting review" or review.review_state == "Awaiting response":
@@ -248,11 +253,12 @@ def cancel_decided_article_pending_reviews(db, recomm):
 
 ###################################################################
 
-def find_reviewer_number(db: DAL, review: Review, count_anon: int):
+def find_reviewer_number(review: Review, count_anon: int):
     '''
     function finds a number for the reviewer in order to differentiate between anonymous reviewers;
     it needs to be kept in mind that reviewers keep their number in different rounds of evaluation.
     '''
+    db = current.db
     recommendations = db((db.t_articles.id == db.t_recommendations.article_id) & (db.t_recommendations.id == review.recommendation_id)).select()
     article_id = recommendations[0].t_articles.id
     recomms = db(db.t_recommendations.article_id == article_id).select(orderby=db.t_recommendations.id)
@@ -274,7 +280,8 @@ def find_reviewer_number(db: DAL, review: Review, count_anon: int):
 
 ###########################################""""
 
-def get_reset_password_key(request: Request):
+def get_reset_password_key():
+    request = current.request
     if 'key' in request.vars:
         vkey = cast(str, request.vars['key'])
         if isinstance(vkey, list):
@@ -285,7 +292,8 @@ def get_reset_password_key(request: Request):
     else:
         return None
     
-def get_article_id(request: Request):
+def get_article_id():
+    request = current.request
     if 'articleId' in request.vars:
         articleId = cast(str, request.vars['articleId'])
         if isinstance(articleId, list):
@@ -296,7 +304,8 @@ def get_article_id(request: Request):
     else:
         return None
     
-def get_review_id(request: Request):
+def get_review_id():
+    request = current.request
     if 'reviewId' in request.vars:
         review_id = cast(str, request.vars['reviewId'])
         if isinstance(review_id, list):
@@ -307,7 +316,8 @@ def get_review_id(request: Request):
     else:
         return None
     
-def get_next(request: Request):
+def get_next():
+    request = current.request
     if '_next' in request.vars:
         next = cast(str, request.vars['_next'])
         if isinstance(next, list):

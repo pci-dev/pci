@@ -22,7 +22,6 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 from gluon.storage import Storage
 import models.article
-from pydal import DAL
 
 from gluon.custom_import import track_changes
 
@@ -83,7 +82,8 @@ get_review_days = Review.get_review_days_from_due_date
 
 ######################################################################################################################################################################
 # TEST MAIL (or "How to properly create an emailing function")
-def send_test_mail(session, auth, db, userId):
+def send_test_mail(userId):
+    db = current.db
     print("send_test_mail")
     # Get common variables :
     mail_vars = emailing_tools.getMailCommonVars()
@@ -91,23 +91,24 @@ def send_test_mail(session, auth, db, userId):
 
     # Set custom variables :
     mail_vars["destAddress"] = db.auth_user[userId]["email"]
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
+    mail_vars["destPerson"] = common_small_html.mkUser(userId)
     mail_vars["linkTarget"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
     # Insert mail in mail_queue :
     hashtag_template = "#TestMail"
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
 
     # Create report for session flash alerts :
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     # Build reports :
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Send email to the requester (if any)
-def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
+def send_to_submitter(articleId: int, newStatus):
+    session, auth, db, response = current.session, current.auth, current.db, current.response
     print("send_to_submitter")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -117,7 +118,7 @@ def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
 
     article = Article.get_by_id(articleId)
     if article and article.user_id is not None:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
         mail_vars["articleTitle"] = md_to_html(article.title)
@@ -207,7 +208,7 @@ def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
             if lastRecomm:
                 mail_vars["doiRecomm"] = XML(common_small_html.mkLinkDOI(lastRecomm.recommendation_doi))
                 mail_vars["recommVersion"] = lastRecomm.ms_version
-                mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
+                mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
                 mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(lastRecomm.id)
                 mail_vars["recommendationProcess"] = ongoing_recommendation.get_recommendation_process(article, True)
@@ -220,7 +221,7 @@ def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
             if lastRecomm:
                 mail_vars["doiRecomm"] = XML(common_small_html.mkLinkDOI(lastRecomm.recommendation_doi))
                 mail_vars["recommVersion"] = lastRecomm.ms_version
-                mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(auth, db, recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
+                mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
                 mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(lastRecomm.id)
                 mail_vars["recommendationProcess"] = ongoing_recommendation.get_recommendation_process(article, True)
@@ -236,42 +237,44 @@ def send_to_submitter(session, auth, db, articleId: int, newStatus, response):
             return
 
         # Fill define template with mail_vars :
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, article_id=articleId)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, article_id=articleId)
 
         reports = emailing_tools.createMailReport(True, "submitter " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Send email to the requester (if any)
-def send_to_submitter_acknowledgement_submission(session, auth, db, articleId):
+def send_to_submitter_acknowledgement_submission(articleId):
+    session, auth, db = current.session, current.auth, current.db
     print("send_to_submitter_acknowledgement_submission")
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
     if article and article.user_id is not None:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
         mail_vars["articleTitle"] = md_to_html(article.title)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#SubmitterAcknowledgementSubmission", article)
 
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, None, None, articleId)
 
 
 ##############################################################################
-def send_to_submitter_scheduled_submission_open(auth, db, article):
+def send_to_submitter_scheduled_submission_open(article):
+    db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
     mail_vars["destAddress"] = db.auth_user[article.user_id].email
     mail_vars["articleTitle"] = md_to_html(article.title)
-    mail_vars["recommenderPerson"] = mk_recommender(auth, db, article)
+    mail_vars["recommenderPerson"] = mk_recommender(article)
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
     mail_vars["ccAddresses"] = [
             mail_vars["appContactMail"], # i.e. contacts.managers
-    ] + get_recomm_and_co_recomm_emails(db, article)
+    ] + get_recomm_and_co_recomm_emails(article)
 
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
@@ -281,15 +284,17 @@ def send_to_submitter_scheduled_submission_open(auth, db, article):
     if sending_date < datetime.date.today():
         return
 
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id, sending_date_forced=sending_date)
+    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, article.id, sending_date_forced=sending_date)
 
 
-def mk_recommender(auth, db, article):
+def mk_recommender(article):
+    db, auth = current.db, current.auth
     recomm = db.get_last_recomm(article.id)
-    return common_small_html.mkUserWithMail(auth, db, recomm.recommender_id)
+    return common_small_html.mkUserWithMail(recomm.recommender_id)
 
 
-def get_recomm_and_co_recomm_emails(db, article):
+def get_recomm_and_co_recomm_emails(article):
+    db = current.db
     recomm = db.get_last_recomm(article.id)
     return [
             db.auth_user[recomm.recommender_id]["email"],
@@ -298,7 +303,8 @@ def get_recomm_and_co_recomm_emails(db, article):
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any) for postprints
-def send_to_recommender_postprint_status_changed(session, auth, db, articleId, newStatus):
+def send_to_recommender_postprint_status_changed(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -309,7 +315,7 @@ def send_to_recommender_postprint_status_changed(session, auth, db, articleId, n
         )
         for myRecomm in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, db.t_recommendations.id, distinct=True):
             mail_vars["recommender_id"] = myRecomm["recommender_id"]
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, mail_vars["recommender_id"])
+            mail_vars["destPerson"] = common_small_html.mkUser(mail_vars["recommender_id"])
             mail_vars["destAddress"] = db.auth_user[myRecomm.recommender_id]["email"]
             mail_vars["articleAuthors"] = article.authors
             mail_vars["articleTitle"] = md_to_html(article.title)
@@ -320,16 +326,18 @@ def send_to_recommender_postprint_status_changed(session, auth, db, articleId, n
             # mail_vars["ccAddresses"] = emailing_vars.getCoRecommendersMails(myRecomm.id)
 
             hashtag_template = "#RecommenderPostprintStatusChanged"
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id, None, articleId)
+            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, myRecomm.id, None, articleId)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any)
-def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
+def send_to_recommender_status_changed(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
+    
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -347,7 +355,7 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
             if not recommender_id:
                 continue
 
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommender_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(recommender_id)
             mail_vars["destAddress"] = db.auth_user[recommender_id]["email"]
             mail_vars["articleAuthors"] = article.authors
             mail_vars["articleTitle"] = md_to_html(article.title)
@@ -370,12 +378,12 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
                 mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(myRecomm.id)
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderStatusChangedToUnderConsideration", article)
-                authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, myRecomm.id)
+                authors_reply = emailing_parts.getAuthorsReplyHTML(myRecomm.id)
 
             elif newStatus == "Recommended":
                 mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
                 mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
-                mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+                mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderStatusChangedUnderToRecommended", article)
 
@@ -388,15 +396,17 @@ def send_to_recommender_status_changed(session, auth, db, articleId, newStatus):
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderArticleStatusChanged", article)
 
             # Fill define template with mail_vars :
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, myRecomm.id, None, articleId, authors_reply=authors_reply)
+            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, myRecomm.id, None, articleId, authors_reply=authors_reply)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_recommender_decision_sent_back(session, auth, db, form, articleId, lastRecomm, hashtag):
+def send_to_recommender_decision_sent_back(form, articleId, lastRecomm, hashtag):
+    session, auth, db = current.session, current.auth, current.db
+
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
     cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
 
@@ -418,12 +428,14 @@ def send_to_recommender_decision_sent_back(session, auth, db, form, articleId, l
     )
 
     reports = emailing_tools.createMailReport(True, replyto_addresses, reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given NO MORE available article
-def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, articleId):
+def send_to_suggested_recommenders_not_needed_anymore(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -449,16 +461,16 @@ def send_to_suggested_recommenders_not_needed_anymore(session, auth, db, article
             & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
         ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
         for sugg_recommender in suggested_recommenders:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["auth_user.id"])
+            mail_vars["destPerson"] = common_small_html.mkUser(sugg_recommender["auth_user.id"])
             mail_vars["destAddress"] = db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"]
 
             # TODO: parallel submission
             hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestionNotNeededAnymore", article)
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId)
+            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, None, articleId)
 
             reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def mkUnanonymizedAuthors(article):
@@ -467,7 +479,9 @@ def mkUnanonymizedAuthors(article):
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
-def send_to_suggested_recommenders(session, auth, db, articleId):
+def send_to_suggested_recommenders(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -495,7 +509,7 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
             as_dict=True,
         )
         for sugg_recommender in suggested_recommenders:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["id"])
+            mail_vars["destPerson"] = common_small_html.mkUser(sugg_recommender["id"])
             mail_vars["destAddress"] = db.auth_user[sugg_recommender["id"]]["email"]
             mail_vars["linkTarget"] = URL(
                 c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
@@ -514,13 +528,13 @@ def send_to_suggested_recommenders(session, auth, db, articleId):
             hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedArticle", article)
             sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
 
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
-            delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
+            delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
             reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def build_sugg_recommender_buttons(link_target: str, article_id: int):
@@ -561,7 +575,9 @@ def build_sugg_recommender_buttons(link_target: str, article_id: int):
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
-def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
+def send_to_suggested_recommender(articleId, suggRecommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -584,7 +600,7 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
         if recomm:
             recomm_id = recomm.id
 
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, suggRecommId)
+        mail_vars["destPerson"] = common_small_html.mkUser(suggRecommId)
         mail_vars["destAddress"] = suggested_recommender.email
         mail_vars["linkTarget"] = URL(
             c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
@@ -603,18 +619,20 @@ def send_to_suggested_recommender(session, auth, db, articleId, suggRecommId):
         hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedArticle", article)
         sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
 
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
-        delete_reminder_for_submitter(db, "#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
+        delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
 
         reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Do send email to recommender when a review is closed
-def send_to_recommenders_review_completed(session, auth, db, reviewId):
+def send_to_recommenders_review_completed(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     print("send_to_recommenders_review_completed")
     mail_vars = emailing_tools.getMailCommonVars()
 
@@ -637,123 +655,26 @@ def send_to_recommenders_review_completed(session, auth, db, reviewId):
 
             recommender = db.auth_user[recomm.recommender_id]
             if recommender:
-                mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+                mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
                 mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-                mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
+                mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(rev.reviewer_id)
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderReviewerReviewCompleted", article)
 
-                reviewHTML = emailing_parts.getReviewHTML(auth, db, rev.id)
+                reviewHTML = emailing_parts.getReviewHTML(rev.id)
 
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, review=reviewHTML)
+                emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, review=reviewHTML)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
-
-
-# ######################################################################################################################################################################
-# # Do send email to recommender when a co correcommender accepted recommendation
-# def send_to_recommender_co_recommender_considerated(session, auth, db, pressId):
-#     print("send_to_recommender_co_recommender_considerated")
-#     mail_vars = emailing_tools.getMailCommonVars()
-#     reports = []
-
-#     press = db.t_press_reviews[pressId]
-#     recomm = db.t_recommendations[press.recommendation_id]
-#     if recomm:
-#         article = db.t_articles[recomm["article_id"]]
-#         if article:
-#             mail_vars["linkTarget"] = URL(
-#                 c="recommender",
-#                 f="my_recommendations",
-#                 scheme=mail_vars["scheme"],
-#                 host=mail_vars["host"],
-#                 port=mail_vars["port"],
-#                 vars=dict(pressReviews=article.already_published),
-#             )
-#             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
-#             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-#             mail_vars["contributorPerson"] = common_small_html.mkUserWithMail(auth, db, press.contributor_id)
-
-#             hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderCoRecommenderConsiderated", article)
-
-#             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
-
-#             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-
-#     emailing_tools.getFlashMessage(session, reports)
-
-
-# ######################################################################################################################################################################
-# def send_to_recommenders_co_recommender_declined(session, auth, db, pressId):
-#     print("send_to_recommenders_co_recommender_declined")
-#     mail_vars = emailing_tools.getMailCommonVars()
-#     reports = []
-
-#     press = db.t_press_reviews[pressId]
-#     recomm = db.t_recommendations[press.recommendation_id]
-#     if recomm:
-#         article = db.t_articles[recomm["article_id"]]
-#         if article:
-#             mail_vars["articleTitle"] = md_to_html(article.title)
-#             mail_vars["linkTarget"] = URL(
-#                 c="recommender",
-#                 f="my_recommendations",
-#                 scheme=mail_vars["scheme"],
-#                 host=mail_vars["host"],
-#                 port=mail_vars["port"],
-#                 vars=dict(pressReviews=article.already_published),
-#             )
-#             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
-#             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-#             mail_vars["contributorPerson"] = common_small_html.mkUserWithMail(auth, db, press.contributor_id)
-
-#             hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderCoRecommenderDeclined", article)
-
-#             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
-
-#             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-
-#     emailing_tools.getFlashMessage(session, reports)
-
-
-# ######################################################################################################################################################################
-# def send_to_recommenders_co_recommender_agreement(session, auth, db, pressId):
-#     print("send_to_recommenders_co_recommender_agreement")
-#     mail_vars = emailing_tools.getMailCommonVars()
-#     reports = []
-
-#     press = db.t_press_reviews[pressId]
-#     recomm = db.t_recommendations[press.recommendation_id]
-#     if recomm:
-#         article = db.t_articles[recomm["article_id"]]
-#         if article:
-#             mail_vars["articleTitle"] = md_to_html(article.title)
-#             mail_vars["linkTarget"] = URL(
-#                 c="recommender",
-#                 f="my_recommendations",
-#                 scheme=mail_vars["scheme"],
-#                 host=mail_vars["host"],
-#                 port=mail_vars["port"],
-#                 vars=dict(pressReviews=article.already_published),
-#             )
-#             mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
-#             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-#             mail_vars["contributorPerson"] = common_small_html.mkUserWithMail(auth, db, press.contributor_id)
-
-#             hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderCoRecommenderAgreement", article)
-
-#             emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
-
-#             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-
-#     emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Do send email to recommender when a review is accepted for consideration
-def send_to_recommenders_review_considered(session, auth, db, reviewId):
+def send_to_recommenders_review_considered(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -773,9 +694,9 @@ def send_to_recommenders_review_considered(session, auth, db, reviewId):
                 port=mail_vars["port"],
                 vars=dict(pressReviews=article.already_published),
             )
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-            mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
+            mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(rev.reviewer_id)
             mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev))
             mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
 
@@ -784,15 +705,17 @@ def send_to_recommenders_review_considered(session, auth, db, reviewId):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderReviewConsidered", article)
 
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_recommenders_review_declined(session, auth, db, reviewId):
+def send_to_recommenders_review_declined(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -812,23 +735,25 @@ def send_to_recommenders_review_declined(session, auth, db, reviewId):
                 port=mail_vars["port"],
                 vars=dict(pressReviews=article.already_published),
             )
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
             recommender = db.auth_user[recomm.recommender_id]
             if recommender is not None:
                 mail_vars["destAddress"] = recommender["email"]
-                mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
+                mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(rev.reviewer_id)
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderReviewDeclined", article)
 
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_recommenders_pending_review_request(session, auth, db, reviewId):
+def send_to_recommenders_pending_review_request(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -843,22 +768,24 @@ def send_to_recommenders_pending_review_request(session, auth, db, reviewId):
             mail_vars["linkTarget"] = URL(
                 c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
             )
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-            mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, rev.reviewer_id)
+            mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(rev.reviewer_id)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderPendingReviewRequest", article)
 
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Do send email to recommender when a review is re-opened
-def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
+def send_to_reviewer_review_reopened(reviewId, newForm):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -873,23 +800,25 @@ def send_to_reviewer_review_reopened(session, auth, db, reviewId, newForm):
 
             reviewer = db.auth_user[rev.reviewer_id]
             if reviewer:
-                mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
+                mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
+                mail_vars["destPerson"] = common_small_html.mkUser(rev.reviewer_id)
                 mail_vars["destAddress"] = db.auth_user[rev.reviewer_id]["email"]
 
                 mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerReviewReopened", article)
 
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStatus):
+def send_to_reviewers_article_cancellation(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -908,15 +837,15 @@ def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStat
             reviewers = db((db.t_reviews.recommendation_id == lastRecomm.id) & (db.t_reviews.review_state in ("Awaiting response", "Awaiting review", "Review completed"))).select()
             for rev in reviewers:
                 if rev is not None and rev.reviewer_id is not None:
-                    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
+                    mail_vars["destPerson"] = common_small_html.mkUser(rev.reviewer_id)
                     mail_vars["destAddress"] = db.auth_user[rev.reviewer_id]["email"]
-                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, lastRecomm.recommender_id)
+                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(lastRecomm.recommender_id)
 
                     mail_vars["ccAddresses"] = [db.auth_user[lastRecomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(lastRecomm.id)
 
                     hashtag_template = emailing_tools.getCorrectHashtag("#ReviewersArticleCancellation", article)
 
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, lastRecomm.id, None, article.id)
+                    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, lastRecomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
         else:
@@ -924,11 +853,13 @@ def send_to_reviewers_article_cancellation(session, auth, db, articleId, newStat
     else:
         print("send_to_reviewers_article_cancellation: Article not found")
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newForm):
+def send_to_reviewer_review_request_accepted(reviewId, newForm):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -945,10 +876,10 @@ def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newFor
 
                 reviewer = db.auth_user[rev.reviewer_id]
                 if reviewer:
-                    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
+                    mail_vars["destPerson"] = common_small_html.mkUser(rev.reviewer_id)
                     mail_vars["destAddress"] = reviewer["email"]
 
-                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
+                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
                     mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev))
                     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
                     
@@ -956,15 +887,17 @@ def send_to_reviewer_review_request_accepted(session, auth, db, reviewId, newFor
                     
                     hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerReviewRequestAccepted", article)
 
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_reviewer_review_request_declined(session, auth, db, reviewId, newForm):
+def send_to_reviewer_review_request_declined(reviewId, newForm):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -981,40 +914,42 @@ def send_to_reviewer_review_request_declined(session, auth, db, reviewId, newFor
 
                 reviewer = db.auth_user[rev.reviewer_id]
                 if reviewer:
-                    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
+                    mail_vars["destPerson"] = common_small_html.mkUser(rev.reviewer_id)
                     mail_vars["destAddress"] = reviewer["email"]
 
-                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
+                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
                     mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev))
                     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
 
                     hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerReviewRequestDeclined", article)
 
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
+def send_to_thank_reviewer_acceptation(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
     review = Review.get_by_id(reviewId)
     if not review:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
     
     recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
     
     article = Article.get_by_id(recommendation.article_id)
     if not article:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
     
     mail_vars["articleTitle"] = md_to_html(article.title)
@@ -1027,10 +962,10 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
     reviewer = User.get_by_id(review.reviewer_id)
     if reviewer:
         mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]) #URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
         mail_vars["destAddress"] = reviewer["email"]
 
-        mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recommendation.recommender_id) or ""
+        mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recommendation.recommender_id) or ""
         mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review))
         mail_vars["dueTime"] = Review.get_due_date(review).strftime(DEFAULT_DATE_FORMAT)
         mail_vars["reviewDuration"] = (review.review_duration).lower()
@@ -1039,15 +974,17 @@ def send_to_thank_reviewer_acceptation(session, auth, db, reviewId):
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerThankForReviewAcceptation", article)
 
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, None, article.id)
 
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
+def send_to_thank_reviewer_done(reviewId, newForm):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1074,21 +1011,23 @@ def send_to_thank_reviewer_done(session, auth, db, reviewId, newForm):
 
                 reviewer = db.auth_user[rev.reviewer_id]
                 if reviewer:
-                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
-                    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.reviewer_id)
+                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
+                    mail_vars["destPerson"] = common_small_html.mkUser(rev.reviewer_id)
                     mail_vars["destAddress"] = reviewer["email"]
 
                     hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerThankForReviewDone", article)
 
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId):
+def send_to_admin_2_reviews_under_consideration(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -1104,7 +1043,7 @@ def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId):
     if recomm and article and count_reviews_under_consideration == 2:
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
-        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["linkTarget"] = URL(c="manager", f="recommendations", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
         hashtag_template = emailing_tools.getCorrectHashtag("#AdminTwoReviewersIn", article)
@@ -1118,11 +1057,13 @@ def send_to_admin_2_reviews_under_consideration(session, auth, db, reviewId):
             dest_emails.append(admin.email)
 
         if dest_emails != []:
-            merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
+            merge_mails(hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
 
 
 ######################################################################################################################################################################
-def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
+def send_to_admin_all_reviews_completed(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -1136,11 +1077,11 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
     if recomm and article and count_reviews_completed >= 2 and count_reviews_under_consideration == 0:
-        delete_reminder_for_recommender(db, "#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
+        delete_reminder_for_recommender("#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
-        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["linkTarget"] = URL(c="manager", f="recommendations", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
         hashtag_template = emailing_tools.getCorrectHashtag("#AdminAllReviewsCompleted", article)
@@ -1154,11 +1095,13 @@ def send_to_admin_all_reviews_completed(session, auth, db, reviewId):
             dest_emails.append(admin.email)
 
         if dest_emails != []:
-            merge_mails(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
+            merge_mails(hashtag_template, mail_vars, recomm.id, None, article.id, dest_emails, dest_role=None)
 
 
 ######################################################################################################################################################################
-def send_admin_new_user(session, auth, db, userId):
+def send_admin_new_user(userId):
+    session, auth, db = current.session, current.auth, current.db
+
     print("send_admin_new_user")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1169,7 +1112,7 @@ def send_admin_new_user(session, auth, db, userId):
 
     user = db.auth_user[userId]
     if user:
-        mail_vars["userTxt"] = common_small_html.mkUser(auth, db, userId)
+        mail_vars["userTxt"] = common_small_html.mkUser(userId)
         mail_vars["userMail"] = user.email
         hashtag_template = "#AdminNewUser"
 
@@ -1178,13 +1121,15 @@ def send_admin_new_user(session, auth, db, userId):
             dest_emails.append(admin.email)
 
         if dest_emails != []:
-            reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id=None, recommendation=None, article_id=None, dest_emails=dest_emails, dest_role="administrators")
+            reports = merge_mails(hashtag_template, mail_vars, recomm_id=None, recommendation=None, article_id=None, dest_emails=dest_emails, dest_role="administrators")
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_new_user(session, auth, db, userId):
+def send_new_user(userId):
+    session, auth, db = current.session, current.auth, current.db
+    
     print("send_new_user")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1204,7 +1149,7 @@ def send_new_user(session, auth, db, userId):
             alerts = ["[no alerts]"]
 
     if user:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
+        mail_vars["destPerson"] = common_small_html.mkUser(userId)
         mail_vars["destAddress"] = db.auth_user[userId]["email"]
         mail_vars["baseurl"] = URL(c="about", f="about", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         mail_vars["infourl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
@@ -1217,15 +1162,17 @@ def send_new_user(session, auth, db, userId):
         else:
             hashtag_template = "#NewUser"
 
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
 
         reports = emailing_tools.createMailReport(True, "new user " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_new_membreship(session, auth, db, membershipId):
+def send_new_membreship(membershipId):
+    session, auth, db = current.session, current.auth, current.db
+
     print("send_new_membership")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1233,7 +1180,7 @@ def send_new_membreship(session, auth, db, membershipId):
     user = db.auth_user[db.auth_membership[membershipId].user_id]
     group = db.auth_group[db.auth_membership[membershipId].group_id]
     if user and group:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
+        mail_vars["destPerson"] = common_small_html.mkUser(user.id)
         mail_vars["destAddress"] = db.auth_user[user.id]["email"]
 
         if group.role == "recommender":
@@ -1242,13 +1189,13 @@ def send_new_membreship(session, auth, db, membershipId):
             mail_vars["helpurl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
             mail_vars["ethicsurl"] = mk_ethicsLink()
 
-            mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+            mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
             hashtag_template = "#NewMembreshipRecommender"
             new_role_report = "new recommender "
 
         elif group.role == "manager":
-            mail_vars["bccAddresses"] = emailing_vars.getAdminsMails(db)
+            mail_vars["bccAddresses"] = emailing_vars.getAdminsMails()
 
             hashtag_template = "#NewMembreshipManager"
             new_role_report = "new manager "
@@ -1256,15 +1203,17 @@ def send_new_membreship(session, auth, db, membershipId):
         else:
             return
 
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
 
         reports = emailing_tools.createMailReport(True, new_role_report + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_managers(session, auth, db, articleId, newStatus, response):
+def send_to_managers(articleId, newStatus):
+    session, auth, db, response = current.session, current.auth, current.db, current.response
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1280,7 +1229,7 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
         mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
 
         if article.user_id:
-            mail_vars["submitterPerson"] = common_small_html.mkUser(auth, db, article.user_id)  # submitter
+            mail_vars["submitterPerson"] = common_small_html.mkUser(article.user_id)  # submitter
         else:
             mail_vars["submitterPerson"] = "?"
 
@@ -1296,7 +1245,7 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
 
         elif newStatus.startswith("Pre-"):
             if recomm is not None:
-                mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id) or ""  # recommender
+                mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id) or ""  # recommender
             else:
                 mail_vars["recommenderPerson"] = "?"
             mail_vars["linkTarget"] = URL(c="manager", f="pending_articles", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
@@ -1307,7 +1256,7 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
         elif newStatus == "Under consideration":
             recomm = db((db.t_recommendations.article_id == articleId)).select(orderby=db.t_recommendations.id).last()
             if recomm is not None:
-                mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id) or ""  # recommender
+                mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id) or ""  # recommender
             else:
                 mail_vars["recommenderPerson"] = "?"
 
@@ -1338,21 +1287,22 @@ def send_to_managers(session, auth, db, articleId, newStatus, response):
             "#ManagersArticleStatusChanged",
         ]
         if hashtag_template in listCorrectHashtags(for_admins, article):
-            dest_emails = emailing_vars.getAdminsMails(db)
+            dest_emails = emailing_vars.getAdminsMails()
             dest_role = "admin"
         else:
-            dest_emails = emailing_vars.getManagersMails(db)
+            dest_emails = emailing_vars.getManagersMails()
             dest_role = "manager"
-        reports = merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, None, article.id, dest_emails, dest_role)
+        reports = merge_mails(hashtag_template, mail_vars, recomm_id, None, article.id, dest_emails, dest_role)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
-def merge_mails(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article_id, dest_emails, dest_role=None, sugg_recommender_buttons=None):
+def merge_mails(hashtag_template, mail_vars, recomm_id, recommendation, article_id, dest_emails, dest_role=None, sugg_recommender_buttons=None):
+    db, auth = current.db, current.auth
     email_destinations = ','.join(dest_emails)
     mail_vars["destAddress"] = email_destinations
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm_id, recommendation, article_id, sugg_recommender_buttons=sugg_recommender_buttons)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, recommendation, article_id, sugg_recommender_buttons=sugg_recommender_buttons)
     if dest_role:
         report = emailing_tools.createMailReport(True, dest_role + ' ' + (email_destinations or ''), [])
         return report
@@ -1363,7 +1313,9 @@ def listCorrectHashtags(hashtags, article):
 
 
 ######################################################################################################################################################################
-def send_to_thank_recommender_postprint(session, auth, db, recommId):
+def send_to_thank_recommender_postprint(recommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1385,20 +1337,22 @@ def send_to_thank_recommender_postprint(session, auth, db, recommId):
 
             recommender = db.auth_user[recomm.recommender_id]
             if recommender:
-                # recommender = common_small_html.mkUser(auth, db, recomm.recommender_id)
-                mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+                # recommender = common_small_html.mkUser(recomm.recommender_id)
+                mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
                 mail_vars["destAddress"] = recommender["email"]
 
                 hashtag_template = "#RecommenderThankForPostprint"
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_thank_recommender_preprint(session, auth, db, articleId):
+def send_to_thank_recommender_preprint(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1419,7 +1373,7 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
             if recomm:
                 recommender = db.auth_user[recomm.recommender_id]
                 if recommender:
-                    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommender.id)
+                    mail_vars["destPerson"] = common_small_html.mkUser(recommender.id)
                     mail_vars["destAddress"] = recommender["email"]
                     mail_vars["reviewDuration"] = default_review_duration.lower()
 
@@ -1430,15 +1384,17 @@ def send_to_thank_recommender_preprint(session, auth, db, articleId):
 
                         hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderThankForPreprint", article)
 
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_delete_one_corecommender(session, auth, db, contribId):
+def send_to_delete_one_corecommender(contribId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1458,23 +1414,25 @@ def send_to_delete_one_corecommender(session, auth, db, contribId):
                     mail_vars["articleAuthors"] = mkAuthors(article)
                     mail_vars["articlePrePost"] = "postprint" if article.already_published else "preprint"
                     mail_vars["linkTarget"] = URL(c="recommender", f="my_co_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-                    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, contrib.contributor_id)
+                    mail_vars["destPerson"] = common_small_html.mkUser(contrib.contributor_id)
                     mail_vars["destAddress"] = db.auth_user[contrib.contributor_id]["email"]
-                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
+                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
                     mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
-                    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+                    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
                     hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommenderRemovedFromArticle", article)
 
-                    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
                     reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_one_corecommender(session, auth, db, contribId):
+def send_to_one_corecommender(contribId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1490,29 +1448,31 @@ def send_to_one_corecommender(session, auth, db, contribId):
                     mail_vars["articleAuthors"] = mkAuthors(article)
                     mail_vars["articlePrePost"] = "postprint" if article.already_published else "preprint"
                     mail_vars["linkTarget"] = URL(c="recommender", f="my_co_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-                    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, contrib.contributor_id)
+                    mail_vars["destPerson"] = common_small_html.mkUser(contrib.contributor_id)
                     mail_vars["destAddress"] = db.auth_user[contrib.contributor_id]["email"]
-                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
+                    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
                     mail_vars["ethicsLink"] = mk_ethicsLink()
 
                     if article.status in ("Under consideration", "Pre-recommended", "Pre-recommended-private"):
                         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
-                        mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+                        mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
                         if article.already_published:
                             hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommenderAddedOnArticleAlreadyPublished", article)
                         else:
                             hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommenderAddedOnArticle", article)
 
-                        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
                         reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_corecommenders(session, auth, db, articleId, newStatus):
+def send_to_corecommenders(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1526,11 +1486,11 @@ def send_to_corecommenders(session, auth, db, articleId, newStatus):
         mail_vars["tOldStatus"] = current.T(article.status)
         mail_vars["tNewStatus"] = current.T(newStatus)
         mail_vars["linkTarget"] = URL(c="recommender", f="my_co_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-        mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(auth, db, recomm.recommender_id) or ""
+        mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
 
         contribs = db(db.t_press_reviews.recommendation_id == recomm.id).select()
         for contrib in contribs:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, contrib.contributor_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(contrib.contributor_id)
             dest = db.auth_user[contrib.contributor_id]
             if dest:
                 mail_vars["destAddress"] = dest["email"]
@@ -1550,15 +1510,17 @@ def send_to_corecommenders(session, auth, db, articleId, newStatus):
 
                 hashtag_template = emailing_tools.getCorrectHashtag("#CoRecommendersArticleStatusChanged", article)
 
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
             reports = emailing_tools.createMailReport(True, "contributor " + mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
+def send_decision_to_reviewers(articleId, newStatus):
+    session, auth, db = current.session, current.auth, current.db
+
     print("send_decision_to_reviewers")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -1570,8 +1532,8 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleStatus"] = current.T(newStatus)
             mail_vars["linkTarget"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-            mail_vars["myRefArticle"] = common_small_html.mkArticleCitation(auth, db, recomm)
-            mail_vars["myRefRecomm"] = common_small_html.mkRecommCitation(auth, db, recomm)
+            mail_vars["myRefArticle"] = common_small_html.mkArticleCitation(recomm)
+            mail_vars["myRefRecomm"] = common_small_html.mkRecommCitation(recomm)
 
             if newStatus == "Recommended":
                 reviewers = db(
@@ -1586,7 +1548,7 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
                 ).select(db.t_reviews.id, db.auth_user.ALL, distinct=db.auth_user.email)
 
             for rev in reviewers:
-                mail_vars["destPerson"] = common_small_html.mkUser(auth, db, rev.auth_user.id)
+                mail_vars["destPerson"] = common_small_html.mkUser(rev.auth_user.id)
                 mail_vars["destAddress"] = rev.auth_user.email
 
                 if newStatus == "Recommended":
@@ -1604,11 +1566,11 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
                 ] if db.auth_user[recomm.recommender_id] else []
                 mail_vars["ccAddresses"] = recommender_email + emailing_vars.get_co_recommenders_mails(recomm.id) \
 
-                emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+                emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
                 reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
@@ -1617,7 +1579,9 @@ def send_decision_to_reviewers(session, auth, db, articleId, newStatus):
 # The following two send_to are only ever called with pciRRactivated
 #
 ######################################################################################################################################################################
-def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
+def send_to_reviewers_preprint_submitted(articleId):
+    session, auth, db = current.session, current.auth, current.db
+    
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
 
@@ -1630,8 +1594,8 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleDoi"] = article.doi
 
-        mail_vars["sender"] = mkSender(auth, db, finalRecomm)
-        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, finalRecomm.recommender_id)
+        mail_vars["sender"] = mkSender(finalRecomm)
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(finalRecomm.recommender_id)
 
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
@@ -1644,30 +1608,33 @@ def send_to_reviewers_preprint_submitted(session, auth, db, articleId):
 
             # Set custom variables :
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
             mail_vars["linkTarget"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             # Insert mail in mail_queue :
             hashtag_template = emailing_tools.getCorrectHashtag("#ReviewerFullPreprint", article, force_scheduled=True)
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, finalRecomm.id, None, article.id)
+            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, finalRecomm.id, None, article.id)
 
             # Create report for session flash alerts :
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
             # Build reports :
-            emailing_tools.getFlashMessage(session, reports)
+            emailing_tools.getFlashMessage(reports)
 
 
-def mkSender(auth, db, recomm):
+def mkSender(recomm):
+    db, auth = current.db, current.auth
     if auth.user_id == recomm.recommender_id:
-        sender = common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+        sender = common_small_html.mkUser(recomm.recommender_id).flatten()
     else:
-        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(auth, db, recomm.recommender_id).flatten()
+        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(recomm.recommender_id).flatten()
 
     return sender
 
 ######################################################################################################################################################################
-def send_to_recommender_preprint_submitted(session, auth, db, articleId):
+def send_to_recommender_preprint_submitted(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
 
@@ -1686,22 +1653,24 @@ def send_to_recommender_preprint_submitted(session, auth, db, articleId):
 
         # Set custom variables :
         mail_vars["destAddress"] = db.auth_user[finalRecomm.recommender_id]["email"]
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, finalRecomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(finalRecomm.recommender_id)
         mail_vars["linkTarget"] = URL(c="default", f="index", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
         # Insert mail in mail_queue :
         hashtag_template = "#RecommenderPreprintSubmittedScheduledSubmission"
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, finalRecomm.id, None, article.id)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, finalRecomm.id, None, article.id)
 
         # Create report for session flash alerts :
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
         # Build reports :
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
-def send_to_recommender_preprint_validated(session, auth, db, articleId):
+def send_to_recommender_preprint_validated(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
 
@@ -1719,22 +1688,24 @@ def send_to_recommender_preprint_validated(session, auth, db, articleId):
             mail_vars.update(getPCiRRinvitationTexts(article))
         # Set custom variables :
         mail_vars["destAddress"] = db.auth_user[finalRecomm.recommender_id]["email"]
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, finalRecomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(finalRecomm.recommender_id)
         # Insert mail in mail_queue :
         hashtag_template = "#RecommenderPreprintValidatedScheduledSubmission"
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, finalRecomm.id, None, article.id)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, finalRecomm.id, None, article.id)
 
         # Create report for session flash alerts :
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
         # Build reports :
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 # Mail with templates
 ######################################################################################################################################################################
-def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False, new_stage=False):
+def send_reviewer_invitation(reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False, new_stage=False):
+    session, auth, db = current.session, current.auth, current.db
+
     reg_user_reminder_template = None
     new_user_reminder_template = None
 
@@ -1742,22 +1713,22 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
 
     review = Review.get_by_id(reviewId)
     if not review:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
 
     recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
 
     article = Article.get_by_id(recommendation.article_id)
     if not article:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
 
     reviewer = User.get_by_id(review.reviewer_id)
     if not reviewer:
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
         return
     
     sender: Optional[User] = None
@@ -1766,9 +1737,9 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     else:
         sender = cast(User, auth.user)
     
-    mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recommendation, reviewer.last_name)
+    mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recommendation, reviewer.last_name)
     mail_vars["LastName"] = reviewer.last_name
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
     mail_vars["destAddress"] = reviewer.email
     mail_vars["reviewDuration"] = (review.review_duration).lower()
     message = emailing_tools.replaceMailVars(message, mail_vars)
@@ -1795,7 +1766,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
             new_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
-        create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, hashtag_template=new_user_reminder_template, new_stage=new_stage)
+        create_reminder_for_reviewer_review_invitation_new_user(review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, hashtag_template=new_user_reminder_template, new_stage=new_stage)
 
     elif linkTarget:
         if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
@@ -1810,15 +1781,15 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
         if hashtag_template == "#DefaultReviewInvitationRegisteredUserReturningReviewerStage2":
             reg_user_reminder_template = emailing_tools.getCorrectHashtag("#ReminderReviewInvitationRegisteredUserReturningReviewer", article)
 
-        create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round, hashtag_template=reg_user_reminder_template, new_stage=new_stage)
+        create_reminder_for_reviewer_review_invitation_registered_user(review.id, replyto_addresses, message, reviewer_invitation_buttons=reviewer_invitation_buttons, new_round=new_round, hashtag_template=reg_user_reminder_template, new_stage=new_stage)
 
     subject_header = email_subject_header(recommendation.article_id)
     subject_without_appname = subject.replace("%s: " % subject_header, "")
     applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     authors_reply = None
     if new_round:
-        prev_recomm = common_tools.get_prev_recomm(db, recommendation)
-        authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
+        prev_recomm = common_tools.get_prev_recomm(recommendation)
+        authors_reply = emailing_parts.getAuthorsReplyHTML(prev_recomm.id)
 
     message = render(
         filename=MAIL_HTML_LAYOUT,
@@ -1827,7 +1798,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
             applogo=applogo,
             appname=mail_vars["appName"],
             content=XML(content),
-            footer=emailing_tools.mkFooter(db),
+            footer=emailing_tools.mkFooter(),
             reviewer_invitation_buttons=reviewer_invitation_buttons,
             authors_reply=authors_reply,
         ),
@@ -1839,7 +1810,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
     sender_name = None
     if not pciRRactivated and sender:
         sender_name = f'{sender.first_name} {sender.last_name}'
-    ccAddresses = exempt_addresses(db, mail_vars["ccAddresses"], hashtag_template)
+    ccAddresses = exempt_addresses(mail_vars["ccAddresses"], hashtag_template)
     db.mail_queue.insert(
         dest_mail_address=mail_vars["destAddress"],
         cc_mail_addresses=ccAddresses,
@@ -1859,7 +1830,7 @@ def send_reviewer_invitation(session, auth, db, reviewId, replyto_addresses, cc_
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, review_duration: str, article: Article):
@@ -1910,7 +1881,9 @@ def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, revi
     
 
 ######################################################################################################################################################################
-def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggested_reviewers_text):
+def send_to_recommender_reviewers_suggestions(review, suggested_reviewers_text):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1919,8 +1892,8 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
         article = db.t_articles[recomm.article_id]
         if article:
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
-            reviewerPerson = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
+            reviewerPerson = common_small_html.mkUserWithMail(review.reviewer_id)
             mail_vars["reviewerPerson"] = reviewerPerson
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["linkTarget"] = URL(
@@ -1938,34 +1911,38 @@ def send_to_recommender_reviewers_suggestions(session, auth, db, review, suggest
                 hashtag_template = "#RecommenderSuggestedReviewersAccepted"
             else:
                 hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderSuggestedReviewers", article)
-            emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
     
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
 ######################################################################################################################################################################
-def send_change_mail(session: Session, auth: Auth, db: DAL, user_id: int, dest_mail: str, recover_email_key: str):
-    mail = emailing_tools.getMailer(auth)
+def send_change_mail(user_id: int, dest_mail: str, recover_email_key: str):
+    auth, session = current.auth, current.session
+
+    mail = emailing_tools.getMailer()
     mail_vars = emailing_tools.getMailCommonVars()
 
     mail_resu = False
     reports = []
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(user_id)
     mail_vars["destAddress"] = dest_mail
     mail_vars["verifyMailUrl"] = URL(c="default", f="confirm_new_address", vars=dict(recover_email_key=recover_email_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
     hashtag_template = "#UserChangeMail"
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destAddress"], reports)
 
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
-def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
+def send_reviewer_generic_mail(reviewer_email, recomm, form):
+    session, auth, db = current.session, current.auth, current.db
+
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.cc)
     cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
 
@@ -1974,7 +1951,7 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
 
     hashtag_template = "#ReviewerGenericMail"
     mail_content = mk_mail(form.subject, form.message)
-    ccAddresses = exempt_addresses(db, cc_addresses, hashtag_template)
+    ccAddresses = exempt_addresses(cc_addresses, hashtag_template)
 
     db.mail_queue.insert(
         user_id             = auth.user_id,
@@ -1990,10 +1967,11 @@ def send_reviewer_generic_mail(session, auth, db, reviewer_email, recomm, form):
     )
 
     reports = emailing_tools.createMailReport(True, reviewer_email, reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
-def send_submitter_generic_mail(session, auth, db, author_email, articleId, form, mail_template):
+def send_submitter_generic_mail(author_email, articleId, form, mail_template):
+    db, auth, session = current.db, current.auth, current.session
 
 
     cc_addresses = emailing_tools.list_addresses(form.cc)
@@ -2002,7 +1980,7 @@ def send_submitter_generic_mail(session, auth, db, author_email, articleId, form
     form.message
 
     mail_content = mk_mail(form.subject, form.message)
-    ccAddresses = exempt_addresses(db, cc_addresses, mail_template)
+    ccAddresses = exempt_addresses(cc_addresses, mail_template)
 
     db.mail_queue.insert(
         user_id             = auth.user_id,
@@ -2017,7 +1995,7 @@ def send_submitter_generic_mail(session, auth, db, author_email, articleId, form
     )
 
     reports = emailing_tools.createMailReport(True, author_email, reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 def mk_mail(subject, message, resend=False):
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2038,7 +2016,9 @@ def mk_mail(subject, message, resend=False):
         )
     )
 ######################################################################################################################################################################
-def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId=None, hashtag=None):
+def resend_mail(form, reviewId=None, recommId=None, articleId=None, hashtag=None):
+    session, auth, db = current.session, current.auth, current.db
+
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
     cc_addresses = emailing_tools.list_addresses(clean_cc_addresses)
     clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(form.vars.replyto)
@@ -2052,35 +2032,37 @@ def resend_mail(session, auth, db, form, reviewId=None, recommId=None, articleId
     mail_vars["replytoAddresses"] = replyto_addresses
 
     if recommId != 'None' and reviewId != 'None' and articleId == 'None':
-        emailing_tools.insertMailInQueue(auth, db, hashtag, mail_vars, recommendation_id=recommId,
+        emailing_tools.insertMailInQueue(hashtag, mail_vars, recommendation_id=recommId,
                                          review=reviewId, alternative_subject=form.vars.subject,
                                          alternative_content=mail_content)
     elif recommId != 'None' and reviewId != 'None' and articleId != 'None':
-        emailing_tools.insertMailInQueue(auth, db, hashtag, mail_vars, recommendation_id=recommId,
+        emailing_tools.insertMailInQueue(hashtag, mail_vars, recommendation_id=recommId,
                                          article_id=articleId, review=reviewId, alternative_subject=form.vars.subject,
                                          alternative_content=mail_content)
     elif articleId != 'None':
-        emailing_tools.insertMailInQueue(auth, db, hashtag, mail_vars,
+        emailing_tools.insertMailInQueue(hashtag, mail_vars,
                                          article_id=articleId, alternative_subject=form.vars.subject,
                                          alternative_content=mail_content)
     else:
-        emailing_tools.insertMailInQueue(auth, db, hashtag, mail_vars,
+        emailing_tools.insertMailInQueue(hashtag, mail_vars,
                                          alternative_subject=form.vars.subject,
                                          alternative_content=mail_content)
 
     reports = emailing_tools.createMailReport(True, dest_mail_address, reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 ######################################################################################################################################################################
 ## News letter
 ######################################################################################################################################################################
-def send_newsletter_mail(session, auth, db, userId, newsletterType):
+def send_newsletter_mail(userId: int, newsletterType: str):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     user = db.auth_user[userId]
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, userId)
+    mail_vars["destPerson"] = common_small_html.mkUser(userId)
     mail_vars["destAddress"] = user["email"]
 
     if newsletterType in ["Never", None]:
@@ -2115,7 +2097,7 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
         for article in new_recommended_articles:
             i += 1
             if i <= 5:
-                newRecommendations.append(newsletter.makeArticleWithRecommRow(auth, db, article))
+                newRecommendations.append(newsletter.makeArticleWithRecommRow(article))
 
         # New preprint searching for reviewers
         new_searching_for_reviewers_preprint = db(
@@ -2162,8 +2144,6 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
 
     if (newRecommendationsCount > 0) or (newPreprintSearchingForReviewersCount > 0) or (newPreprintRequiringRecommenderCount > 0):
         emailing_tools.insertNewsLetterMailInQueue(
-            auth,
-            db,
             mail_vars,
             hashtag_template,
             newRecommendations=newRecommendations,
@@ -2176,7 +2156,9 @@ def send_newsletter_mail(session, auth, db, userId, newsletterType):
 
 
 ######################################################################################################################################################################
-def delete_newsletter_mail(session, auth, db, userId):
+def delete_newsletter_mail(userId: int):
+    session, auth, db = current.session, current.auth, current.db
+
     user = db.auth_user[userId]
 
     if user is not None:
@@ -2195,7 +2177,9 @@ def delete_newsletter_mail(session, auth, db, userId):
 ######################################################################################################################################################################
 ## Reminders
 ######################################################################################################################################################################
-def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db, articleId):
+def create_reminder_for_submitter_suggested_recommender_needed(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2203,13 +2187,13 @@ def create_reminder_for_submitter_suggested_recommender_needed(session, auth, db
 
     if article and article.user_id is not None and len(sugg_recommenders) == 0:
 
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
         mail_vars["ethicsLink"] = mk_ethicsLink()
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterSuggestedRecommenderNeeded", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId)
 
 
 def mk_ethicsLink():
@@ -2218,38 +2202,44 @@ def mk_ethicsLink():
 
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_new_suggested_recommender_needed(session, auth, db, articleId):
+def create_reminder_for_submitter_new_suggested_recommender_needed(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
     if article and article.user_id is not None:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterNewSuggestedRecommenderNeeded", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_cancel_submission(session, auth, db, articleId):
+def create_reminder_for_submitter_cancel_submission(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
     if article and article.user_id is not None:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSubmitterCancelSubmission", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_revised_version_warning(session, auth, db, articleId):
+def create_reminder_for_submitter_revised_version_warning(articleId):
+    session, auth, db = current.session, current.auth, current.db
     _create_reminder_for_submitter_revised_version(articleId, "#ReminderSubmitterRevisedVersionWarning")
 
-def create_reminder_for_submitter_revised_version_needed(session, auth, db, articleId):
+def create_reminder_for_submitter_revised_version_needed(articleId):
+    session, auth, db = current.session, current.auth, current.db
     _create_reminder_for_submitter_revised_version(articleId, "#ReminderSubmitterRevisedVersionNeeded")
 
 def _create_reminder_for_submitter_revised_version(articleId, email_template):
@@ -2260,17 +2250,17 @@ def _create_reminder_for_submitter_revised_version(articleId, email_template):
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
 
     if article and recomm:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
         mail_vars["ccAddresses"] = db.auth_user[recomm.recommender_id]["email"]
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
 
         hashtag_template = emailing_tools.getCorrectHashtag(email_template, article)
         if article.coar_notification_id:
             hashtag_template += "COAR" # i.e. #ReminderSubmitterRevisedVersionWarningCOAR / NeededCOAR
             mail_vars["message"] = get_original_submitter_awaiting_submission_email(article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, articleId)
 
 
 def get_original_submitter_awaiting_submission_email(article):
@@ -2281,22 +2271,26 @@ def get_original_submitter_awaiting_submission_email(article):
 
 
 ######################################################################################################################################################################
-def create_reminders_for_submitter_scheduled_submission(session, auth, db, article):
+def create_reminders_for_submitter_scheduled_submission(article):
+    session, auth, db = current.session, current.auth, current.db
+
     articleId = article.id
 
-    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
-    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionDue", articleId)
-    delete_reminder_for_submitter(db, "#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+    delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+    delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionDue", articleId)
+    delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionOverDue", articleId)
 
     if article.t_report_survey.select()[0].q1 == "COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW":
         return # do not schedule reminders when report is already submitted
 
-    create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId)
-    create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId)
-    create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId)
+    create_reminder_for_submitter_scheduled_submission_soon_due(articleId)
+    create_reminder_for_submitter_scheduled_submission_due(articleId)
+    create_reminder_for_submitter_scheduled_submission_over_due(articleId)
 
 
-def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, db, articleId):
+def create_reminder_for_submitter_scheduled_submission_soon_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
 
@@ -2306,11 +2300,11 @@ def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, d
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
     if recomm:
         recommId = recomm.id
-        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id)
 
     if article:
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
         if pciRRactivated:
@@ -2320,10 +2314,12 @@ def create_reminder_for_submitter_scheduled_submission_soon_due(session, auth, d
         hashtag_template = "#ReminderSubmitterScheduledSubmissionSoonDue"
         scheduled_submission_date = getScheduledSubmissionDate(article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date - datetime.timedelta(days=14)))
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date - datetime.timedelta(days=14)))
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, articleId):
+def create_reminder_for_submitter_scheduled_submission_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
 
@@ -2333,11 +2329,11 @@ def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, ar
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
     if recomm:
         recommId = recomm.id
-        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id)
 
     if article:
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
         if pciRRactivated:
@@ -2347,10 +2343,12 @@ def create_reminder_for_submitter_scheduled_submission_due(session, auth, db, ar
         hashtag_template = "#ReminderSubmitterScheduledSubmissionDue"
         scheduled_submission_date = getScheduledSubmissionDate(article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=scheduled_submission_date)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=scheduled_submission_date)
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_scheduled_submission_over_due(session, auth, db, articleId):
+def create_reminder_for_submitter_scheduled_submission_over_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["linkTarget"] = mk_submitter_my_articles_url(mail_vars)
 
@@ -2360,11 +2358,11 @@ def create_reminder_for_submitter_scheduled_submission_over_due(session, auth, d
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
     if recomm:
         recommId = recomm.id
-        mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id)
 
     if article:
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
         mail_vars["destAddress"] = db.auth_user[article.user_id]["email"]
 
         if pciRRactivated:
@@ -2374,10 +2372,12 @@ def create_reminder_for_submitter_scheduled_submission_over_due(session, auth, d
         hashtag_template = "#ReminderSubmitterScheduledSubmissionOverDue"
         scheduled_submission_date = getScheduledSubmissionDate(article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date + datetime.timedelta(days=1)))
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date + datetime.timedelta(days=1)))
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_validated_scheduled_submission(session, auth, db, articleId):
+def create_reminder_for_recommender_validated_scheduled_submission(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
@@ -2386,7 +2386,7 @@ def create_reminder_for_recommender_validated_scheduled_submission(session, auth
         mail_vars["articleAuthors"] = mkAuthors(article)
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["ccAddresses"] = mail_vars["appContactMail"] # contacts.managers
 
         if pciRRactivated:
@@ -2397,10 +2397,12 @@ def create_reminder_for_recommender_validated_scheduled_submission(session, auth
         # do not use getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderRecommenderPreprintValidatedScheduledSubmission"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period - datetime.timedelta(days=1)))
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period - datetime.timedelta(days=1)))
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_validated_scheduled_submission_late(session, auth, db, articleId):
+def create_reminder_for_recommender_validated_scheduled_submission_late(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
@@ -2409,7 +2411,7 @@ def create_reminder_for_recommender_validated_scheduled_submission_late(session,
         mail_vars["articleAuthors"] = mkAuthors(article)
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["ccAddresses"] = mail_vars["appContactMail"] # contacts.managers
 
         if pciRRactivated:
@@ -2420,7 +2422,7 @@ def create_reminder_for_recommender_validated_scheduled_submission_late(session,
         # do not use getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderRecommenderPreprintValidatedScheduledSubmissionLate"
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period + datetime.timedelta(days=1)))
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period + datetime.timedelta(days=1)))
 
 
 def mk_submitter_my_articles_url(mail_vars):
@@ -2429,7 +2431,8 @@ def mk_submitter_my_articles_url(mail_vars):
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_submitter(db, hashtag_template, articleId):
+def delete_reminder_for_submitter(hashtag_template, articleId):
+    db = current.db
     article = db.t_articles[articleId]
     if article and article.user_id is not None:
         submitter_mail = db.auth_user[article.user_id]["email"]
@@ -2450,7 +2453,9 @@ def delete_reminder_for_submitter(db, hashtag_template, articleId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_suggested_recommenders_invitation(session, auth, db, articleId):
+def create_reminder_for_suggested_recommenders_invitation(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2467,7 +2472,7 @@ def create_reminder_for_suggested_recommenders_invitation(session, auth, db, art
         for sugg_recommender in suggested_recommenders:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSuggestedRecommenderInvitation", article)
 
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, sugg_recommender["auth_user.id"])
+            mail_vars["destPerson"] = common_small_html.mkUser(sugg_recommender["auth_user.id"])
             mail_vars["destAddress"] = db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"]
 
             mail_vars["articleDoi"] = article.doi
@@ -2479,11 +2484,13 @@ def create_reminder_for_suggested_recommenders_invitation(session, auth, db, art
             mail_vars["helpUrl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_suggested_recommender_invitation(session, auth, db, articleId, suggRecommId):
+def create_reminder_for_suggested_recommender_invitation(articleId, suggRecommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2494,7 +2501,7 @@ def create_reminder_for_suggested_recommender_invitation(session, auth, db, arti
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderSuggestedRecommenderInvitation", article)
 
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, suggRecommId)
+        mail_vars["destPerson"] = common_small_html.mkUser(suggRecommId)
         mail_vars["destAddress"] = suggested_recommender.email
 
         mail_vars["articleDoi"] = article.doi
@@ -2507,11 +2514,12 @@ def create_reminder_for_suggested_recommender_invitation(session, auth, db, arti
         mail_vars["helpUrl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
         sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_suggested_recommenders(db, hashtag_template, articleId):
+def delete_reminder_for_suggested_recommenders(hashtag_template, articleId):
+    db = current.db
     article = db.t_articles[articleId]
     if article:
         suggested_recommenders = db(
@@ -2537,7 +2545,8 @@ def delete_reminder_for_suggested_recommenders(db, hashtag_template, articleId):
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_one_suggested_recommender(db, hashtag_template, articleId, suggRecommId):
+def delete_reminder_for_one_suggested_recommender(hashtag_template, articleId, suggRecommId):
+    db = current.db
     article = db.t_articles[articleId]
     if article:
         db(
@@ -2562,7 +2571,9 @@ def reviewLink(**kwargs):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
+def create_reminder_for_reviewer_review_invitation_new_user(reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
+    session, auth, db = current.session, current.auth, current.db
+
     review = Review.get_by_id(reviewId)
     recomm = Recommendation.get_by_id(review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
@@ -2575,14 +2586,14 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         else:
             sender = cast(User, auth.user)
 
-        mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recomm, reviewer.last_name)
+        mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recomm, reviewer.last_name)
         mail_vars["message"] = message
 
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
         
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
         
         mail_vars["reviewDuration"] = (review.review_duration).lower()
 
@@ -2612,11 +2623,13 @@ def create_reminder_for_reviewer_review_invitation_new_user(session, auth, db, r
         if not pciRRactivated and sender:
             sender_name = f'{sender.first_name} {sender.last_name}'
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_registered_user(session, auth, db, reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
+def create_reminder_for_reviewer_review_invitation_registered_user(reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
+    session, auth, db = current.session, current.auth, current.db
+
     review = Review.get_by_id(reviewId)
     recomm = Recommendation.get_by_id(review.recommendation_id)
     article = Article.get_by_id(recomm.article_id)
@@ -2629,20 +2642,20 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         else:
             sender = cast(User, auth.user)
 
-        mail_vars = emailing_tools.getMailForReviewerCommonVars(auth, db, sender, article, recomm, reviewer.last_name)
+        mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recomm, reviewer.last_name)
         mail_vars["message"] = message
 
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
-        mail_vars["sender"] = mkSender(auth, db, recomm)
+        mail_vars["sender"] = mkSender(recomm)
         
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["reviewDuration"] = (review.review_duration).lower()
         mail_vars["replytoAddresses"] = replyto_addresses
 
-        _recomm = common_tools.get_prev_recomm(db, recomm) if new_round else recomm
-        r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(auth, db, _recomm.id)
+        _recomm = common_tools.get_prev_recomm(recomm) if new_round else recomm
+        r2r_url, trackchanges_url = emailing_parts.getAuthorsReplyLinks(_recomm.id)
 
         r2r_url = str(r2r_url) if r2r_url else "(no author's reply)"
         trackchanges_url = str(trackchanges_url) if trackchanges_url else "(no tracking)"
@@ -2672,18 +2685,20 @@ def create_reminder_for_reviewer_review_invitation_registered_user(session, auth
         authors_reply = None
         if new_round:
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerInvitationNewRoundRegisteredUser", article)
-            prev_recomm = common_tools.get_prev_recomm(db, recomm)
-            authors_reply = emailing_parts.getAuthorsReplyHTML(auth, db, prev_recomm.id)
+            prev_recomm = common_tools.get_prev_recomm(recomm)
+            authors_reply = emailing_parts.getAuthorsReplyHTML(prev_recomm.id)
 
         sender_name = None
         if not pciRRactivated and sender:
             sender_name = f'{sender.first_name} {sender.last_name}'
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
+def create_reminder_for_reviewer_review_soon_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+    
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
@@ -2695,7 +2710,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
 
             mail_vars["delay"] = review.review_duration.lower()
@@ -2704,7 +2719,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
             mail_vars["articleAuthors"] = mkAuthors(article)
             mail_vars["myReviewsLink"] = reviewLink()
             mail_vars["reviewDueDate"] = Review.get_due_date(review).strftime(DEFAULT_DATE_FORMAT)
-            mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
             mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
@@ -2718,7 +2733,7 @@ def create_reminder_for_reviewer_review_soon_due(session, auth, db, reviewId):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewSoonDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
+            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
 
 
 def isScheduledTrack(art):
@@ -2735,7 +2750,9 @@ def getScheduledReviewDueDate(article):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
+def create_reminder_for_reviewer_review_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
@@ -2747,14 +2764,14 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
             
             mail_vars["delay"] = review.review_duration.lower()
             mail_vars["myReviewsLink"] = reviewLink()
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
-            mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
             mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
@@ -2767,11 +2784,13 @@ def create_reminder_for_reviewer_review_due(session, auth, db, reviewId):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
+            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
+def create_reminder_for_reviewer_review_over_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
@@ -2783,14 +2802,14 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
             print("Nope")
         else:
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
 
             mail_vars["delay"] = review.review_duration.lower()
             mail_vars["myReviewsLink"] = reviewLink()
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = mkAuthors(article)
-            mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
             mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
@@ -2804,11 +2823,13 @@ def create_reminder_for_reviewer_review_over_due(session, auth, db, reviewId):
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderReviewerReviewOverDue", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
+            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db, review):
+def create_reminder_for_reviewer_scheduled_review_coming_soon(review):
+    session, auth, db = current.session, current.auth, current.db
+
     recomm = db.t_recommendations[review.recommendation_id]
     article = db.t_articles[recomm.article_id]
     reviewer = db.auth_user[review.reviewer_id]
@@ -2819,11 +2840,11 @@ def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db,
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
     mail_vars.update({
-        "destPerson": common_small_html.mkUser(auth, db, reviewer.id),
+        "destPerson": common_small_html.mkUser(reviewer.id),
         "destAddress": reviewer.email,
         "articleTitle": md_to_html(article.title),
         "articleAuthors": mkAuthors(article),
-        "recommenderPerson": mk_recommender(auth, db, article),
+        "recommenderPerson": mk_recommender(article),
         "reviewDueDate": mail_vars["scheduledReviewDueDate"],
         "myReviewsLink": reviewLink(),
     })
@@ -2831,11 +2852,12 @@ def create_reminder_for_reviewer_scheduled_review_coming_soon(session, auth, db,
     sending_date = getScheduledSubmissionDate(article) # = LatestReviewStartDate minus 1 week
     hashtag_template = "#ReminderScheduledReviewComingSoon"
 
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id, review.id, sending_date_forced=sending_date)
+    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, review.id, sending_date_forced=sending_date)
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_reviewer(db, hashtag_template, reviewId):
+def delete_reminder_for_reviewer(hashtag_template, reviewId):
+    db = current.db
     review = db.t_reviews[reviewId]
     recomm = db.t_recommendations[review.recommendation_id]
     reviewer = db.auth_user[review.reviewer_id]
@@ -2856,7 +2878,9 @@ def delete_reminder_for_reviewer(db, hashtag_template, reviewId):
     return nb_deleted
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleId):
+def create_reminder_for_recommender_reviewers_needed(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -2864,12 +2888,12 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
     recommCount = db((db.t_recommendations.article_id == article.id)).count()
 
     if recomm and article and recommCount == 1:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
         mail_vars["articleAuthors"] = article.authors
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
 
         mail_vars["reviewDuration"] = default_review_duration.lower()
     else:
@@ -2884,11 +2908,13 @@ def create_reminder_for_recommender_reviewers_needed(session, auth, db, articleI
 
     hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderReviewersNeeded", article)
 
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_new_reviewers_needed(session, auth, db, recommId):
+def create_reminder_for_recommender_new_reviewers_needed(recommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     recomm = db.t_recommendations[recommId]
@@ -2901,20 +2927,22 @@ def create_reminder_for_recommender_new_reviewers_needed(session, auth, db, reco
         ).count()
         if count_reviews_under_consideration < 2:
 
-            mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
             mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = article.authors
-            mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+            mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderNewReviewersNeeded", article)
 
-            emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewId):
+def create_reminder_for_recommender_decision_soon_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2928,7 +2956,7 @@ def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewI
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
     if recomm and count_reviews_completed >= 2 and count_reviews_under_consideration == 0 and article:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
@@ -2936,11 +2964,13 @@ def create_reminder_for_recommender_decision_soon_due(session, auth, db, reviewI
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionSoonDue", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
+def create_reminder_for_recommender_decision_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2954,7 +2984,7 @@ def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
         count_reviews_under_consideration = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Awaiting review")).count()
 
     if recomm and count_reviews_completed >= 2 and count_reviews_under_consideration == 0 and article:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
@@ -2962,11 +2992,13 @@ def create_reminder_for_recommender_decision_due(session, auth, db, reviewId):
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionDue", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewId):
+def create_reminder_for_recommender_decision_over_due(reviewId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = db.t_reviews[reviewId]
@@ -2982,83 +3014,90 @@ def create_reminder_for_recommender_decision_over_due(session, auth, db, reviewI
     if recomm and count_reviews_completed >= 2 and count_reviews_under_consideration == 0 and article:
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
         mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderDecisionOverDue", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_soon_due(session, auth, db, articleId):
+def create_reminder_for_recommender_revised_decision_soon_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
 
     if recomm and article:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
 
         mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderRevisedDecisionSoonDue", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_due(session, auth, db, articleId):
+def create_reminder_for_recommender_revised_decision_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
 
     if recomm and article:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
 
         mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderRevisedDecisionDue", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_over_due(session, auth, db, articleId):
+def create_reminder_for_recommender_revised_decision_over_due(articleId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
 
     if recomm and article:
-        mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
-        mail_vars["recommenderName"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
 
         mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(recomm.id)
 
         hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderRevisedDecisionOverDue", article)
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_recommender(db, hashtag_template, recommendationId, force_delete=False, review: Optional[Review]=None):
+def delete_reminder_for_recommender(hashtag_template, recommendationId, force_delete=False, review: Optional[Review]=None):
+    db = current.db
     recomm = db.t_recommendations[recommendationId]
 
     if recomm:
@@ -3131,7 +3170,8 @@ def delete_reminder_for_recommender(db, hashtag_template, recommendationId, forc
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_recommender_from_article_id(db, hashtag_template, articleId):
+def delete_reminder_for_recommender_from_article_id(hashtag_template, articleId):
+    db = current.db
     article = db.t_articles[articleId]
     recomm = db((db.t_recommendations.article_id == article.id)).select().last()
 
@@ -3147,14 +3187,16 @@ def delete_reminder_for_recommender_from_article_id(db, hashtag_template, articl
 
 
 ######################################################################################################################################################################
-def delete_all_reminders_from_article_id(db, articleId):
+def delete_all_reminders_from_article_id(articleId):
+    db = current.db
     article = db.t_articles[articleId]
     if article:
         db((db.mail_queue.article_id == articleId) & (db.mail_queue.mail_template_hashtag.startswith("#Reminder"))).delete()
 
 
 #####################################################################################################################################################################
-def delete_all_reminders_from_recommendation_id(db, recommendationId):
+def delete_all_reminders_from_recommendation_id(recommendationId):
+    db = current.db
     recomm = db.t_recommendations[recommendationId]
     if recomm:
         db((db.mail_queue.recommendation_id == recommendationId) & (db.mail_queue.mail_template_hashtag.startswith("#Reminder"))).delete()
@@ -3167,16 +3209,16 @@ def send_reset_password(user, link):
     mail_vars["linkTarget"] = link
 
     hashtag_template = "#UserResetPassword"
-    emailing_tools.insertMailInQueue(current.auth, current.db, hashtag_template, mail_vars)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
 
 ######################################################################################################################################################################
-def send_to_coar_requester(session: Session, auth: Auth, db, user: User, article: Article):
+def send_to_coar_requester(user, article):
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
+    mail_vars["destPerson"] = common_small_html.mkUser(user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
     mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=True)
     mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=True)
     mail_vars["completeSubmissionLink"] = URL("coar", "complete_submission", scheme=True,
@@ -3189,20 +3231,22 @@ def send_to_coar_requester(session: Session, auth: Auth, db, user: User, article
 
     hashtag_template = "#UserCompleteSubmissionCOAR"
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, article_id=article.id)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, article_id=article.id)
     create_reminder_user_complete_submission(article)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
-def send_to_coar_resubmitter(session, auth, db, user, article):
+def send_to_coar_resubmitter(user, article):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
+    mail_vars["destPerson"] = common_small_html.mkUser(user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
     mail_vars["linkTarget"] = URL(
         c="user", f="edit_my_article",
         vars=dict(articleId=article.id, key=user.reset_password_key),
@@ -3211,19 +3255,19 @@ def send_to_coar_resubmitter(session, auth, db, user, article):
 
     hashtag_template = "#UserCompleteResubmissionCOAR"
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, article_id=article.id)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, article_id=article.id)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def create_reminder_user_complete_submission(article):
     db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
     mail_vars["destAddress"] = User.get_by_id(article.user_id).email
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["message"] = MailQueue.get_mail_content(
@@ -3231,11 +3275,12 @@ def create_reminder_user_complete_submission(article):
 
     hashtag_template = "#ReminderUserCompleteSubmissionCOAR"
 
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, article.id)
 
 
 ######################################################################################################################################################################
-def check_mail_queue(db, hashtag, reviewer_mail, recomm_id):
+def check_mail_queue(hashtag, reviewer_mail, recomm_id):
+    db = current.db
     hashtag = hashtag + "%"
     return db(
             db.mail_queue.mail_template_hashtag.like(hashtag)
@@ -3244,7 +3289,8 @@ def check_mail_queue(db, hashtag, reviewer_mail, recomm_id):
     ).count() > 0
 
 ######################################################################################################################################################################
-def create_cancellation_for_reviewer(session, auth, db, reviewId):
+def create_cancellation_for_reviewer(reviewId):
+    session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -3257,11 +3303,11 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     if not reviewer: # dest reviewer might have been deleted
         return
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, reviewer.id).flatten()
+    mail_vars["destPerson"] = common_small_html.mkUser(reviewer.id).flatten()
     mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
     mail_vars["destAddress"] = reviewer.email
-    mail_vars["sender"] = mkSender(auth, db, recomm)
+    mail_vars["sender"] = mkSender(recomm)
     mail_vars["art_doi"] = common_small_html.mkLinkDOI(recomm.doi or art.doi)
     mail_vars["art_title"] = md_to_html(art.title)
     mail_vars["art_authors"] = mkAuthors(art)
@@ -3278,32 +3324,36 @@ def create_cancellation_for_reviewer(session, auth, db, reviewId):
     hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewCancellation", art)
     if review.review_state == "Awaiting review" and isScheduledTrack(art) and art.report_stage == "STAGE 1":
         hashtag_template = "#DefaultReviewAlreadyAcceptedCancellationStage1ScheduledSubmission"
-    if not check_mail_queue(db, hashtag_template, reviewer.email, review.recommendation_id):
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+    if not check_mail_queue(hashtag_template, reviewer.email, review.recommendation_id):
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
-        emailing_tools.getFlashMessage(session, reports)
+        emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
-def create_reminder_recommender_could_make_decision(session, auth, db, recommId):
+def create_reminder_recommender_could_make_decision(recommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     recomm = db.t_recommendations[recommId]
     article = db.t_articles[recomm.article_id]
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recomm.recommender_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
     mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
 
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleAuthors"] = mkAuthors(article)
 
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
     hashtag_template = "#ReminderRecommender2ReviewsReceivedCouldMakeDecision"
 
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ################################################################################################
-def alert_managers_recommender_action_needed(session, auth, db, hashtag_template, recommId):
+def alert_managers_recommender_action_needed(hashtag_template, recommId):
+    session, auth, db = current.session, current.auth, current.db
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     recomm = db.t_recommendations[recommId]
@@ -3312,20 +3362,22 @@ def alert_managers_recommender_action_needed(session, auth, db, hashtag_template
     if recomm and article:
         mail_vars["destAddress"] = mail_vars["appContactMail"]
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["recommenderPerson"] = mk_recommender(auth, db, article)
-        mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+        mail_vars["recommenderPerson"] = mk_recommender(article)
+        mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
-        emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ########################################################
-def delete_reminder_for_managers(db, hashtag_template, recommId):
+def delete_reminder_for_managers(hashtag_template, recommId):
+    db = current.db
     recomm = db.t_recommendations[recommId]
 
     for hashtag in hashtag_template:
         if  recomm:
             db((db.mail_queue.mail_template_hashtag == hashtag) & (db.mail_queue.recommendation_id == recomm.id)).delete()
 
-def send_warning_to_submitters(session, auth, db, article_id):
+def send_warning_to_submitters(article_id):
+    db = current.db
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[article_id]
 
@@ -3336,16 +3388,16 @@ def send_warning_to_submitters(session, auth, db, article_id):
 
         hashtag_template = "#SubmitterPendingSurveyWarning"
 
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, None, None, article.id)
 
 ######################################################################################################################################################################
-def send_set_not_considered_mail(session: Session, auth: Auth, db: DAL, subject: str, message: str, article: Article, author: User):
-    form = replace_mail_vars_set_not_considered_mail(auth, db, article, subject, message)
-    send_submitter_generic_mail(session, auth, db, author.email, article.id, form, "#SubmitterNotConsideredSubmission")
+def send_set_not_considered_mail(subject: str, message: str, article: Article, author: User):
+    form = replace_mail_vars_set_not_considered_mail(article, subject, message)
+    send_submitter_generic_mail(author.email, article.id, form, "#SubmitterNotConsideredSubmission")
 
 ########################################################
 
-def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: DAL, review: Review):
+def send_conditional_acceptation_review_mail(review: Review):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -3368,20 +3420,20 @@ def send_conditional_acceptation_review_mail(session: Session, auth: Auth, db: D
     mail_vars["linkTarget"] = URL(
         c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
     )
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(recommendation.recommender_id)
     mail_vars["destAddress"] = recommender.email
-    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
-    mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(review.reviewer_id)
+    mail_vars["recommenderPerson"] = common_small_html.mkUser(recommendation.recommender_id)
 
     hashtag_template = "#ConditionalRecommenderAcceptationReview"
 
     buttons = conditional_acceptation_review_mail_button(review.id, mail_vars)
-    conditional_recommender_acceptation_review_mail_id = emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id, sugg_recommender_buttons=buttons)
+    conditional_recommender_acceptation_review_mail_id = emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, article_id=article.id, sugg_recommender_buttons=buttons)
 
-    create_reminder_for_conditional_recommender_acceptation_review(auth, db, review, article, recommendation, recommender, buttons, conditional_recommender_acceptation_review_mail_id)
+    create_reminder_for_conditional_recommender_acceptation_review(review, article, recommendation, recommender, buttons, conditional_recommender_acceptation_review_mail_id)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def conditional_acceptation_review_mail_button(review_id: int, mail_vars: Dict[str, Any]):
@@ -3420,7 +3472,7 @@ def conditional_acceptation_review_mail_button(review_id: int, mail_vars: Dict[s
 
 ########################################################
 
-def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, accept: bool, review: Review):
+def send_decision_new_delay_review_mail(accept: bool, review: Review):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -3441,10 +3493,10 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
     mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
     mail_vars["destAddress"] = reviewer.email
-    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
-    mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(review.reviewer_id)
+    mail_vars["recommenderPerson"] = common_small_html.mkUser(recommendation.recommender_id)
     mail_vars["reviewDuration"] = review.review_duration.lower() if review.review_duration else ''
     mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(review))
     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
@@ -3454,13 +3506,13 @@ def send_decision_new_delay_review_mail(session: Session, auth: Auth, db: DAL, a
     else:
         hashtag_template = "#RecommenderDeclineReviewNewDelay"
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 ########################################################
 
-def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, db: DAL, review: Review, article: Article, recommendation: Recommendation, recommender: User, buttons: Any, conditional_recommender_acceptation_review_mail_id: int):
+def create_reminder_for_conditional_recommender_acceptation_review(review: Review, article: Article, recommendation: Recommendation, recommender: User, buttons: Any, conditional_recommender_acceptation_review_mail_id: int):
     if not review or not recommendation or not article or not recommender or not buttons:
         return None
 
@@ -3472,10 +3524,10 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
     mail_vars["linkTarget"] = URL(
         c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
     )
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(recommendation.recommender_id)
     mail_vars["destAddress"] = recommender.email
-    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(auth, db, review.reviewer_id)
-    mail_vars["recommenderPerson"] = common_small_html.mkUser(auth, db, recommendation.recommender_id)
+    mail_vars["reviewerPerson"] = common_small_html.mkUserWithMail(review.reviewer_id)
+    mail_vars["recommenderPerson"] = common_small_html.mkUser(recommendation.recommender_id)
 
     mail_vars["message"] = ''
     conditional_recommender_acceptation_review_mail = MailQueue.get_mail_by_id(conditional_recommender_acceptation_review_mail_id)
@@ -3484,11 +3536,11 @@ def create_reminder_for_conditional_recommender_acceptation_review(auth: Auth, d
     
     hashtag_template = "#ReminderRecommenderAcceptationReview"
 
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, None, article.id, review.id, reviewer_invitation_buttons=buttons)
+    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommendation.id, None, article.id, review.id, reviewer_invitation_buttons=buttons)
 
 #########################################################
 
-def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, review: Review):
+def send_alert_reviewer_due_date_change(review: Review):
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -3513,15 +3565,15 @@ def send_alert_reviewer_due_date_change(session: Session, auth: Auth, db: DAL, r
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["dueDate"] = review.due_date.strftime(DEFAULT_DATE_FORMAT)
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, review.reviewer_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
     mail_vars["destAddress"] = reviewer.email
     mail_vars["ccAddresses"] = [recommender.email] + emailing_vars.get_co_recommenders_mails(recommendation.id)
 
     hashtag_template = "#RecommenderChangeReviewDueDate"
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, recommendation.id, article_id=article.id)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, article_id=article.id)
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 ##################################################################################################################################################################
 
 def send_import_biorxiv_alert(xml_file_path: str):
@@ -3536,18 +3588,16 @@ def send_import_biorxiv_alert(xml_file_path: str):
 
     hashtag_template = "#BiorxivFTPAlert"
 
-    emailing_tools.insertMailInQueue(current.auth, current.db, hashtag_template, mail_vars)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
 
 
 def send_to_biorxiv_requester(user: User, article: Article):
-    auth, db, session = current.auth, current.db, current.session
-
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, user.id)
+    mail_vars["destPerson"] = common_small_html.mkUser(user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
     mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     mail_vars["completeSubmissionLink"] = URL("biorxiv", "complete_submission", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
@@ -3559,20 +3609,19 @@ def send_to_biorxiv_requester(user: User, article: Article):
 
     hashtag_template = "#UserCompleteSubmissionBiorxiv"
 
-    emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, article_id=article.id)
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, article_id=article.id)
     create_reminder_user_complete_submission_biorxiv(article)
 
     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports=[])
-    emailing_tools.getFlashMessage(session, reports)
+    emailing_tools.getFlashMessage(reports)
 
 
 def create_reminder_user_complete_submission_biorxiv(article: Article):
-    auth, db = current.auth, current.db
     mail_vars = emailing_tools.getMailCommonVars()
 
-    mail_vars["destPerson"] = common_small_html.mkUser(auth, db, article.user_id)
+    mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
     mail_vars["destAddress"] = User.get_by_id(article.user_id).email
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["message"] = MailQueue.get_mail_content(
@@ -3580,40 +3629,36 @@ def create_reminder_user_complete_submission_biorxiv(article: Article):
 
     hashtag_template = "#ReminderUserCompleteSubmissionBiorxiv"
 
-    emailing_tools.insertReminderMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, article.id)
 
 ##################################################################################################################################################################
-def send_message_to_recommender_and_reviewers(auth, db, article_id):
+def send_message_to_recommender_and_reviewers(article_id):
+    db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[article_id]
     hashtag_template = "#ArticlePublishedPCJ"
 
     if article:
-        recommenders_mails = emailing_tools.get_recommenders_and_reviewers_mails(auth, db, article_id)
+        recommenders_mails = emailing_tools.get_recommenders_and_reviewers_mails(article_id)
         mail_vars["destAddress"] = recommenders_mails[0]
         mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
         mail_vars["articleDoi"] = common_small_html.mkLinkDOI(article.doi)
         mail_vars["published_doi"] = common_small_html.mkLinkDOI(article.doi_of_published_article)
         mail_vars["ccAddresses"] = recommenders_mails[1:]
 
-        emailing_tools.insertMailInQueue(auth, db, hashtag_template, mail_vars, None, None, article.id)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, None, None, article.id)
 
 ##################################################################################################################################################################
 
-def send_unsubscription_alert_for_manager(auth: Auth, db: DAL):
+def send_unsubscription_alert_for_manager():
+    db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
     hashtag_template = "#UnsubscriptionAlert"
 
-    mail_vars["person"] = common_small_html.mkUser(auth, db, auth.user.id)
+    mail_vars["person"] = common_small_html.mkUser(auth.user.id)
     mail_vars["address"] = auth.user.email
     
     mail_vars["destAddress"] = mail_vars["appContactMail"]
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails(db)
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
-    admin_email = emailing_vars.getAdminsMails(db)[0]
-    class first_admin: user_id = db(db.auth_user.email == admin_email).select().first().id
-
-    emailing_tools.insertMailInQueue(first_admin, db, hashtag_template, mail_vars)
-
-
-
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars)

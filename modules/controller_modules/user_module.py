@@ -5,6 +5,7 @@ import copy
 import datetime
 from app_modules import common_tools
 
+from gluon import current
 from gluon.contrib.markdown import WIKI
 
 from app_modules.helper import *
@@ -12,7 +13,8 @@ from app_modules.helper import *
 from app_modules import common_small_html
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 ######################################################################################################################################################################
-def mkSuggestedRecommendersUserButton(auth, db, row):
+def mkSuggestedRecommendersUserButton(row):
+    db, auth = current.db, current.auth
     butts = []
     suggRecomsTxt = []
     # exclude = [str(auth.user_id)]
@@ -22,9 +24,9 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
         # excludeList.append(str(sr.suggested_recommender_id))
         excludeList.append(sr.suggested_recommender_id)
         if sr.declined:
-            suggRecomsTxt.append(common_small_html.mkUser(auth, db, sr.suggested_recommender_id) + I(XML("&nbsp;declined")) + BR())
+            suggRecomsTxt.append(common_small_html.mkUser(sr.suggested_recommender_id) + I(XML("&nbsp;declined")) + BR())
         else:
-            suggRecomsTxt.append(common_small_html.mkUser(auth, db, sr.suggested_recommender_id) + BR())
+            suggRecomsTxt.append(common_small_html.mkUser(sr.suggested_recommender_id) + BR())
     if len(suggRecomsTxt) > 0:
         butts += suggRecomsTxt
     if row["t_articles.status"] in ("Pending", "Awaiting consideration"):
@@ -36,7 +38,8 @@ def mkSuggestedRecommendersUserButton(auth, db, row):
 ######################################################################################################################################################################
 # From common.py
 ######################################################################################################################################################################
-def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
+def mkSuggestUserArticleToButton(row, articleId, excludeList, vars):
+    db = current.db
     # if this recommender is a coauthor, then return empty
     art = db(db.t_articles.id == articleId).select().last()
     if art.manager_authors:
@@ -64,7 +67,7 @@ def mkSuggestUserArticleToButton(auth, db, row, articleId, excludeList, vars):
     return anchor
 
 ######################################################################################################################################################################
-def mkExcludeRecommenderButton(auth, db, row, articleId, excludeList, vars):
+def mkExcludeRecommenderButton(row, articleId, excludeList, vars):
     vars["recommenderId"] = row.auth_user["id"]
     anchor = A(
         SPAN(current.T("Exclude"), _class="buttontext btn btn-warning pci-submitter"),
@@ -79,40 +82,45 @@ def mkExcludeRecommenderButton(auth, db, row, articleId, excludeList, vars):
     return anchor
 
 ######################################################################################################################################################################
-def mkRecommendation4ReviewFormat(auth, db, row):
+def mkRecommendation4ReviewFormat(row):
+    db = current.db
     recomm = db(db.t_recommendations.id == row.recommendation_id).select(db.t_recommendations.id, db.t_recommendations.recommender_id).last()
-    anchor = SPAN(common_small_html.mkUserWithMail(auth, db, recomm.recommender_id))
+    anchor = SPAN(common_small_html.mkUserWithMail(recomm.recommender_id))
     return anchor
 
 
 ######################################################################################################################################################################
-def do_suggest_article_to(auth, db, articleId, recommenderId):
+def do_suggest_article_to(articleId, recommenderId):
+    db = current.db
     db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
 
 ######################################################################################################################################################################
-def do_exclude_article_from(auth, db, articleId, recommenderId):
+def do_exclude_article_from(articleId, recommenderId):
+    db = current.db
     db.t_excluded_recommenders.update_or_insert(excluded_recommender_id=recommenderId, article_id=articleId)
 
 ######################################################################################################################################################################
-def getRecommender(auth, db, row):
+def getRecommender(row):
+    db = current.db
     recomm = (
         db(db.t_recommendations.article_id == row["t_articles.id"]).select(db.t_recommendations.id, db.t_recommendations.recommender_id, orderby=db.t_recommendations.id).last()
     )
     if recomm and recomm.recommender_id:
-        resu = SPAN(common_small_html.mkUser(auth, db, recomm.recommender_id))
+        resu = SPAN(common_small_html.mkUser(recomm.recommender_id))
         corecommenders = db(db.t_press_reviews.recommendation_id == recomm.id).select(db.t_press_reviews.contributor_id)
         if len(corecommenders) > 0:
             resu.append(BR())
             resu.append(B(current.T("Co-recommenders:")))
             resu.append(BR())
             for corecommender in corecommenders:
-                resu.append(SPAN(common_small_html.mkUser(auth, db, corecommender.contributor_id)) + BR())
+                resu.append(SPAN(common_small_html.mkUser(corecommender.contributor_id)) + BR())
         return DIV(resu, _class="pci-w200Cell")
     else:
         return ""
 
 ######################################################################################################################################################################
-def getReviewers(recomm, db):
+def getReviewers(recomm):
+    db = current.db
     revList = []
     latestRound = db((db.t_recommendations.article_id == recomm.article_id)).select(
             db.t_recommendations.id, orderby=db.t_recommendations.id).last()
@@ -122,7 +130,8 @@ def getReviewers(recomm, db):
     return revList
 
 ######################################################################################################################################################################
-def getAllRecommenders(db):
+def getAllRecommenders():
+    db = current.db
     recommList = []
     recomm_query = db((db.auth_membership.group_id == 1)).select(db.auth_membership.user_id)
     for i in recomm_query:

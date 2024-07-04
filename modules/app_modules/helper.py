@@ -20,7 +20,8 @@ siteUrl = URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=
 issn = "set in models/db.py"
 
 ######################################################################################################################################################################
-def getHelp(request, auth, db, myHashtag, myLanguage="default"):
+def getHelp(myHashtag, myLanguage="default"):
+    auth, db = current.auth, current.db
     r0 = []
     c = ""
     query = (db.help_texts.hashtag == myHashtag) & (db.help_texts.lang == myLanguage)
@@ -28,11 +29,6 @@ def getHelp(request, auth, db, myHashtag, myLanguage="default"):
     if h:
         i = h.id
         c = replaceMailVars(h.contents or "", globals())
-        # try:
-        #     c = (h.contents or "") % globals()
-        #     c = (h.contents or "") % globals()
-        # except:
-        #     c = h.contents or ""
     else:
         i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
@@ -58,7 +54,8 @@ def getHelp(request, auth, db, myHashtag, myLanguage="default"):
 
 
 ######################################################################################################################################################################
-def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200"):
+def getText(myHashtag, myLanguage="default", maxWidth="1200"):
+    request, auth, db = current.request, current.auth, current.db
     r0 = ""
     c = ""
     if not isinstance(db, str):
@@ -67,11 +64,6 @@ def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200")
         if h:
             i = h.id
             c = replaceMailVars(h.contents or "", globals())
-            # try:
-            #     c = (h.contents or "") % globals()
-            #     c = (h.contents or "") % globals()
-            # except:
-            #     c = h.contents or ""
         else:
             i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
@@ -90,7 +82,9 @@ def getText(request, auth, db, myHashtag, myLanguage="default", maxWidth="1200")
 
 
 ######################################################################################################################################################################
-def getTitle(request, auth, db, myHashtag, myLanguage="default"):
+def getTitle(myHashtag, myLanguage="default"):
+    request, auth, db = current.request, current.auth, current.db
+
     r0 = ""
     c = ""
     query = (db.help_texts.hashtag == myHashtag) & (db.help_texts.lang == myLanguage)
@@ -98,11 +92,6 @@ def getTitle(request, auth, db, myHashtag, myLanguage="default"):
     if h:
         i = h.id
         c = replaceMailVars(h.contents or "", globals())
-        # try:
-        #     c = (h.contents or "") % globals()
-        #     c = (h.contents or "") % globals()
-        # except:
-        #     c = h.contents or ""
     else:
         i = db.help_texts.insert(hashtag=myHashtag, lang=myLanguage)
 
@@ -138,14 +127,17 @@ def replaceMailVars(text, mail_vars):
     return text
 
 ######################################################################################################################################################################
-def is_recommender(auth, request):
+def is_recommender():
+    auth, request = current.auth, current.request
+    
     return (
         auth.has_membership(role="recommender") and
         str(auth.user_id) == request.vars["recommender"]
     )
 
 ######################################################################################################################################################################
-def is_co_recommender(auth, db, recommId):
+def is_co_recommender(recommId):
+    db, auth = current.db, current.auth
     return db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
 ######################################################################################################################################################################

@@ -84,10 +84,10 @@ def index():
 @auth.requires(auth.has_membership(role="manager"))
 def all_articles():
     resu = _manage_articles(None, URL("manager", "all_articles", host=host, scheme=scheme, port=port))
-    resu["customText"] = getText(request, auth, db, "#ManagerAllArticlesText")
+    resu["customText"] = getText("#ManagerAllArticlesText")
     resu["titleIcon"] = "book"
-    resu["pageTitle"] = getTitle(request, auth, db, "#ManagerAllArticlesTitle")
-    resu["pageHelp"] = getHelp(request, auth, db, "#ManageAllArticlesHelp")
+    resu["pageTitle"] = getTitle("#ManagerAllArticlesTitle")
+    resu["pageHelp"] = getHelp("#ManageAllArticlesHelp")
     return resu
 
 ######################################################
@@ -122,9 +122,9 @@ def impersonate_users():
     response.view = "default/myLayout.html"
     return dict(
         titleIcon="user",
-        pageTitle=getTitle(request, auth, db, "#AdministrateUsersTitle"),
-        pageHelp=getHelp(request, auth, db, "#AdministrateUsers"),
-        customText=getText(request, auth, db, "#AdministrateUsersText"),
+        pageTitle=getTitle("#AdministrateUsersTitle"),
+        pageHelp=getHelp("#AdministrateUsers"),
+        customText=getText("#AdministrateUsersText"),
         grid=grid,
         
     )
@@ -184,15 +184,15 @@ def uninpersonate():
 
 ######################################################################################################################################################################
 # Display pending articles and allow management
-@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
+@auth.requires(auth.has_membership(role="manager") or is_recommender())
 def pending_articles():
     states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
 
     resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port), show_not_considered_button=False)
-    resu["customText"] = getText(request, auth, db, "#ManagerPendingArticlesText")
+    resu["customText"] = getText("#ManagerPendingArticlesText")
     resu["titleIcon"] = "time"
-    resu["pageTitle"] = getTitle(request, auth, db, "#ManagerPendingArticlesTitle")
-    resu["pageHelp"] = getHelp(request, auth, db, "#ManagePendingValidations")
+    resu["pageTitle"] = getTitle("#ManagerPendingArticlesTitle")
+    resu["pageHelp"] = getHelp("#ManagePendingValidations")
     return resu
 
 ######################################################################################################################################################################
@@ -202,10 +202,10 @@ def pending_surveys():
     resu = _manage_articles(
         ["Pending-survey"], URL("manager", "pending_surveys", host=host, scheme=scheme, port=port)
     )
-    resu["customText"] = getText(request, auth, db, "#ManagerPendingSurveyReportsText")
+    resu["customText"] = getText("#ManagerPendingSurveyReportsText")
     resu["titleIcon"] = "time"
-    resu["pageTitle"] = getTitle(request, auth, db, "#ManagerPendingSurveyReportsTitle")
-    resu["pageHelp"] = getHelp(request, auth, db, "#ManagerPendingSurveyReports")
+    resu["pageTitle"] = getTitle("#ManagerPendingSurveyReportsTitle")
+    resu["pageHelp"] = getHelp("#ManagerPendingSurveyReports")
     return resu
 
 
@@ -214,10 +214,10 @@ def presubmissions():
     resu = _manage_articles(
         ["Pre-submission"], URL("manager", "presubmissions", host=host, scheme=scheme, port=port)
     )
-    resu["customText"] = getText(request, auth, db, "#ManagePresubmittedArticlesText")
+    resu["customText"] = getText("#ManagePresubmittedArticlesText")
     resu["titleIcon"] = "warning-sign"
-    resu["pageTitle"] = getTitle(request, auth, db, "#ManagePresubmittedArticlesTitle")
-    resu["pageHelp"] = getHelp(request, auth, db, "#ManagePresubmittedArticles")
+    resu["pageTitle"] = getTitle("#ManagePresubmittedArticlesTitle")
+    resu["pageHelp"] = getHelp("#ManagePresubmittedArticles")
     return resu
 
 
@@ -226,10 +226,10 @@ def presubmissions():
 @auth.requires(auth.has_membership(role="manager"))
 def ongoing_articles():
     resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration", "Scheduled submission revision"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
-    resu["customText"] = getText(request, auth, db, "#ManagerOngoingArticlesText")
+    resu["customText"] = getText("#ManagerOngoingArticlesText")
     resu["titleIcon"] = "refresh"
-    resu["pageTitle"] = getTitle(request, auth, db, "#ManagerOngoingArticlesTitle")
-    resu["pageHelp"] = getHelp(request, auth, db, "#ManageOngoingArticles")
+    resu["pageTitle"] = getTitle("#ManagerOngoingArticlesTitle")
+    resu["pageHelp"] = getHelp("#ManageOngoingArticles")
     return resu
 
 
@@ -239,17 +239,17 @@ def ongoing_articles():
 def completed_articles():
     db.t_articles.status.label = T("Outcome")
     resu = _manage_articles(["Cancelled", "Recommended", "Rejected", "Not considered"], URL("manager", "completed_articles", host=host, scheme=scheme, port=port))
-    resu["customText"] = getText(request, auth, db, "#ManagerCompletedArticlesText")
+    resu["customText"] = getText("#ManagerCompletedArticlesText")
     resu["titleIcon"] = "ok-sign"
-    resu["pageTitle"] = getTitle(request, auth, db, "#ManagerCompletedArticlesTitle")
-    resu["pageHelp"] = getHelp(request, auth, db, "#ManageCompletedArticles")
+    resu["pageTitle"] = getTitle("#ManagerCompletedArticlesTitle")
+    resu["pageHelp"] = getHelp("#ManageCompletedArticles")
     return resu
 
 
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
-@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
-def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_considered_button: bool = True):
+@auth.requires(auth.has_membership(role="manager") or is_recommender())
+def _manage_articles(statuses, whatNext, stats_query=None, show_not_considered_button: bool = True):
     response.view = "default/myLayout.html"
 
     # users
@@ -285,7 +285,7 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
 
     def mkSubmitter(row):
         return SPAN(
-            DIV(common_small_html.mkAnonymousArticleField(auth, db, row.anonymous_submission, "", row.id)),
+            DIV(common_small_html.mkAnonymousArticleField(row.anonymous_submission, "", row.id)),
             common_small_html._mkUser(users.get(row.user_id)),
         )
 
@@ -309,7 +309,7 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
         return resu
     
     articles.id.readable = True
-    articles.id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(auth, db, text), _class="pci-w300Cell")
+    articles.id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(text), _class="pci-w300Cell")
     
     articles.thematics.label = "Thematics fields"
     articles.thematics.type = "string"
@@ -329,7 +329,7 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
     articles.last_status_change.searchable = False
 
     articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
-        auth, db, text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage, submission_change=row.request_submission_change,
+        text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage, submission_change=row.request_submission_change,
     )
 
     articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(row.upload_timestamp)
@@ -376,7 +376,7 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
         if statuses:
             query = query & db.t_articles.status.belongs(statuses)
         # recommenders only ever get here via menu "Recommender > Pending validation(s)"
-        if pciRRactivated and is_recommender(auth, request):
+        if pciRRactivated and is_recommender():
             query = db.pending_scheduled_submissions_query
     original_grid = SQLFORM.grid(
         query,
@@ -419,8 +419,8 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
     grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields)
 
     return dict(
-        customText=getText(request, auth, db, "#ManagerArticlesText"),
-        pageTitle=getTitle(request, auth, db, "#ManagerArticlesTitle"),
+        customText=getText("#ManagerArticlesText"),
+        pageTitle=getTitle("#ManagerArticlesTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
         script=common_tools.get_script("manager.js")
@@ -428,7 +428,7 @@ def _manage_articles(statuses, whatNext, db=db, stats_query=None, show_not_consi
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager") or is_recommender(auth, request))
+@auth.requires(auth.has_membership(role="manager") or is_recommender())
 def recommendations():
     articleId = request.vars["articleId"]
     manager_authors = request.vars["manager_authors"]
@@ -441,7 +441,7 @@ def recommendations():
         art.update_record(manager_authors=manager_authors)
 
     if art.already_published:
-        myContents = ongoing_recommendation.getPostprintRecommendation(auth, db, response, art, printable, quiet=False)
+        myContents = ongoing_recommendation.getPostprintRecommendation(art, printable, quiet=False)
     else:
         myContents = ongoing_recommendation.get_recommendation_process(art, printable)
 
@@ -451,23 +451,23 @@ def recommendations():
     if pciRRactivated and isStage2:
         # stage1Link = A(T("Link to Stage 1"), _href=URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id)))
         urlArticle = URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id))
-        stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art.art_stage_1_id, urlArticle)
+        stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(art.art_stage_1_id, urlArticle)
     elif pciRRactivated and not isStage2:
         stage2Articles = db(db.t_articles.art_stage_1_id == articleId).select()
         stage2List = []
         for art_st_2 in stage2Articles:
             urlArticle = URL(c="manager", f="recommendations", vars=dict(articleId=art_st_2.id))
-            stage2List.append(common_small_html.mkRepresentArticleLightLinkedWithStatus(auth, db, art_st_2.id, urlArticle))
+            stage2List.append(common_small_html.mkRepresentArticleLightLinkedWithStatus(art_st_2.id, urlArticle))
 
     response.title = art.title or myconf.take("app.longname")
 
-    recommHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, printable, True)
-    recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(auth, db, response, art, "manager", request, False, printable, quiet=False)
+    recommHeaderHtml = article_components.get_article_infos_card(art, printable, True)
+    recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, False, printable, quiet=False)
     
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if not manager_coauthor:
         set_not_considered_button = ongoing_recommendation.set_to_not_considered(art) if art.status == ArticleStatus.AWAITING_CONSIDERATION.value else None
-        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(auth, db, art, printable, quiet=False)
+        recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(art, printable, quiet=False)
     else:
         set_not_considered_button = ''
         recommTopButtons = ''
@@ -509,7 +509,7 @@ def recommendations():
         recommStatusHeader=recommStatusHeader,
         recommTopButtons=recommTopButtons or "",
         printable=printable,
-        pageHelp=getHelp(request, auth, db, "#ManagerRecommendations"),
+        pageHelp=getHelp("#ManagerRecommendations"),
         myContents=myContents,
         myBackButton=common_small_html.mkBackButton(),
         pciRRactivated=pciRRactivated,
@@ -572,7 +572,7 @@ def color_hypothesis_button():
 
 
 def twitter_button(article, recommendation):
-    twitter_client = Twitter(db)
+    twitter_client = Twitter()
 
     already_send = twitter_client.has_already_posted(article.id, recommendation.id)
     has_config = twitter_client.has_general_twitter_config() or twitter_client.has_specific_twitter_config()
@@ -594,7 +594,7 @@ def twitter_button(article, recommendation):
     )
 
 def mastodon_button(article, recommendation):
-    mastodon_client = Mastodon(db)
+    mastodon_client = Mastodon()
 
     already_send = mastodon_client.has_already_posted(article.id, recommendation.id)
     has_config = mastodon_client.has_mastodon_general_config() or mastodon_client.has_mastodon_specific_config()
@@ -669,8 +669,8 @@ def manage_recommendations():
     db.t_pdf.pdf.represent = lambda text, row: A(IMG(_src=URL("static", "images/application-pdf.png")), _href=URL("default", "download", args=text)) if text else ""
     db.t_recommendations._id.readable = True
     if len(request.args) == 0:  # in grid
-        db.t_recommendations.recommender_id.represent = lambda id, row: common_small_html.mkUserWithMail(auth, db, id)
-        db.t_recommendations.recommendation_state.represent = lambda state, row: common_small_html.mkContributionStateDiv(auth, db, (state or ""))
+        db.t_recommendations.recommender_id.represent = lambda id, row: common_small_html.mkUserWithMail(id)
+        db.t_recommendations.recommendation_state.represent = lambda state, row: common_small_html.mkContributionStateDiv((state or ""))
         db.t_recommendations.recommendation_comments.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
         db.t_recommendations.recommendation_timestamp.represent = lambda text, row: common_small_html.mkLastChange(text)
         db.t_recommendations.last_change.represent = lambda text, row: common_small_html.mkLastChange(text)
@@ -739,16 +739,16 @@ def manage_recommendations():
     if grid.element(_title="Add record to database"):
         grid.element(_title="Add record to database")[0] = T("Manually add new round")
         grid.element(_title="Add record to database")["_title"] = T("Manually add new round of recommendation. Expert use!!")
-    myContents = DIV(DIV(article_components.get_article_infos_card(auth, db, response, art, False, False), _class="pci2-content-900px"), _class="pci2-full-width pci2-flex-center")
+    myContents = DIV(DIV(article_components.get_article_infos_card(art, False, False), _class="pci2-content-900px"), _class="pci2-full-width pci2-flex-center")
 
     confirmationScript = common_tools.get_script("confirmation.js")
 
     return dict(
         myBackButton=common_small_html.mkBackButton(target=target),
-        pageHelp=getHelp(request, auth, db, "#ManageRecommendations"),
-        customText=getText(request, auth, db, "#ManageRecommendationsText"),
+        pageHelp=getHelp("#ManageRecommendations"),
+        customText=getText("#ManageRecommendationsText"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#ManageRecommendationsTitle"),
+        pageTitle=getTitle("#ManageRecommendationsTitle"),
         content=myContents,
         bottomContent=common_small_html.suggested_recommender_list(art.id),
         grid=grid,
@@ -769,9 +769,9 @@ def search_recommenders():
         articleHeaderHtml = ""
     else:
         art = db.t_articles[articleId]
-        articleHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, **article_components.for_search)
+        articleHeaderHtml = article_components.get_article_infos_card(art, **article_components.for_search)
 
-    excludeList = common_tools.get_exclude_suggested_recommender(auth, db, articleId)
+    excludeList = common_tools.get_exclude_suggested_recommender(articleId)
     excluded_by_submitter_query = db(db.t_excluded_recommenders.article_id == articleId).select()
     excluded_by_submitter = [m['excluded_recommender_id'] for m in excluded_by_submitter_query]
 
@@ -812,7 +812,7 @@ def search_recommenders():
     users.id.label = "Name"
     users.id.readable = True
     users.id.represent = lambda uid, row: DIV(
-            common_small_html.mkReviewerInfo(auth, db, db.auth_user[uid]),
+            common_small_html.mkReviewerInfo(db.auth_user[uid]),
             _class="pci-w300Cell")
 
     links = []
@@ -877,10 +877,10 @@ def search_recommenders():
 
     response.view = "default/gab_list_layout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#ManagerSearchRecommenders"),
-        customText=getText(request, auth, db, "#ManagerSearchRecommendersText"),
+        pageHelp=getHelp("#ManagerSearchRecommenders"),
+        customText=getText("#ManagerSearchRecommendersText"),
         titleIcon="search",
-        pageTitle=getTitle(request, auth, db, "#ManagerSearchRecommendersTitle"),
+        pageTitle=getTitle("#ManagerSearchRecommendersTitle"),
         myBackButton=common_small_html.mkBackButton(),
         myFinalScript=common_tools.get_script("popover.js"),
         grid=grid,
@@ -913,14 +913,14 @@ def suggested_recommenders():
         redirect(request.env.http_referer)
         return
 
-    articleHeaderHtml = article_components.get_article_infos_card(auth, db, response, art, **article_components.for_search)
+    articleHeaderHtml = article_components.get_article_infos_card(art, **article_components.for_search)
 
     query = db.t_suggested_recommenders.article_id == articleId
     db.t_suggested_recommenders.article_id.readable = False
     db.t_suggested_recommenders.article_id.writable = False
     db.t_suggested_recommenders._id.readable = False
     db.t_suggested_recommenders.email_sent.readable = False
-    db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text, row: common_small_html.mkUserWithMail(auth, db, text)
+    db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text, row: common_small_html.mkUserWithMail(text)
     links = []
     # if art.status == "Awaiting consideration":
     links.append(
@@ -967,9 +967,9 @@ def suggested_recommenders():
     response.view = "default/myLayout.html"
     return dict(
         myBackButton=common_small_html.mkBackButton(target=URL(c="manager", f="recommendations", vars=dict(articleId=art.id), user_signature=True)),
-        pageTitle=getTitle(request, auth, db, "#ManageSuggestedRecommendersTitle"),
-        pageHelp=getHelp(request, auth, db, "#ManageSuggestedRecommenders"),
-        customText=getText(request, auth, db, "#ManageSuggestedRecommendersText"),
+        pageTitle=getTitle("#ManageSuggestedRecommendersTitle"),
+        pageHelp=getHelp("#ManageSuggestedRecommenders"),
+        customText=getText("#ManageSuggestedRecommendersText"),
         # myBackButton=common_small_html.mkBackButton(),
         addSuggestedRecommendersButton=addSuggestedRecommendersButton,
         grid=grid,
@@ -1093,7 +1093,7 @@ def edit_article():
 
     try: article_manager_coauthors = art.manager_authors
     except: article_manager_coauthors = False
-    managers = common_tools.get_managers(db)
+    managers = common_tools.get_managers()
     manager_checks = {}
     for m in managers:
         manager_checks[m[0]] = False
@@ -1152,10 +1152,10 @@ def edit_article():
     confirmationScript = common_tools.get_script("confirmation.js")
     return dict(
         # myBackButton = common_small_html.mkBackButton(),
-        pageHelp=getHelp(request, auth, db, "#ManagerEditArticle"),
-        customText=getText(request, auth, db, "#ManagerEditArticleText"),
+        pageHelp=getHelp("#ManagerEditArticle"),
+        customText=getText("#ManagerEditArticleText"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#ManagerEditArticleTitle"),
+        pageTitle=getTitle("#ManagerEditArticleTitle"),
         form=form,
         myFinalScript=myFinalScript,
         confirmationScript=confirmationScript,
@@ -1188,15 +1188,15 @@ def edit_report_survey():
         session.flash = T("New survey created")
         # redirect(URL(c="manager", f="recommendations", vars=dict(articleId=articleId), user_signature=True))
 
-    form = app_forms.report_survey(auth, session, art, db, survey, "manager_edit")
+    form = app_forms.report_survey(art, survey, "manager_edit")
 
     myScript = common_tools.get_script("fill_report_survey.js")
     response.view = "default/gab_form_layout.html"
     return dict(
-        pageHelp=getHelp(request, auth, db, "#ManagerReportSurvey"),
+        pageHelp=getHelp("#ManagerReportSurvey"),
         titleIcon="edit",
-        pageTitle=getTitle(request, auth, db, "#ManagerReportSurveyTitle"),
-        customText=getText(request, auth, db, "#ManagerReportSurveyText", maxWidth="800"),
+        pageTitle=getTitle("#ManagerReportSurveyTitle"),
+        customText=getText("#ManagerReportSurveyText", maxWidth="800"),
         form=form,
         myFinalScript=myScript,
     )
@@ -1220,10 +1220,10 @@ def manage_comments():
         orderby=~db.t_comments.comment_datetime,
     )
     return dict(
-        customText=getText(request, auth, db, "#ManageCommentsText"),
+        customText=getText("#ManageCommentsText"),
         titleIcon="comment",
-        pageTitle=getTitle(request, auth, db, "#ManageCommentsTitle"),
-        pageHelp=getHelp(request, auth, db, "#ManageComments"),
+        pageTitle=getTitle("#ManageCommentsTitle"),
+        pageHelp=getHelp("#ManageComments"),
         grid=grid,
     )
 
@@ -1258,8 +1258,8 @@ def _all_recommendations(goBack, query, isPress):
     response.view = "default/myLayout.html"
 
     if isPress:  ## NOTE: POST-PRINTS
-        pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPostprintTitle")
-        customText = getText(request, auth, db, "#AdminAllRecommendationsPostprintText")
+        pageTitle = getTitle("#AdminAllRecommendationsPostprintTitle")
+        customText = getText("#AdminAllRecommendationsPostprintText")
         fields = [
             db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
@@ -1274,13 +1274,13 @@ def _all_recommendations(goBack, query, isPress):
         ]
         links = [
             dict(
-                header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)
+                header=T(""), body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(row.t_recommendations if "t_recommendations" in row else row)
             ),
         ]
         db.t_recommendations.article_id.label = T("Postprint")
     else:  ## NOTE: PRE-PRINTS
-        pageTitle = getTitle(request, auth, db, "#AdminAllRecommendationsPreprintTitle")
-        customText = getText(request, auth, db, "#AdminAllRecommendationsPreprintText")
+        pageTitle = getTitle("#AdminAllRecommendationsPreprintTitle")
+        customText = getText("#AdminAllRecommendationsPreprintText")
         fields = [
             db.t_articles.scheduled_submission_date,
             db.t_articles.art_stage_1_id,
@@ -1297,11 +1297,11 @@ def _all_recommendations(goBack, query, isPress):
             db.t_recommendations.recommender_id,
         ]
         links = [
-            dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(auth, db, response, request, row.t_recommendations if "t_recommendations" in row else row)),
-            # dict(header=T('Actions'),            body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(auth, db, row.t_recommendations if 't_recommendations' in row else row)),
+            dict(header=T("Reviews"), body=lambda row: recommender_components.getReviewsSubTable(row.t_recommendations if "t_recommendations" in row else row)),
+            # dict(header=T('Actions'),            body=lambda row: common_small_html.mkViewEditRecommendationsRecommenderButton(row.t_recommendations if 't_recommendations' in row else row)),
             dict(
                 header=T("Actions"),
-                body=lambda row: DIV(manager_module.mkViewEditRecommendationsManagerButton(auth, db, row.t_recommendations if "t_recommendations" in row else row)),
+                body=lambda row: DIV(manager_module.mkViewEditRecommendationsManagerButton(row.t_recommendations if "t_recommendations" in row else row)),
             ),
         ]
         db.t_recommendations.article_id.label = T("Preprint")
@@ -1312,7 +1312,7 @@ def _all_recommendations(goBack, query, isPress):
     db.t_recommendations.article_id.writable = False
     db.t_recommendations._id.readable = False
     db.t_recommendations.recommender_id.readable = True
-    db.t_recommendations.recommender_id.represent =  lambda id, row: DIV(common_small_html.mkUserWithMail(auth, db, id) + HR(_class="column-merge-hr") + SPAN("Co-Recommenders") + common_small_html.mkCoRecommenders(auth, db, row.t_recommendations if "t_recommendations" in row else row, goBack), _class="m230w")
+    db.t_recommendations.recommender_id.represent =  lambda id, row: DIV(common_small_html.mkUserWithMail(id) + HR(_class="column-merge-hr") + SPAN("Co-Recommenders") + common_small_html.mkCoRecommenders(row.t_recommendations if "t_recommendations" in row else row, goBack), _class="m230w")
     db.t_recommendations.recommendation_state.readable = False
     db.t_recommendations.is_closed.readable = False
     db.t_recommendations.is_closed.writable = False
@@ -1326,7 +1326,7 @@ def _all_recommendations(goBack, query, isPress):
         if "t_recommendations" in row
         else common_small_html.mkElapsedDays(row.recommendation_timestamp)
     )
-    db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(auth, db, db.t_articles[aid]), _class="pci-w300Cell")
+    db.t_recommendations.article_id.represent = lambda aid, row: DIV(common_small_html.mkArticleCellNoRecomm(db.t_articles[aid]), _class="pci-w300Cell")
 
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.art_stage_1_id.writable = False
@@ -1334,7 +1334,7 @@ def _all_recommendations(goBack, query, isPress):
     db.t_articles.report_stage.readable = False
 
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
-        auth, db, text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
+        text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
     )
 
     db.t_recommendations.doi.readable = False
@@ -1384,7 +1384,7 @@ def _all_recommendations(goBack, query, isPress):
 
     return dict(
         # myBackButton=common_small_html.mkBackButton(),
-        pageHelp=getHelp(request, auth, db, "#AdminAllRecommendations"),
+        pageHelp=getHelp("#AdminAllRecommendations"),
         titleIcon="education",
         pageTitle=pageTitle,
         customText=customText,
@@ -1494,9 +1494,9 @@ def suggested_recommender_emails():
 
     return dict(
         titleIcon="send",
-        pageTitle=getTitle(request, auth, db, "#RecommenderReviewEmailsTitle"),
-        customText=getText(request, auth, db, "#RecommenderReviewEmailsText"),
-        pageHelp=getHelp(request, auth, db, "#RecommenderReviewEmails"),
+        pageTitle=getTitle("#RecommenderReviewEmailsTitle"),
+        customText=getText("#RecommenderReviewEmailsText"),
+        pageHelp=getHelp("#RecommenderReviewEmails"),
         myBackButton=common_small_html.mkBackButton(target=URL(c="manager", f="suggested_recommenders", vars=dict(articleId=articleId), user_signature=True)),
         grid=grid,
         myFinalScript=myScript,
@@ -1565,7 +1565,7 @@ def article_emails():
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
-            ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(auth, db, row, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
+            ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(row, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
 
     links = [
         dict(
@@ -1611,9 +1611,9 @@ def article_emails():
 
     return dict(
         titleIcon="send",
-        pageTitle=getTitle(request, auth, db, "#ArticleEmailsTitle"),
-        customText=getText(request, auth, db, "#ArticleEmailsText"),
-        pageHelp=getHelp(request, auth, db, "#ArticleEmails"),
+        pageTitle=getTitle("#ArticleEmailsTitle"),
+        customText=getText("#ArticleEmailsText"),
+        pageHelp=getHelp("#ArticleEmails"),
         myBackButton=common_small_html.mkBackButton(target=URL('manager','recommendations', vars=dict(articleId=articleId), user_signature=True)), 
         grid=grid,
         myFinalScript=myScript,
@@ -1622,7 +1622,7 @@ def article_emails():
 
 
 def mail_form_processing(form):
-    app_forms.update_mail_content_keep_editing_form(form, db, request, response)
+    app_forms.update_mail_content_keep_editing_form(form)
 
 @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="recommender"))
 def send_submitter_generic_mail():
@@ -1648,7 +1648,7 @@ def send_submitter_generic_mail():
         sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
         scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
         scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
-        recommenderName = common_small_html.mkUser(auth, db, recomm.recommender_id)
+        recommenderName = common_small_html.mkUser(recomm.recommender_id)
 
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")
@@ -1657,10 +1657,10 @@ def send_submitter_generic_mail():
 
     sender_email = db(db.auth_user.id == auth.user_id).select().last().email
 
-    mail_template = emailing_tools.getMailTemplateHashtag(db, template)
+    mail_template = emailing_tools.getMailTemplateHashtag(template)
 
     # template variables, along with all other locals()
-    destPerson = common_small_html.mkUser(auth, db, art.user_id)
+    destPerson = common_small_html.mkUser(art.user_id)
     articleDoi = common_small_html.mkLinkDOI(art.doi)
     articleTitle = md_to_html(art.title)
     articleAuthors = emailing.mkAuthors(art)
@@ -1692,7 +1692,7 @@ def send_submitter_generic_mail():
             art.update_record()
         request.vars["replyto"] = replyTo
         try:
-            emailing.send_submitter_generic_mail(session, auth, db, author.email, art.id, request.vars, template)
+            emailing.send_submitter_generic_mail(author.email, art.id, request.vars, template)
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
@@ -1704,10 +1704,10 @@ def send_submitter_generic_mail():
 
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForSubmitter"),
+        pageHelp=getHelp("#EmailForSubmitter"),
         titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#EmailForSubmitterInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForSubmitterInfo"),
+        pageTitle=getTitle("#EmailForSubmitterInfoTitle"),
+        customText=getText("#EmailForSubmitterInfo"),
         myBackButton=common_small_html.mkBackButton(),
     )
 
@@ -1716,7 +1716,7 @@ def send_submitter_generic_mail():
 def recommender_statistics():
     response.view = "default/myLayout.html"
 
-    db.v_recommender_stats.id.represent = lambda id, row: common_small_html.mkUserWithMail(auth, db, id, reverse=True)
+    db.v_recommender_stats.id.represent = lambda id, row: common_small_html.mkUserWithMail(id, reverse=True)
     db.v_recommender_stats.total_invitations.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_invitations"))) if text != 0 else "0"
     db.v_recommender_stats.total_accepted.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_accepted"))) if text != 0 else "0"
     db.v_recommender_stats.total_completed.represent = lambda text, row: A(text, _href=URL("manager", "recommender_breakdown", vars=dict(recommenderId=row.id, action="total_completed"))) if text != 0 else "0"
@@ -1758,9 +1758,9 @@ def recommender_statistics():
 
     return dict(
         titleIcon="stats",
-        pageTitle=getTitle(request, auth, db, "#RecommenderStatisticsTitle"),
-        customText=getText(request, auth, db, "#RecommenderStatisticsText"),
-        pageHelp=getHelp(request, auth, db, "#RecommenderStatistics"),
+        pageTitle=getTitle("#RecommenderStatisticsTitle"),
+        customText=getText("#RecommenderStatisticsText"),
+        pageHelp=getHelp("#RecommenderStatistics"),
         myBackButton=common_small_html.mkBackButton(),
         grid=grid,
         myFinalScript=myScript,
@@ -1860,10 +1860,10 @@ def recommender_breakdown():
         resu = _manage_articles(None, URL("manager", "total_invitations", host=host, scheme=scheme, port=port), stats_query=query)
     else:
         resu = _all_recommendations(goBack, query, False)
-    resu["customText"] = getText(request, auth, db, f"{page_help_dict[action]}Text")
+    resu["customText"] = getText(f"{page_help_dict[action]}Text")
     resu["titleIcon"] = "ok-sign"
-    resu["pageTitle"] = getTitle(request, auth, db, f"{page_help_dict[action]}Title")
-    resu["pageHelp"] = getHelp(request, auth, db, page_help_dict[action])
+    resu["pageTitle"] = getTitle(f"{page_help_dict[action]}Title")
+    resu["pageHelp"] = getHelp(page_help_dict[action])
     return resu
 
 
@@ -1908,8 +1908,8 @@ def email_for_recommender():
 
     recommender = db(recomm.recommender_id == db.auth_user.id).select().last()
     hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderDecisionSentBack", article)
-    mail_template = emailing_tools.getMailTemplateHashtag(db, hashtag_template)
-    mail_vars = emailing_tools.getMailForRecommenderCommonVars(auth, db, auth.user, article, recomm, recommender)
+    mail_template = emailing_tools.getMailTemplateHashtag(hashtag_template)
+    mail_vars = emailing_tools.getMailForRecommenderCommonVars(auth.user, article, recomm, recommender)
 
     subject = emailing_tools.replaceMailVars(mail_template["subject"], mail_vars)
     message = emailing_tools.replaceMailVars(mail_template["content"], mail_vars)
@@ -1936,10 +1936,7 @@ def email_for_recommender():
     resent = False
     if form.process().accepted:
         try:
-            emailing.send_to_recommender_decision_sent_back(session,
-                                                            auth,
-                                                            db,
-                                                            form,
+            emailing.send_to_recommender_decision_sent_back(form,
                                                             articleId,
                                                             lastRecomm,
                                                             hashtag_template)
@@ -1957,8 +1954,8 @@ def email_for_recommender():
 
     return dict(
         form=form,
-        pageHelp=getHelp(request, auth, db, "#EmailForRegisterdReviewer"),
+        pageHelp=getHelp("#EmailForRegisterdReviewer"),
         titleIcon="envelope",
-        pageTitle=getTitle(request, auth, db, "#EmailForRegisteredReviewerInfoTitle"),
-        customText=getText(request, auth, db, "#EmailForRegisteredReviewerInfo"),
+        pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
+        customText=getText("#EmailForRegisteredReviewerInfo"),
     )

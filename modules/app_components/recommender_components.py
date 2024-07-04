@@ -10,7 +10,6 @@ from gluon.sqlhtml import *
 from gluon.contrib.appconfig import AppConfig
 from models.article import Article, ArticleStatus
 from models.recommendation import Recommendation
-from pydal import DAL
 
 from app_modules import common_small_html
 from models.review import Review, ReviewState
@@ -20,7 +19,9 @@ myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
-def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request, recommendation: Recommendation):
+def getReviewsSubTable(recommendation: Recommendation):
+    db, auth, request = current.db, current.auth, current.request
+
     article = Article.get_by_id(recommendation.article_id)
     if not article:
         return None
@@ -43,8 +44,8 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
     review_list: List[Dict[str, Any]] = []
     for review in reviews:
             review_vars: Dict[str, Any] = dict(
-                reviewer=common_small_html.mkUserWithMail(auth, db, review.reviewer_id),
-                status=common_small_html.mkReviewStateDiv(auth, db, review.review_state, review),
+                reviewer=common_small_html.mkUserWithMail(review.reviewer_id),
+                status=common_small_html.mkReviewStateDiv(review.review_state, review),
                 lastChange=common_small_html.mkElapsedDays(review.last_change),
                 actions=[],
             )
@@ -134,4 +135,4 @@ def getReviewsSubTable(auth: Auth, db: DAL, response: Response, request: Request
         pciRRactivated=pciRRactivated
     )
 
-    return XML(response.render("components/review_sub_table.html", component_vars))
+    return XML(current.response.render("components/review_sub_table.html", component_vars))

@@ -63,15 +63,17 @@ def get_co_recommenders_mails(recommendation_id: int):
 
 
 ######################################################################################################################################################################
-def getAdminsMails(db):
-    return getMails(db, "administrator")
+def getAdminsMails():
+    return getMails("administrator")
 
 
-def getManagersMails(db):
-    return getMails(db, "manager")
+def getManagersMails():
+    return getMails("manager")
 
 
-def getMails(db, role):
+def getMails(role):
+    db = current.db
+
     managers = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == role)).select(db.auth_user.ALL)
 
     result = []
@@ -144,22 +146,6 @@ def getPCiRRScheduledSubmissionsVars(article):
     )
 
 
-# def getArticleVars(db, articleId=None, article=None, anonymousAuthors=False):
-#     art = None
-#     if article is not None:
-#         art = article
-#     if (art is None) and (articleId is not None):
-#         art = db.t_articles[articleId]
-
-#     if art is not None:
-#         mail_vars = dict(
-#             articleTitle=art.title,
-#             articleAuthors=mkAuthors(article),
-#             articleDoi=common_small_html.mkDOI(article.doi),
-#             articlePrePost="postprint" if art.already_published else "preprint",
-#         )
-
-#         return mail_vars
 def getPCiRRrecommendationText(article):
     recommendation_text = ""
     if article.status == "Recommended":
@@ -185,7 +171,7 @@ def getPCiRRstageVars(article):
     return mail_vars
 
 
-def getRRInvitiationVars(db, article, new_stage):
+def getRRInvitiationVars(article, new_stage):
     rr_vars = dict()
     rr_vars.update(getPCiRRstageVars(article))
 

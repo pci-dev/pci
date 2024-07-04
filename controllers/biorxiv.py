@@ -11,7 +11,7 @@ from models.group import Role
 
 @auth.requires_login() # type: ignore
 def complete_submission():
-    article_id = get_article_id(current.request)
+    article_id = get_article_id()
     if not article_id:
         raise HTTP(400, f"ArticleId missing in request") 
 
@@ -57,7 +57,7 @@ def cancel_submission():
 
 
 def do_cancel_submission():
-    article_id = get_article_id(current.request)
+    article_id = get_article_id()
     if not article_id:
         raise HTTP(400, f"ArticleId missing in request") 
 
