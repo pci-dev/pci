@@ -136,9 +136,9 @@ def is_recommender():
     )
 
 ######################################################################################################################################################################
-def is_co_recommender(recommId):
+def is_co_recommender(recommId: int):
     db, auth = current.db, current.auth
-    return db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
+    return bool(db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0)
 
 ######################################################################################################################################################################
 def extract_name(s):

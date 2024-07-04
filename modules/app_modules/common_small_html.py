@@ -333,7 +333,7 @@ def mkStatusDivUser(status, showStage=False, stage1Id=None, reportStage="Stage n
 
 
 ######################################################################################################################################################################
-def mkStatusBigDiv(status, printable=False):
+def mkStatusBigDiv(status: str, printable: bool = False):
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles()
     status_txt = (current.T(status)).upper()
@@ -349,7 +349,7 @@ def mkStatusBigDiv(status, printable=False):
 
 
 ######################################################################################################################################################################
-def mkStatusBigDivUser(status, printable=False):
+def mkStatusBigDivUser(status: str, printable: bool = False):
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles()
     if status.startswith("Pre-") and status != "Pre-submission":
