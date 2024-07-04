@@ -22,6 +22,7 @@ from gluon.contrib.markdown import WIKI
 from app_modules.helper import *
 
 from gluon.contrib.appconfig import AppConfig
+from models.article import Article
 
 myconf = AppConfig(reload=True)
 
@@ -34,7 +35,7 @@ not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", defaul
 ######################################################################################################################################################################
 ## Manager Modules
 ######################################################################################################################################################################
-def mkSuggestedRecommendersManagerButton(row, whatNext):
+def mkSuggestedRecommendersManagerButton(row: Article, whatNext: str):
     db, auth = current.db, current.auth
 
     if row.already_published:
