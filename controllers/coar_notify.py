@@ -183,6 +183,8 @@ def cancel_endorsement(req):
     article = get_article_by_coar_req_id(coar_req_id)
     if not article:
         fail(f"no such offer: object.id='{coar_req_id}'")
+    if article.status == 'Cancelled':
+        fail(f"already cancelled: article.id='{article.id}'")
 
     article.update_record(status="Cancelled")
 
