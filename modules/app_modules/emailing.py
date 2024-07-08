@@ -53,7 +53,7 @@ from models.article import Article
 from models.review import Review, ReviewState
 from models.recommendation import Recommendation
 from models.user import User
-from models.mail_queue import MailQueue
+from models.mail_queue import MailQueue, SendingStatus
 
 
 myconf = AppConfig(reload=True)
@@ -2917,9 +2917,13 @@ def create_reminder_for_recommender_new_reviewers_needed(recommendation_id: int)
 
     mail_vars = emailing_tools.getMailCommonVars()
 
-    recommendation: Optional[Recommendation] = db.t_recommendations[recommendation_id]
-    article: Optional[Article] = db((db.t_articles.id == recommendation.article_id)).select().last()
+    recommendation: Recommendation = db.t_recommendations[recommendation_id]
+    article: Article = db((db.t_articles.id == recommendation.article_id)).select().last()
 
+    mail_already_exists = MailQueue.there_are_mails_for_article_recommendation(article.id, recommendation.id, "#ReminderRecommenderNewReviewersNeeded", SendingStatus.PENDING) > 0
+    if mail_already_exists:
+        return
+    
     recommendation_count = int(db((db.t_recommendations.article_id == article.id)).count())
 
     if recommendation and article and recommendation_count == 1:
