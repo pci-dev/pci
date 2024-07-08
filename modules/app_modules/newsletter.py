@@ -41,6 +41,7 @@ def getArticleImage(article):
 
 
 def makeArticleWithRecommRow(article):
+    db = current.db
     recomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
 
     recomm_authors = common_small_html.getRecommAndReviewAuthors(article=article, with_reviewers=True, linked=True, fullURL=True)
