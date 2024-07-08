@@ -6,6 +6,9 @@ from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect
 from models.article import ArticleStatus
+from models.mail_queue import MailQueue, SendingStatus
+from models.recommendation import Recommendation
+from models.article import Article
 from models.user import User
 from app_components.custom_field import RequiredField
 from pydal.validators import IS_IN_SET, IS_EMPTY_OR, IS_INT_IN_RANGE, IS_LENGTH, IS_NOT_EMPTY, Validator, IS_GENERIC_URL, IS_HTTP_URL
@@ -1013,22 +1016,22 @@ def init_review(row):
 
 
 def reviewSuggested(s, row):
-    reviewId = row["id"]
-    recommendationId = row["recommendation_id"]
-    recomm = db.t_recommendations[recommendationId]
-    article = db.t_articles[recomm.article_id]
-    rev = db.t_reviews[reviewId]
-    revwr = db.t_recommendations[rev.recommendation_id]
-    no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
+    review_id = int(row["id"])
+    recommendation_id = int(row["recommendation_id"])
+    recommendation = Recommendation.get_by_id(recommendation_id)
+    article = Article.get_by_id(recommendation.article_id)
+    review = Review.get_by_id(review_id)
+    review_recommendation = Recommendation.get_by_id(review.recommendation_id)
+    no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
 
     notify_submitter(row)
 
     try:
-        rev_recomm_mail = db.auth_user[revwr.recommender_id]["email"]
+        rev_recomm_mail = db.auth_user[review_recommendation.recommender_id]["email"]
     except:
         rev_recomm_mail = None
     try:
-        recomm_mail = db.auth_user[recomm.recommender_id]["email"]
+        recomm_mail = db.auth_user[recommendation.recommender_id]["email"]
     except:
         recomm_mail = None
 
@@ -1057,8 +1060,8 @@ def reviewSuggested(s, row):
                 if pciRRactivated:
                     emailing.delete_reminder_for_managers(["#ManagersRecommenderAgreedAndNeedsToTakeAction", "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], row["recommendation_id"])
                      # renew reminder
-                    if no_of_accepted_invites < 2 and recomm.recommendation_state == "Ongoing":
-                        emailing.alert_managers_recommender_action_needed("#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recomm.id)
+                    if no_of_accepted_invites < 2 and recommendation.recommendation_state == "Ongoing":
+                        emailing.alert_managers_recommender_action_needed("#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recommendation.id)
     return None
 
 

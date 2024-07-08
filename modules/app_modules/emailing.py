@@ -2912,31 +2912,32 @@ def create_reminder_for_recommender_reviewers_needed(articleId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_new_reviewers_needed(recommId):
+def create_reminder_for_recommender_new_reviewers_needed(recommendation_id: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
-    recomm = db.t_recommendations[recommId]
-    article = db((db.t_articles.id == recomm.article_id)).select().last()
-    recommCount = db((db.t_recommendations.article_id == article.id)).count()
+    recommendation: Optional[Recommendation] = db.t_recommendations[recommendation_id]
+    article: Optional[Article] = db((db.t_articles.id == recommendation.article_id)).select().last()
 
-    if recomm and article and recommCount == 1:
-        count_reviews_under_consideration = db(
-            (db.t_reviews.recommendation_id == recommId) & ((db.t_reviews.review_state == "Awaiting review") | (db.t_reviews.review_state == "Review completed"))
-        ).count()
+    recommendation_count = int(db((db.t_recommendations.article_id == article.id)).count())
+
+    if recommendation and article and recommendation_count == 1:
+        count_reviews_under_consideration = int(db(
+            (db.t_reviews.recommendation_id == recommendation_id) & ((db.t_reviews.review_state == "Awaiting review") | (db.t_reviews.review_state == "Review completed"))
+        ).count())
         if count_reviews_under_consideration < 2:
 
-            mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
-            mail_vars["destAddress"] = db.auth_user[recomm.recommender_id]["email"]
+            mail_vars["destPerson"] = common_small_html.mkUser(recommendation.recommender_id)
+            mail_vars["destAddress"] = db.auth_user[recommendation.recommender_id]["email"]
 
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = article.authors
-            mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
+            mail_vars["recommenderName"] = common_small_html.mkUser(recommendation.recommender_id)
 
             hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderNewReviewersNeeded", article)
 
-            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
+            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommendation.id, None, article.id)
 
 
 ######################################################################################################################################################################
