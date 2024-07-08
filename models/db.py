@@ -1050,7 +1050,8 @@ def reviewSuggested(s, row):
         else:
             if recomm_mail is not None:
                 # renew reminder
-                emailing.delete_reminder_for_recommender("#ReminderRecommenderNewReviewersNeeded", row["recommendation_id"], force_delete=True)
+                if no_of_accepted_invites >= 2:
+                    emailing.delete_reminder_for_recommender("#ReminderRecommenderNewReviewersNeeded", row["recommendation_id"], force_delete=True)
                 emailing.create_reminder_for_recommender_new_reviewers_needed(row["recommendation_id"])
                 # delete reminder
                 emailing.delete_reminder_for_recommender("#ReminderRecommenderReviewersNeeded", row["recommendation_id"])
@@ -1087,7 +1088,8 @@ def after_review_done(s, current_review_values):
     review_id = current_review.id
     recommendation = db.t_recommendations[current_review.recommendation_id]
     no_of_completed_reviews = db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state == "Review completed")).count()
-    no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
+    total_no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
+    no_of_accepted_invites = total_no_of_accepted_invites
     last_recomm_reminder_mail = db((db.mail_queue.sending_status == "pending") & (db.mail_queue.recommendation_id == recommendation.id)
     & (db.mail_queue.mail_template_hashtag == "#ReminderRecommender2ReviewsReceivedCouldMakeDecision")
     & (db.mail_queue.sending_date >= (request.now + timedelta(days=7)))).select().first()
@@ -1129,8 +1131,9 @@ def after_review_done(s, current_review_values):
             emailing.create_reminder_for_reviewer_review_due(old_review["id"])
             emailing.create_reminder_for_reviewer_review_over_due(old_review["id"])
 
-            emailing.delete_reminder_for_recommender("#ReminderRecommenderNewReviewersNeeded", old_review.recommendation_id)
             emailing.send_to_admin_2_reviews_under_consideration(old_review.id)
+            if total_no_of_accepted_invites >= 2:
+                emailing.delete_reminder_for_recommender("#ReminderRecommenderNewReviewersNeeded", old_review.recommendation_id)
 
         if old_review["review_state"] in ["Awaiting response", "Cancelled", "Declined", "Declined manually"] and current_review["review_state"] == "Awaiting review":
             emailing.send_to_recommenders_review_considered(old_review["id"])
@@ -1148,7 +1151,9 @@ def after_review_done(s, current_review_values):
                 emailing.delete_reminder_for_reviewer(["#ReminderReviewerInvitationNewRoundRegisteredUser"], old_review["id"])
                 emailing.delete_reminder_for_reviewer(["#ReminderReviewInvitationRegisteredUserReturningReviewer"], old_review["id"])
                 emailing.delete_reminder_for_reviewer(["#ReminderReviewInvitationRegisteredUserNewReviewer"], old_review["id"])
-                emailing.delete_reminder_for_recommender("#ReminderRecommenderNewReviewersNeeded", old_review["recommendation_id"])
+
+                if total_no_of_accepted_invites >= 2:
+                    emailing.delete_reminder_for_recommender("#ReminderRecommenderNewReviewersNeeded", old_review["recommendation_id"])
 
         elif old_review["review_state"] == "Willing to review" and current_review["review_state"] == "Awaiting review":
             emailing.send_to_reviewer_review_request_accepted(old_review["id"], current_review)
@@ -1229,7 +1234,9 @@ def after_review_done(s, current_review_values):
                 emailing.delete_reminder_for_reviewer(["#ReminderReviewerInvitationNewRoundRegisteredUser"], old_review["id"])
                 emailing.delete_reminder_for_reviewer(["#ReminderReviewInvitationRegisteredUserReturningReviewer"], old_review["id"])
                 emailing.delete_reminder_for_reviewer(["#ReminderReviewInvitationRegisteredUserNewReviewer"], old_review["id"])
-                emailing.delete_reminder_for_recommender("#ReminderRecommenderNewReviewersNeeded", old_review["recommendation_id"])
+                
+                if total_no_of_accepted_invites >= 2:
+                    emailing.delete_reminder_for_recommender("#ReminderRecommenderNewReviewersNeeded", old_review["recommendation_id"])
         
         if no_of_completed_reviews >= 2 and old_review["review_state"] in ["Willing to review", "Awaiting response"] and current_review["review_state"] == "Awaiting review":
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionSoonDue", recommendation["article_id"])
