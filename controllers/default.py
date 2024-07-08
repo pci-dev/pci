@@ -20,16 +20,16 @@ from gluon import DAL
 # once in production, remove reload=True to gain full speed
 # -------------------------------------------------------------------------
 from gluon.contrib.appconfig import AppConfig
-from gluon.globals import Request
 from gluon.http import HTTP, redirect
 from gluon.sqlhtml import SQLFORM
 from gluon.utils import web2py_uuid
 
 from models.article import Article
-from models.membership import Membership
 from models.recommendation import Recommendation
 from models.review import Review, ReviewState
 from models.user import User
+
+from app_modules.common_tools import URL
 
 # -------------------------------------------------------------------------
 # This is a sample controller
@@ -655,6 +655,8 @@ def confirm_new_address():
 ######################################################################################################################################################################
 
 def invitation_to_review():
+    request, session, auth, response = current.request, current.session, current.auth, current.response
+
     more_delay = cast(bool, request.vars['more_delay'] == 'true')
     
     if not 'reviewId' in request.vars:
@@ -704,19 +706,15 @@ def invitation_to_review():
     
     if user.id != review.reviewer_id:
         session.flash = current.T('Bad user')
-        redirect(cast(str, URL('default','index')))
+        redirect(URL('default','index'))
         return
     
-    if review.review_state == ReviewState.DECLINED.value:
-        redirect(URL(c='user_actions', f='decline_review',  vars=dict(reviewId=review.id, key=review.quick_decline_key)))
-        return
-    
-    recommHeaderHtml = cast(XML, article_components.get_article_infos_card(article, printable=False))
+    recommHeaderHtml = article_components.get_article_infos_card(article, printable=False)
     response.view = "default/invitation_to_review.html"
 
-    form = invitation_to_review_form(article, user, review, more_delay)
+    form = invitation_to_review_form(article.id, user, review, more_delay)
 
-    if form.process().accepted:
+    if form.process().accepted: # type: ignore
         if request.vars.no_conflict_of_interest == 'yes' and request.vars.anonymous_agreement == 'yes' and request.vars.ethics_approved == 'true' and (request.vars.cgu_checkbox == 'yes' or user.ethical_code_approved):
             url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
             
@@ -724,18 +722,18 @@ def invitation_to_review():
                 Review.set_review_duration(review, article, request.vars.review_duration)
                 url_vars['more_delay'] = 'true'
             
-            action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
+            action_form_url = URL("default", "invitation_to_review_acceptation", vars=url_vars)
             redirect(action_form_url)
 
     if review.acceptation_timestamp:
         url_vars = dict(articleId=article.id, key=user.reset_password_key, reviewId=review.id)
         
         if review.review_state == ReviewState.AWAITING_REVIEW.value:
-            action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
+            action_form_url = URL("default", "invitation_to_review_acceptation", vars=url_vars)
             redirect(action_form_url)
         elif review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value or more_delay:
             url_vars['more_delay'] = 'true'
-            action_form_url = cast(str, URL("default", "invitation_to_review_acceptation", vars=url_vars))
+            action_form_url = URL("default", "invitation_to_review_acceptation", vars=url_vars)
             redirect(action_form_url)
         elif review.review_state == ReviewState.DECLINED_BY_RECOMMENDER.value:
             redirect(URL(c="user_actions", f="accept_review_confirmed", vars=dict(reviewId=review.id)))
@@ -757,9 +755,11 @@ def invitation_to_review_preprint(): # legacy
 
 
 def invitation_to_review_acceptation():
+    request, auth, session, response = current.request, current.auth, current.session, current.response
+
     article_id = get_article_id()
     review_id = get_review_id()
-    more_delay = cast(bool, request.vars['more_delay'] == 'true')
+    more_delay = bool(request.vars['more_delay'] == 'true')
 
     reset_password_key = get_reset_password_key()
     user: Optional[User] = None
@@ -803,13 +803,13 @@ def invitation_to_review_acceptation():
         raise HTTP(404, f"no user found for params={request.vars}")
 
     titleIcon = "user"
-    pageTitle = cast(str, T("Create account"))
+    pageTitle = str(current.T("Create account"))
     customText = CENTER(
-        P(T("Please create an account right now by defining a password below (your login is your email address)"), _style="font-weight: bold; width: 800px"),
+        P(current.T("Please create an account right now by defining a password below (your login is your email address)"), _style="font-weight: bold; width: 800px"),
     )
     form.element(_type="submit")["_class"] = "btn btn-success"
-    form.element(_type="submit")["_value"] = T("Create account")
-    form.element(_id="no_table_new_password__label").components[0] = T('Define password')
+    form.element(_type="submit")["_value"] = current.T("Create account")
+    form.element(_id="no_table_new_password__label").components[0] = current.T('Define password')
 
     response.view = "default/myLayoutBot.html"
 
