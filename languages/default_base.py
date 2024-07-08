@@ -932,7 +932,7 @@
     "You can also DECLINE and DELETE the temporary account by clicking on this button :": "You can also DECLINE and DELETE the temporary account by clicking on this button :",
     "You can modify this application and adapt it to your needs": "You can modify this application and adapt it to your needs",
     "You have agreed to comply with this code of conduct": "You have agreed to comply with this code of conduct",
-    "You have already declined this invitation to review": "You have already declined this invitation to review.",
+    "You have already declined this invitation to review": "This invitation to review is already declined.",
     "You have declined the invitation to handle the evaluation process of this preprint.": "You have declined the invitation to handle the evaluation process of this preprint.",
     "You have to add at least one contributor in order to collectively validate this recommendation": "You have to add at least one contributor in order to collectively validate this recommendation",
     "Your co-decision": "Your co-decision",

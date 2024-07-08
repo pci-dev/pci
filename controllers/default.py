@@ -692,6 +692,9 @@ def invitation_to_review():
     if pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or is_scheduled_submission(article)):
         more_delay = False
 
+    if review.review_state in (ReviewState.DECLINED.value, ReviewState.DECLINED_MANUALLY.value, ReviewState.CANCELLED.value, ReviewState.DECLINED_BY_RECOMMENDER.value):
+        return redirect(URL(c="default", f="invitation_to_review_unable"))
+
     reset_password_key = get_reset_password_key()
     user: Optional[User] = None
 
@@ -779,6 +782,9 @@ def invitation_to_review_acceptation():
         review = Review.get_by_id(review_id)
         article = Article.get_by_id(article_id)
         if review and article:
+            if review.review_state in (ReviewState.DECLINED.value, ReviewState.DECLINED_MANUALLY.value, ReviewState.CANCELLED.value, ReviewState.DECLINED_BY_RECOMMENDER.value):
+                return redirect(URL(c="default", f="invitation_to_review_unable"))
+
             if review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
                 url_vars = dict(reviewId=review_id, _next=URL(c="user_actions", f="suggestion_sent_page"))
                 session._reset_password_redirect = URL(c="user_actions", f="accept_review_confirmed", vars=url_vars)
@@ -817,6 +823,22 @@ def invitation_to_review_acceptation():
                 pageTitle=pageTitle,
                 customText=customText,
                 form=form)
+
+
+def invitation_to_review_unable():
+    current.response.view = "default/info.html"
+    return dict(
+        message=CENTER(
+            P(current.T("This invitation to perform a review has been cancelled by the recommender or you have already declined it."),
+              _class="info-sub-text", _style="width: 860px"),
+            P(current.T("Sorry for the inconvenience. We hope you will remain available for further review requests."),
+              _class="info-sub-text", _style="width: 860px"),
+              P(current.T("Have a nice day."),
+              _class="info-sub-text", _style="width: 860px")
+        )
+    )
+
+
 
 ######################################################################################################################################################################
 def recover_mail():
