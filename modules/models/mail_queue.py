@@ -1,4 +1,3 @@
-from __future__ import annotations # for self-ref param type
 from datetime import datetime
 from enum import Enum
 import re
@@ -43,7 +42,7 @@ class MailQueue(Row):
     
 
     @staticmethod
-    def get_mail_content(mail: MailQueue):
+    def get_mail_content(mail: 'MailQueue'):
         if not mail.mail_content:
             return ''
         
