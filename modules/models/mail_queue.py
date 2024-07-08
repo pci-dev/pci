@@ -1,10 +1,18 @@
 from __future__ import annotations # for self-ref param type
 from datetime import datetime
+from enum import Enum
 import re
 from typing import List, Optional as _, cast
 from models.review import Review
 from pydal.objects import Row
 from gluon import current
+
+
+class SendingStatus(Enum):
+    SENT = 'sent'
+    FAILED = 'failed'
+    IN_QUEUE = 'in queue'
+    PENDING = 'pending'
 
 
 class MailQueue(Row):
