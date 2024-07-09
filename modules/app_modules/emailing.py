@@ -2920,7 +2920,9 @@ def create_reminder_for_recommender_new_reviewers_needed(recommendation_id: int)
     recommendation: Recommendation = db.t_recommendations[recommendation_id]
     article: Article = db((db.t_articles.id == recommendation.article_id)).select().last()
 
-    mail_already_exists = MailQueue.there_are_mails_for_article_recommendation(article.id, recommendation.id, "#ReminderRecommenderNewReviewersNeeded", SendingStatus.PENDING) > 0
+    hashtag_template = emailing_tools.get_correct_hashtag("#ReminderRecommenderNewReviewersNeeded", article)
+
+    mail_already_exists = MailQueue.there_are_mails_for_article_recommendation(article.id, recommendation.id, hashtag_template, SendingStatus.PENDING) > 0
     if mail_already_exists:
         return
     
@@ -2938,8 +2940,6 @@ def create_reminder_for_recommender_new_reviewers_needed(recommendation_id: int)
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = article.authors
             mail_vars["recommenderName"] = common_small_html.mkUser(recommendation.recommender_id)
-
-            hashtag_template = emailing_tools.getCorrectHashtag("#ReminderRecommenderNewReviewersNeeded", article)
 
             emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommendation.id, None, article.id)
 
