@@ -28,7 +28,6 @@ def main():
      try:
           application = DestinationApp(str(current.request.application))
      except:
-          print(f"No application in destination app list with name: {current.request.application}")
           return
 
      for file_name in os.listdir(XML_FOLDER):
