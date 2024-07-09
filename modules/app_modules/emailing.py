@@ -264,7 +264,7 @@ def send_to_submitter_acknowledgement_submission(articleId):
 
 
 ##############################################################################
-def send_to_submitter_scheduled_submission_open(article):
+def send_to_submitter_scheduled_submission_open(article: Article):
     db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
@@ -279,12 +279,17 @@ def send_to_submitter_scheduled_submission_open(article):
     mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
     hashtag_template = "#SubmitterScheduledSubmissionOpen"
-    sending_date = getScheduledSubmissionDate(article) - db.full_upload_opening_offset
+    full_upload_opening_offset: datetime.datetime = db.full_upload_opening_offset
+    scheduled_submission_date = get_scheduled_submission_date(article)
+    sending_date: Optional[datetime.date] = None
+    
+    if scheduled_submission_date:
+        sending_date = scheduled_submission_date - full_upload_opening_offset
 
-    if sending_date < datetime.date.today():
+    if not sending_date or sending_date < datetime.date.today():
         return
 
-    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, article.id, sending_date_forced=sending_date)
+    emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, article.id, sending_date_forced=sending_date)
 
 
 def mk_recommender(article):
@@ -2193,7 +2198,7 @@ def create_reminder_for_submitter_suggested_recommender_needed(articleId):
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderSubmitterSuggestedRecommenderNeeded", article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, articleId)
 
 
 def mk_ethicsLink():
@@ -2214,7 +2219,7 @@ def create_reminder_for_submitter_new_suggested_recommender_needed(articleId):
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderSubmitterNewSuggestedRecommenderNeeded", article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, articleId)
 
 
 ######################################################################################################################################################################
@@ -2230,7 +2235,7 @@ def create_reminder_for_submitter_cancel_submission(articleId):
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderSubmitterCancelSubmission", article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, articleId)
 
 
 ######################################################################################################################################################################
@@ -2260,7 +2265,7 @@ def _create_reminder_for_submitter_revised_version(articleId, email_template):
             hashtag_template += "COAR" # i.e. #ReminderSubmitterRevisedVersionWarningCOAR / NeededCOAR
             mail_vars["message"] = get_original_submitter_awaiting_submission_email(article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, articleId)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, articleId)
 
 
 def get_original_submitter_awaiting_submission_email(article):
@@ -2288,7 +2293,7 @@ def create_reminders_for_submitter_scheduled_submission(article):
     create_reminder_for_submitter_scheduled_submission_over_due(articleId)
 
 
-def create_reminder_for_submitter_scheduled_submission_soon_due(articleId):
+def create_reminder_for_submitter_scheduled_submission_soon_due(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2312,9 +2317,12 @@ def create_reminder_for_submitter_scheduled_submission_soon_due(articleId):
 
         # do not user getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderSubmitterScheduledSubmissionSoonDue"
-        scheduled_submission_date = getScheduledSubmissionDate(article)
+        scheduled_submission_date = get_scheduled_submission_date(article)
+        sending_date_forced: Optional[datetime.date] = None
+        if scheduled_submission_date:
+            sending_date_forced = scheduled_submission_date - datetime.timedelta(days=14)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date - datetime.timedelta(days=14)))
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=sending_date_forced)
 
 ######################################################################################################################################################################
 def create_reminder_for_submitter_scheduled_submission_due(articleId):
@@ -2341,12 +2349,12 @@ def create_reminder_for_submitter_scheduled_submission_due(articleId):
 
         # do not user getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderSubmitterScheduledSubmissionDue"
-        scheduled_submission_date = getScheduledSubmissionDate(article)
+        scheduled_submission_date = get_scheduled_submission_date(article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=scheduled_submission_date)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=scheduled_submission_date)
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_scheduled_submission_over_due(articleId):
+def create_reminder_for_submitter_scheduled_submission_over_due(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2370,9 +2378,12 @@ def create_reminder_for_submitter_scheduled_submission_over_due(articleId):
 
         # do not user getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderSubmitterScheduledSubmissionOverDue"
-        scheduled_submission_date = getScheduledSubmissionDate(article)
+        scheduled_submission_date = get_scheduled_submission_date(article)
+        sending_date_forced: Optional[datetime.date] = None
+        if scheduled_submission_date:
+            sending_date_forced = scheduled_submission_date + datetime.timedelta(days=1)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=(scheduled_submission_date + datetime.timedelta(days=1)))
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=sending_date_forced)
 
 ######################################################################################################################################################################
 def create_reminder_for_recommender_validated_scheduled_submission(articleId):
@@ -2397,7 +2408,7 @@ def create_reminder_for_recommender_validated_scheduled_submission(articleId):
         # do not use getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderRecommenderPreprintValidatedScheduledSubmission"
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period - datetime.timedelta(days=1)))
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period - datetime.timedelta(days=1)))
 
 ######################################################################################################################################################################
 def create_reminder_for_recommender_validated_scheduled_submission_late(articleId):
@@ -2422,7 +2433,7 @@ def create_reminder_for_recommender_validated_scheduled_submission_late(articleI
         # do not use getCorrectHashtag here to avoid fake name
         hashtag_template = "#ReminderRecommenderPreprintValidatedScheduledSubmissionLate"
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period + datetime.timedelta(days=1)))
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period + datetime.timedelta(days=1)))
 
 
 def mk_submitter_my_articles_url(mail_vars):
@@ -2484,7 +2495,7 @@ def create_reminder_for_suggested_recommenders_invitation(articleId):
             mail_vars["helpUrl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
-            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+            emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
 
 ######################################################################################################################################################################
@@ -2514,7 +2525,7 @@ def create_reminder_for_suggested_recommender_invitation(articleId, suggRecommId
         mail_vars["helpUrl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
         sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId)
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
 
 
 ######################################################################################################################################################################
@@ -2623,7 +2634,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(reviewId, replyto_ad
         if not pciRRactivated and sender:
             sender_name = f'{sender.first_name} {sender.last_name}'
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name)
 
 
 ######################################################################################################################################################################
@@ -2692,7 +2703,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(reviewId, rep
         if not pciRRactivated and sender:
             sender_name = f'{sender.first_name} {sender.last_name}'
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name)
 
 
 ######################################################################################################################################################################
@@ -2733,14 +2744,14 @@ def create_reminder_for_reviewer_review_soon_due(reviewId):
 
             hashtag_template = emailing_tools.get_correct_hashtag("#ReminderReviewerReviewSoonDue", article)
 
-            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
+            emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
 
 
 def isScheduledTrack(art):
     return models.article.is_scheduled_submission(art)
 
 
-def getScheduledSubmissionDate(article):
+def get_scheduled_submission_date(article: Article) -> Optional[datetime.date]:
     return article.t_report_survey.select().last().q10
 
 
@@ -2784,7 +2795,7 @@ def create_reminder_for_reviewer_review_due(reviewId):
 
             hashtag_template = emailing_tools.get_correct_hashtag("#ReminderReviewerReviewDue", article)
 
-            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
+            emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, base_sending_date=base_sending_date)
 
 
 ######################################################################################################################################################################
@@ -2823,7 +2834,7 @@ def create_reminder_for_reviewer_review_over_due(reviewId):
 
             hashtag_template = emailing_tools.get_correct_hashtag("#ReminderReviewerReviewOverDue", article)
 
-            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
+            emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewId, sending_date_forced=sending_date_forced)
 
 
 ######################################################################################################################################################################
@@ -2849,10 +2860,10 @@ def create_reminder_for_reviewer_scheduled_review_coming_soon(review):
         "myReviewsLink": reviewLink(),
     })
 
-    sending_date = getScheduledSubmissionDate(article) # = LatestReviewStartDate minus 1 week
+    sending_date = get_scheduled_submission_date(article) # = LatestReviewStartDate minus 1 week
     hashtag_template = "#ReminderScheduledReviewComingSoon"
 
-    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id, review.id, sending_date_forced=sending_date)
+    emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, review.id, sending_date_forced=sending_date)
 
 
 ######################################################################################################################################################################
@@ -2908,7 +2919,7 @@ def create_reminder_for_recommender_reviewers_needed(articleId):
 
     hashtag_template = emailing_tools.get_correct_hashtag("#ReminderRecommenderReviewersNeeded", article)
 
-    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
+    emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -2941,7 +2952,7 @@ def create_reminder_for_recommender_new_reviewers_needed(recommendation_id: int)
             mail_vars["articleAuthors"] = article.authors
             mail_vars["recommenderName"] = common_small_html.mkUser(recommendation.recommender_id)
 
-            emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommendation.id, None, article.id)
+            emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recommendation.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -2969,7 +2980,7 @@ def create_reminder_for_recommender_decision_soon_due(reviewId):
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderRecommenderDecisionSoonDue", article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
 
 
 ######################################################################################################################################################################
@@ -2997,7 +3008,7 @@ def create_reminder_for_recommender_decision_due(reviewId):
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderRecommenderDecisionDue", article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
 
 
 ######################################################################################################################################################################
@@ -3025,7 +3036,7 @@ def create_reminder_for_recommender_decision_over_due(reviewId):
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderRecommenderDecisionOverDue", article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
 
 
 ######################################################################################################################################################################
@@ -3049,7 +3060,7 @@ def create_reminder_for_recommender_revised_decision_soon_due(articleId):
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderRecommenderRevisedDecisionSoonDue", article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -3073,7 +3084,7 @@ def create_reminder_for_recommender_revised_decision_due(articleId):
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderRecommenderRevisedDecisionDue", article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -3097,7 +3108,7 @@ def create_reminder_for_recommender_revised_decision_over_due(articleId):
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderRecommenderRevisedDecisionOverDue", article)
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -3280,7 +3291,7 @@ def create_reminder_user_complete_submission(article):
 
     hashtag_template = "#ReminderUserCompleteSubmissionCOAR"
 
-    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, article.id)
+    emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, article.id)
 
 
 ######################################################################################################################################################################
@@ -3353,7 +3364,7 @@ def create_reminder_recommender_could_make_decision(recommId):
 
     hashtag_template = "#ReminderRecommender2ReviewsReceivedCouldMakeDecision"
 
-    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
+    emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ################################################################################################
 def alert_managers_recommender_action_needed(hashtag_template, recommId):
@@ -3370,7 +3381,7 @@ def alert_managers_recommender_action_needed(hashtag_template, recommId):
         mail_vars["recommenderPerson"] = mk_recommender(article)
         mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
-        emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ########################################################
 def delete_reminder_for_managers(hashtag_template, recommId):
@@ -3541,7 +3552,7 @@ def create_reminder_for_conditional_recommender_acceptation_review(review: Revie
     
     hashtag_template = "#ReminderRecommenderAcceptationReview"
 
-    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, recommendation.id, None, article.id, review.id, reviewer_invitation_buttons=buttons)
+    emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recommendation.id, None, article.id, review.id, reviewer_invitation_buttons=buttons)
 
 #########################################################
 
@@ -3634,7 +3645,7 @@ def create_reminder_user_complete_submission_biorxiv(article: Article):
 
     hashtag_template = "#ReminderUserCompleteSubmissionBiorxiv"
 
-    emailing_tools.insertReminderMailInQueue(hashtag_template, mail_vars, None, None, article.id)
+    emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, article.id)
 
 ##################################################################################################################################################################
 def send_message_to_recommender_and_reviewers(article_id):
