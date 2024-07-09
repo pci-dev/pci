@@ -8,6 +8,7 @@ from dateutil.relativedelta import *
 from typing import cast, Optional, List
 from difflib import SequenceMatcher
 
+from gluon.http import redirect
 from lxml import html
 
 from gluon.utils import web2py_uuid
@@ -44,6 +45,8 @@ from app_modules.emailing import isScheduledTrack
 
 # to change to common
 from controller_modules import admin_module
+
+from app_modules.common_tools import URL
 
 
 # frequently used constants
@@ -1347,6 +1350,8 @@ def cancel_email_to_registered_reviewer():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender") or auth.has_membership(role="manager"))
 def send_review_cancellation():
+    response = current.response
+
     response.view = "default/myLayout.html"
 
     reviewId = request.vars["reviewId"]
@@ -1403,12 +1408,15 @@ def send_review_cancellation():
         scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
         snapshotUrl = sched_sub_vars["snapshotUrl"]
 
-    hashtag_template = "#DefaultReviewCancellation"
-
+    hashtag_template: Optional[str] = None
     if review.review_state == "Awaiting response":
-        pass
+        hashtag_template = "#DefaultReviewCancellation"
     if review.review_state == "Awaiting review":
         hashtag_template = "#DefaultReviewAlreadyAcceptedCancellation"
+
+    if not hashtag_template:
+        current.response.flash = 'Error: no template mail.'
+        return redirect(request.env.http_referer)
 
     hashtag_template = emailing_tools.get_correct_hashtag(hashtag_template, art)
 

@@ -3305,28 +3305,36 @@ def check_mail_queue(hashtag, reviewer_mail, recomm_id):
     ).count() > 0
 
 ######################################################################################################################################################################
-def create_cancellation_for_reviewer(reviewId):
+def create_cancellation_for_reviewer(review_id: int):
     session, auth, db = current.session, current.auth, current.db
 
-    mail_vars = emailing_tools.getMailCommonVars()
-    reports = []
-    review = db.t_reviews[reviewId]
-    recomm = db.t_recommendations[review.recommendation_id]
-    art = db.t_articles[recomm.article_id]
-    reviewer = db.auth_user[review.reviewer_id]
-    sender = None
-
+    review = Review.get_by_id(review_id)
+    if not review:
+        return
+    
+    recommendation = Recommendation.get_by_id(review.recommendation_id)
+    if not recommendation:
+        return
+    
+    article = Article.get_by_id(recommendation.article_id)
+    if not article:
+        return
+    
+    reviewer = User.get_by_id(review.reviewer_id)
     if not reviewer: # dest reviewer might have been deleted
         return
+    
+    mail_vars = emailing_tools.getMailCommonVars()
+    reports = []
 
     mail_vars["destPerson"] = common_small_html.mkUser(reviewer.id).flatten()
     mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
     mail_vars["destAddress"] = reviewer.email
-    mail_vars["sender"] = mkSender(recomm)
-    mail_vars["art_doi"] = common_small_html.mkLinkDOI(recomm.doi or art.doi)
-    mail_vars["art_title"] = md_to_html(art.title)
-    mail_vars["art_authors"] = mkAuthors(art)
+    mail_vars["sender"] = mkSender(recommendation)
+    mail_vars["art_doi"] = common_small_html.mkLinkDOI(recommendation.doi or article.doi)
+    mail_vars["art_title"] = md_to_html(article.title)
+    mail_vars["art_authors"] = mkAuthors(article)
 
     mail_vars.update({
         "articleTitle": mail_vars["art_title"],
@@ -3335,13 +3343,19 @@ def create_cancellation_for_reviewer(reviewId):
     })
 
     if pciRRactivated:
-        mail_vars.update(getPCiRRScheduledSubmissionsVars(art))
+        mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
-    hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewCancellation", art)
-    if review.review_state == "Awaiting review" and isScheduledTrack(art) and art.report_stage == "STAGE 1":
+    hashtag_template: Optional[str] = None
+    if review.review_state == ReviewState.AWAITING_RESPONSE.value:
+        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewCancellation", article)
+    if review.review_state == ReviewState.AWAITING_REVIEW.value and isScheduledTrack(article) and article.report_stage == "STAGE 1":
         hashtag_template = "#DefaultReviewAlreadyAcceptedCancellationStage1ScheduledSubmission"
+
+    if not hashtag_template:
+        return
+    
     if not check_mail_queue(hashtag_template, reviewer.email, review.recommendation_id):
-        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, None, recommendation.article_id)
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
         emailing_tools.getFlashMessage(reports)
 
