@@ -1108,7 +1108,7 @@ def after_review_done(s, current_review_values):
         if pciRRactivated:
             if no_of_accepted_invites < 2 and recommendation.recommendation_state == "Ongoing" and not_enough_reviewer_mail == 0:
                 emailing.alert_managers_recommender_action_needed("#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recommendation.id)
-            elif no_of_accepted_invites >= 2:
+            elif total_no_of_accepted_invites >= 2:
                 emailing.delete_reminder_for_managers(["#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], recommendation.id)
             elif no_of_completed_reviews >= 2 and no_of_completed_reviews == no_of_accepted_invites and recommendation.recommendation_state == "Ongoing":
                 emailing.alert_managers_recommender_action_needed("#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction", recommendation.id)
