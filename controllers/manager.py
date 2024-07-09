@@ -1916,7 +1916,7 @@ def email_for_recommender():
         sender = cast(User, auth.user)
 
     recommender = db(recomm.recommender_id == db.auth_user.id).select().last()
-    hashtag_template = emailing_tools.getCorrectHashtag("#RecommenderDecisionSentBack", article)
+    hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderDecisionSentBack", article)
     mail_template = emailing_tools.getMailTemplateHashtag(hashtag_template)
     mail_vars = emailing_tools.getMailForRecommenderCommonVars(auth.user, article, recomm, recommender)
 

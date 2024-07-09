@@ -243,7 +243,7 @@ def getMailForReviewerCommonVars(sender: User, article: Article, recommendation:
 
 
 ######################################################################################################################################################################
-def getCorrectHashtag(hashtag, article=None, force_scheduled=False):
+def get_correct_hashtag(hashtag: str, article: Optional[Article] = None, force_scheduled: bool = False):
     if pciRRactivated and article is not None:
         if article.art_stage_1_id is not None or article.report_stage == "STAGE 2":
             hashtag += "Stage2"
