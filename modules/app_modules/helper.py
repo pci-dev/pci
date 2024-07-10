@@ -141,7 +141,7 @@ def is_co_recommender(recommId: int):
     return bool(db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0)
 
 ######################################################################################################################################################################
-def extract_name(s: str):
+def extract_name_from_author(s: str):
     # Split pattern to handle most cases
     split_pattern = re.compile(r'\b\s*and\s*\b|;\s*|,\s*(?=[A-Z])|,\s+and\s+|&')
     # Check and handle "John, Doe and Jane, Doe and Unknown, User" format
@@ -155,6 +155,15 @@ def extract_name(s: str):
         s = re.sub(r'(\w+),\s(\w+)', r'\1 \2', s)
 
     return [str(part.strip()) for part in split_pattern.split(s) if part.strip()]
+
+
+def extract_name_without_email(s: str):
+    s = s.strip()
+    if re.match(r'(([\w\-\.]+ )*[\w\-]+)+', s):
+        match = re.search(r'([\w_\-\.]+ (\w\. )*[\w_\-\.]+)+', s)
+        if match:
+            s = match.group()
+    return s
 
 ######################################################################################################################################################################
 def query_semantic_api(authors: List[Dict[str, str]], recommenders: List[Dict[str, str]]):
