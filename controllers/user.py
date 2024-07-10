@@ -35,9 +35,9 @@ from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
 from models.user import User
 from pydal.validators import IS_IN_DB
+from app_components.article_components import fix_web2py_list_str_bug_article_form
 
 from app_modules.common_tools import URL
-
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -681,6 +681,7 @@ def fill_new_article():
         else:
             redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
     elif form.errors:
+        fix_web2py_list_str_bug_article_form(form)
         _save_article_form(form)
         _clean_article_form_saved(True)
         response.flash = T("Form has errors", lazy=False)
