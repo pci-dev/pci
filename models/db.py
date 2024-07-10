@@ -572,6 +572,7 @@ db.define_table(
         label=T("Suggested reviewers - Suggest up to 10 reviewers (provide names and Email addresses). (Optional)"),
         length=20000,
         comment=SPAN(
+            DIV(T("e.g. John Doe john@doe.com")),
             T(" No need for them to be recommenders of %s. Please do not suggest reviewers for whom there might be a conflict of interest. Reviewers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the review - " % appName),
             A("see the code of conduct", _href="../about/ethics", _target="_blank"),
         ),
@@ -581,7 +582,7 @@ db.define_table(
         type="list:string",
         label=T("Opposed reviewers - Suggest up to 5 people not to invite as reviewers. (Optional)"),
         length=20000,
-        comment=SPAN(T("e.g. John Doe [john@doe.com]")),
+        comment=SPAN(T("e.g. John Doe john@doe.com")),
     ),
     Field(
         "parallel_submission",
