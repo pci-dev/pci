@@ -34,6 +34,7 @@ from app_modules import emailing_vars
 from app_modules import emailing
 
 from models.group import Role
+from models.report_survey import ReportSurvey
 from models.user import User
 from models.recommendation import Recommendation
 from models.article import Article
@@ -2772,6 +2773,9 @@ def verify_co_authorship():
     article = db.t_articles[articleId]
     recomm = db.get_last_recomm(articleId)
     authors = extract_name(article.authors)
+    report_survey = ReportSurvey.get_by_article(articleId)
+    if report_survey and report_survey.q9:
+        authors.extend(extract_name(report_survey.q9))
     authors = [{"group" : "author", "name" : author} for author in authors]
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
@@ -2783,9 +2787,9 @@ def verify_co_authorship():
     reviewer_query = (db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Awaiting response", "Review completed"))
     is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
                             (db.t_suggested_recommenders.declined == False)).select(db.t_suggested_recommenders.suggested_recommender_id)
-    has_recommender = db(db.v_article_recommender.recommendation_id == recomm.id).select(db.v_article_recommender.recommender) if recomm else None
+    has_recommender = db(db.v_article_recommender.recommendation_id == recommendation.id).select(db.v_article_recommender.recommender) if recommendation else None
     has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state)
-    has_co_recommenders = db(db.t_press_reviews.recommendation_id == recomm.id).select(db.t_press_reviews.contributor_id) if recomm else None
+    has_co_recommenders = db(db.t_press_reviews.recommendation_id == recommendation.id).select(db.t_press_reviews.contributor_id) if recommendation else None
 
     grid = []
     recommenders = []
