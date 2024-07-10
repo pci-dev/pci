@@ -118,8 +118,8 @@ def fill_survey():
     select("#t_report_survey_q3").send_keys("Fully public")
     select("input[id^='q6YES']")[0].click()
     select("input[id^='q7No']").click()
-    select("#t_report_survey_q8").send_keys("a reviewer")
-    select("#t_report_survey_q9").send_keys("an opposed reviewer")
+    select("#t_report_survey_q8").send_keys("a reviewer email@email.fr")
+    select("#t_report_survey_q9").send_keys("an opposed reviewer email@email.fr")
     if is_rr.scheduled_track:
         report_due_date = datetime.now() + timedelta(weeks=7)
         report_due_date -= timedelta(days=report_due_date.weekday())
