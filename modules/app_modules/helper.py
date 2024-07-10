@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-from typing import Optional
+from typing import Any, Dict, List, Optional
 from gluon import current
 from gluon.html import *
 from gluon.contrib.markdown import WIKI # type: ignore
@@ -163,7 +163,7 @@ def user_is_in_recommender_team(article_id: int, user_id: Optional[int] = None):
 
 
 ######################################################################################################################################################################
-def extract_name(s):
+def extract_name(s: str):
     # Split pattern to handle most cases
     split_pattern = re.compile(r'\b\s*and\s*\b|;\s*|,\s*(?=[A-Z])|,\s+and\s+|&')
     # Check and handle "John, Doe and Jane, Doe and Unknown, User" format
@@ -173,19 +173,19 @@ def extract_name(s):
     elif re.match(r'(\w+),\s(\w)\b', s):
         s = re.sub(r'(\w+),\s(\w)\b', r'\1 \2', s)
         # Check and handle "John, Doe" format
-    elif re.match('(\w+),\s(\w+)(?:;\s)?', s):
+    elif re.match(r'(\w+),\s(\w+)(?:;\s)?', s):
         s = re.sub(r'(\w+),\s(\w+)', r'\1 \2', s)
 
-    return [part.strip() for part in split_pattern.split(s) if part.strip()]
+    return [str(part.strip()) for part in split_pattern.split(s) if part.strip()]
 
 ######################################################################################################################################################################
-def query_semantic_api(authors: list, recommenders: list):
-    grid = []
-    all_data = {
+def query_semantic_api(authors: List[Dict[str, str]], recommenders: List[Dict[str, str]]):
+    grid: List[Any] = []
+    all_data: Dict[str, List[str]] = {
         "author" : [], "invited reviewer": [], "recommender" : [], "suggested recommender" : [], "accepted reviewer": [], "co-recommender": []
     }
     
-    def get_author_ids(data):
+    def get_author_ids(data: Dict[str, str]) -> List[Dict[str, Any]]:
         """Function to get author IDs from Semantic Scholar API"""
         name = data["name"]
         url = f'https://api.semanticscholar.org/graph/v1/author/search?query={name.replace(" ", "+")}&fields=name,papers.authors,papers.year'
@@ -212,7 +212,7 @@ def query_semantic_api(authors: list, recommenders: list):
     # Check if any of the authors have co-published with the suggested recommenders
     for author in authors:
         grid.append(BR()), grid.append(DIV(SPAN(B(f'Author {author["name"]}'))))
-        author_data = []
+        author_data: List[Any] = []
         author_data.extend(get_author_ids(author))
         found = False
         if len(author_data) == 0:
