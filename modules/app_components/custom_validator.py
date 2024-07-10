@@ -1,4 +1,5 @@
-from typing import Optional
+import re
+from typing import List, Optional, Union
 
 from urllib.parse import urlparse
 from pydal.validators import IS_HTTP_URL
@@ -31,4 +32,45 @@ class CUSTOM_VALID_URL(Validator):
         if error:
             return value, error
         
+        return value, None
+
+
+class VALID_LIST_NAMES_MAIL(Validator):
+
+    _regex: str
+    _without_email: bool
+
+    def __init__(self, without_email: bool = False):
+        if without_email:
+            self._regex = r"(([\w\-\.]+ )*[\w\-]+)+"
+        else:
+            self._regex = r"(([\w\-\.]+ )*[\w\-]+ [a-zA-Z_\-\.]+@[a-zA-Z_\-\.]+\.[a-z]+)+"
+        self._without_email = without_email
+
+
+    def __call__(self, value: Optional[Union[str, List[str]]], record_id: Optional[int] = None):
+        if not value or len(value) == 0:
+            return value, None
+        
+        self._pattern = re.compile(self._regex)
+        
+        if isinstance(value, str):
+            people = value.split(',')
+            for person in people:
+                person = person.strip()
+                match = self._pattern.fullmatch(person)
+                if not match:
+                    if self._without_email:
+                        return value, 'Pattern must be <names>, <names>, ...'
+                    else:
+                        return value, 'Pattern must be <names> <email>, <names> <email>, ...'
+        else:
+            for person in value:
+                match = self._pattern.fullmatch(person)
+                if not match:
+                    if self._without_email:
+                        return value, 'Pattern must be <names> <email>'
+                    else:
+                        return value, 'Pattern must be <names>'
+                
         return value, None
