@@ -652,6 +652,10 @@ def fill_new_article():
         if pciRRactivated:
             form.vars.status = "Pending-survey"
 
+        suggest_reviewers, error = VALID_LIST_NAMES_MAIL(True)(form.vars.suggest_reviewers)
+        if error:
+            form.errors.suggest_reviewers = error
+
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
         form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
