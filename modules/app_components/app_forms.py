@@ -367,7 +367,7 @@ def get_from_fields_report_survey_stage1():
         )
     )
     db.t_report_survey.q8.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0), VALID_LIST_NAMES_MAIL()]
-    db.t_report_survey.q9.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0), VALID_LIST_NAMES_MAIL()]
+    db.t_report_survey.q9.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
     db.t_report_survey.q11.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
     db.t_report_survey.q12.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
     db.t_report_survey.q13.requires = IS_IN_SET(db.TOP_guidelines_choices)
