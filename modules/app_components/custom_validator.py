@@ -38,14 +38,25 @@ class CUSTOM_VALID_URL(Validator):
 class VALID_LIST_NAMES_MAIL(Validator):
 
     _regex: str
-    _without_email: bool
+    _error_message: str
 
-    def __init__(self, without_email: bool = False):
+    def __init__(self, is_list_string: bool = False, without_email: bool = False):
         if without_email:
             self._regex = r"(([\w\-\.]+ )*[\w\-]+)+"
         else:
             self._regex = r"(([\w\-\.]+ )*[\w\-]+ [a-zA-Z_\-\.]+@[a-zA-Z_\-\.]+\.[a-z]+)+"
-        self._without_email = without_email
+
+        if is_list_string:
+            if without_email:
+                self._error_message = 'Pattern must be: <first name> <last name>'
+            else:
+                self._error_message = 'Pattern must be: <first name> <last name> <mail>'
+
+        else:
+            if without_email:
+                self._error_message = 'Pattern must be: <first name> <last name>, <first name> <last name>, ...'
+            else:
+                self._error_message = 'Pattern must be: <first name> <last name> <mail>, <first name> <last name> <mail>, ...'
 
 
     def __call__(self, value: Optional[Union[str, List[str]]], record_id: Optional[int] = None):
@@ -60,17 +71,11 @@ class VALID_LIST_NAMES_MAIL(Validator):
                 person = person.strip()
                 match = self._pattern.fullmatch(person)
                 if not match:
-                    if self._without_email:
-                        return value, 'Pattern must be <names>, <names>, ...'
-                    else:
-                        return value, 'Pattern must be <names> <email>, <names> <email>, ...'
+                    return value, self._error_message
         else:
             for person in value:
                 match = self._pattern.fullmatch(person)
                 if not match:
-                    if self._without_email:
-                        return value, 'Pattern must be <names> <email>'
-                    else:
-                        return value, 'Pattern must be <names>'
+                    return value, self._error_message
                 
         return value, None

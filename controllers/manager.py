@@ -1130,7 +1130,7 @@ def edit_article():
                 form.errors.uploaded_picture = not_empty.error_message
             app_forms.checklist_validation(form)
 
-            suggest_reviewers, error = VALID_LIST_NAMES_MAIL()(form.vars.suggest_reviewers)
+            suggest_reviewers, error = VALID_LIST_NAMES_MAIL(True)(form.vars.suggest_reviewers)
             if error:
                 form.errors.suggest_reviewers = error
 

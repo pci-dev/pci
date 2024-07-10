@@ -490,7 +490,7 @@ db.define_table(
     )),
     Field("has_manager_in_authors", type="boolean", label=T("One or more authors of this article are members of the %s Managing Board" % appName), default=False),
     RequiredField("title", type="string", length=1024, label=T("Title"), requires=IS_LENGTH(1024, 0), comment="use asterix (*) to get italics"),
-    RequiredField("authors", type="string", length=4096, label=T("Authors"), requires=[IS_LENGTH(4096, 0), VALID_LIST_NAMES_MAIL(True)], represent=lambda t, r: ("") if (r.anonymous_submission) else (t),
+    RequiredField("authors", type="string", length=4096, label=T("Authors"), requires=[IS_LENGTH(4096, 0), VALID_LIST_NAMES_MAIL(without_email=True)], represent=lambda t, r: ("") if (r.anonymous_submission) else (t),
           comment=B('Please use the format "First name initials family name" as in "Marie S. Curie, Niels H. D. Bohr, Albert Einstein, John R. R. Tolkien, Donna T. Strickland"')),
     RequiredField("article_year", type="integer", label=T("Year")),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
