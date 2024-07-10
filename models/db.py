@@ -6,7 +6,7 @@ from gluon.sqlhtml import SQLFORM
 locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
 
 from typing import cast
-from app_components.custom_validator import CUSTOM_VALID_URL, VALID_DOI
+from app_components.custom_validator import CUSTOM_VALID_URL, VALID_LIST_NAMES_MAIL, VALID_DOI
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect # type: ignore

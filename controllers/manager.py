@@ -10,6 +10,7 @@ from typing import Any, Dict, List, cast, Optional
 # import tweepy
 
 # import html2text
+from app_components.custom_validator import VALID_LIST_NAMES_MAIL
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig # type: ignore

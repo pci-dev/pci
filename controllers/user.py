@@ -23,6 +23,7 @@ from app_modules import common_small_html
 from app_modules.orcid import OrcidTools
 from app_modules.article_translator import ArticleTranslator
 from gluon.http import HTTP, redirect # type: ignore
+from app_components.custom_validator import VALID_LIST_NAMES_MAIL
 
 from gluon.sqlhtml import SQLFORM
 from gluon.storage import Storage
