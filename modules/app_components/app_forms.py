@@ -1,7 +1,7 @@
 from re import match
-from typing import Optional, cast
+from typing import Optional
+from app_components.custom_validator import VALID_LIST_NAMES_MAIL
 from gluon import *
-from gluon.globals import Session
 from gluon.html import *
 from gluon.sqlhtml import SQLFORM
 from gluon.contrib.appconfig import AppConfig
@@ -261,8 +261,20 @@ def report_survey(article: Article, survey: Optional[ReportSurvey] = None, contr
         form.element(_type="submit")["_value"] = current.T("Complete your submission")
         form.element(_type="submit")["_class"] = "btn btn-success"
 
+    
+    def report_survey_on_validation(form: FORM):
+        form.vars.article_id = article.id
+        if form.vars.q16 == "UNDER PRIVATE EMBARGO" and form.vars.q17 is None:
+            form.errors.q17 = "Please provide a duration"
 
-    if form.process(onvalidation=report_survey_on_validation(form, article, do_validate)).accepted:
+        error = report_survey_validate_due_date(form)
+        if error and do_validate:
+            form.errors.q10 = error
+        
+        if form.vars.q10 is not None and form.vars.q4 is None:
+            form.errors.q4 = "This box needs to be ticked"
+
+    if form.process(onvalidation=report_survey_on_validation).accepted:
         doUpdateArticle = False
         if form.vars.q10 is not None:
             if article.scheduled_submission_date or controller == "user_fill":
@@ -330,19 +342,6 @@ def report_survey_validate_due_date(form: FORM):
         return "Please select a date in the future"
 
 
-def report_survey_on_validation(form: FORM, article: Article, do_validate: bool):
-    form.vars.article_id = article.id
-    if form.vars.q16 == "UNDER PRIVATE EMBARGO" and form.vars.q17 is None:
-        form.errors.q17 = "Please provide a duration"
-
-    error = report_survey_validate_due_date(form)
-    if error and do_validate:
-        form.errors.q10 = error
-    
-    if form.vars.q10 is not None and form.vars.q4 is None:
-        form.errors.q4 = "This box needs to be ticked"
-
-
 def get_from_fields_report_survey_stage1():
     db = current.db
     db.t_report_survey.q1.requires = IS_IN_SET(("COMPLETE STAGE 1 REPORT FOR REGULAR REVIEW", "RR SNAPSHOT FOR SCHEDULED REVIEW"))
@@ -367,8 +366,8 @@ def get_from_fields_report_survey_stage1():
             "At least some of the data/evidence that will be used to the answer the research question has been accessed and observed by the authors, including key variables, AND the authors have already conducted (and know the outcome of) at least some of their preregistered analyses [Level 0]",
         )
     )
-    db.t_report_survey.q8.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
-    db.t_report_survey.q9.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0)]
+    db.t_report_survey.q8.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0), VALID_LIST_NAMES_MAIL()]
+    db.t_report_survey.q9.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0), VALID_LIST_NAMES_MAIL()]
     db.t_report_survey.q11.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
     db.t_report_survey.q12.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
     db.t_report_survey.q13.requires = IS_IN_SET(db.TOP_guidelines_choices)

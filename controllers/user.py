@@ -24,6 +24,8 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules.orcid import OrcidTools
 from app_modules.article_translator import ArticleTranslator
+from app_components.custom_validator import VALID_LIST_NAMES_MAIL
+
 from gluon.http import redirect
 
 from gluon.sqlhtml import SQLFORM
@@ -627,6 +629,10 @@ def fill_new_article():
             app_forms.checklist_validation(form)
         if pciRRactivated:
             form.vars.status = "Pending-survey"
+
+        suggest_reviewers, error = VALID_LIST_NAMES_MAIL()(form.vars.suggest_reviewers)
+        if error:
+            form.errors.suggest_reviewers = error
 
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)

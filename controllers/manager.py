@@ -16,6 +16,7 @@ from typing import List, cast, Optional
 import codecs
 
 # import html2text
+from app_components.custom_validator import VALID_LIST_NAMES_MAIL
 from gluon.contrib.markdown import WIKI
 from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig
@@ -1128,6 +1129,10 @@ def edit_article():
             if not prev_picture and form.vars.uploaded_picture == b"":
                 form.errors.uploaded_picture = not_empty.error_message
             app_forms.checklist_validation(form)
+
+            suggest_reviewers, error = VALID_LIST_NAMES_MAIL()(form.vars.suggest_reviewers)
+            if error:
+                form.errors.suggest_reviewers = error
 
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)

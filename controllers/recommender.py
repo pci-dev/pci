@@ -2769,13 +2769,19 @@ def edit_and_resend_email():
 def verify_co_authorship():
 
     response.view = "default/myLayout.html"
-    articleId = request.vars["articleId"]
-    article = db.t_articles[articleId]
-    recomm = db.get_last_recomm(articleId)
-    authors = extract_name(article.authors)
-    report_survey = ReportSurvey.get_by_article(articleId)
-    if report_survey and report_survey.q9:
-        authors.extend(extract_name(report_survey.q9))
+    article_id = int(request.vars["articleId"])
+    article = Article.get_by_id(article_id)
+    recommendation = Recommendation.get_by_id(article_id)
+    authors = extract_name_from_author(article.authors)
+    report_survey = ReportSurvey.get_by_article(article_id)
+    if report_survey and report_survey.q8:
+        names = report_survey.q8.split(',')
+        for name in names:
+            authors.append(extract_name_without_email(name))
+    if article.suggest_reviewers:
+        for reviewer in article.suggest_reviewers:
+            authors.append(extract_name_without_email(reviewer))
+
     authors = [{"group" : "author", "name" : author} for author in authors]
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
