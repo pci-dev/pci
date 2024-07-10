@@ -1160,6 +1160,9 @@ def edit_article():
         redirect(URL(c=controller, f="recommendations", vars=myVars, user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
+        suggest_reviewers_input = form.element(_id="t_articles_suggest_reviewers_grow_input")
+        suggest_reviewers_input['_style'] = "display: block; margin-top: 5px; margin-bottom: 10px; color: #7f8177; list-style: none;"
+        suggest_reviewers_input.append(form.custom.comment.suggest_reviewers.components)
 
     confirmationScript = common_tools.get_script("confirmation.js")
     article_form_common_script = common_tools.get_script("article_form_common.js")

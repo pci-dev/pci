@@ -662,6 +662,9 @@ def fill_new_article():
     elif form.errors:
         _save_article_form(form)
         _clean_article_form_saved(True)
+        suggest_reviewers_input = form.element(_id="t_articles_suggest_reviewers_grow_input")
+        suggest_reviewers_input['_style'] = "display: block; margin-top: 5px; margin-bottom: 10px; color: #7f8177; list-style: none;"
+        suggest_reviewers_input.append(form.custom.comment.suggest_reviewers.components)
         response.flash = T("Form has errors", lazy=False)
 
 
