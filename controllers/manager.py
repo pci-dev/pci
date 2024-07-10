@@ -48,6 +48,7 @@ from gluon.http import HTTP, redirect # type: ignore
 from models.article import Article, ArticleStatus, clean_vars_doi, clean_vars_doi_list
 from models.user import User
 from models.membership import Membership
+from app_components.article_components import fix_web2py_list_str_bug_article_form
 
 from app_modules.common_tools import URL
 from pydal.validators import IS_IN_DB
@@ -1427,6 +1428,7 @@ def edit_article():
         redirect(URL(c=controller, f="recommendations", vars=myVars, user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
+        fix_web2py_list_str_bug_article_form(form)
 
     confirmationScript = common_tools.get_script("confirmation.js")
     article_form_common_script = common_tools.get_script("article_form_common.js")
