@@ -17,6 +17,8 @@ from models.review import Review, ReviewState
 from models.user import User
 from pydal import DAL
 
+from app_modules.common_tools import URL
+
 db = cast(DAL, db)
 
 ######################################################################################################################################################################
@@ -203,26 +205,29 @@ def decline_review(): # no auth required
 
     if review:
         message = A(
-                T("Please click to confirm review decline"),
+                current.T("Please click to confirm review decline"),
                 _class="pci-decline-review-confirm btn btn-warning",
-                _href=URL(f="decline_review_confirmed", vars=request.vars),
+                _href=URL(f="decline_review_confirmed", vars=current.request.vars),
         )
 
     return _decline_review_page(message, form=None)
 
 
 def _check_decline_review_request():
-    reviewId = request.vars["id"] or request.vars["reviewId"]
-    quickDeclineKey = request.vars["key"]
+    request = current.request
 
-    review = db.t_reviews[reviewId]
+    review_id = int(request.vars["id"] or request.vars["reviewId"])
+    quick_decline_key = request.vars["key"]
 
+    review = Review.get_by_id(review_id)
+
+    message: Optional[str] = None
     if review is None:
-        message = "Review '{}' not found".format(reviewId)
+        message = "Review '{}' not found".format(review_id)
     elif review["review_state"] in ["Declined", "Declined manually", "Review completed", "Cancelled"]:
-        message = T("You have already declined this invitation to review")
-    elif review.quick_decline_key != quickDeclineKey:
-        message = "Incorrect decline key: '{}'".format(quickDeclineKey)
+        message = current.T("You have already declined this invitation to review")
+    elif review.quick_decline_key != quick_decline_key:
+        message = "Incorrect decline key: '{}'".format(quick_decline_key)
     else:
         message = None
 
