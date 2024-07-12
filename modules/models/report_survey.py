@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from typing import Optional as _, cast
 from models.article import Article
 from pydal.objects import Row
@@ -16,7 +16,7 @@ class ReportSurvey(Row):
     q7: _[str]
     q8: _[str]
     q9: _[str]
-    q10: _[datetime]
+    q10: _[date]
     q11: _[str]
     q11_details: _[str]
     q12: _[str]
@@ -33,7 +33,7 @@ class ReportSurvey(Row):
     q21: _[str]
     q22: _[str]
     q23: _[str]
-    q24: _[datetime]
+    q24: _[date]
     q24_1: _[str]
     q25: _[bool]
     q26: _[str]
@@ -62,7 +62,6 @@ class ReportSurvey(Row):
 
     @staticmethod
     def get_merged_report_survey(article: Article):
-        db = current.db
         if not article.art_stage_1_id:
             return ReportSurvey.get_by_article(article.id)
         

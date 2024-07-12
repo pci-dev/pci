@@ -3,13 +3,12 @@
 import os
 import re
 from datetime import datetime, timedelta
-from typing import Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 from dateutil.relativedelta import *
 
 from gluon import current
 from gluon.storage import Storage
-from gluon.tools import Auth
 from gluon.html import *
 from gluon.template import render
 from gluon.contrib.appconfig import AppConfig
@@ -18,6 +17,7 @@ from gluon.validators import IS_EMAIL
 from gluon.custom_import import track_changes
 from models.article import Article
 from models.recommendation import Recommendation
+from models.review import Review
 from models.user import User
 
 track_changes(True)
@@ -243,7 +243,7 @@ def getMailForReviewerCommonVars(sender: User, article: Article, recommendation:
 
 
 ######################################################################################################################################################################
-def getCorrectHashtag(hashtag, article=None, force_scheduled=False):
+def get_correct_hashtag(hashtag: str, article: Optional[Article] = None, force_scheduled: bool = False):
     if pciRRactivated and article is not None:
         if article.art_stage_1_id is not None or article.report_stage == "STAGE 2":
             hashtag += "Stage2"
@@ -267,7 +267,7 @@ def list_addresses(addresses):
                 if addresses else []
 
 #######################################################################################################################################################################
-def exempt_addresses(addresses, hashtag_template):
+def exempt_addresses(addresses: List[str], hashtag_template: str):
     db = current.db
     for address in addresses:
         user_id = db(db.auth_user.email == address).select(db.auth_user.id).last()
@@ -476,20 +476,20 @@ def insertMailInQueue(
 
 
 ######################################################################################################################################################################
-def insertReminderMailInQueue(
-    hashtag_template,
-    mail_vars,
-    recommendation_id=None,
-    recommendation=None,
-    article_id=None,
-    review_id=None,
-    review=None,
-    authors_reply=None,
-    sending_date_forced=None,
-    base_sending_date=None,
-    reviewer_invitation_buttons=None,
-    sender_name: Optional[str]=None,
-    sugg_recommender_buttons: Optional[DIV]=None
+def insert_reminder_mail_in_queue(
+    hashtag_template: str,
+    mail_vars: Dict[str, Any],
+    recommendation_id: Optional[int] = None,
+    recommendation: Optional[Recommendation] = None,
+    article_id: Optional[int] = None,
+    review_id: Optional[int] = None,
+    review: Optional[Review] = None,
+    authors_reply: Optional[str] = None,
+    sending_date_forced: Optional[datetime] = None,
+    base_sending_date: Optional[datetime] = None,
+    reviewer_invitation_buttons: Optional[DIV] = None,
+    sender_name: Optional[str] = None,
+    sugg_recommender_buttons: Optional[DIV] = None
 ):
 
     db, auth = current.db, current.auth
@@ -501,8 +501,10 @@ def insertReminderMailInQueue(
     if pciRRactivated and ccAddresses and "OverDue" not in hashtag_template:
             ccAddresses = exempt_addresses(ccAddresses, hashtag_template)
 
+    sending_date: Optional[datetime] = None
+
     if reminder:
-        elapsed_days = reminder["elapsed_days"][0]
+        elapsed_days = int(reminder["elapsed_days"][0])
         sending_date = datetime.now() if not base_sending_date \
                 else base_sending_date - timedelta(days=7)
         sending_date += timedelta(days=elapsed_days)

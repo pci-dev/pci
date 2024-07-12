@@ -1410,7 +1410,7 @@ def send_review_cancellation():
     if review.review_state == "Awaiting review":
         hashtag_template = "#DefaultReviewAlreadyAcceptedCancellation"
 
-    hashtag_template = emailing_tools.getCorrectHashtag(hashtag_template, art)
+    hashtag_template = emailing_tools.get_correct_hashtag(hashtag_template, art)
 
     if "AlreadyAccepted" in hashtag_template and not "Scheduled" in hashtag_template:
         hashtag_template = "#DefaultReviewAlreadyAcceptedCancellation"
@@ -1656,19 +1656,19 @@ def email_for_registered_reviewer():
         rr_vars = emailing_vars.getRRInvitiationVars(article, new_stage)
         mail_vars = dict(mail_vars, **rr_vars)
 
-    hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
+    hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationRegisteredUser", article)
     if new_round:
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundRegisteredUser", article)
+        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationNewRoundRegisteredUser", article)
 
     if recomm_round > 1 and not pciRRactivated and not new_round:
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
+        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
 
     destPerson = common_small_html.mkUser(reviewer_id).flatten()
 
     if pciRRactivated and new_stage:
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUserReturningReviewer", article)
+        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationRegisteredUserReturningReviewer", article)
     if pciRRactivated and reg_user:
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUserNewReviewer", article)
+        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationRegisteredUserNewReviewer", article)
 
     mail_template = emailing_tools.getMailTemplateHashtag(hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], mail_vars)
@@ -1806,9 +1806,9 @@ def email_for_new_reviewer():
 
     recomm_round = db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count()
     if recomm_round > 1 and not pciRRactivated:
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerNewUser", article)
+        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationNewRoundNewReviewerNewUser", article)
     else:
-        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", article)
+        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationNewUser", article)
     mail_template = emailing_tools.getMailTemplateHashtag(hashtag_template)
     default_subject = emailing_tools.replaceMailVars(mail_template["subject"], mail_vars)
     default_message = emailing_tools.replaceMailVars(mail_template["content"], mail_vars)
@@ -1886,9 +1886,9 @@ def email_for_new_reviewer():
                     scheme=scheme, host=host, port=port)
             if existingUser:
                     if recomm_round > 1 and not pciRRactivated:
-                        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
+                        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser", article)
                     else:
-                        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationRegisteredUser", article)
+                        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationRegisteredUser", article)
                     reset_password_key = None
                     linkTarget = URL(
                         c="default",
@@ -1900,9 +1900,9 @@ def email_for_new_reviewer():
                     )
             else:
                     if recomm_round > 1 and not pciRRactivated:
-                        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewRoundNewReviewerNewUser", article)
+                        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationNewRoundNewReviewerNewUser", article)
                     else:
-                        hashtag_template = emailing_tools.getCorrectHashtag("#DefaultReviewInvitationNewUser", article)
+                        hashtag_template = emailing_tools.get_correct_hashtag("#DefaultReviewInvitationNewUser", article)
                     linkTarget = None
 
             try:

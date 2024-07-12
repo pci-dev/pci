@@ -1,10 +1,18 @@
-from __future__ import annotations # for self-ref param type
 from datetime import datetime
+from enum import Enum
 import re
 from typing import List, Optional as _, cast
+from models.article import Article
 from models.review import Review
 from pydal.objects import Row
 from gluon import current
+
+
+class SendingStatus(Enum):
+    SENT = 'sent'
+    FAILED = 'failed'
+    IN_QUEUE = 'in queue'
+    PENDING = 'pending'
 
 
 class MailQueue(Row):
@@ -35,7 +43,7 @@ class MailQueue(Row):
     
 
     @staticmethod
-    def get_mail_content(mail: MailQueue):
+    def get_mail_content(mail: 'MailQueue'):
         if not mail.mail_content:
             return ''
         
@@ -65,3 +73,15 @@ class MailQueue(Row):
             (db.mail_queue.mail_template_hashtag == hastag_template)
         ).select()
         return cast(List[MailQueue], mails)
+
+
+    @staticmethod
+    def there_are_mails_for_article_recommendation(article_id: int, recommendation_id: int, hastag_template: str, sending_status: SendingStatus):
+        db = current.db
+        mails = db(
+            (db.mail_queue.article_id == article_id) &
+            (db.mail_queue.recommendation_id == recommendation_id) &
+            (db.mail_queue.sending_status == sending_status.value) &
+            (db.mail_queue.mail_template_hashtag == hastag_template)
+        ).count()
+        return int(mails)
