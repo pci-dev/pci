@@ -2231,7 +2231,7 @@ def edit_recommendation():
             # buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your recommendation')]
             db.t_recommendations.no_conflict_of_interest.writable = False
         else:
-            if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or (amICoRecommender and pciRRactivated):
+            if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or amICoRecommender:
                 buttons += [INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save and submit your decision")]
         db.t_recommendations.recommendation_state.readable = False
         db.t_recommendations.recommendation_state.writable = False
