@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing import List
 from app_modules.helper import OPTION, TR, TD
 from app_modules import common_small_html
 import re
@@ -10,7 +11,7 @@ search_name2field = {'reviewers': 'auth_user', 'users': 'auth_user',
                      'articles2': 't_status_article', 'mail_queue': 'mail_queue', 'recommenders_about' : 'auth_user',
                      'main_articles': 'qy_articles', 'help_texts': 'help_texts'}
 
-def adjust_grid_basic(grid, search_name, remove_options = [], integer_fields = []):
+def adjust_grid_basic(grid: ..., search_name: str, remove_options: List[str] = [], integer_fields: List[str] = []):
     '''
     function that adjusts the grid after its generation
     '''

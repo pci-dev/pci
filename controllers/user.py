@@ -4,9 +4,9 @@ import os
 import re
 import copy
 from datetime import date
-from typing import Optional
+from typing import Any, Callable, List, Optional, Union, cast
 
-from gluon.contrib.markdown import WIKI
+from gluon.contrib.markdown import WIKI # type: ignore
 
 from app_modules.helper import *
 
@@ -24,7 +24,7 @@ from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules.orcid import OrcidTools
 from app_modules.article_translator import ArticleTranslator
-from gluon.http import redirect
+from gluon.http import HTTP, redirect # type: ignore
 
 from gluon.sqlhtml import SQLFORM
 from gluon.storage import Storage
@@ -33,6 +33,9 @@ from models.article import Article, TranslatedFieldType, clean_vars_doi, clean_v
 from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
 from models.user import User
+from pydal.validators import IS_IN_DB
+
+from app_modules.common_tools import URL
 
 
 # frequently used constants
@@ -205,23 +208,25 @@ def recommendations():
 
 
 ######################################################################################################################################################################
-@auth.requires_login()
+@auth.requires_login() # type: ignore
 def search_recommenders():
-    whatNext = request.vars["whatNext"]
-    articleId = request.vars.articleId
-    excludeList = common_tools.get_exclude_list()
-    if excludeList is None:
+    request, T, auth, session, db = current.request, current.T, current.auth, current.session, current.db
+    
+    what_next: Optional[str] = request.vars["whatNext"]
+    article_id: Optional[int] = request.vars.articleId
+    exclude_list = common_tools.get_exclude_list()
+    if exclude_list is None:
         return "invalid parameter: exclude"
 
-    if articleId is None:
+    if article_id is None:
         raise HTTP(404, "404: " + T("Unavailable"))
 
-    art = db.t_articles[articleId]
-    if art is None:
+    article = Article.get_by_id(article_id)
+    if article is None:
         raise HTTP(404, "404: " + T("Unavailable"))
 
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
-    if art.user_id != auth.user_id:
+    if article.user_id != auth.user_id:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
@@ -241,40 +246,41 @@ def search_recommenders():
             'cv'
         ]
 
-        def limit_to_width_list(value, row):
+        def limit_to_width_list(value: Optional[str], row: ...):
             if value == None: return SPAN(_class="m300w")
             return SPAN(current.T("%s" %', '.join(value)), _class="m300w"),
 
-        def limit_to_width_str(value, row):
+        def limit_to_width_str(value: Optional[str], row: ...):
             if value == None: return SPAN(_class="m300w")
             return SPAN(current.T("%s" %value), _class="m300w"),
 
         users.thematics.label = "Thematics fields"
         users.thematics.type = "string"
-        users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+        users.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero="")
         users.thematics.represent = limit_to_width_list
 
         users.keywords.represent = limit_to_width_str
 
         users.id.label = "Name"
         users.id.readable = True
-        users.id.represent = lambda uid, row: DIV(
-                common_small_html.mkReviewerInfo(db.auth_user[uid]),
+        users.id.represent = lambda uid, row: DIV( # type: ignore
+                common_small_html.mk_reviewer_info(db.auth_user[uid]),
                 _class="pci-w300Cell")
 
         for f in users.fields:
             if not f in full_text_search_fields:
                 users[f].readable = False
 
-        def mkButton(func, modus):
-            return lambda row: "" if row.auth_user.id in excludeList else (
-                    "" if str(row.auth_user.id) in (art.manager_authors or "").split(',')
-                    else DIV( func(row, art.id, excludeList, request.vars),
+        def mk_button(func: Callable[[Any, int, List[int], Any], Union[DIV, str]], modus: str):
+            funct: Callable[[Any], Union[DIV, str]] = lambda row: "" if row.auth_user.id in exclude_list else (
+                    "" if str(row.auth_user.id) in (article.manager_authors or "").split(',')
+                    else DIV( func(row, article.id, exclude_list, request.vars),
                               INPUT(_type="checkbox", _id='checkbox_%s_%s'%(modus, str(row.auth_user.id)), _class="multiple-choice-checks %s"%modus, _onclick='update_parameter_for_selection(this)'),
                               _class="min15w"))
+            return funct
 
         links = [
-            dict(header="", body=mkButton(user_module.mkSuggestUserArticleToButton, 'suggest')),
+            dict(header="", body=mk_button(user_module.mk_suggest_user_article_to_button, 'suggest')),
         ]
 
         btn_label = "CLICK HERE TO SUGGEST ALL SELECTED RECOMMENDERS"
@@ -284,27 +290,28 @@ def search_recommenders():
 
         select_all_btn = DIV(A(
                             SPAN(current.T(btn_label), _class="btn %s"%btn_style),
-                            _href=URL(c="user_actions", f="suggest_all_selected", vars=dict(articleId=articleId, whatNext=whatNext, recommenderIds='', exclusionIds='', exclude=excludeList)),
+                            _href=URL(c="user_actions", f="suggest_all_selected", vars=dict(articleId=article_id, whatNext=what_next, recommenderIds='', exclusionIds='', exclude=exclude_list)),
                             _class="button select-all-btn",
                             _id="select-all-btn",
                             )
                             )
 
         if pciRRactivated:
-            links.append(dict(header="", body=mkButton(user_module.mkExcludeRecommenderButton, 'exclude')))
+            links.append(dict(header="", body=mk_button(user_module.mk_exclude_recommender_button, 'exclude')))
 
         query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == "recommender")
+        first_name_represent_fct: Callable[[str, Any], SPAN] = lambda text, row: OrcidTools.build_name_with_orcid(text, '000', before=True)
 
         db.auth_group.role.searchable = False
-        db.auth_user.first_name.represent = lambda text, row: OrcidTools.build_name_with_orcid(text, '000', before=True)
+        db.auth_user.first_name.represent = first_name_represent_fct
 
-        original_grid = SQLFORM.grid(
+        original_grid = cast(SQLFORM, SQLFORM.grid( # type: ignore
                         query,
                         editable=False,
                         deletable=False,
                         create=False,
                         details=False,
-                        searchable=dict(auth_user=True, auth_membership=False),
+                        searchable=dict(auth_user=True, auth_membership=False), # type: ignore
                         selectable=None,
                         maxtextlength=250,
                         paginate=1000,
@@ -319,7 +326,7 @@ def search_recommenders():
                         links=links,
                         orderby=(users.last_name, users.first_name),
                         _class="web2py_grid action-button-absolute",
-                    )
+                    ))
 
         # options to be removed from the search dropdown:
         remove_options = ['auth_membership.id', 'auth_membership.user_id', 'auth_membership.group_id',
@@ -328,33 +335,33 @@ def search_recommenders():
         # the grid is adjusted after creation to adhere to our requirements
         grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options)
 
-        if len(excludeList) > 1:
-            btnTxt = current.T("Done")
+        if len(exclude_list) > 1:
+            btn_txt = current.T("Done")
         else:
-            btnTxt = current.T("I don't wish to suggest recommenders now")
+            btn_txt = current.T("I don't wish to suggest recommenders now")
 
-        myAcceptBtn = DIV(
+        my_accept_btn = DIV(
             A(
-                SPAN(btnTxt, _class="buttontext btn btn-info"),
-                _href=URL(c="user", f="add_suggested_recommender", vars=dict(articleId=articleId, exclude=excludeList)),
+                SPAN(btn_txt, _class="buttontext btn btn-info"),
+                _href=URL(c="user", f="add_suggested_recommender", vars=dict(articleId=article_id, exclude=exclude_list)),
                 _class="button",
             ),
             _style="text-align:center; margin-top:16px;",
             _class="done-btn",
         )
 
-        myUpperBtn = ""
+        my_upper_btn = ""
         if len(grid) >= 10:
-            myUpperBtn = myAcceptBtn
+            my_upper_btn = my_accept_btn
         select_all_script = common_tools.get_script("select_all.js")
-        response.view = "default/gab_list_layout.html"
+        current.response.view = "default/gab_list_layout.html"
         return dict(
             pageHelp=getHelp("#UserSearchRecommenders"),
             customText=getText("#UserSearchRecommendersText"),
             titleIcon="search",
             pageTitle=getTitle("#UserSearchRecommendersTitle"),
-            myUpperBtn=myUpperBtn,
-            myAcceptBtn=myAcceptBtn,
+            myUpperBtn=my_upper_btn,
+            myAcceptBtn=my_accept_btn,
             myFinalScript=common_tools.get_script("popover.js"),
             grid=grid,
             selectAllBtn = select_all_btn,
