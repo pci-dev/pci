@@ -55,6 +55,7 @@ class Manager_validates_decision:
         select("#title_present").click()
         select("#recommendation_explains").click()
         select("#recommendation_cites").click()
+        select("#year_ok").click()
         select("#format_ok").click()
 
     select("#do_recommend_article").click()

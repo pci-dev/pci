@@ -1152,6 +1152,9 @@ def validation_checklist(validation_type: str):
             "recommendation_cites":
             "The recommendation text cites at least the recommended preprint",
 
+            "year_ok":
+            "The year of the recommended version of the article (indicated on the 'Edit Article' page) is good. You can find this year by clicking the 'Edit article' tab above.",
+
             "format_ok":
             "The recommendation is correctly formatted (DOIs in references, links of URLs, title of the 'References' section, cf other published recommendations)",
         }
