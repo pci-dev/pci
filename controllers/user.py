@@ -215,6 +215,11 @@ def search_recommenders():
     what_next: Optional[str] = request.vars["whatNext"]
     article_id: Optional[int] = request.vars.articleId
     exclude_list = common_tools.get_exclude_list()
+    random = True
+
+    if 'random' in request.vars:
+        random = str(request.vars['radom']).lower() == 'false'
+
     if exclude_list is None:
         return "invalid parameter: exclude"
 
@@ -324,7 +329,7 @@ def search_recommenders():
                             users.orcid
                         ],
                         links=links,
-                        orderby=(users.last_name, users.first_name),
+                        orderby='<random>' if random else (users.last_name, users.first_name),
                         _class="web2py_grid action-button-absolute",
                     ))
 
@@ -340,12 +345,17 @@ def search_recommenders():
         else:
             btn_txt = current.T("I don't wish to suggest recommenders now")
 
+        alphabetical_order_vars = request.vars.copy()
+        alphabetical_order_vars['random'] = 'false'
         my_accept_btn = DIV(
             A(
                 SPAN(btn_txt, _class="buttontext btn btn-info"),
                 _href=URL(c="user", f="add_suggested_recommender", vars=dict(articleId=article_id, exclude=exclude_list)),
                 _class="button",
             ),
+            A("Recommenders' names order is random, click here to get an alphabetical order",
+              _href=URL("user", "search_recommenders", vars=alphabetical_order_vars, args=request.args, user_signature=True),
+              _class="button") if random else '',
             _style="text-align:center; margin-top:16px;",
             _class="done-btn",
         )
@@ -355,6 +365,7 @@ def search_recommenders():
             my_upper_btn = my_accept_btn
         select_all_script = common_tools.get_script("select_all.js")
         current.response.view = "default/gab_list_layout.html"
+
         return dict(
             pageHelp=getHelp("#UserSearchRecommenders"),
             customText=getText("#UserSearchRecommendersText"),
