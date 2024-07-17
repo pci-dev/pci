@@ -125,7 +125,10 @@ def crossref_xml(recomm: Recommendation):
 
     recomm_url = f"{pci.url}/articles/rec?id={article.id}"
     recomm_doi = get_recommendation_doi(recomm)
-    recomm_date = recomm.validation_timestamp.date()
+    recomm_date = recomm.validation_timestamp.date() if recomm.validation_timestamp else None
+    if not recomm_date:
+        return "Missing recommendation validation timestamp!"
+    
     recomm_title = recomm.recommendation_title
     recomm_description_text = Article.get_article_reference(article)
     recomm_citations = "\n        ".join(get_citation_list(recomm))
