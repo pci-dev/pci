@@ -1,3 +1,5 @@
+from typing import List
+from app_modules.common_tools import extract_doi
 from models.recommendation import Recommendation
 import requests
 import re
@@ -127,6 +129,19 @@ def get_recommendation_doi(recomm):
     return ref or f"{pci.doi}.1"+str(recomm.article_id).zfill(5)
 
 
+def get_citation_list(recomm: Recommendation):
+    references = Recommendation.get_references(recomm, True)
+    citations: List[str] = []
+    for i, reference in enumerate(references):
+        doi = extract_doi(reference)
+        if doi:
+            doi = doi.replace('https://doi.org/', '')
+            citations.append(f"<citation key=\"ref{i + 1}\"><doi>{doi}</doi></citation>")
+        else:
+            citations.append(f"<citation key=\"refunstruc{i + 1}\"><unstructured_citation>{reference}</unstructured_citation></citation>")
+    return citations
+
+
 def crossref_xml(recomm: Recommendation):
     article = db.t_articles[recomm.article_id]
 
@@ -135,6 +150,7 @@ def crossref_xml(recomm: Recommendation):
     recomm_date = recomm.validation_timestamp.date()
     recomm_title = recomm.recommendation_title
     recomm_description_text = mk_recomm_description(recomm, article)
+    recomm_citations = "\n        ".join(get_citation_list(recomm))
 
     recommender = db.auth_user[recomm.recommender_id]
     co_recommenders = [ db.auth_user[row.contributor_id]
@@ -267,6 +283,10 @@ def crossref_xml(recomm: Recommendation):
         </item>
         </collection>
     </doi_data>
+
+    <citation_list>
+        {recomm_citations}
+    </citation_list>
 
     </journal_article>
     </journal>
