@@ -1,45 +1,42 @@
-from typing import List
 from app_modules.common_tools import extract_doi
+from typing import List, Optional
+from app_modules.httpClient import HttpClient
 from models.article import Article
+from models.press_reviews import PressReview
 from models.recommendation import Recommendation
-import requests
+from models.user import User
 import re
 
 from gluon import current
 from gluon.html import TAG
-from app_modules.common_small_html import md_to_html
 
 
-def init_conf():
- db = current.db
+db = current.db
 
- class pci:
-    host = db.cfg.host
-    issn = db.cfg.issn
+class pci:
+    host = str(db.cfg.host or "")
+    issn = str(db.cfg.issn or "")
     url = f"https://{host}.peercommunityin.org"
     doi = f"10.24072/pci.{host}"
-    long_name = db.conf.get("app.description")
-    short_name = db.conf.get("app.longname")
-    email = db.conf.get("contacts.contact")
+    long_name = str(db.conf.get("app.description") or "")
+    short_name = str(db.conf.get("app.longname") or "")
+    email = str(db.conf.get("contacts.contact") or "")
 
- class crossref:
+class crossref:
     version = "4.3.7"
     base = "http://www.crossref.org/schema"
     xsd = f"{base}/crossref{version}.xsd"
 
-    login = db.conf.get("crossref.login")
-    passwd = db.conf.get("crossref.passwd")
-    api_url = db.conf.get("crossref.api") or "https://doi.crossref.org/servlet"
-
- globals().update(locals())
-
+    login = str(db.conf.get("crossref.login") or "")
+    passwd = str(db.conf.get("crossref.passwd") or "")
+    api_url = str(db.conf.get("crossref.api") or "https://doi.crossref.org/servlet")
 
 QUEUED = '<doi_batch_diagnostic status="queued">'
 FAILED = '<record_diagnostic status="Failure">'
 
 
-def post_and_forget(recomm, xml=None):
-    recomm._filename = filename = get_filename(recomm)
+def post_and_forget(recomm: Recommendation, xml: Optional[str] = None):
+    filename = get_filename(recomm)
     try:
         assert crossref.login, "crossref.login not set"
         resp = post(filename, xml or crossref_xml(recomm))
@@ -48,7 +45,7 @@ def post_and_forget(recomm, xml=None):
         return f"error: {e}"
 
 
-def get_status(recomm):
+def get_status(recomm: Recommendation):
     try:
         req = _get_status(recomm)
         req.raise_for_status()
@@ -57,19 +54,19 @@ def get_status(recomm):
         return f"error: {e.__class__.__name__}"
 
 
-def get_filename(recomm):
+def get_filename(recomm: Recommendation):
     return f"pci={pci.host}:rec={recomm.id}"
 
 
-def mk_affiliation(user):
+def mk_affiliation(user: User):
     if hasattr(user, "is_pseudo"): return "(unavailable)"
 
     _ = user
     return f"{_.laboratory}, {_.institution} – {_.city}, {_.country}"
 
 
-def post(filename, crossref_xml):
-    return requests.post(
+def post(filename: str, crossref_xml: str):
+    return HttpClient().post(
         f"{crossref.api_url}/deposit",
         params=dict(
             operation="doMDUpload",
@@ -80,8 +77,8 @@ def post(filename, crossref_xml):
     )
 
 
-def _get_status(recomm):
-    return requests.get(
+def _get_status(recomm: Recommendation):
+    return HttpClient().get(
         f"{crossref.api_url}/submissionDownload",
         params=dict(
             usr=crossref.login,
@@ -92,16 +89,16 @@ def _get_status(recomm):
     )
 
 
-def get_identifier(doi_str):
+def get_identifier(doi_str: Optional[str]):
     url = (doi_str or "").strip()
-    is_doi = re.match("https?://doi\.org/", url, re.IGNORECASE)
+    is_doi = re.match(r"https?://doi\.org/", url, re.IGNORECASE)
     ref = url if not is_doi else url[len(is_doi[0]):]
     typ = "doi" if is_doi else "other"
 
     return typ, ref
 
 
-def get_recommendation_doi(recomm):
+def get_recommendation_doi(recomm: Recommendation):
     _, ref = get_identifier(recomm.recommendation_doi)
 
     return ref or f"{pci.doi}.1"+str(recomm.article_id).zfill(5)
@@ -121,7 +118,9 @@ def get_citation_list(recomm: Recommendation):
 
 
 def crossref_xml(recomm: Recommendation):
-    article = db.t_articles[recomm.article_id]
+    article = Article.get_by_id(recomm.article_id)
+    if not article:
+        return "Article not found!"
 
     recomm_url = f"{pci.url}/articles/rec?id={article.id}"
     recomm_doi = get_recommendation_doi(recomm)
@@ -133,15 +132,19 @@ def crossref_xml(recomm: Recommendation):
     recomm_description_text = Article.get_article_reference(article)
     recomm_citations = "\n        ".join(get_citation_list(recomm))
 
-    recommender = db.auth_user[recomm.recommender_id]
-    co_recommenders = [ db.auth_user[row.contributor_id]
-            for row in
-            db(
-                db.t_press_reviews.recommendation_id == recomm.id
-            ).select() ]
+    recommender = User.get_by_id(recomm.recommender_id)
+    if not recommender:
+        return "Recommender not found!"
+    
+    co_recommenders: List[User] = []
+    for row in PressReview.get_by_recommendation(recomm.id):
+        if row.contributor_id:
+            co_recommender = User.get_by_id(row.contributor_id)
+            if co_recommender:
+                co_recommenders.append(co_recommender)
 
     for user in [recommender] + co_recommenders:
-        user.affiliation = mk_affiliation(user)
+        user.affiliation = mk_affiliation(user) # type: ignore
 
     interwork_type, interwork_ref = get_identifier(article.doi)
     item_number = recomm_doi[-6:]
