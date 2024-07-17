@@ -3,7 +3,6 @@ from app_modules.common_tools import extract_doi
 from models.recommendation import Recommendation
 import requests
 import re
-from time import sleep
 
 from gluon import current
 from gluon.html import TAG
