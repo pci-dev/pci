@@ -1,28 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import gc
-import os
-from typing import List
+from typing import List, Optional
 from models.article import Article
 from models.recommendation import Recommendation
-import pytz, datetime
-from re import sub, match
-from copy import deepcopy
-import datetime
-from datetime import timedelta
+from re import sub
 from dateutil.relativedelta import *
 from collections import OrderedDict
 
-import io
-from PIL import Image
-
-from gluon import current, IS_IN_DB
-from gluon.tools import Auth
 from gluon.html import *
-from gluon.template import render
-from gluon.contrib.markdown import WIKI
-from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Mail
+from gluon.contrib.markdown import WIKI # type: ignore
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.sqlhtml import *
 
 from app_modules import common_small_html
@@ -30,6 +17,8 @@ from app_modules import common_tools
 from app_modules.common_small_html import md_to_html
 
 from app_components import article_components
+from app_modules import emailing
+from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 
