@@ -356,7 +356,7 @@ def getPublicReviewRoundsHtml(articleId):
 
 
 ######################################################################################################################################################################
-def getRecommCommentListAndForm(articleId, parentId=None):
+def getRecommCommentListAndForm(articleId: int, parentId: Optional[int] = None):
     auth, db, response, session = current.auth, current.db, current.response, current.session
 
     isLoggedIn = False
@@ -387,6 +387,7 @@ def getRecommCommentListAndForm(articleId, parentId=None):
 
         if commentForm.process().accepted:
             session.flash = current.T("Comment saved", lazy=False)
+            emailing.send_new_comment_alert(articleId)
             redirect(URL(c="articles", f="rec", vars=dict(id=articleId, comments=True)))
         elif commentForm.errors:
             response.flash = current.T("Form has errors", lazy=False)
