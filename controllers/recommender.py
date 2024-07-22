@@ -2806,15 +2806,6 @@ def verify_co_authorship():
     article = Article.get_by_id(article_id)
     recommendation = Recommendation.get_by_id(article_id)
     authors = extract_name_from_author(article.authors)
-    report_survey = ReportSurvey.get_by_article(article_id)
-    if report_survey and report_survey.q8:
-        names = report_survey.q8.split(',')
-        for name in names:
-            authors.append(extract_name_without_email(name))
-    if article.suggest_reviewers:
-        for reviewer in article.suggest_reviewers:
-            authors.append(extract_name_without_email(reviewer))
-
     authors = [{"group" : "author", "name" : author} for author in authors]
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
@@ -2830,8 +2821,9 @@ def verify_co_authorship():
     has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state)
     has_co_recommenders = db(db.t_press_reviews.recommendation_id == recommendation.id).select(db.t_press_reviews.contributor_id) if recommendation else None
 
+    report_survey = ReportSurvey.get_by_article(article_id)
     grid = []
-    recommenders = []
+    recommenders: List[Dict[str, str]] = []
 
     # List of suggested recommenders
     if is_suggested and not has_recommender:
@@ -2842,6 +2834,14 @@ def verify_co_authorship():
         recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(user.contributor_id)} for user in has_co_recommenders]
     if has_reviewers:
         recommenders += common_small_html.group_reviewers(has_reviewers)
+    if report_survey and report_survey.q8:
+        names = report_survey.q8.split(',')
+        for name in names:
+            recommenders.append({'group': 'suggested reviewer', 'name': extract_name_without_email(name)})
+    if article.suggest_reviewers:
+        for reviewer in article.suggest_reviewers:
+            recommenders.append({'group': 'suggested reviewer', 'name': extract_name_without_email(reviewer)})
+
   
     grid = query_semantic_api(authors, recommenders) if len(recommenders) > 0 else SPAN("Submission has no recommender/reviewer assigned yet.")
 

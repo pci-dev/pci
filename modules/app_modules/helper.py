@@ -230,7 +230,7 @@ def query_semantic_api(authors: List[Dict[str, str]], recommenders: List[Dict[st
         else:
             grid.append(DIV(SPAN(f'Analysis not possible for {recommender["group"]} {recommender["name"]} (not found in semantic scholar database)')))
 
-    recommender_data = all_data["accepted reviewer"] + all_data["invited reviewer"] + all_data["recommender"] + all_data["suggested recommender"] + all_data["co-recommender"]
+    recommender_data = all_data["accepted reviewer"] + all_data["invited reviewer"] + all_data["recommender"] + all_data["suggested recommender"] + all_data["co-recommender"] + all_data['suggested reviewer']
     if len(recommender_data) == 0:
         return grid
     
