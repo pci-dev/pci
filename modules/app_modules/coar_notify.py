@@ -98,14 +98,14 @@ class COARNotifier:
         except requests.exceptions.RequestException as e:
             # Repurpose Cloudflare's unofficial status codes
             # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#Cloudflare
-            if isinstance(e, requests.exceptions.ConnectionError):
-                http_status = 521  # Web Server Is Down
-            elif isinstance(e, requests.exceptions.ConnectTimeout):
+            if isinstance(e, requests.exceptions.ConnectTimeout):
                 http_status = 522  # Connection Timed Out
             elif isinstance(e, requests.exceptions.ReadTimeout):
                 http_status = 524  # A Timeout Occurred
             elif isinstance(e, requests.exceptions.SSLError):
                 http_status = 525  # SSL Handshake Failed
+            elif isinstance(e, requests.exceptions.ConnectionError):
+                http_status = 521  # Web Server Is Down
             else:
                 http_status = 520  # Web Server Returned an Unknown Error
             logger.exception("Request exception when POSTing COAR Notification")
