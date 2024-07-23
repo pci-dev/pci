@@ -56,6 +56,8 @@ from models.article import ArticleStatus, clean_vars_doi, clean_vars_doi_list
 from models.user import User
 from models.membership import Membership
 
+from app_modules.common_tools import URL
+
 
 myconf = AppConfig(reload=True)
 
@@ -132,8 +134,10 @@ def impersonate_users():
 def _impersonate_button(user: User):
     return A('Impersonate', _href=URL('manager', 'impersonate', args=user.id), _class="buttontext btn btn-default pci-button")
 
-@auth.requires(auth.has_membership(role="manager"))
+@current.auth.requires(current.auth.has_membership(role="manager"))
 def impersonate():
+    session, request, auth, db = current.session, current.request, current.auth, current.db
+
     if len(request.args) != 1:
         session.flash = 'Bad argument'
         return redirect(URL('default','index'))
@@ -167,14 +171,17 @@ def impersonate():
             session.flash = 'Manager group is missing'
             return redirect(URL('default','index'))
 
+    session.original_user_id = auth.user_id
     auth.impersonate(user_id)
     session.flash = f'Impersonal mode: You are logged as {auth.user.first_name} {auth.user.last_name} (user_id = {user_id})'
     return redirect(URL('default','index'))
 
 
 def uninpersonate():
+    auth, session = current.auth, current.session
     if auth.is_impersonating():
         auth.impersonate(0)
+        session.original_user_id = None
         session.flash = 'You have left impersonal mode'
         return redirect(URL('manager','impersonate_users'))
 

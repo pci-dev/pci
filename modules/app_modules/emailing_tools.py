@@ -3,7 +3,7 @@
 import os
 import re
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from dateutil.relativedelta import *
 
@@ -363,7 +363,10 @@ def insertNewTemplateInDB(newHashTag, baseHashtag, myLanguage):
 
 
 ######################################################################################################################################################################
-def createMailReport(mail_resu, destPerson, reports):
+def createMailReport(mail_resu: bool, destPerson: Union[DIV, str], reports: List[Dict[str, Union[bool, str]]]):
+    if common_tools.is_silent_mode():
+        reports = []
+
     if mail_resu:
         reports.append(dict(error=False, message="e-mail sent to %s" % destPerson))
     else:
@@ -372,15 +375,18 @@ def createMailReport(mail_resu, destPerson, reports):
 
 
 ######################################################################################################################################################################
-def getFlashMessage(reports):
+def getFlashMessage(reports: List[Dict[str, Union[bool, str]]]):
+    if common_tools.is_silent_mode():
+        return
+    
     session = current.session
-    messages = []
+    messages: List[str] = []
 
     for report in reports:
         if report["error"]:
             session.flash_status = "warning"
 
-        messages.append(report["message"])
+        messages.append(str(report["message"]))
         pass
 
     print("\n".join(messages))
@@ -438,6 +444,9 @@ def insertMailInQueue(
 ):
     db, auth = current.db, current.auth
 
+    if common_tools.is_silent_mode():
+        return
+
     mail = buildMail(
         hashtag_template,
         mail_vars,
@@ -493,6 +502,9 @@ def insert_reminder_mail_in_queue(
 ):
 
     db, auth = current.db, current.auth
+
+    if common_tools.is_silent_mode():
+        return
 
     reminder = getReminder(hashtag_template, db.t_reviews[review_id])
 
