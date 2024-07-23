@@ -1,25 +1,15 @@
-import gc
-import os
 from typing import Any, Dict, List, Optional, Union, cast
-import pytz
 from re import sub, match
-from copy import deepcopy
 from datetime import datetime
-from datetime import timedelta
 from dateutil.relativedelta import *
-from collections import OrderedDict
 
 import io
 from PIL import Image
 
-from gluon import current, IS_IN_DB, IS_IN_SET
-from gluon.globals import Request
-from gluon.tools import Auth
+from gluon import current, IS_IN_SET
 from gluon.html import *
-from gluon.template import render
 from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Mail
 from gluon.sqlhtml import *
 from models.article import Article
 from models.recommendation import Recommendation
@@ -34,6 +24,8 @@ from app_modules.hypothesis import Hypothesis
 from app_modules.orcid import OrcidTools
 
 from gluon import current
+
+from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 
