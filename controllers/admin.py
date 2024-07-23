@@ -185,7 +185,7 @@ def list_users():
         pageHelp=getHelp("#AdministrateUsers"),
         customText=getText("#AdministrateUsersText"),
         grid=grid,
-        
+        myFinalScript=common_tools.get_script('silent_mode.js')
     )
 
 
@@ -279,6 +279,7 @@ def mailing_lists():
         pageHelp=getHelp("#EmailsListsUsers"),
         content=myContents,
         grid="",
+        myFinalScript=common_tools.get_script('silent_mode.js')
     )
 
 
@@ -311,6 +312,7 @@ def thematics_list():
         pageHelp=getHelp("#AdministrateThematicFields"),
         customText=getText("#AdministrateThematicFieldsText"),
         grid=grid,
+        myFinalScript=common_tools.get_script('silent_mode.js')
     )
 
 
@@ -339,6 +341,7 @@ def allRecommCitations():
         customText=getText("#allRecommCitationsTextText"),
         pageHelp=getHelp("#allRecommCitationsHelpTexts"),
         grid=grid,
+        myFinalScript=common_tools.get_script('silent_mode.js')
     )
 
 
@@ -380,6 +383,7 @@ def article_status():
         pageHelp=getHelp("#AdministrateArticleStatus"),
         customText=getText("#AdministrateArticleStatusText"),
         grid=grid,
+        myFinalScript=common_tools.get_script('silent_mode.js')
     )
 
 
@@ -420,6 +424,7 @@ def manage_pdf():
         pageTitle=getTitle("#AdminPdfTitle"),
         customText=getText("#AdminPdfText"),
         grid=grid,
+        myFinalScript=common_tools.get_script('silent_mode.js')
     )
 
 
@@ -578,6 +583,7 @@ def recap_reviews():
         customText=getText("#AdminRecapReviews"),
         pageTitle=getTitle("#AdminRecapReviewsTitle"),
         grid=DIV(grid, _style="width:100%; overflow-x:scroll;"),
+        myFinalScript=common_tools.get_script('silent_mode.js')
     )
 
 
@@ -722,7 +728,7 @@ def mailing_queue():
         pageTitle=getTitle("#AdminMailQueueTitle"),
         customText=getText("#AdminMailQueueText"),
         grid=grid,
-        myFinalScript=myScript,
+        myFinalScript=[myScript, common_tools.get_script('silent_mode.js')],
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
@@ -754,6 +760,7 @@ def edit_config():
     response.view = "default/myLayout.html"
     return dict(
         form=form,
+        myFinalScript=common_tools.get_script('silent_mode.js')
     )
 
 
@@ -810,4 +817,5 @@ def edit_and_resend_email():
         resent=resent,
         pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
         customText=getText("#EmailForRegisteredReviewerInfo"),
+        myFinalScript=common_tools.get_script('silent_mode.js')
     )
