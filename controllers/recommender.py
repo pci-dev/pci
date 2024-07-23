@@ -2231,7 +2231,7 @@ def edit_recommendation():
             # buttons += [INPUT(_type='Submit', _name='terminate', _class='btn btn-success', _value='Save and submit your recommendation')]
             db.t_recommendations.no_conflict_of_interest.writable = False
         else:
-            if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or (amICoRecommender and pciRRactivated):
+            if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or amICoRecommender:
                 buttons += [INPUT(_type="Submit", _name="terminate", _class="btn btn-success", _value="Save and submit your decision")]
         db.t_recommendations.recommendation_state.readable = False
         db.t_recommendations.recommendation_state.writable = False
@@ -2312,9 +2312,12 @@ def edit_recommendation():
                         recomm.recommender_file = None
                 recomm.update_record()
                 session.flash = T("Recommendation saved", lazy=False)
-                redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
+                if amICoRecommender:
+                    redirect(URL(c="recommender", f="my_co_recommendations"))
+                else:
+                    redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
             elif form.vars.terminate:
-                if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or (amICoRecommender and pciRRactivated):
+                if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or amICoRecommender:
                     session.flash = T("Recommendation saved and completed", lazy=False)
                     recomm.no_conflict_of_interest = form.vars.no_conflict_of_interest
                     recomm.recommendation_title = form.vars.recommendation_title
@@ -2352,7 +2355,10 @@ def edit_recommendation():
                     art.update_record()
                     emailing.delete_reminder_for_managers(["#ManagersRecommenderAgreedAndNeedsToTakeAction", "#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction",
                                                             "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], recomm.id)
-                    redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
+                    if amICoRecommender:
+                        redirect(URL(c="recommender", f="my_co_recommendations"))
+                    else:
+                        redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
                 else:
                     session.flash = T("Unauthorized: You need to be recommender or manager", lazy=False)
         elif form.errors:
