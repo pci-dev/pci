@@ -33,7 +33,7 @@ def test_resubmit_endorsement():
 
 
 def post(data):
-    target = "http://localhost:8000/pci/coar_notify/inbox"
+    target = "http://localhost:8000/coar_notify/inbox"
     res = requests.post(
             target,
             json=data,
@@ -69,12 +69,12 @@ request_endorsement = """
   },
   "origin": {
     "id": "https://research-organisation.org/repository",
-    "inbox": "http://localhost:8000/pci/coar_notify/inbox/",
+    "inbox": "http://localhost:8000/coar_notify/inbox/",
     "type": "Service"
   },
   "target": {
     "id": "https://overlay-journal.com/system",
-    "inbox": "http://localhost:8000/pci/coar_notify/inbox/",
+    "inbox": "http://localhost:8000/coar_notify/inbox/",
     "type": "Service"
   },
   "type": [
