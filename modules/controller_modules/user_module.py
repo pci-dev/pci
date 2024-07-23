@@ -9,6 +9,9 @@ from app_modules.helper import *
 from app_modules import common_small_html
 from models.article import ArticleStatus
 from models.suggested_recommender import SuggestedRecommender
+
+from app_modules.common_tools import URL
+
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 ######################################################################################################################################################################
 def mk_suggested_recommenders_user_button(row: Any):
@@ -39,7 +42,7 @@ def mk_suggested_recommenders_user_button(row: Any):
 ######################################################################################################################################################################
 # From common.py
 ######################################################################################################################################################################
-def mkSuggestUserArticleToButton(row, articleId, excludeList, vars):
+def mk_suggest_user_article_to_button(row: ..., articleId: int, excludeList: List[int], vars: ...):
     db = current.db
     # if this recommender is a coauthor, then return empty
     art = db(db.t_articles.id == articleId).select().last()
@@ -68,7 +71,7 @@ def mkSuggestUserArticleToButton(row, articleId, excludeList, vars):
     return anchor
 
 ######################################################################################################################################################################
-def mkExcludeRecommenderButton(row, articleId, excludeList, vars):
+def mk_exclude_recommender_button(row: ..., articleId :int, excludeList: List[int], vars: ...):
     vars["recommenderId"] = row.auth_user["id"]
     anchor = A(
         SPAN(current.T("Exclude"), _class="buttontext btn btn-warning pci-submitter"),

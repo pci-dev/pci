@@ -812,7 +812,7 @@ def search_recommenders():
     users.id.label = "Name"
     users.id.readable = True
     users.id.represent = lambda uid, row: DIV(
-            common_small_html.mkReviewerInfo(db.auth_user[uid]),
+            common_small_html.mk_reviewer_info(db.auth_user[uid]),
             _class="pci-w300Cell")
 
     links = []

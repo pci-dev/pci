@@ -1012,7 +1012,7 @@ def mkRecommendersString(recomm):
     return recommendersStr
 
 ######################################################################################################################################################################
-def mkReviewerInfo(user, orcid: bool = False):
+def mk_reviewer_info(user: User, orcid: bool = False):
     anchor = ""
     if user:
         if "auth_user" in user:
