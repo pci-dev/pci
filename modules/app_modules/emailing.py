@@ -54,7 +54,7 @@ from models.review import Review, ReviewState
 from models.recommendation import Recommendation
 from models.user import User
 from models.mail_queue import MailQueue, SendingStatus
-
+from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -3692,3 +3692,23 @@ def send_unsubscription_alert_for_manager():
     mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
     emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
+
+
+##################################################################################################################################################################
+
+def send_new_comment_alert(article_id: int):
+    article = Article.get_by_id(article_id)
+    recommendation = Article.get_last_recommendation(article_id)
+
+    if not article or not recommendation:
+        return
+    
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["destAddress"] = mail_vars["appContactMail"]
+    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["linkTarget"] = URL(c="articles", f="rec", vars=dict(id=article_id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+
+    hashtag_template = "#CommentPosted"
+
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars, article_id=article.id)
