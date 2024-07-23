@@ -1,6 +1,7 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime
 from enum import Enum
+import html
 import re
 import string
 from typing import List, Optional as _, cast
@@ -117,7 +118,7 @@ class Recommendation(Row):
 
 
     @staticmethod
-    def get_references(recommendation: Recommendation):
+    def get_references(recommendation: Recommendation, remove_html_tag: bool = False):
         recommendation_text = recommendation.recommendation_comments or ''
         references: List[str] = []
         start_reference = False
@@ -132,6 +133,11 @@ class Recommendation(Row):
                         start_reference = True
                 else:
                     if len(line_text) > 4:
+                        if remove_html_tag:
+                            sub_line = re.sub('<[^<]+?>', '', sub_line)
+                            sub_line = html.unescape(sub_line)
+                        else:
+                            sub_line = re.sub('^<p>|</p>$', '', sub_line)
                         references.append(sub_line)
 
         return references

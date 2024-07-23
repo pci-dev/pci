@@ -2,6 +2,7 @@
 
 from functools import reduce
 from re import match
+import re
 from typing import Any, Dict, List, Optional, Union, cast
 from zipfile import ZipFile
 import io
@@ -90,6 +91,21 @@ def getShortText(text, length):
     if len(text) > length:
         text = text[0:length] + "..."
     return text
+
+######################################################################################################################################################################
+
+def extract_url(s: str):
+    regex = r"(https?://?[\w-]+\.[^;:<>{}\[\]\"\'\s~]*[^.,;?!:<>{}\[\]()\"\'\s~\\])"
+    pattern = re.compile(regex)
+    url: List[str] = pattern.findall(s)
+    return url
+
+
+def extract_doi(s: str):
+    urls = extract_url(s)
+    for url in urls:
+        if url.startswith('https://doi.org/'):
+            return url
 
 
 ######################################################################################################################################################################
@@ -370,3 +386,4 @@ def delete_user_from_PCI(user: User):
     return User.set_deleted(user)
 
     
+
