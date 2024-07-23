@@ -18,6 +18,10 @@ def test_cancel_endorsement_request():
     data["object"]["id"] = _uid
     post(data)
 
+def test_double_cancel_endorsement_request():
+    with pytest.raises(Exception) as e:
+        test_cancel_endorsement_request()
+
 def test_resubmit_endorsement():
     data = json.loads(request_endorsement)
     data["id"] = uid()
