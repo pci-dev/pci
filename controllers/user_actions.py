@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from typing import Optional, cast
+from typing import List, Optional, Union, cast
 from app_modules.common_tools import get_next, get_reset_password_key, get_review_id
 
 from app_modules.helper import *
@@ -11,9 +11,10 @@ from app_modules import common_small_html
 from app_components import app_forms
 from app_modules import emailing
 from gluon.globals import Request
-from gluon.http import redirect
+from gluon.http import redirect # type: ignore
 from models.group import Role
 from models.review import Review, ReviewState
+from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 from pydal import DAL
 
@@ -58,48 +59,52 @@ def do_cancel_article():
 
 
 ######################################################################################################################################################################
-@auth.requires_login()
+@auth.requires_login() # type: ignore
 def suggest_article_to():
-    articleId = int(request.vars["articleId"])
-    recommenderId = int(request.vars["recommenderId"])
-    exclude = request.vars["exclude"]
-    myVars = request.vars
-    user_module.do_suggest_article_to(articleId, recommenderId)
-    excludeList = exclude if type(exclude) is list else exclude.split(",")
-    excludeList.append(str(recommenderId))
-    myVars["exclude"] = ",".join(excludeList)
-    session.flash = T('Suggested recommender "%s" added.') % common_small_html.mkUser(recommenderId).flatten()
-    redirect(URL(c="user", f="search_recommenders", vars=myVars, user_signature=True))
+    request = current.request
+
+    article_id = int(request.vars["articleId"])
+    recommender_id = int(request.vars["recommenderId"])
+    exclude: Union[List[str], str] = request.vars["exclude"]
+    my_vars = request.vars
+    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id)
+    exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
+    exclude_list.append(str(recommender_id))
+    my_vars["exclude"] = ",".join(exclude_list)
+    current.session.flash = current.T('Suggested recommender "%s" added.') % common_small_html.mkUser(recommender_id).flatten() # type: ignore
+    redirect(URL(c="user", f="search_recommenders", vars=my_vars, user_signature=True))
 
 ######################################################################################################################################################################
-@auth.requires_login()
+@auth.requires_login() # type: ignore
 def suggest_all_selected():
-    articleId = request.vars["articleId"]
-    recommenderIds = request.vars["recommenderIds"]
-    exclusionIds = request.vars["exclusionIds"]
-    exclude = request.vars["exclude"]
-    myVars = request.vars
+    request = current.request
+
+    article_id = int(request.vars["articleId"])
+    recommender_ids = str(request.vars["recommenderIds"])
+    exclusion_ids = str(request.vars["exclusionIds"])
+    exclude: Union[List[str], str] = request.vars["exclude"]
+    my_vars = request.vars
     recommender_names = ''
     exclude_names = ''
-    excludeList = exclude if type(exclude) is list else exclude.split(",")
-    for recommenderId in recommenderIds.split(','):
-        if recommenderId == '': continue
-        recommender_names += common_small_html.mkUser(recommenderId).flatten() + ', '
-        user_module.do_suggest_article_to(articleId, recommenderId)
-        excludeList.append(str(recommenderId))
-    for recommenderId in exclusionIds.split(','):
-        if recommenderId == '': continue
-        exclude_names += common_small_html.mkUser(recommenderId).flatten() + ', '
-        user_module.do_exclude_article_from(articleId, recommenderId)
-        excludeList.append(str(recommenderId))
-    myVars["exclude"] = ",".join(excludeList)
+    exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
+    for recommender_id in recommender_ids.split(','):
+        if recommender_id == '': continue
+        recommender_names += str(common_small_html.mkUser(recommender_id).flatten()) + ', ' # type: ignore
+        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
+        exclude_list.append(str(recommender_id))
+    for recommender_id in exclusion_ids.split(','):
+        if recommender_id == '': continue
+        exclude_names += str(common_small_html.mkUser(recommender_id).flatten()) + ', ' # type: ignore
+        user_module.do_exclude_article_from(article_id, int(recommender_id))
+        exclude_list.append(str(recommender_id))
+    my_vars["exclude"] = ",".join(exclude_list)
     flash_news = ''
     if len(recommender_names) > 0:
         flash_news += 'Suggested recommenders "%s" added.'% recommender_names[:-2]
     if len(exclude_names) > 0:
         flash_news += ' Recommenders "%s" excluded from article.' % exclude_names[:-2]
-    session.flash = T(flash_news)
-    redirect(URL(c="user", f="search_recommenders", vars=myVars, user_signature=True))
+    current.session.flash = current.T(flash_news)
+    redirect(URL(c="user", f="search_recommenders", vars=my_vars, user_signature=True))
 
 ######################################################################################################################################################################
 @auth.requires_login()
