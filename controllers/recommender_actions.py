@@ -11,9 +11,10 @@ from models.article import Article, ArticleStatus, is_scheduled_submission
 from models.recommendation import RecommendationState
 
 from models.review import Review, ReviewState
+from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 
-
+from app_modules.common_tools import URL
 
 ######################################################################################################################################################################
 ## Actions
@@ -200,42 +201,39 @@ def revise_article():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="recommender"))
 def decline_new_article_to_recommend():
-    if "articleId" not in request.vars:
-        raise HTTP(404, "404: " + T("Unavailable"))
-    articleId = request.vars["articleId"]
-    article = db.t_articles[articleId]
-    if article is None:
-        raise HTTP(404, "404: " + T("Unavailable"))
+    article_id = int(current.request.vars["articleId"])
+    if not article_id:
+        raise HTTP(404, "404: " + current.T("Unavailable"))
     
-    redirect(URL(c="recommender_actions", f="decline_article_confirmed", vars=dict(articleId=articleId), user_signature=True))
-
-######################################################################################################################################################################
-
-@auth.requires(auth.has_membership(role="recommender"))
-def decline_article_confirmed():
-    article_id = request.vars["articleId"]
-    if article_id:
-        # NOTE: No security hole as only logged user can be deleted
-        sug_rec = db((db.t_suggested_recommenders.article_id == article_id) & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)).select().first()
-        if sug_rec is not None:
-            sug_rec.declined = True
-            sug_rec.update_record()
-            db.commit()
-            
-            emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article_id, auth.user_id)
-            session.flash = T("Suggestion declined")
-        else: 
-            raise HTTP(404, "404: " + T("Unavailable"))
-        message = T("Thank you for taking the time to decline this invitation!")
-
+    if current.auth.user_id:
+        suggested_recommender = SuggestedRecommender.get_by_article_and_user_id(article_id, current.auth.user_id)
+    else:
+        quick_decline_key = current.request.vars.get("quick_decline_key")
+        if not quick_decline_key:
+            raise HTTP(403, "403: " + current.T("Forbidden"))
+        suggested_recommender = SuggestedRecommender.get_suggested_recommender_by_quick_decline_key(quick_decline_key)
+    
+    if not suggested_recommender:
+        raise HTTP(404, "404: " + current.T("Unavailable"))
+    
+    if suggested_recommender.declined:
+        current.session.flash = 'Already declined'
+        redirect(URL('default','index'))
+    
+    SuggestedRecommender.decline(suggested_recommender)
+    emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article_id, suggested_recommender.suggested_recommender_id)
+    
+    current.session.flash = current.T("Suggestion declined")
+    
+    message = current.T("Thank you for taking the time to decline this invitation!")
     return _decline_article_page(message, article_id)
 
 
-@auth.requires(auth.has_membership(role="recommender"))
 def _decline_article_page(message: str, article_id: int):
-    response.view = "default/myLayout.html"
+    T = current.T
+    current.response.view = "default/myLayout.html"
+
     return dict(
         form=CENTER(
             H2(message, _style="font-weight: bold"),
