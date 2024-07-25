@@ -253,7 +253,7 @@ def user():
             if auth.user_id:
                 redirect(URL('default','index'))
 
-            intercept_reset_password_login()
+            intercept_reset_password_login(request.vars._next)
 
             titleIcon = "log-in"
             pageTitle = getTitle("#LogInTitle")
@@ -393,7 +393,7 @@ def check_captcha(form):
         form.errors = True
 
 
-def intercept_reset_password_login(_next=request.vars._next):
+def intercept_reset_password_login(_next):
     from urllib.parse import parse_qs
     key = parse_qs(str(_next)).get("key")
     key = key[0] if key else None
