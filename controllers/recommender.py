@@ -2243,7 +2243,7 @@ def edit_recommendation():
             pageTitle = getTitle("#RecommenderEditRecommendationTitle")
         else:
             db.t_recommendations.recommendation_title.label = T("Decision or recommendation title")
-            db.t_recommendations.recommendation_comments.label = SPAN("Decision or recommendation", BR(), H5("Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box."))
+            db.t_recommendations.recommendation_comments.label = SPAN(T("Decision or recommendation"), BR(), H5(T("Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box.")))
             customText = getText("#RecommenderEditDecisionText")
             pageHelp = getHelp("#RecommenderEditDecision")
             pageTitle = getTitle("#RecommenderEditDecisionTitle")
