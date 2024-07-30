@@ -1,16 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import re
-import copy
 import random
-import os
-import tempfile
-import shutil
 import datetime
-
-# sudo pip install tweepy
-# import tweepy
-from gluon.contrib.markdown import WIKI
 
 from app_modules.helper import *
 
@@ -22,10 +14,16 @@ from app_modules import emailing_tools
 
 from app_components import app_forms
 
-from gluon.contrib.markmin.markmin2latex import render, latex_escape
+from gluon.contrib.appconfig import AppConfig # type: ignore
+from gluon.http import redirect # type: ignore
+from gluon.sqlhtml import SQLFORM
+from pydal.objects import Field
+from pydal.validators import IS_IN_DB
 
 from gluon.contrib.appconfig import AppConfig
 from gluon.http import redirect # type: ignore
+
+from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 
@@ -36,6 +34,13 @@ expClass = dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidd
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
+
+db = current.db
+response = current.response
+request = current.request
+auth = current.auth
+session = current.session
+T = current.T
 
 ######################################################################################################################################################################
 ## Menu Routes

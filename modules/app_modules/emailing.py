@@ -2148,7 +2148,7 @@ def send_newsletter_mail(userId: int, newsletterType: str):
                 newPreprintRequiringRecommender.append(newsletter.makeArticleRow(article, "recommendation"))
 
     if (newRecommendationsCount > 0) or (newPreprintSearchingForReviewersCount > 0) or (newPreprintRequiringRecommenderCount > 0):
-        emailing_tools.insertNewsLetterMailInQueue(
+        emailing_tools.insert_newsletter_mail_in_queue(
             mail_vars,
             hashtag_template,
             newRecommendations=newRecommendations,
