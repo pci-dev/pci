@@ -432,8 +432,10 @@ def _manage_articles(statuses, whatNext, stats_query=None, show_not_considered_b
 def recommendations():
     articleId = request.vars["articleId"]
     manager_authors = request.vars["manager_authors"]
-    art = db.t_articles[articleId]
     printable = "printable" in request.vars and request.vars["printable"] == "True"
+
+    try: art = db.t_articles[articleId]
+    except: art = None
 
     if art is None: redirect(request.home)
 
