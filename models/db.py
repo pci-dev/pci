@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Set, cast
+from typing import cast
 from app_components.custom_validator import CUSTOM_VALID_URL
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
@@ -15,7 +15,7 @@ from pydal.validators import IS_IN_SET, IS_EMPTY_OR, IS_INT_IN_RANGE, IS_LENGTH,
 from gluon.tools import Auth, Service, PluginManager, Mail
 from gluon.contrib.appconfig import AppConfig
 from gluon.storage import Storage # for db.get_last_recomms()
-from pydal.objects import OpRow
+from pydal.objects import OpRow, Query, Set
 from pydal import Field, DAL
 
 from gluon.custom_import import track_changes
@@ -996,6 +996,7 @@ db.t_reviews._before_insert.append(lambda row: init_review(row))
 db.t_reviews._before_update.append(lambda s, f: before_review_done(s, f))
 db.t_reviews._after_update.append(lambda s, f: after_review_done(s, f))
 db.t_reviews._after_insert.append(lambda s, row: reviewSuggested(s, row))
+db.t_reviews._before_delete.append(lambda s: before_review_delete(s))
 
 from app_modules.emailing import isScheduledTrack
 
@@ -1064,6 +1065,13 @@ def reviewSuggested(s, row):
                     if no_of_accepted_invites < 2 and recommendation.recommendation_state == "Ongoing":
                         emailing.alert_managers_recommender_action_needed("#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recommendation.id)
     return None
+
+
+def before_review_delete(s: Set):
+    review =  cast(Review, s.select().first())
+    if review:
+        emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewInvitationNewUser"], review.id)
+        emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewInvitationRegisteredUser"], review.id)
 
 
 def before_review_done(s, new_review_values):
