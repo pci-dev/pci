@@ -28,7 +28,7 @@ class Recommendation(Row):
     recommendation_timestamp: _[datetime]
     doi: _[str]
     recommender_id: int
-    last_change: _[datetime]
+    last_change: datetime
     reply: _[str]
     is_closed: _[bool]
     is_press_review: _[bool]
