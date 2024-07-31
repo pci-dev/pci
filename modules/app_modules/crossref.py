@@ -1,5 +1,6 @@
 from typing import List
 from app_modules.common_tools import extract_doi
+from models.article import Article
 from models.recommendation import Recommendation
 import requests
 import re
@@ -59,28 +60,6 @@ def get_status(recomm):
 
 def get_filename(recomm):
     return f"pci={pci.host}:rec={recomm.id}"
-
-
-def mk_recomm_description(recomm, article):
-    title = md_to_html(article.title).flatten()
-    return " ".join([
-        "A recommendation of:",
-        f"{article.authors}",
-        f"({article.article_year})",
-        f"{title}.",
-        f"{article.preprint_server},",
-        f"ver.{article.ms_version}",
-        f"peer-reviewed and recommended by {pci.short_name}",
-        f"{article.doi}",
-    ]) if not article.article_source \
-    else " ".join([
-        "A recommendation of:",
-        f"{article.authors}",
-        f"{title}.",
-        f"{article.article_source}",
-        f"peer-reviewed and recommended by {pci.short_name}",
-        f"{article.doi}",
-    ])
 
 
 def mk_affiliation(user):
@@ -149,7 +128,7 @@ def crossref_xml(recomm: Recommendation):
     recomm_doi = get_recommendation_doi(recomm)
     recomm_date = recomm.validation_timestamp.date()
     recomm_title = recomm.recommendation_title
-    recomm_description_text = mk_recomm_description(recomm, article)
+    recomm_description_text = Article.get_article_reference(article)
     recomm_citations = "\n        ".join(get_citation_list(recomm))
 
     recommender = db.auth_user[recomm.recommender_id]

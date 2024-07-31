@@ -102,11 +102,6 @@ if (!pciRRactivated) {
   `;
 
   let decisonRecommendationCommentOther = "";
-  let decisonRecommendationCommentRecommended = `
-  <p>Type or past here your recommendation text.</p>
-  <p><strong>References</strong></p>
-  <p>NameAuthors1, InitialFirstNameAuthor1., NameAuthor2, InitialFirstNAmeAuthor2 and NameAuthor3, InitialFirstNameAuthor3 (YEAR Recommendation) XXXTitleOfThePreprintXXX. XXXname of the preprint server, ver. XXX peer-reviewed and recommended by Peer Community In X. <a href="https://doi.org/xxxx" data-mce-href="https://doi.org/xxxx">https://doi.org/xxxx</a><br data-mce-bogus="1"></p>
-  `;
   
   let once = false;
   var observerForTinyMce = new MutationObserver(() => {
