@@ -216,6 +216,7 @@ class COARNotifier:
                 coar_notification_closed = True,
                 coar_notification_id = notification["id"]
         )
+        current.db.commit()
 
 
     def record_notification(
