@@ -203,11 +203,13 @@ def decline_new_review():
 def decline_review(): # no auth required
     review, message = _check_decline_review_request()
 
+    url = URL(f="decline_review_confirmed", vars=current.request.vars)
+
     if review:
         message = A(
                 current.T("Please click to confirm review decline"),
                 _class="pci-decline-review-confirm btn btn-warning",
-                _href=URL(f="decline_review_confirmed", vars=current.request.vars),
+                _onclick=f'window.location.replace("{url}")',
         )
 
     return _decline_review_page(message, form=None)
