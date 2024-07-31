@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 import re
-from typing import Any, List, Optional as _, cast, TypedDict
+from typing import Any, List, Optional as _, Union, cast, TypedDict
+from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
 from pydal.objects import Row
@@ -275,6 +276,39 @@ class Article(Row):
     def remove_pre_submission_token(article: 'Article'):
         article.pre_submission_token = None
         article.update_record()
+
+    
+    @staticmethod
+    def get_article_reference(article: 'Article', with_prefix: bool = True, html: bool = False):
+        from app_modules.common_small_html import md_to_html
+
+        title: Union[SPAN, str] = md_to_html(article.title)
+        article_doi: _[Union[A, str]] = article.doi
+        pci_long_name = str(current.db.conf.get('app.longname') or "")
+
+        if html:
+            article_doi = A(article_doi, _href=article_doi)
+        else:
+            title = title.flatten() # type: ignore
+
+        return " ".join([
+            "A recommendation of:" if with_prefix else "",
+            f"{article.authors}",
+            f"({article.article_year})",
+            f"{title}.",
+            f"{article.preprint_server},",
+            f"ver.{article.ms_version}",
+            f"peer-reviewed and recommended by {pci_long_name}",
+            f"{article_doi}",
+        ]) if not article.article_source \
+        else " ".join([
+            "A recommendation of:" if with_prefix else "",
+            f"{article.authors}",
+            f"{title}.",
+            f"{article.article_source}",
+            f"peer-reviewed and recommended by {pci_long_name}",
+            f"{article_doi}",
+        ])
 
 
 def is_scheduled_submission(article: Article) -> bool:
