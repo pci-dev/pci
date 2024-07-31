@@ -1,25 +1,15 @@
-import gc
-import os
 from typing import Any, Dict, List, Optional, Union, cast
-import pytz
 from re import sub, match
-from copy import deepcopy
 from datetime import datetime
-from datetime import timedelta
 from dateutil.relativedelta import *
-from collections import OrderedDict
 
 import io
 from PIL import Image
 
-from gluon import current, IS_IN_DB, IS_IN_SET
-from gluon.globals import Request
-from gluon.tools import Auth
+from gluon import current, IS_IN_SET
 from gluon.html import *
-from gluon.template import render
 from gluon.contrib.markdown import WIKI
 from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Mail
 from gluon.sqlhtml import *
 from models.article import Article
 from models.recommendation import Recommendation
@@ -34,6 +24,8 @@ from app_modules.hypothesis import Hypothesis
 from app_modules.orcid import OrcidTools
 
 from gluon import current
+
+from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 
@@ -136,28 +128,32 @@ def mkUserId(userId, linked=False, fullURL=False):
 
 
 ######################################################################################################################################################################
-def mkUser_U(theUser: User, linked=False, reverse=False, orcid: bool = False, orcid_exponant: bool = False):
-    if theUser:
-        if linked and not theUser.deleted:
-            if reverse: b_tag = B("%s, %s." % (theUser.last_name, theUser.first_name[0]))
-            else: b_tag = B("%s %s" % (theUser.first_name, theUser.last_name))
-            resu = A(
-                b_tag,
-                _href=URL(c="public", f="user_public_page", scheme=True, vars=dict(userId=theUser.id)),
-                _class="cyp-user-profile-link",
-            )
-        else:
-            if reverse: resu = SPAN("%s, %s." % (theUser.last_name, theUser.first_name[0]))
-            else: resu = SPAN("%s %s" % (theUser.first_name, theUser.last_name))
-
-        if orcid:
-            resu = OrcidTools.build_name_with_orcid(resu, theUser.orcid, height='15px', width='15px', style='margin-right: 3px')
-        if orcid_exponant:
-            style = 'margin-right: 3px; position: relative; bottom: 12px; left: 2px'
-            resu = OrcidTools.build_name_with_orcid(resu, theUser.orcid, height='12px', width='12px', style=style, force_style=True)
+def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: bool = False, orcid_exponant: bool = False):
+    if not user:
+        return SPAN("?")
+    
+    first_name = user.first_name or "?"
+    last_name = user.last_name or "?"
+    
+    if reverse:
+        first_name = '-'.join(map(lambda x: f"{x[0].upper()}.", first_name.split('-')))
+        name = f"{last_name}, {first_name}"
     else:
-        resu = SPAN("?")
-    return resu
+        name = f"{first_name} {last_name}"
+
+    if linked and not user.deleted:
+        result = A(B(name),
+                    _href=URL(c="public", f="user_public_page",scheme=True, vars=dict(userId=user.id)),
+                    _class="cyp-user-profile-link")
+    else:
+        result = SPAN(name)
+
+    if orcid:
+        result = OrcidTools.build_name_with_orcid(result, user.orcid, height='15px', width='15px', style='margin-right: 3px')
+    if orcid_exponant:
+        style = 'margin-right: 3px; position: relative; bottom: 12px; left: 2px'
+        result = OrcidTools.build_name_with_orcid(result, user.orcid, height='12px', width='12px', style=style, force_style=True)
+    return result
 
 
 ######################################################################################################################################################################
