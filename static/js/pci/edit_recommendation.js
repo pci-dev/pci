@@ -44,6 +44,8 @@ let updateRecommendContent = true;
 
 if (!pciRRactivated) {
   function updateDisplayForm(el, initial) {
+    showForm();
+
     if (['opinion_revise', 'opinion_reject'].includes(el.id)) {
       if (updateRecommendContent) {
         recommendationTitleInputInitalValue = recommendationTitleInput.value;
@@ -78,6 +80,8 @@ if (!pciRRactivated) {
   const opinionRecommendCheckbox = document.getElementById('opinion_recommend');
   const opinionReviseCheckbox = document.getElementById('opinion_revise');
   const opinionRejectCheckbox = document.getElementById('opinion_reject');
+
+  hideForm();
   
   opinionRecommendCheckbox.addEventListener('change', (e) => {updateDisplayForm(e.target, false)});
   opinionReviseCheckbox.addEventListener('change', (e) => {updateDisplayForm(e.target, false)});
@@ -137,4 +141,24 @@ if (!pciRRactivated) {
   });
   observerForTinyMce.observe(document.body, { childList: true, subtree: true });
 
+
+  function hideForm() {
+    if (!opinionRecommendCheckbox.checked && !opinionRejectCheckbox.checked && !opinionReviseCheckbox.checked) {
+      document.querySelectorAll('form > div').forEach((divEl) => {
+        if (divEl.querySelector('#opinion_recommend') == null) {
+          divEl.style.display = 'none';    
+        }
+      });
+    }
+  }
+  
+  function showForm() {
+    if (opinionRecommendCheckbox.checked || opinionRejectCheckbox.checked || opinionReviseCheckbox.checked) {
+      document.querySelectorAll('form > div').forEach((divEl) => {
+        if (divEl.querySelector('#opinion_recommend') == null) {
+          divEl.style.display = 'flex';    
+        }
+      });
+    }
+  }
 }
