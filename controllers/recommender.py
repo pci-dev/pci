@@ -2370,13 +2370,19 @@ def edit_recommendation():
             myScript = common_tools.get_script("edit_recommendation_is_press.js")
         confirmationScript = common_tools.get_script("confirmation.js")
 
+        article_reference = SCRIPT(f"""let decisonRecommendationCommentRecommended = `
+                                        <p>Type or past here your recommendation text.</p>
+                                        <p><strong>References</strong></p>
+                                         <p>{Article.get_article_reference(art, False, True)}</p>`;
+                                    """)
+
         return dict(
             form=form,
             customText=customText,
             pageHelp=pageHelp,
             titleIcon="edit",
             pageTitle=pageTitle,
-            myFinalScript=myScript,
+            myFinalScript=[article_reference, myScript],
             myBackButton=common_small_html.mkBackButton(),
             deleteFileButtonsScript=common_tools.get_script("add_delete_recommendation_file_buttons_recommender.js"),
             confirmationScript=confirmationScript,
