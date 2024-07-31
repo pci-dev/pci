@@ -201,7 +201,22 @@ def revise_article():
 
 
 ######################################################################################################################################################################
+
 def decline_new_article_to_recommend():
+    current.response.view = "default/info.html"
+
+    return dict(
+        message=CENTER(
+            H2("To confirm your decline to act as a recommender for this submission, please click the button below"),
+            A(
+                "Please click here to confirm your decline",
+                _class="pci-decline-review-confirm btn btn-warning",
+                _href=URL(f="confirm_decline_new_article_to_recommend", vars=current.request.vars))
+            )
+    )
+
+
+def confirm_decline_new_article_to_recommend():
     article_id = int(current.request.vars["articleId"])
     if not article_id:
         raise HTTP(404, "404: " + current.T("Unavailable"))
