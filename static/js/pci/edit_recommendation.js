@@ -50,7 +50,10 @@ if (!pciRRactivated) {
       if (updateRecommendContent) {
         recommendationTitleInputInitalValue = recommendationTitleInput.value;
         if (!initial && tinymce.get('t_recommendations_recommendation_comments')) {
-          decisonRecommendationCommentRecommended = tinymce.get('t_recommendations_recommendation_comments')?.getContent();
+          const currentContent = tinymce.get('t_recommendations_recommendation_comments')?.getContent();
+          if (currentContent) {
+            decisonRecommendationCommentRecommended = currentContent;
+          }
           tinymce.get('t_recommendations_recommendation_comments')?.setContent(decisonRecommendationCommentOther);
         }
         updateRecommendContent = false;
@@ -62,7 +65,7 @@ if (!pciRRactivated) {
       decisonRecommendationLabel.lastChild.innerHTML = "Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box."
 
     } else {
-      recommendationTitleRow.style.display = recommendationTitleRowInitialDisplay;
+      recommendationTitleRow.style.display = 'flex';
       recommendationTitleInput.value = recommendationTitleInputInitalValue;
       decisonRecommendationLabel.firstChild.nodeValue = decisonRecommendationLabelInitialText;
       decisonRecommendationLabel.lastChild.innerHTML = decisonRecommendationLabelInitialSubText;
@@ -85,7 +88,6 @@ if (!pciRRactivated) {
   opinionRejectCheckbox.addEventListener('change', (e) => {updateDisplayForm(e.target, false)});
   
   const recommendationTitleRow = document.getElementById('t_recommendations_recommendation_title__row');
-  const recommendationTitleRowInitialDisplay = recommendationTitleRow.style.display;
   
   const recommendationTitleInput = document.getElementById('t_recommendations_recommendation_title');
   let recommendationTitleInputInitalValue = recommendationTitleInput.value;
