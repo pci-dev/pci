@@ -58,11 +58,7 @@ def get_filename(recomm: Recommendation):
     return f"pci={pci.host}:rec={recomm.id}"
 
 
-<<<<<<< HEAD
 def mk_affiliation(user: User):
-=======
-def mk_affiliation(user):
->>>>>>> revamp-recommendation-decision-page
     if hasattr(user, "is_pseudo"): return "(unavailable)"
 
     _ = user
