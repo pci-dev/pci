@@ -94,6 +94,14 @@
       <div class="w2p_flash alert alert-dismissable pci-warning-alert">{{=response.flash or ''}}</div>
     {{pass}}
 
+    <script>
+      {{if pciRRactivated:}}
+        const pciRRactivated = true;
+      {{else:}}
+        const pciRRactivated = false;
+      {{pass}}
+    </script>
+
     <!-- Navbar ======================================= -->
     <nav class="navbar {{if auth.is_impersonating():}}impersonate{{pass}}">
       <div class="navbar-header"> 

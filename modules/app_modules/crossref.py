@@ -58,28 +58,6 @@ def get_filename(recomm: Recommendation):
     return f"pci={pci.host}:rec={recomm.id}"
 
 
-def mk_recomm_description(article: Article):
-    title = md_to_html(article.title).flatten() # type: ignore
-    return " ".join([
-        "A recommendation of:",
-        f"{article.authors}",
-        f"({article.article_year})",
-        f"{title}.",
-        f"{article.preprint_server},",
-        f"ver.{article.ms_version}",
-        f"peer-reviewed and recommended by {pci.short_name}",
-        f"{article.doi}",
-    ]) if not article.article_source \
-    else " ".join([
-        "A recommendation of:",
-        f"{article.authors}",
-        f"{title}.",
-        f"{article.article_source}",
-        f"peer-reviewed and recommended by {pci.short_name}",
-        f"{article.doi}",
-    ])
-
-
 def mk_affiliation(user: User):
     if hasattr(user, "is_pseudo"): return "(unavailable)"
 
@@ -151,7 +129,7 @@ def crossref_xml(recomm: Recommendation):
         return "Missing recommendation validation timestamp!"
     
     recomm_title = recomm.recommendation_title
-    recomm_description_text = mk_recomm_description(article)
+    recomm_description_text = Article.get_article_reference(article)
     recomm_citations = "\n        ".join(get_citation_list(recomm))
 
     recommender = User.get_by_id(recomm.recommender_id)
