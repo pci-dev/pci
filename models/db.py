@@ -635,6 +635,7 @@ def deltaStatus(s, f):
     if "status" in f:
         o = s.select().first()
         recomm = db.get_last_recomm(o.id)
+        current.article = f
 
         if f.status == "Awaiting revision" and o.status != f.status:
             f.request_submission_change = True

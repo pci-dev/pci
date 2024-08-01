@@ -61,6 +61,10 @@ class COARNotifier:
         target_inbox = get_target_inbox(article)
 
         notification = self.add_base_notification_properties(notification, target_inbox)
+        if article.coar_notification_id:
+            notification.update({
+                "inReplyTo": article.coar_notification_id,
+            })
         self._send_notification(notification, target_inbox)
 
     def add_base_notification_properties(self, notification, target_inbox):
@@ -205,10 +209,11 @@ class COARNotifier:
         if not article.coar_notification_id: return
         if article.coar_notification_closed: return
 
+        notification = \
         send_ack(self, "Reject", article)
 
-        article.coar_notification_closed = True
-        article.update_record()
+        current.article.coar_notification_closed = True
+        current.article.coar_notification_id = notification["id"]
 
 
     def record_notification(
@@ -259,6 +264,8 @@ def send_ack(self, typ: typing.Literal["TentativeAccept", "Reject"], article):
 
     notification = self.add_base_notification_properties(notification, target_inbox)
     self._send_notification(notification, target_inbox)
+
+    return notification
 
 
 def get_origin_request(article):
