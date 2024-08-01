@@ -1423,6 +1423,9 @@ body.impersonate {
 
 .evalutation-process-list {
   list-style: none;
+  padding-left: 0px;
+  font-weight: bold;
+  font-size: 16px;
 }
 
 .evalutation-process-list > li {
@@ -1432,8 +1435,11 @@ body.impersonate {
 
 .evalutation-process-list > li > * {
   width: 50%;
-  min-width: 330px;
+  min-width: 380px;
   display: inline-block;
+  font-size: 13px;
+  height: 35px;
+  align-content: center;
 }
 
 .evalutation-process-list > li::before {
