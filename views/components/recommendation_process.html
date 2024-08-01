@@ -22,10 +22,9 @@
   {{if (authorsReply is not None) or (authorsReplyPdfLink is not None) or (authorsReplyTrackChangeFileLink is not None) or (editAuthorsReplyLink is not None):}}
     {{if editAuthorsReplyLink is not None:}}
       {{if authorsReply is None and authorsReplyPdfLink is None:}}
-        {{=T("First deposit the new version of your preprint on the preprint server")}}
               <div class="pci2-full-width">
                 <ol class="evalutation-process-list">
-                  <li>First deposit the new version of your preprint on the preprint server</li>
+                  <li>{{=T("First deposit the new version of your preprint on the preprint server")}}</li>
                   <li>
                       <a {{if suspend_submissions:}}disabled{{pass}} class="buttontext btn btn-default"
                       {{if not suspend_submissions:}} href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}" {{pass}}
@@ -55,7 +54,7 @@
             <!-- Edit article -->
             <div class="pci2-full-width">
               <ol class="evalutation-process-list">
-                <li>First deposit the new version of your preprint on the preprint server</li>
+                <li>{{=T("First deposit the new version of your preprint on the preprint server")}}</li>
                 <li>
                   <a class="buttontext btn btn-default pci2-flex-center" 
                     href="{{=URL(c="user", f="edit_my_article", vars=dict(articleId=articleId), user_signature=True)}}"
