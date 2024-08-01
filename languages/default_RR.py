@@ -980,4 +980,5 @@
     " In case all raw data are included in the preprint, indicate the DOI or URL of the preprint.": "",
     " In case all raw scripts are included in the preprint, indicate the DOI or URL of the preprint.": "",
     " In case all raw codes are included in the preprint, indicate the DOI or URL of the preprint.": "",
+    "Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box.": "Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box.",
 }

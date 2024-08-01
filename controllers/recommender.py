@@ -2243,7 +2243,7 @@ def edit_recommendation():
             pageTitle = getTitle("#RecommenderEditRecommendationTitle")
         else:
             db.t_recommendations.recommendation_title.label = T("Decision or recommendation title")
-            db.t_recommendations.recommendation_comments.label = SPAN("Decision or recommendation", BR(), H5("Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box."))
+            db.t_recommendations.recommendation_comments.label = SPAN(T("Decision or recommendation"), BR(), H5(T("Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box.")))
             customText = getText("#RecommenderEditDecisionText")
             pageHelp = getHelp("#RecommenderEditDecision")
             pageTitle = getTitle("#RecommenderEditDecisionTitle")
@@ -2370,13 +2370,19 @@ def edit_recommendation():
             myScript = common_tools.get_script("edit_recommendation_is_press.js")
         confirmationScript = common_tools.get_script("confirmation.js")
 
+        article_reference = SCRIPT(f"""let decisonRecommendationCommentRecommended = `
+                                        <p>Type or past here your recommendation text.</p>
+                                        <p><strong>References</strong></p>
+                                         <p>{Article.get_article_reference(art, False, True)}</p>`;
+                                    """)
+
         return dict(
             form=form,
             customText=customText,
             pageHelp=pageHelp,
             titleIcon="edit",
             pageTitle=pageTitle,
-            myFinalScript=myScript,
+            myFinalScript=[article_reference, myScript],
             myBackButton=common_small_html.mkBackButton(),
             deleteFileButtonsScript=common_tools.get_script("add_delete_recommendation_file_buttons_recommender.js"),
             confirmationScript=confirmationScript,
