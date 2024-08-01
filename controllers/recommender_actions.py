@@ -7,6 +7,7 @@ from app_modules.helper import *
 from app_modules import emailing
 from app_components import app_forms
 from gluon.http import HTTP, redirect
+from gluon.sqlhtml import SQLFORM
 from models.article import Article, ArticleStatus, is_scheduled_submission
 from models.recommendation import RecommendationState
 
@@ -207,11 +208,12 @@ def decline_new_article_to_recommend():
 
     return dict(
         message=CENTER(
-            H2("To confirm your decline to act as a recommender for this submission, please click the button below"),
+            H2("To confirm your decline to act as", BR(), "a recommender for this submission, please click the button below",
+               _style="margin-top: 20px; font-weight: bold; width: 550px"),
             A(
                 "Please click here to confirm your decline",
-                _class="pci-decline-review-confirm btn btn-warning",
-                _href=URL(f="confirm_decline_new_article_to_recommend", vars=current.request.vars))
+                _class="btn btn-warning",
+                _href=URL(f="confirm_decline_new_article_to_recommend", vars=current.request.vars)),
             )
     )
 
@@ -254,21 +256,35 @@ def _decline_article_page(message: str, article_id: int):
             H2(message, _style="font-weight: bold"),
             H4(T('There is nothing else to do.'), _style="font-weight: bold"),
             P(T('But if you want to send a message to the managing board to indicate the reason(s) why you prefer to decline this invitation to act as a recommender for this preprint, please click here to prepare (and then send) a message.'), _style="width: 800px"),
-            A(T('Prepare a message to the managing board'), _href=URL(c="recommender_actions", f="decline_article_confirmed_send_message", vars=dict(articleId=article_id), user_signature=True), _class="btn btn-info")
+            A(T('Prepare a message to the managing board'), _href=URL(c="recommender_actions", f="decline_article_confirmed_send_message", vars=current.request.vars, user_signature=True), _class="btn btn-info")
         )
     )
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="recommender"))
+
 def decline_article_confirmed_send_message():
-    article_id = request.vars["articleId"]
-    if article_id:
-        form = app_forms.recommender_decline_invitation_form(article_id)
+    article_id = int(current.request.vars["articleId"])
+    if not article_id:
+        raise HTTP(404, "404: " + current.T("Unavailable"))
+    
+    if current.auth.user_id:
+        suggested_recommender = SuggestedRecommender.get_by_article_and_user_id(article_id, current.auth.user_id)
+    else:
+        quick_decline_key = current.request.vars.get("quick_decline_key")
+        if not quick_decline_key:
+            raise HTTP(403, "403: " + current.T("Forbidden"))
+        suggested_recommender = SuggestedRecommender.get_suggested_recommender_by_quick_decline_key(quick_decline_key)
+    
+    if not suggested_recommender:
+        raise HTTP(404, "404: " + current.T("Unavailable"))
+    
+    form = app_forms.recommender_decline_invitation_form(article_id, suggested_recommender.suggested_recommender_id)
+    if form:
         return _decline_article_send_message_page(form)
 
 
-def _decline_article_send_message_page(form):
-    response.view = "default/myLayout.html"
+def _decline_article_send_message_page(form: SQLFORM):
+    current.response.view = "default/myLayout.html"
     return dict(
         form=CENTER(
             DIV(LABEL(TAG(current.T("Recommender decline message 2")), _class="control-label col-sm-3", _style="margin-top: 30px"),
