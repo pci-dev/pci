@@ -14,6 +14,7 @@ from pprint import pprint
 
 from gluon import current
 from gluon.globals import Session
+from gluon.sqlhtml import SQLFORM
 from gluon.tools import Auth
 from gluon.html import *
 from gluon.template import render
@@ -1979,7 +1980,7 @@ def send_reviewer_generic_mail(reviewer_email, recomm, form):
     emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
-def send_submitter_generic_mail(author_email, articleId, form, mail_template):
+def send_submitter_generic_mail(author_email: str, articleId: int, form: SQLFORM, mail_template: str):
     db, auth, session = current.db, current.auth, current.session
 
 
