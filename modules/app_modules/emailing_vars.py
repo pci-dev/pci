@@ -71,12 +71,12 @@ def getManagersMails():
     return getMails("manager")
 
 
-def getMails(role):
+def getMails(role: str):
     db = current.db
 
     managers = db((db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id) & (db.auth_group.role == role)).select(db.auth_user.ALL)
 
-    result = []
+    result: List[str] = []
     for manager in managers:
         result.append(manager.email)
 
