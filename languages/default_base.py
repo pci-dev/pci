@@ -975,4 +975,5 @@
     " In case all raw data are included in the preprint, indicate the DOI or URL of the preprint.": " In case all raw data are included in the preprint, indicate the DOI or URL of the preprint.",
     " In case all raw scripts are included in the preprint, indicate the DOI or URL of the preprint.": " In case all raw scripts are included in the preprint, indicate the DOI or URL of the preprint.",
     " In case all raw codes are included in the preprint, indicate the DOI or URL of the preprint.": " In case all raw codes are included in the preprint, indicate the DOI or URL of the preprint.",
+    "First deposit the new version of your preprint on the preprint server": "Upload a new version of your preprint (if any) to the preprint server of your choice",
 }
