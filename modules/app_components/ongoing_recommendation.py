@@ -886,7 +886,7 @@ def get_recommendation_process_components(article: Article, printable: bool = Fa
             recommendationValidationDatetime=recommendation.validation_timestamp,
             manuscriptDoi=SPAN(current.T("Manuscript:") + " ", common_small_html.mkDOI(recommendation.doi)) if (recommendation.doi) else SPAN(""),
             recommendationVersion=SPAN(" " + current.T("version:") + " ", recommendation.ms_version) if (recommendation.ms_version) else SPAN(""),
-            recommendationTitle=H4(common_small_html.md_to_html(recommendation.recommendation_title) or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hide_on_going_recommendation is False) else "",
+            recommendationTitle=H4(common_small_html.md_to_html(recommendation.recommendation_title) or "", _style="font-weight: bold; margin-top: 5px; margin-bottom: 20px") if (hide_on_going_recommendation is False and recommendation.recommendation_title) else "",
             recommendationLabel=_get_recommendation_label(recommendation, am_I_co_recommender),
             recommendationText=_get_recommendation_text(recommendation, hide_on_going_recommendation),
             recommendationStatus=recommendation.recommendation_state,
