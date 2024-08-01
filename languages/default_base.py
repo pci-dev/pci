@@ -599,7 +599,7 @@
     "Recommender decline message 1" : 'If you declined due to a conflict of interest, lack of time, or because the preprint is outside your field of competence, simply click the ‘Done’ button. Thank you!',
     "Recommender decline message 2": 'If you declined because of serious scientific or ethical issues, please indicate your concerns below. They will be sent to the managing board. Thanks!',
     "Recommender:": "Recommender:",
-    "Recommender's annotations (PDF)": "If you have trouble copying and pasting your recommendation text, please upload it as a PDF, DOCX, or ODT file",
+    "Recommender's annotations (PDF)": "Recommender's annotations (PDF, docx or odt file)",
     "recommenders": "recommenders",
     "Recommender(s)": "Recommender(s)",
     "Recommenders": "Recommenders",
