@@ -16,6 +16,7 @@ from typing import List, cast, Optional
 import codecs
 
 # import html2text
+from app_components.custom_validator import VALID_LIST_NAMES_MAIL
 from gluon.contrib.markdown import WIKI
 from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig
@@ -56,6 +57,7 @@ from models.article import ArticleStatus, clean_vars_doi, clean_vars_doi_list
 from models.user import User
 from models.membership import Membership
 
+from app_components.article_components import fix_web2py_list_str_bug_article_form
 
 myconf = AppConfig(reload=True)
 
@@ -1131,6 +1133,14 @@ def edit_article():
                 form.errors.uploaded_picture = not_empty.error_message
             app_forms.checklist_validation(form)
 
+            suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.suggest_reviewers)
+            if suggested_reviewers_error:
+                form.errors.suggest_reviewers = suggested_reviewers_error
+
+            opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.opposed_reviewers)
+            if opposed_reviewers_reviewers_error:
+                form.errors.opposed_reviewers = opposed_reviewers_reviewers_error
+
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
         form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
@@ -1157,6 +1167,7 @@ def edit_article():
         redirect(URL(c=controller, f="recommendations", vars=myVars, user_signature=True))
     elif form.errors:
         response.flash = T("Form has errors", lazy=False)
+        fix_web2py_list_str_bug_article_form(form)
 
     confirmationScript = common_tools.get_script("confirmation.js")
     article_form_common_script = common_tools.get_script("article_form_common.js")

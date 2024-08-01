@@ -361,3 +361,24 @@ def make_article_source(article):
     version = article.ms_version
     article_source = f"({year}), {preprint_server}, ver.{version}, peer-reviewed and recommended by {pci_name}"
     return article_source
+
+
+def fix_web2py_list_str_bug_article_form(form: SQLFORM):
+    comment_style = "display: block; margin-top: 5px; margin-bottom: 10px; color: #7f8177; list-style: none;"
+
+    suggest_reviewers_input = form.element(_id="t_articles_suggest_reviewers_grow_input")
+    suggest_reviewers_input.append(SPAN(form.custom.comment.suggest_reviewers.components, _style=comment_style))
+
+    opposed_reviewers_input = form.element(_id="t_articles_competitors_grow_input")
+    opposed_reviewers_input.append(SPAN(form.custom.comment.competitors.components, _style=comment_style))
+
+    data_doi_input = form.element(_id="t_articles_data_doi_grow_input")
+    data_doi_input['_style'] = comment_style
+    data_doi_input.append(form.custom.comment.data_doi)
+
+    script_doi_input = form.element(_id="t_articles_scripts_doi_grow_input")
+    script_doi_input.append(SPAN(form.custom.comment.scripts_doi, _style=comment_style))
+
+    codes_doi_input = form.element(_id="t_articles_codes_doi_grow_input")
+    codes_doi_input['style'] = comment_style
+    codes_doi_input.append(SPAN(form.custom.comment.codes_doi, _style=comment_style))
