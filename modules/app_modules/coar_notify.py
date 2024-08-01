@@ -212,10 +212,8 @@ class COARNotifier:
         notification = \
         send_ack(self, "Reject", article)
 
-        article.update_record(
-                coar_notification_closed = True,
-                coar_notification_id = notification["id"]
-        )
+        current.article.coar_notification_closed = True
+        current.article.coar_notification_id = notification["id"]
 
 
     def record_notification(
