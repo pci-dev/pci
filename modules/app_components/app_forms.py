@@ -532,7 +532,7 @@ def recommender_decline_invitation_form(article_id: int, user_id: int):
         except Exception as e:
             session.flash = (session.flash or "") + current.T("Email failed.")
             raise e 
-        redirect(URL(c="recommender", f="my_awaiting_articles", vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
+        redirect(URL('default','index'))
     
     return form
 
