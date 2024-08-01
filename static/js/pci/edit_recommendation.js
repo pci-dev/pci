@@ -48,6 +48,7 @@ if (!pciRRactivated) {
 
     if (['opinion_revise', 'opinion_reject'].includes(el.id)) {
       if (updateRecommendContent) {
+        fileInputLabel.textContent = fileInputLabelInitial;
         recommendationTitleInputInitalValue = recommendationTitleInput.value;
         if (!initial && tinymce.get('t_recommendations_recommendation_comments')) {
           const currentContent = tinymce.get('t_recommendations_recommendation_comments')?.getContent();
@@ -65,6 +66,7 @@ if (!pciRRactivated) {
       decisonRecommendationLabel.lastChild.innerHTML = "Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box."
 
     } else {
+      fileInputLabel.textContent = 'If you have trouble copying and pasting your recommendation text, please upload it as a PDF, DOCX, or ODT file';
       recommendationTitleRow.style.display = 'flex';
       recommendationTitleInput.value = recommendationTitleInputInitalValue;
       decisonRecommendationLabel.firstChild.nodeValue = decisonRecommendationLabelInitialText;
@@ -77,6 +79,9 @@ if (!pciRRactivated) {
     }
   }
   
+  const fileInputLabel = document.getElementById('t_recommendations_recommender_file__label');
+  const fileInputLabelInitial = fileInputLabel.textContent;
+
   const opinionRecommendCheckbox = document.getElementById('opinion_recommend');
   const opinionReviseCheckbox = document.getElementById('opinion_revise');
   const opinionRejectCheckbox = document.getElementById('opinion_reject');
