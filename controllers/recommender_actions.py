@@ -206,6 +206,8 @@ def revise_article():
 def decline_new_article_to_recommend():
     current.response.view = "default/info.html"
 
+    url = URL(f="confirm_decline_new_article_to_recommend", vars=current.request.vars)
+
     return dict(
         message=CENTER(
             H2("To confirm your decline to act as", BR(), "a recommender for this submission, please click the button below",
@@ -213,8 +215,9 @@ def decline_new_article_to_recommend():
             A(
                 "Please click here to confirm your decline",
                 _class="btn btn-warning",
-                _href=URL(f="confirm_decline_new_article_to_recommend", vars=current.request.vars)),
+                _onclick=f'window.location.replace("{url}")',
             )
+        )
     )
 
 
