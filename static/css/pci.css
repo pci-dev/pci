@@ -1420,3 +1420,36 @@ body.impersonate {
   margin-top: 15px;
   width: 800px;
 }
+
+.evalutation-process-list {
+  list-style: none;
+  padding-left: 0px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.evalutation-process-list > li {
+  margin-top: 10px;
+  counter-increment: my-awesome-counter;
+}
+
+.evalutation-process-list > li > * {
+  width: 50%;
+  min-width: 380px;
+  display: inline-block;
+  font-size: 13px;
+  height: 35px;
+  align-content: center;
+}
+
+.evalutation-process-list > li::before {
+  content: counter(my-awesome-counter);
+  font-weight: bold;
+  font-size: 25px;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.evalutation-process-list > li:nth-child(1)::before {
+  margin-right: 19px;
+}
