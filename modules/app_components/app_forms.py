@@ -14,6 +14,8 @@ from datetime import date
 from models.article import Article
 from models.report_survey import ReportSurvey
 
+from app_modules.common_tools import URL
+
 myconf = AppConfig(reload=True)
 applongname = myconf.take("app.longname")
 
@@ -487,49 +489,55 @@ def checklist_validation(form):
         
 
 ########################################################
-def recommender_decline_invitation_form(articleId):
-    request, session, db, auth = current.request, current.session, current.db, current.auth
-    Field.CC = db.Field.CC
-    art = db.t_articles[articleId]
-    contact = myconf.take("contacts.managers")
-    sender_email = db(db.auth_user.id == auth.user_id).select().last().email
+def recommender_decline_invitation_form(article_id: int, user_id: int):
+    request, session, db = current.request, current.session, current.db
+
+    art = Article.get_by_id(article_id)
+    if not art:
+        return
+
+    Field.CC = db.Field.CC # type: ignore
+    contact = str(myconf.take("contacts.managers"))
+    sender_email = db(db.auth_user.id == user_id).select().last().email
     mail_template = emailing_tools.getMailTemplateHashtag("#RecommenderRejectMail")
 
     # template variables, along with all other locals()+
-    recommenderPerson = common_small_html.mkUser(auth.user_id)
-    articleTitle = common_small_html.md_to_html(art.title)
-    articleAuthors = emailing.mkAuthors(art)
-    appName = myconf.take("app.name")
+    mail_vars = dict(
+    recommenderPerson=common_small_html.mkUser(user_id),
+    articleTitle=common_small_html.md_to_html(art.title),
+    articleAuthors=emailing.mkAuthors(art),
+    appName=myconf.take("app.name"))
+
     managers_mails = ", ".join(emailing_vars.getManagersMails())
 
-    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
-    default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+    default_subject = emailing_tools.replaceMailVars(str(mail_template["subject"]), mail_vars)
+    default_message = emailing_tools.replaceMailVars(str(mail_template["content"]), mail_vars)
 
-    default_subject = emailing.patch_email_subject(default_subject, articleId)
+    default_subject = emailing.patch_email_subject(default_subject, article_id)
 
-    form = SQLFORM.factory(
+    form = SQLFORM.factory( # type: ignore
         Field("message", type="text", default=default_message, required=True, label=''),
         Field("exit", type="string", default=current.T("Exit"), widget=widget_submit_button, label=""),
     )
-    form.element("input[value=Submit]")["_style"] = "display: none;"
-    form.element("input[value=Submit]")["_type"] = "button"
-    form.element("textarea[name=message]")["_style"] = "height:500px;"
+    form.element("input[value=Submit]")["_style"] = "display: none;" # type: ignore
+    form.element("input[value=Submit]")["_type"] = "button" # type: ignore
+    form.element("textarea[name=message]")["_style"] = "height:500px;" # type: ignore
 
-    if form.process().accepted:
+    if form.process().accepted: # type: ignore
         form = request.vars
         form['cc'] = '%s, %s'%(sender_email, managers_mails)
         form['replyto'] = '%s, %s'%(sender_email, contact)
         form['subject'] = default_subject
         try:
-            emailing.send_submitter_generic_mail(contact, articleId, form, "#RecommenderRejectMail")
+            emailing.send_submitter_generic_mail(contact, article_id, form, "#RecommenderRejectMail")
         except Exception as e:
             session.flash = (session.flash or "") + current.T("Email failed.")
             raise e 
-        redirect(URL(c="recommender", f="my_awaiting_articles", vars=dict(pendingOnly=True, pressReviews=False), user_signature=True))
+        redirect(URL('default','index'))
     
     return form
 
-def widget_submit_button(field,value):
+def widget_submit_button(field: ...,value: ...):
     # widget for additional form button
     item = LI(INPUT(_type='submit', _name="Submit", _value="Send Message", value="Send Message", _class="btn btn-primary"),
             _style="display: inline-block")
