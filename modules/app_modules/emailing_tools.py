@@ -3,7 +3,7 @@
 import os
 import re
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from dateutil.relativedelta import *
 
@@ -16,6 +16,7 @@ from gluon.validators import IS_EMAIL
 
 from gluon.custom_import import track_changes
 from models.article import Article
+from models.group import Role
 from models.recommendation import Recommendation
 from models.review import Review
 from models.user import User
@@ -53,6 +54,15 @@ def patch_email_subject(subject: str, articleId: int):
 def mkAuthors(article: Article):
     return article.authors if not article.anonymous_submission else current.T("[undisclosed]")
 
+
+def is_silent_mode():
+    if not current.auth.has_membership(role=Role.ADMINISTRATOR.value):
+        return False
+    
+    silent_mode = current.request.vars.get('silent_mode')
+    if silent_mode is None:
+        return False
+    return str(silent_mode).lower() == 'true'
 
 ######################################################################################################################################################################
 def getMailer():
@@ -362,7 +372,10 @@ def insertNewTemplateInDB(newHashTag, baseHashtag, myLanguage):
 
 
 ######################################################################################################################################################################
-def createMailReport(mail_resu, destPerson, reports):
+def createMailReport(mail_resu: bool, destPerson: Union[DIV, str], reports: List[Dict[str, Union[bool, str]]]):
+    if is_silent_mode():
+        reports = []
+
     if mail_resu:
         reports.append(dict(error=False, message="e-mail sent to %s" % destPerson))
     else:
@@ -371,15 +384,18 @@ def createMailReport(mail_resu, destPerson, reports):
 
 
 ######################################################################################################################################################################
-def getFlashMessage(reports):
+def getFlashMessage(reports: List[Dict[str, Union[bool, str]]]):
+    if is_silent_mode():
+        return
+    
     session = current.session
-    messages = []
+    messages: List[str] = []
 
     for report in reports:
         if report["error"]:
             session.flash_status = "warning"
 
-        messages.append(report["message"])
+        messages.append(str(report["message"]))
         pass
 
     print("\n".join(messages))
@@ -437,6 +453,9 @@ def insertMailInQueue(
 ):
     db, auth = current.db, current.auth
 
+    if is_silent_mode():
+        return
+
     mail = buildMail(
         hashtag_template,
         mail_vars,
@@ -492,6 +511,9 @@ def insert_reminder_mail_in_queue(
 ):
 
     db, auth = current.db, current.auth
+
+    if is_silent_mode():
+        return
 
     reminder = getReminder(hashtag_template, db.t_reviews[review_id])
 
