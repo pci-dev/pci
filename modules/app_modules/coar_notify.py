@@ -208,6 +208,7 @@ class COARNotifier:
     def send_acknowledge_and_reject(self, article):
         if not article.coar_notification_id: return
         if article.coar_notification_closed: return
+        if current.article.get("coar_notification_closed"): return
 
         notification = \
         send_ack(self, "Reject", article)
