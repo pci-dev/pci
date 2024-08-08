@@ -71,7 +71,7 @@ _confirm_cancel = """
 <center>
 <h2>Please confirm you wish to cancel your submission</h2>
 <a class="btn btn-info"
-   href="do_cancel_submission?articleId={articleId}&coarId={coarId}"
+   onclick='location.replace("do_cancel_submission?articleId={articleId}&coarId={coarId}")'
 >
 Confirm submission cancellation
 </a></center>
