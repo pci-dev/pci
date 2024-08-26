@@ -307,7 +307,8 @@ class HtmlToLatex:
             .replace("$", "\\$").replace("#", "\\#") \
             .replace("%", "\\%").replace("~", "\\textasciitilde{}") \
             .replace("_", "\\_").replace("^", "\\textasciicircum{}") \
-            .replace("@-HASH-", "#").replace("&", "\\&")
+            .replace("@-HASH-", "#").replace("&", "\\&") \
+            .replace("‐", "-")
         return string
 
 

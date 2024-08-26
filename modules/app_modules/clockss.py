@@ -609,7 +609,7 @@ def send_to_clockss(article: Article, recommendation: Recommendation):
         return
     try:
         PDF.save_pdf_to_db(recommendation, attachments_dir, filename)
-        #clockss.package_and_send()
+        clockss.package_and_send()
     except NoOptionError:
         PDF.delete_pdf_to_db(recommendation.id)
     except Exception as e:
