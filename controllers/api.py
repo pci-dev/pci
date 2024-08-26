@@ -50,7 +50,8 @@ def issn():
 
 
 def coar_inboxes():
-    hosts = filter(lambda h: h != 'rr', pci_hosts())
+    exclude = [ 'rr', 'orgstudies' ]
+    hosts = filter(lambda h: h not in exclude, pci_hosts())
     return json({
         host: res.get("theme")
             for host, res in call_all(hosts, "pci")
