@@ -24,7 +24,7 @@ fi
 
 cd $HOME
 
-PDFLATEX_BIN=$PWD/texlive/bin/x86_64-linux/pdflatex
+LATEX_COMPILER_BIN=$PWD/texlive/bin/x86_64-linux/lualatex
 CONFIG_FILE=$PWD/sites/$APP/private/appconfig.ini
 
-echo -e "\n[latex]\npdflatex = $PDFLATEX_BIN" >> $CONFIG_FILE
+echo -e "\n[latex]\ncompiler = $LATEX_COMPILER_BIN" >> $CONFIG_FILE
