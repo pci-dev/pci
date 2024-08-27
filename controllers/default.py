@@ -272,6 +272,9 @@ def user():
         elif request.args[0] == "register":
             if auth.user_id:
                 redirect(URL('default','index'))
+            if is_banned_origin(request.env.remote_addr):
+                raise HTTP(403, "Forbidden (banned origin)")
+
             titleIcon = "edit"
             pageTitle = getTitle("#CreateAccountTitle")
             pageHelp = getHelp("#CreateAccount")
@@ -391,6 +394,26 @@ def check_captcha(form):
     except Exception as e:
         response.flash = f"captcha check failed: {e.__class__.__name__} {e}"
         form.errors = True
+
+
+def is_banned_origin(client_ip):
+    try:
+        import requests
+        res = requests.post(
+                "https://iplocation.com/",
+                params={"ip": client_ip},
+                headers={"User-Agent": "peercommunityin.org"},
+        )
+        res.raise_for_status()
+        country = res.json().get("country_name")
+    except:
+        return False
+
+    return country in [
+            'Pakistan',
+            'Bangladesh',
+            'Vietnam',
+    ]
 
 
 def intercept_reset_password_login(_next):
