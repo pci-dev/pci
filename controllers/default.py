@@ -397,6 +397,10 @@ def check_captcha(form):
 
 
 def is_banned_origin(client_ip):
+    banned_origin = myconf.get("config.banned_origin")
+
+    if not banned_origin: return False
+
     try:
         import requests
         res = requests.post(
@@ -406,14 +410,10 @@ def is_banned_origin(client_ip):
         )
         res.raise_for_status()
         country = res.json().get("country_name")
+
+        return country in banned_origin
     except:
         return False
-
-    return country in [
-            'Pakistan',
-            'Bangladesh',
-            'Vietnam',
-    ]
 
 
 def intercept_reset_password_login(_next):
