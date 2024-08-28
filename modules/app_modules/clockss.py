@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from dataclasses import dataclass
 import datetime
 import os
@@ -49,7 +50,7 @@ class Clockss:
     CLOCKSS_PASSWORD: Optional[str] = myconf.get("clockss.password")
 
     LATEX_TEMPLATE_FILENAME = 'main.tex'
-    PDFLATEX_BIN: Optional[str] = myconf.get("latex.pdflatex")
+    LATEX_COMPILER_BIN: Optional[str] = myconf.get("latex.compiler")
 
     DATE_FORMAT = "%d %B %Y"
     
@@ -98,8 +99,8 @@ class Clockss:
         
 
     def _compile_latex(self, latex_content: str, pdf_dest_path: str):
-        if not self.PDFLATEX_BIN:
-            raise NoOptionError('pdflatex', 'latex')
+        if not self.LATEX_COMPILER_BIN:
+            raise NoOptionError('compiler', 'latex')
 
         tmp_folder = f"{current.request.folder}/tmp/{self._prefix}"
         if os.path.exists(tmp_folder):
@@ -110,9 +111,20 @@ class Clockss:
         latex_file_path = f"{tmp_folder}/{self._prefix}.tex"
         print(latex_content, file=open(latex_file_path, 'w', encoding='utf-8'))
 
-        os.system(f'{self.PDFLATEX_BIN} --output-directory={tmp_folder} -interaction=nonstopmode {latex_file_path}')
+        with self._change_working_dir(tmp_folder):
+            os.system(f'{self.LATEX_COMPILER_BIN} --output-directory={tmp_folder} -interaction=nonstopmode {latex_file_path}')
         shutil.move(f"{tmp_folder}/{self._pdf_name}", pdf_dest_path)
         shutil.rmtree(tmp_folder)
+
+
+    @contextmanager
+    def _change_working_dir(self, working_dir: str):
+        old_working_dir = os.getcwd()
+        try:
+            os.chdir(working_dir)
+            yield
+        finally:
+            os.chdir(old_working_dir)
 
 
     def _build_latex_content_from_template(self):

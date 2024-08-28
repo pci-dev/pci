@@ -76,7 +76,7 @@ def rec_as_pdf():
         tmp.write(latRec)
         tmp.close()
     biber = myconf.take("latex.biber")
-    pdflatex = myconf.take("latex.pdflatex")
+    pdflatex = myconf.take("latex.compiler")
     cmd = "%(pdflatex)s recomm ; %(biber)s recomm ; %(pdflatex)s recomm" % locals()
     os.system(cmd)
     pdffile = "recomm.pdf"
@@ -119,7 +119,7 @@ def fp_as_pdf():
         tmp.write(latFP)
         tmp.close()
     biber = myconf.take("latex.biber")
-    pdflatex = myconf.take("latex.pdflatex")
+    pdflatex = myconf.take("latex.compiler")
     cmd = "%(pdflatex)s frontpage ; %(biber)s frontpage ; %(pdflatex)s frontpage" % locals()
     os.system(cmd)
     pdffile = "frontpage.pdf"
