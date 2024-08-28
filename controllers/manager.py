@@ -180,8 +180,10 @@ def impersonate():
 def uninpersonate():
     auth, session = current.auth, current.session
     if auth.is_impersonating():
+        silent_mode = session.silent_mode
         auth.impersonate(0)
         session.original_user_id = None
+        session.silent_mode = silent_mode
         session.flash = 'You have left impersonal mode'
         return redirect(URL('manager','impersonate_users'))
 
