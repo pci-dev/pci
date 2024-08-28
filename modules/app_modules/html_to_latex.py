@@ -37,7 +37,7 @@ def handle_anchor(selector: ..., el: ...):
             start = '\\hypertarget{' + name + '}{'
             end = '}'
         elif href:
-            start = '\\href{' + href + '}{'
+            start = '\\href{' + convert_LaTeX_special_chars(href) + '}{'
             end = '}'
         return s(start, end)
     elif hyperlinks == 'footnotes':
@@ -61,6 +61,18 @@ def handle_paragraph(selector: ..., el: ...):
 
     return s('\n\n')
 
+
+def convert_LaTeX_special_chars(string: str):
+        string = string \
+            .replace("&#", "&@-HASH-") \
+            .replace("{", "\\{").replace("}", "\\}") \
+            .replace("\\", "\\textbackslash{}") \
+            .replace("$", "\\$").replace("#", "\\#") \
+            .replace("%", "\\%").replace("~", "\\textasciitilde{}") \
+            .replace("_", "\\_").replace("^", "\\textasciicircum{}") \
+            .replace("@-HASH-", "#").replace("&", "\\&") \
+            .replace("‐", "-")
+        return string
 
 class HtmlToLatex:        
 
@@ -279,7 +291,7 @@ class HtmlToLatex:
             string = re.sub('[ ]+', ' ', string)
 
         if 'math-tex' not in el.attrib.get('class', ''):
-            string = self.convert_LaTeX_special_chars(string)
+            string = convert_LaTeX_special_chars(string)
         else:
             string = self._fix_math_annotation(string)
         
@@ -296,19 +308,6 @@ class HtmlToLatex:
         string = self._modify_characters(el, string, leaveText)
         if string.strip() == '' or ignoreContent:
             return ''
-        return string
-    
-
-    def convert_LaTeX_special_chars(self, string: str):
-        string = string \
-            .replace("&#", "&@-HASH-") \
-            .replace("{", "\\{").replace("}", "\\}") \
-            .replace("\\", "\\textbackslash{}") \
-            .replace("$", "\\$").replace("#", "\\#") \
-            .replace("%", "\\%").replace("~", "\\textasciitilde{}") \
-            .replace("_", "\\_").replace("^", "\\textasciicircum{}") \
-            .replace("@-HASH-", "#").replace("&", "\\&") \
-            .replace("‐", "-")
         return string
 
 
