@@ -10,7 +10,7 @@ import string
 from typing import Any, Dict, List, Optional, Union, cast
 
 from app_components.ongoing_recommendation import get_recommendation_process_components
-from app_modules.html_to_latex import HtmlToLatex
+from app_modules.html_to_latex import HtmlToLatex, convert_LaTeX_special_chars
 from app_modules.common_small_html import build_citation, mkSimpleDOI, mkUser
 from configparser import NoOptionError
 from models.article import Article
@@ -171,7 +171,7 @@ class Clockss:
             return
         
         title = title.strip()
-        title = self._html_to_latex.convert_LaTeX_special_chars(title)
+        title = convert_LaTeX_special_chars(title)
         title = self._convert_stars_to_italic(title)
         return title
 
@@ -194,7 +194,7 @@ class Clockss:
             return
         
         title = title.strip()
-        title = self._html_to_latex.convert_LaTeX_special_chars(title)
+        title = convert_LaTeX_special_chars(title)
         title = self._convert_stars_to_italic(title)
         
         has_punctuation = bool(re.search(r"[?!…¿;¡.]$", title))
@@ -519,7 +519,7 @@ class Clockss:
         else:
             if not template_var.avoid_missing_value:
                 content = f"Missing {var_title.lower()}"
-            content = self._html_to_latex.convert_LaTeX_special_chars(content)
+            content = convert_LaTeX_special_chars(content)
 
         return template.replace(f"[[{var_title.upper()}]]", content)
     
