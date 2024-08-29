@@ -435,10 +435,10 @@ def show():
             db.t_coar_notification.id == req_id   if req_id.isdigit() else
             db.t_coar_notification.coar_id == req_id
         ).select()
+        req_body = req[0].body
     except:
         raise HTTP(400, f"error: no such coar request, id={req_id}")
 
-    req_body = req[0].body
     req_json = json.loads(req_body)
     response.headers['Content-Type'] = 'application/ld+json'
     return json.dumps(req_json, indent=4)
