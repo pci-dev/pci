@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
 
-from typing import Any, List
+from typing import Any, List, Optional
 from gluon.custom_import import track_changes
-from gluon.html import SPAN, URL
+from gluon.html import A, I, LI, SPAN
 from gluon import current
 from models.user import User
 from app_modules import common_tools
+
+from app_modules.common_tools import URL, is_silent_mode
 
 track_changes(True)
 
@@ -144,10 +146,17 @@ def _ToolsMenu():
 
 # Appends administrators menu
 def _AdminMenu():
-    ctr = request.controller
+    ctr = current.request.controller
     isActive = False
     if ctr == "admin":
         isActive = True
+
+    silent_mode_url = URL("admin", "toggle_silent_mode", vars=dict(previous_url=URL(args=current.request.args, vars=current.request.get_vars)))
+    if is_silent_mode():
+        silent_mode_menu: ... = menu_entry("Disable silent Mode", "glyphicon-volume-up", silent_mode_url)
+    else:
+        silent_mode_menu: ... = menu_entry("Enable silent Mode", "glyphicon-volume-off", silent_mode_url)
+
 
     adminMenu = [
         menu_entry("Users & roles", "glyphicon-user", URL("admin", "list_users")),
@@ -156,6 +165,7 @@ def _AdminMenu():
         menu_entry("All PCIs recommendations", "glyphicon-education", URL("api", "all/recommendations")),
         menu_entry("Recommendation PDF files", "glyphicon-duplicate", URL("admin", "manage_pdf")),
         menu_entry("Mailing queue", "glyphicon-send", URL("admin", "mailing_queue")),
+        silent_mode_menu,
         divider(),
         menu_entry("Thematic fields", "glyphicon-tags", URL("admin", "thematics_list")),
         menu_entry("Status of articles", "glyphicon-bookmark", URL("admin", "article_status")),
@@ -169,7 +179,7 @@ def _AdminMenu():
     ]
 
     return [
-        (SPAN(I(_class="glyphicon glyphicon-cog"), T("Admin"), _class="pci-admin"), isActive, "#", adminMenu),
+        (SPAN(I(_class="glyphicon glyphicon-cog"), current.T("Admin"), _class="pci-admin"), isActive, "#", adminMenu),
     ]
 
 
@@ -578,7 +588,7 @@ def _AccountMenu():
     return [(SPAN(txtMenu, _class="pci-manager"), isActive, "#", auth_menu)]
 
 
-def menu_entry(text, icon, url, new_window=False, _class=None):
+def menu_entry(text: str, icon: str, url: str, new_window: bool = False, _class: Optional[str] = None):
     display = menu_entry_item(text, icon, _class)
 
     if new_window:

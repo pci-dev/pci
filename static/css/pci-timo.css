@@ -1484,6 +1484,14 @@
     .navbar.impersonate {
         margin-top: 49px;
     }
+
+    .navbar.silent-mode {
+        margin-top: 49px;
+    }
+
+    .navbar.silent-mode.impersonate {
+        margin-top: 89px;
+    }
 }
 
 @media only screen and (min-width: 1200px) {

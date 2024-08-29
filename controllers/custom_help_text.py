@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
+from app_modules import common_tools
 from gluon.custom_import import track_changes
 
 track_changes(True)  # reimport module if changed; disable in production
@@ -106,7 +106,10 @@ def mail_templates():
     else:
         session.back = request.env.http_referer
 
-    return dict(titleIcon="envelope", pageTitle=getTitle("#MailTemplatesTitle"), customText=getText("#MailTemplatesText"), grid=grid,)
+    return dict(titleIcon="envelope",
+                pageTitle=getTitle("#MailTemplatesTitle"),
+                customText=getText("#MailTemplatesText"),
+                grid=grid)
 
 
 @auth.requires(auth.has_membership(role="developer"))

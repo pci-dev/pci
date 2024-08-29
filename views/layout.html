@@ -78,7 +78,7 @@
     }}
 
   </head>
-  <body class="{{if auth.is_impersonating():}}impersonate{{pass}}">
+  <body class="{{if auth.is_impersonating():}}impersonate{{pass}} {{if session.silent_mode:}}silent-mode{{pass}}">
     {{if request.controller == 'about' or request.function == 'index' or request.controller == 'help' or request.controller == 'articles':}}
       {{right_sidebar_enabled = True}}
       {{middle_column = mc1}}
@@ -103,7 +103,7 @@
     </script>
 
     <!-- Navbar ======================================= -->
-    <nav class="navbar {{if auth.is_impersonating():}}impersonate{{pass}}">
+    <nav class="navbar {{if auth.is_impersonating():}}impersonate{{pass}} {{if session.silent_mode:}}silent-mode{{pass}}">
       <div class="navbar-header"> 
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
           <span class="sr-only">Toggle navigation</span>
@@ -113,6 +113,13 @@
         </button>
         {{=response.logo or ''}}
       </div>
+
+      {{if session.silent_mode:}}
+        <div id="silent-mode-header"> 
+          <h2><i class="glyphicon glyphicon-warning-sign"></i>Silent mode.<span> No email will be sent by the PCI site.</span><i class="glyphicon glyphicon-warning-sign"></i></h2>
+          <a class="btn btn-default" href="{{=URL("admin", "toggle_silent_mode", vars=dict(previous_url=URL(args=current.request.args, vars=current.request.get_vars)))}}">Quit silent mode</a>
+        </div>
+      {{pass}}
 
       {{if auth.is_impersonating():}}
         <div id="impersonate-header"> 

@@ -25,6 +25,7 @@ from app_components import app_forms
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
 from gluon.contrib.appconfig import AppConfig
+from gluon.http import redirect # type: ignore
 
 myconf = AppConfig(reload=True)
 
@@ -41,6 +42,18 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 def index():
     return list_users()
+
+
+def toggle_silent_mode():
+    if common_tools.user_can_active_silent_mode() and not current.session.silent_mode:
+        current.session.silent_mode = True
+        current.session.flash = "Silent mode: No email will be sent by the PCI site"
+    else:
+        current.session.silent_mode = None
+        current.session.flash = "You have left silent mode"
+
+    redirect(current.request.vars.previous_url)
+          
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def list_users():
@@ -185,7 +198,6 @@ def list_users():
         pageHelp=getHelp("#AdministrateUsers"),
         customText=getText("#AdministrateUsersText"),
         grid=grid,
-        
     )
 
 

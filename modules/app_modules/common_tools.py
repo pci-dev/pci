@@ -7,13 +7,12 @@ from typing import Any, Dict, List, Optional, Union, cast
 from zipfile import ZipFile
 import io
 from gluon import current
-from gluon.globals import Request
 from gluon import html
 from gluon.http import HTTP
 from gluon.sqlhtml import SQLFORM
-from gluon.tools import Auth
 from gluon.validators import IS_LIST_OF
 from models.article import Article
+from models.group import Role
 from models.membership import Membership
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
@@ -385,5 +384,20 @@ def delete_user_from_PCI(user: User):
     User.empty_user_data(user)
     return User.set_deleted(user)
 
+####################################################################
+
+def user_can_active_silent_mode():
+    if current.auth.is_impersonating() and current.session.original_user_id:
+        return Membership.has_membership(current.session.original_user_id, [Role.ADMINISTRATOR])
+    else:
+        return bool(current.auth.has_membership(role=Role.ADMINISTRATOR.value))
     
 
+def is_silent_mode():
+    if not user_can_active_silent_mode():
+        return False
+    
+    silent_mode = current.session.silent_mode
+    if silent_mode is None:
+        return False
+    return bool(silent_mode)
