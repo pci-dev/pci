@@ -2558,10 +2558,11 @@ def delete_reminder_for_suggested_recommenders(hashtag_template, articleId):
 ######################################################################################################################################################################
 def delete_reminder_for_one_suggested_recommender(hashtag_template, articleId, suggRecommId):
     db = current.db
+    user = db.auth_user[suggRecommId]
     article = db.t_articles[articleId]
-    if article:
+    if article and user:
         db(
-            (db.mail_queue.dest_mail_address == db.auth_user[suggRecommId]["email"])
+            (db.mail_queue.dest_mail_address == user["email"])
             & (db.mail_queue.mail_template_hashtag == hashtag_template)
             & (db.mail_queue.article_id == articleId)
         ).delete()
@@ -2569,7 +2570,7 @@ def delete_reminder_for_one_suggested_recommender(hashtag_template, articleId, s
         if pciRRactivated:
             hashtag_template_rr = hashtag_template + "Stage"
             db(
-                (db.mail_queue.dest_mail_address == db.auth_user[suggRecommId]["email"])
+                (db.mail_queue.dest_mail_address == user["email"])
                 & (db.mail_queue.mail_template_hashtag.startswith(hashtag_template_rr))
                 & (db.mail_queue.article_id == articleId)
             ).delete()
