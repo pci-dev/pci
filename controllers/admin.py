@@ -20,7 +20,6 @@ from gluon.sqlhtml import SQLFORM
 from pydal.objects import Field
 from pydal.validators import IS_IN_DB
 
-from gluon.contrib.appconfig import AppConfig
 from gluon.http import redirect # type: ignore
 
 from app_modules.common_tools import URL
@@ -828,3 +827,23 @@ def edit_and_resend_email():
         pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
         customText=getText("#EmailForRegisteredReviewerInfo"),
     )
+
+
+@auth.requires(auth.has_membership(role="administrator"))
+def send_mail_for_newsletter_subscriber():
+    form = FORM(
+            DIV(LABEL("Mail subject"), INPUT(_type="text", _name="subject", _class='form-control'), _style="margin-top: 20px"),
+            DIV(LABEL("Mail content"), TEXTAREA("", _name='content', _class='form-control', _id="mail_queue_mail_content"), _style="margin-top: 10px"),
+            CENTER(INPUT(_type="submit", _value="Send")))
+
+    if form.process().accepted: #type: ignore
+        subject = str(form.vars.subject) # type: ignore
+        content = str(form.vars.content) # type: ignore
+
+        common_tools.run_web2py_script("send_mail_subscribers_command.py", subject, content)
+        current.response.flash = "Email send to all subscribers"
+
+    current.response.view = "default/myLayout.html"
+    return dict(form=form,
+                pageTitle=getTitle("#SendMailSubscribersTitle"),
+                customText=getText("#SendMailSubscribersText"))
