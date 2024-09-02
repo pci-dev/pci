@@ -136,3 +136,8 @@ VALUES
                 '<p data-pm-slice="1 1 []">Dear managing board,</p>
 <p data-pm-slice="1 1 []">A comment has been posted about the article "{{articleTitle}}" and its recommendation at the URL <a href="{{linkTarget}}">{{linkTarget}}</a>.</p>'
         );
+
+
+-- 2024-09-02 updates/newsletter-custom.sql
+INSERT INTO public.mail_templates (hashtag,lang,subject,description,contents) VALUES
+	 ('#MailSubscribers','default','{{subject}}','Mail subscribers','{{content}}');

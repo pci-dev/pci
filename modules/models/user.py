@@ -236,3 +236,15 @@ class User(Row):
     def clear_new_article_cache(user: 'User'):
         user.new_article_cache = None
         return user.update_record()
+
+
+    @staticmethod
+    def get_all_user_subscribed_newsletter():
+        db = current.db
+        users: List[User] = db((db.auth_user.alerts != None) 
+                               & (db.auth_user.alerts != "Never")
+                               & (db.auth_user.alerts != "")
+                               & (db.auth_user.deleted == False)
+                               & (db.auth_user.email != None)
+                               ).select(distinct=True)
+        return users
