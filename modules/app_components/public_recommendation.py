@@ -70,19 +70,22 @@ def getArticleAndFinalRecommendation(art: Article,
 
     cite = common_small_html.build_citation(art, finalRecomm)
 
-    info = DIV(
-        SPAN(
-            B("Conflict of interest:", _class="pci2-main-color-text"),
-            BR(),
-            SPAN("The recommender in charge of the evaluation of the article and the reviewers declared that they have no conflict of interest ",
-            "(as defined in ", A("the code of conduct of PCI",  _href="../about/ethics"), ") ",
-            "with the authors or with the content of the article. ",
-            "The authors declared that they comply with the PCI rule of having no financial conflicts of interest in relation to the content of the article." \
-                    if not pciRRactivated else ""
+    if art.already_published:
+        info = ""
+    else:
+        info = DIV(
+            SPAN(
+                B("Conflict of interest:", _class="pci2-main-color-text"),
+                BR(),
+                SPAN("The recommender in charge of the evaluation of the article and the reviewers declared that they have no conflict of interest ",
+                "(as defined in ", A("the code of conduct of PCI",  _href="../about/ethics"), ") ",
+                "with the authors or with the content of the article. ",
+                "The authors declared that they comply with the PCI rule of having no financial conflicts of interest in relation to the content of the article." \
+                        if not pciRRactivated else ""
+                ),
             ),
-        ),
-        _class="pci-conflict-of-interest-note",
-    )
+            _class="pci-conflict-of-interest-note",
+        )
 
     funding = DIV(
         SPAN(
@@ -131,8 +134,8 @@ def getArticleAndFinalRecommendation(art: Article,
             (
                 "recommDateinfos",
                 (
-                    I(f"Submission: {article_upload_time}{article_validation_time}"),
-                    BR(),
+                    I(f"Submission: {article_upload_time}{article_validation_time}") if not art.already_published else "",
+                    BR() if not art.already_published else "",
                     I(f"Recommendation: {recomm_post_time}{recomm_validation_time}"),
                 ),
             ),
