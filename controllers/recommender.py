@@ -2371,7 +2371,7 @@ def edit_recommendation():
         confirmationScript = common_tools.get_script("confirmation.js")
 
         article_reference = SCRIPT(f"""let decisonRecommendationCommentRecommended = `
-                                        <p>Type or past here your recommendation text.</p>
+                                        <p>Type or paste here your recommendation text.</p>
                                         <p><strong>References</strong></p>
                                          <p>{Article.get_article_reference(art, False, True)}</p>`;
                                     """)
