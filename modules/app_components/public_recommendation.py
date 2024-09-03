@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import List, Optional
+from typing import Any, Dict, List, Literal, Optional, Union
 from models.article import Article
 from models.recommendation import Recommendation
 from re import sub
@@ -29,10 +29,13 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ########################################################################################################################################################################
 ## Public recommendation
 ######################################################################################################################################################################
-def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_letter=False, fullURL=True):
-    auth, db = current.auth, current.db
+def getArticleAndFinalRecommendation(art: Article,
+                                     finalRecomm: Recommendation,
+                                     printable: bool,
+                                     fullURL: bool = True):
+    db = current.db
 
-    headerContent = dict()
+    headerContent: Dict[str, Any] = dict()
 
     recomm_altmetric = ""
 
@@ -45,12 +48,12 @@ def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_let
 
     isStage2 = art.art_stage_1_id is not None
     stage1Link = None
-    stage2List = None
-    if pciRRactivated and isStage2:
+    stage2List: Optional[List[Union[DIV, Literal['']]]] = None
+    if pciRRactivated and art.art_stage_1_id is not None:
         urlArticle = URL(c="articles", f="rec", vars=dict(id=art.art_stage_1_id))
         stage1Link = common_small_html.mkRepresentArticleLightLinked(art.art_stage_1_id, urlArticle)
     elif pciRRactivated and not isStage2:
-        stage2Articles = db((db.t_articles.art_stage_1_id == art.id) & (db.t_articles.status == "Recommended")).select()
+        stage2Articles: List[Article] = db((db.t_articles.art_stage_1_id == art.id) & (db.t_articles.status == "Recommended")).select()
         stage2List = []
         for art_st_2 in stage2Articles:
             urlArticle = URL(c="articles", f="rec", vars=dict(id=art_st_2.id))
@@ -115,10 +118,10 @@ def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_let
             _href=URL("default", "download", args=finalRecomm.recommender_file, scheme=fullURL),
             _style="font-weight: bold; margin-top: 15px; margin-bottom: 5px; display:block",
         )
-    article_upload_time = art.upload_timestamp.strftime("posted %d %B %Y")
+    article_upload_time = art.upload_timestamp.strftime("posted %d %B %Y") if art.upload_timestamp else ""
     article_validation_time = art.validation_timestamp.strftime(", validated %d %B %Y") if art.validation_timestamp else ""
     if pciRRactivated: article_validation_time = ""
-    recomm_post_time = finalRecomm.last_change.strftime("posted %d %B %Y")
+    recomm_post_time = finalRecomm.last_change.strftime("posted %d %B %Y") if finalRecomm.last_change else ""
     recomm_validation_time = finalRecomm.validation_timestamp.strftime(", validated %d %B %Y") if finalRecomm.validation_timestamp else ""
 
     headerContent.update(
@@ -149,7 +152,7 @@ def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_let
     )
 
     # Get METADATA (see next function)
-    recommMetadata = getRecommendationMetadata(art, finalRecomm, pdfUrl, Recommendation.get_doi_id(finalRecomm), fullURL)
+    recommMetadata = getRecommendationMetadata(art, finalRecomm, pdfUrl, Recommendation.get_doi_id(finalRecomm))
     dublin_core = _dublinc_core_meta_tag(art)
 
     headerHtml = XML(current.response.render("components/last_recommendation.html", headerContent))
@@ -157,12 +160,12 @@ def getArticleAndFinalRecommendation(art, finalRecomm, printable, with_cover_let
 
 
 ######################################################################################################################################################################
-def getRecommendationMetadata(art, lastRecomm, pdfLink, citeNum, fullURL):
+def getRecommendationMetadata(art: Article, lastRecomm: Recommendation, pdfLink: Optional[str], citeNum: Optional[str]):
     desc = "A recommendation of: " + (art.authors or "") + " " + (md_to_html(art.title).flatten() or "") + " " + (art.doi or "")
     whoDidItMeta = common_small_html.getRecommAndReviewAuthors(recomm=lastRecomm, with_reviewers=False, linked=False, as_list=True)
 
     # META headers
-    myMeta = OrderedDict()
+    myMeta: OrderedDict[str, Any] = OrderedDict()
     myMeta["citation_title"] = lastRecomm.recommendation_title
     if len(whoDidItMeta) > 0:
         # Trick for multiple entries (see globals.py:464)
