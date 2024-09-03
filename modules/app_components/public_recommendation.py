@@ -72,6 +72,7 @@ def getArticleAndFinalRecommendation(art: Article,
 
     if art.already_published:
         info = ""
+        funding = ""
     else:
         info = DIV(
             SPAN(
@@ -87,14 +88,14 @@ def getArticleAndFinalRecommendation(art: Article,
             _class="pci-conflict-of-interest-note",
         )
 
-    funding = DIV(
-        SPAN(
-            B("Funding:", _class="pci2-main-color-text"),
-            BR(),
-            SPAN(art.funding)
-        ) if art.funding else "",
-        _class="pci-funding",
-    ) if not pciRRactivated else ""
+        funding = DIV(
+            SPAN(
+                B("Funding:", _class="pci2-main-color-text"),
+                BR(),
+                SPAN(art.funding)
+            ) if art.funding else "",
+            _class="pci-funding",
+        ) if not pciRRactivated else ""
 
     whoDidRecomm = common_small_html.getRecommAndReviewAuthors(
             recomm=finalRecomm,
