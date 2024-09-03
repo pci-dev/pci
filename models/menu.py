@@ -165,6 +165,7 @@ def _AdminMenu():
         menu_entry("All PCIs recommendations", "glyphicon-education", URL("api", "all/recommendations")),
         menu_entry("Recommendation PDF files", "glyphicon-duplicate", URL("admin", "manage_pdf")),
         menu_entry("Mailing queue", "glyphicon-send", URL("admin", "mailing_queue")),
+        menu_entry("Send mail to all subscribers", "glyphicon-send", URL("admin", "send_mail_for_newsletter_subscriber")),
         silent_mode_menu,
         divider(),
         menu_entry("Thematic fields", "glyphicon-tags", URL("admin", "thematics_list")),

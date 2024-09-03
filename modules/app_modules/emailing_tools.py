@@ -28,6 +28,8 @@ from app_modules import helper
 from app_modules import emailing_parts
 from app_modules.reminders import getReminder
 
+from app_modules.common_tools import URL
+
 myconf = AppConfig(reload=True)
 contact = myconf.take("contacts.managers")
 
@@ -430,17 +432,17 @@ def mkFooter():
 
 ######################################################################################################################################################################
 def insertMailInQueue(
-    hashtag_template,
-    mail_vars,
-    recommendation_id=None,
-    recommendation=None,
-    article_id=None,
-    review=None,
-    authors_reply=None,
-    sugg_recommender_buttons=None,
-    reviewer_invitation_buttons=None,
-    alternative_subject=None, # for edit/resend mails
-    alternative_content=None, # for edit/resend mails
+    hashtag_template: str,
+    mail_vars: Dict[str, Any],
+    recommendation_id: Optional[int] = None,
+    recommendation: Optional[Recommendation] = None,
+    article_id: Optional[int] = None,
+    review: Optional[Review] = None,
+    authors_reply: Optional[str] = None,
+    sugg_recommender_buttons: Optional[DIV] = None,
+    reviewer_invitation_buttons: Optional[DIV] = None,
+    alternative_subject: Optional[str] = None, # for edit/resend mails
+    alternative_content: Optional[str] = None, # for edit/resend mails
 ):
     db, auth = current.db, current.auth
 
@@ -550,20 +552,20 @@ def insert_reminder_mail_in_queue(
 
 
 ######################################################################################################################################################################
-def insertNewsLetterMailInQueue(
-    mail_vars,
-    hashtag_template,
-    newRecommendations=None,
-    newRecommendationsCount=0,
-    newPreprintSearchingForReviewers=None,
-    newPreprintSearchingForReviewersCount=0,
-    newPreprintRequiringRecommender=None,
-    newPreprintRequiringRecommenderCount=0,
+def insert_newsletter_mail_in_queue(
+    mail_vars: Dict[str, Any],
+    hashtag_template: str,
+    newRecommendations: Optional[DIV] = None,
+    newRecommendationsCount: int = 0,
+    newPreprintSearchingForReviewers: Optional[DIV] = None,
+    newPreprintSearchingForReviewersCount: int = 0,
+    newPreprintRequiringRecommender: Optional[DIV] = None,
+    newPreprintRequiringRecommenderCount: int = 0,
 ):
 
     db, auth = current.db, current.auth
 
-    mail = buildNewsLetterMail(
+    mail = build_newsletter_mail(
         mail_vars,
         hashtag_template,
         newRecommendations,
@@ -575,7 +577,11 @@ def insertNewsLetterMailInQueue(
     )
 
     db.mail_queue.insert(
-        dest_mail_address=mail_vars["destAddress"], mail_subject=mail["subject"], mail_content=mail["content"], user_id=auth.user_id, mail_template_hashtag=hashtag_template
+        dest_mail_address=mail_vars["destAddress"],
+        mail_subject=mail["subject"],
+        mail_content=mail["content"],
+        user_id=auth.user_id,
+        mail_template_hashtag=hashtag_template
     )
 
 
@@ -622,20 +628,20 @@ def buildMail(hashtag_template, mail_vars, recommendation=None, review=None, aut
 
 
 ######################################################################################################################################################################
-def buildNewsLetterMail(
-    mail_vars,
-    hashtag_template,
-    newRecommendations=None,
-    newRecommendationsCount=0,
-    newPreprintSearchingForReviewers=None,
-    newPreprintSearchingForReviewersCount=0,
-    newPreprintRequiringRecommender=None,
-    newPreprintRequiringRecommenderCount=0,
+def build_newsletter_mail(
+    mail_vars: Dict[str, Any],
+    hashtag_template: str,
+    newRecommendations: Optional[DIV] = None,
+    newRecommendationsCount: int = 0,
+    newPreprintSearchingForReviewers: Optional[DIV] = None,
+    newPreprintSearchingForReviewersCount: int = 0,
+    newPreprintRequiringRecommender: Optional[DIV] = None,
+    newPreprintRequiringRecommenderCount: int = 0,
 ):
     mail_template = getMailTemplateHashtag(hashtag_template)
 
-    subject = replaceMailVars(mail_template["subject"], mail_vars)
-    content = replaceMailVars(mail_template["content"], mail_vars)
+    subject = replaceMailVars(str(mail_template["subject"]), mail_vars)
+    content = replaceMailVars(str(mail_template["content"]), mail_vars)
 
     full_link = { var: mail_vars[var] for var in ["scheme", "host", "port"] }
 
@@ -648,7 +654,7 @@ def buildNewsLetterMail(
         _style="border-radius: 5px; font-weight: bold; padding: 6px 20px; color: #ffffff; background-color: #3e3f3a;",
     )
 
-    content_rendered = render(
+    content_rendered: ... = render(
         filename=MAIL_HTML_LAYOUT,
         context=dict(
             subject=subject_without_appname,
@@ -672,7 +678,7 @@ def buildNewsLetterMail(
 
 
 ######################################################################################################################################################################
-def replaceMailVars(text, mail_vars):
+def replaceMailVars(text: str, mail_vars: Dict[str, Any]):
     mail_vars_list = mail_vars.keys()
 
     for var in mail_vars_list:

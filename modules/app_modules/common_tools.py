@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from functools import reduce
+import os
 from re import match
 import re
+import subprocess
 from typing import Any, Dict, List, Optional, Union, cast
 from zipfile import ZipFile
 import io
@@ -401,3 +403,28 @@ def is_silent_mode():
     if silent_mode is None:
         return False
     return bool(silent_mode)
+
+#####################################################################
+
+def run_web2py_script(script_name: str, *args: ..., **kwargs: ...):
+    app_name = current.request.application
+
+    encoded_args = [arg.encode('utf-8') if isinstance(arg, str) else arg for arg in args]
+
+    cmd = [
+            'python3',
+            'web2py.py',
+            '-M', 
+            '-S', 
+            app_name, 
+            '-R', 
+            f'applications/{app_name}/utils/{script_name}',
+            '-A', 
+            *encoded_args,
+            *kwargs
+        ]
+    
+    os.environ['PYTHONIOENCODING'] = 'utf-8'
+    p = subprocess.Popen(cmd,encoding='utf-8')
+    del p
+
