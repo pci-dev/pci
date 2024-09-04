@@ -488,7 +488,7 @@ def mkBackButton(text=current.T("Back"), target: Optional[str] = None):
 ######################################################################################################################################################################
 # Article recomm presentation
 ######################################################################################################################################################################
-def mkRepresentArticleLightLinked(article_id, urlArticle=None):
+def mkRepresentArticleLightLinked(article_id: int, urlArticle: Optional[str] = None):
     db = current.db
     anchor = ""
     art = db.t_articles[article_id]

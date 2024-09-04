@@ -114,7 +114,7 @@ class Recommendation(Row):
     def get_doi_id(recommendation: Recommendation):
         regex = re.search("([0-9]+$)", recommendation.recommendation_doi or "", re.IGNORECASE)
         if regex:
-            return regex.group(1)
+            return str(regex.group(1))
 
 
     @staticmethod
