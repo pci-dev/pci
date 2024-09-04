@@ -716,6 +716,8 @@ def deltaStatus(s: ..., f: Article):
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderRevisedDecisionSoonDue", o["id"])
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderRevisedDecisionDue", o["id"])
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderRevisedDecisionOverDue", o["id"])
+            if recomm:
+                emailing.delete_reminder_for_recommender("#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
 
         elif o.status in ("Pending", "Awaiting consideration", "Under consideration",
                             "Scheduled submission pending", "Scheduled submission under consideration",
