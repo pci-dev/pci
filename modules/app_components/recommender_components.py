@@ -11,6 +11,7 @@ from models.recommendation import Recommendation
 
 from app_modules import common_small_html
 from models.review import Review, ReviewState
+from models.user import User
 
 from app_modules.common_tools import URL
 
@@ -49,8 +50,12 @@ def getReviewsSubTable(recommendation: Recommendation):
                 lastChange=common_small_html.mkElapsedDays(review.last_change),
                 actions=[],
             )
+
+            reviewer = User.get_by_id(review.reviewer_id)
+
             review_vars["actions"].append(dict(text=current.T("View e-mails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
-            review_vars["actions"].append(dict(text=current.T("Prepare an e-mail"), link=URL(c="recommender", f="send_reviewer_generic_mail", vars=dict(reviewId=review.id))))
+            if reviewer and reviewer.email:
+                review_vars["actions"].append(dict(text=current.T("Prepare an e-mail"), link=URL(c="recommender", f="send_reviewer_generic_mail", vars=dict(reviewId=review.id))))
 
             if allowed_to_see_reviews and review.review_state == ReviewState.REVIEW_COMPLETED.value:
                 review_vars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
