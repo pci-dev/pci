@@ -105,7 +105,7 @@
 {{if 'myContents' in locals():}}
 <div class="pci2-flex-column pci2-align-items-center">
 	<div style="max-width: 800px; width: 100%;">
-		{{if ('recommendationProgression' in locals()) and (recommendationProgression is not None) and (isSubmitter == True):}}
+		{{if ('recommendationProgression' in locals()) and (recommendationProgression is not None) and (isSubmitter == True or isManager == True or isRecommender == True):}}
 			<hr>
 
 			<div style="margin-bottom: 40px; " class="pci2-full-width pci2-flex-row pci2-align-items-center pci2-signle-toggle-button">

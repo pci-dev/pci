@@ -190,6 +190,8 @@ def recommendations():
         return dict(
             printable=printable,
             isSubmitter=(art.user_id == auth.user_id),
+            isManager=current.auth.has_membership(role=Role.MANAGER.value),
+            isRecommender=user_is_in_recommender_team(art.id),
             viewToRender=viewToRender,
             recommHeaderHtml=recommHeaderHtml,
             recommStatusHeader=recommStatusHeader,

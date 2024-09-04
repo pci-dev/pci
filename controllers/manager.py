@@ -516,11 +516,18 @@ def recommendations():
         printableClass = ""
         response.view = "default/wrapper_normal.html"
 
+    recommendation_process = ongoing_recommendation.getRecommendationProcessForSubmitter(art, printable)
+
     myScript = common_tools.get_script("recommended_articles.js")
     viewToRender = "default/recommended_articles.html"
     confirmationScript = common_tools.get_script("confirmation.js")
 
     return dict(
+        isSubmitter=(art.user_id == auth.user_id),
+        isManager=current.auth.has_membership(role=Role.MANAGER.value),
+        isRecommender=user_is_in_recommender_team(art.id),
+        recommendationProgression=recommendation_process['content'],
+        isRecommAvalaibleToSubmitter=recommendation_process["isRecommAvalaibleToSubmitter"],
         viewToRender=viewToRender,
         recommHeaderHtml=recommHeaderHtml,
         recommStatusHeader=recommStatusHeader,

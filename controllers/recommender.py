@@ -797,9 +797,15 @@ def recommendations():
             printableClass = ""
             response.view = "default/wrapper_normal.html"
 
+        recommendation_process = ongoing_recommendation.getRecommendationProcessForSubmitter(art, printable)
         viewToRender = "default/recommended_articles.html"
 
         return dict(
+            isSubmitter=(art.user_id == auth.user_id),
+            isManager=current.auth.has_membership(role=Role.MANAGER.value),
+            isRecommender=user_is_in_recommender_team(art.id),
+            recommendationProgression=recommendation_process['content'],
+            isRecommAvalaibleToSubmitter=recommendation_process["isRecommAvalaibleToSubmitter"],
             viewToRender=viewToRender,
             recommStatusHeader=recommStatusHeader,
             recommHeaderHtml=recommHeaderHtml,
