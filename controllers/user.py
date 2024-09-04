@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
-import copy
 from datetime import date
 from typing import Any, Callable, List, Optional, Union, cast
 
@@ -28,15 +26,22 @@ from gluon.http import HTTP, redirect # type: ignore
 
 from gluon.sqlhtml import SQLFORM
 from gluon.storage import Storage
+from models.group import Role
 from models.review import Review, ReviewState
-from models.article import Article, TranslatedFieldType, clean_vars_doi, clean_vars_doi_list
+from models.article import Article, clean_vars_doi, clean_vars_doi_list
 from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
 from models.user import User
-from pydal.validators import IS_IN_DB
+from pydal.validators import IS_IN_DB, IS_URL
 
 from app_modules.common_tools import URL
 
+request = current.request
+session = current.session
+db = current.db
+auth = current.auth
+response = current.response
+T = current.T
 
 # frequently used constants
 myconf = AppConfig(reload=True)
@@ -48,6 +53,7 @@ status = db.config[1]
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 contact = myconf.get("contacts.contact")
+
 ######################################################################################################################################################################
 def index():
     return my_reviews()
@@ -57,20 +63,21 @@ def index():
 def recommendations():
 
     printable = "printable" in request.vars and request.vars["printable"] == "True"
-    myScript = ""
 
     articleId = request.vars["articleId"]
     manager_authors = request.vars["manager_authors"]
     if not articleId:
         return my_articles()
 
-    art = db.t_articles[articleId]
+    art = Article.get_by_id(articleId)
+    if art is None:
+        session.flash = auth.not_authorized()
+        return redirect(request.env.http_referer)
+    
     if manager_authors != None:
         art.update_record(manager_authors=manager_authors)
 
-    if art is None:
-        session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+    
     # NOTE: security hole possible by changing manually articleId value
     revCpt = 0
     if art.user_id == auth.user_id:
@@ -156,7 +163,6 @@ def recommendations():
         # Build recommendation
         response.title = art.title or myconf.take("app.longname")
 
-        finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
 
         if pciRRactivated and art.user_id != auth.user_id:
             recommHeaderHtml = article_components.get_article_infos_card(art, printable, False)
@@ -175,10 +181,8 @@ def recommendations():
                 response.flash = common_small_html.write_edit_upload_review_button(review.id)
 
         if printable:
-            printableClass = "printable"
             response.view = "default/wrapper_printable.html"
         else:
-            printableClass = ""
             response.view = "default/wrapper_normal.html"
 
         viewToRender = "default/recommended_articles.html"
