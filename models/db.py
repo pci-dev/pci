@@ -7,7 +7,7 @@ from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect
 from models.article import ArticleStatus
 from models.mail_queue import MailQueue, SendingStatus
-from models.recommendation import Recommendation
+from models.recommendation import Recommendation, RecommendationState
 from models.article import Article
 from models.user import User
 from app_components.custom_field import RequiredField
@@ -631,151 +631,154 @@ def setPublishedDoi(s, f):
         if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
                 emailing.send_message_to_recommender_and_reviewers(o["id"])
 
-def deltaStatus(s, f):
-    if "status" in f:
-        o = s.select().first()
-        recomm = db.get_last_recomm(o.id)
-        current.article = f
+def deltaStatus(s: ..., f: Article):
+    if "status" not in f:
+        return
+    
+    o: Article = s.select().first()
+    recomm = Article.get_last_recommendation(o.id)
+    current.article = f
 
-        if f.status == "Awaiting revision" and o.status != f.status:
-            f.request_submission_change = True
+    if f.status == "Awaiting revision" and o.status != f.status:
+        f.request_submission_change = True
 
-        if o.already_published:  # POSTPRINTS
-            if o.status != f["status"]:
-                emailing.send_to_managers(o["id"], f["status"])
-                emailing.send_to_recommender_postprint_status_changed(o["id"], f["status"])
-                emailing.send_to_corecommenders(o["id"], f["status"])
+    if o.already_published:  # POSTPRINTS
+        if o.status != f["status"]:
+            emailing.send_to_managers(o["id"], f["status"])
+            emailing.send_to_recommender_postprint_status_changed(o["id"], f["status"])
+            emailing.send_to_corecommenders(o["id"], f["status"])
 
-        else:  # PREPRINTS
-            if f.status in ["Cancelled", "Rejected", "Not considered"]:
-                emailing.delete_all_reminders_from_article_id(o.id)
+    else:  # PREPRINTS
+        if f.status in ["Cancelled", "Rejected", "Not considered"]:
+            emailing.delete_all_reminders_from_article_id(o.id)
 
-            if o.status == "Pending" and f["status"] == "Awaiting consideration":
-                emailing.send_to_suggested_recommenders(o["id"])
-                emailing.send_to_submitter(o["id"], f["status"])
-                # create reminders
-                emailing.create_reminder_for_submitter_new_suggested_recommender_needed(o["id"])
-                # emailing.create_reminder_for_submitter_cancel_submission(o["id"])
-                emailing.create_reminder_for_suggested_recommenders_invitation(o["id"])
-                emailing.send_to_managers(o["id"], f["status"])
+        if o.status == "Pending" and f["status"] == "Awaiting consideration":
+            emailing.send_to_suggested_recommenders(o["id"])
+            emailing.send_to_submitter(o["id"], f["status"])
+            # create reminders
+            emailing.create_reminder_for_submitter_new_suggested_recommender_needed(o["id"])
+            # emailing.create_reminder_for_submitter_cancel_submission(o["id"])
+            emailing.create_reminder_for_suggested_recommenders_invitation(o["id"])
+            emailing.send_to_managers(o["id"], f["status"])
 
-            elif o.status == "Pre-submission" and f["status"] == "Pending":
-                emailing.send_to_managers(o["id"], "Resubmission")
-                # create reminders
-                emailing.create_reminder_for_submitter_suggested_recommender_needed(o["id"])
-                # delete submitter reminder
-                emailing.delete_reminder_for_submitter("#ReminderUserCompleteSubmissionCOAR", o["id"])
-                emailing.delete_reminder_for_submitter("#ReminderUserCompleteSubmissionBiorxiv", o["id"])
+        elif o.status == "Pre-submission" and f["status"] == "Pending":
+            emailing.send_to_managers(o["id"], "Resubmission")
+            # create reminders
+            emailing.create_reminder_for_submitter_suggested_recommender_needed(o["id"])
+            # delete submitter reminder
+            emailing.delete_reminder_for_submitter("#ReminderUserCompleteSubmissionCOAR", o["id"])
+            emailing.delete_reminder_for_submitter("#ReminderUserCompleteSubmissionBiorxiv", o["id"])
 
-            elif o.status == "Pending" and f["status"] == "Pre-submission":
-                # delete reminders
-                emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
+        elif o.status == "Pending" and f["status"] == "Pre-submission":
+            # delete reminders
+            emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
+        
+        elif o.status == "Pending" and f["status"] == "Not considered":
+            emailing.send_to_managers(o["id"], f["status"])
+
+        elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
+            emailing.send_to_managers(o["id"], f["status"])
+
+        elif o.status == "Awaiting consideration" and f["status"] == "Under consideration":
+            emailing.send_to_managers(o["id"], f["status"])
+            emailing.send_to_submitter(o["id"], f["status"])
+            emailing.send_to_suggested_recommenders_not_needed_anymore(o["id"])
+            emailing.send_to_thank_recommender_preprint(o["id"])
+            # create reminders
+            emailing.create_reminder_for_recommender_reviewers_needed(o["id"])
+            # delete reminders
+            emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
+            emailing.delete_reminder_for_submitter("#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
+            # emailing.delete_reminder_for_submitter("#ReminderSubmitterCancelSubmission", o["id"])
+            emailing.delete_reminder_for_suggested_recommenders("#ReminderSuggestedRecommenderInvitation", o["id"])
+
+        elif o.status == "Awaiting revision" and f["status"] == "Under consideration":
+            emailing.send_to_recommender_status_changed(o["id"], f["status"])
+            emailing.send_to_corecommenders(o["id"], f["status"])
+            emailing.send_to_managers(o["id"], f["status"])
+            # create reminders
+            emailing.create_reminder_for_recommender_revised_decision_soon_due(o["id"])
+            emailing.create_reminder_for_recommender_revised_decision_due(o["id"])
+            emailing.create_reminder_for_recommender_revised_decision_over_due(o["id"])
+            # delete reminders
+            emailing.delete_reminder_for_submitter("#ReminderSubmitterRevisedVersionWarning", o["id"])
+            emailing.delete_reminder_for_submitter("#ReminderSubmitterRevisedVersionNeeded", o["id"])
+
+        elif o.status == "Under consideration" and (f["status"].startswith("Pre-")):
+            emailing.send_to_managers(o["id"], f["status"])
+            emailing.send_to_corecommenders(o["id"], f["status"])
+            emailing.send_to_recommender_status_changed(o["id"], f["status"])
+            # delete reminders
+            emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderReviewersNeeded", o["id"])
+            emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionSoonDue", o["id"])
+            emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionDue", o["id"])
+            emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionOverDue", o["id"])
+            emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderRevisedDecisionSoonDue", o["id"])
+            emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderRevisedDecisionDue", o["id"])
+            emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderRevisedDecisionOverDue", o["id"])
+            if recomm:
+                emailing.delete_reminder_for_recommender("#ReminderRecommender2ReviewsReceivedCouldMakeDecision", recomm.id)
+
+        elif o.status in ("Pending", "Awaiting consideration", "Under consideration",
+                            "Scheduled submission pending", "Scheduled submission under consideration",
+                            "Pre-submission",
+                    ) and f["status"] == "Cancelled":
+            emailing.send_to_managers(o["id"], f["status"])
+            emailing.send_to_recommender_status_changed(o["id"], f["status"])
+            emailing.send_to_corecommenders(o["id"], f["status"])
+            emailing.send_to_reviewers_article_cancellation(o["id"], f["status"])
+            emailing.send_to_submitter(o["id"], f["status"])
+
+        elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Scheduled submission pending":
+            articleId = o.id
+            emailing.delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
+            emailing.delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionDue", articleId)
+            emailing.delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionOverDue", articleId)
+            emailing.send_to_recommender_preprint_submitted(o["id"])
+            emailing.send_to_managers(o["id"], f["status"])
+
+        elif o.status == "Scheduled submission pending" and f["status"] == "Scheduled submission under consideration":
+            emailing.send_to_recommender_preprint_validated(o["id"])
+            emailing.create_reminder_for_recommender_validated_scheduled_submission(o["id"])
+            emailing.create_reminder_for_recommender_validated_scheduled_submission_late(o["id"])
+
+        elif o.status == "Scheduled submission under consideration" and f["status"] == "Under consideration":
+            emailing.send_to_reviewers_preprint_submitted(o["id"])
+            emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderPreprintValidatedScheduledSubmission", o["id"])
+            emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderPreprintValidatedScheduledSubmissionLate", o["id"])
+
+        elif o.status != f["status"]:
+            if o["status"].startswith("Pre-") and f["status"] == "Under consideration": return
+            emailing.send_to_managers(o["id"], f["status"])
+            emailing.send_to_recommender_status_changed(o["id"], f["status"])
+            emailing.send_to_corecommenders(o["id"], f["status"])
             
-            elif o.status == "Pending" and f["status"] == "Not considered":
-                emailing.send_to_managers(o["id"], f["status"])
-
-            elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
-                emailing.send_to_managers(o["id"], f["status"])
-
-            elif o.status == "Awaiting consideration" and f["status"] == "Under consideration":
-                emailing.send_to_managers(o["id"], f["status"])
-                emailing.send_to_submitter(o["id"], f["status"])
-                emailing.send_to_suggested_recommenders_not_needed_anymore(o["id"])
-                emailing.send_to_thank_recommender_preprint(o["id"])
-                # create reminders
-                emailing.create_reminder_for_recommender_reviewers_needed(o["id"])
-                # delete reminders
-                emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
-                emailing.delete_reminder_for_submitter("#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
-                # emailing.delete_reminder_for_submitter("#ReminderSubmitterCancelSubmission", o["id"])
-                emailing.delete_reminder_for_suggested_recommenders("#ReminderSuggestedRecommenderInvitation", o["id"])
-
-            elif o.status == "Awaiting revision" and f["status"] == "Under consideration":
-                emailing.send_to_recommender_status_changed(o["id"], f["status"])
-                emailing.send_to_corecommenders(o["id"], f["status"])
-                emailing.send_to_managers(o["id"], f["status"])
-                # create reminders
-                emailing.create_reminder_for_recommender_revised_decision_soon_due(o["id"])
-                emailing.create_reminder_for_recommender_revised_decision_due(o["id"])
-                emailing.create_reminder_for_recommender_revised_decision_over_due(o["id"])
-                # delete reminders
-                emailing.delete_reminder_for_submitter("#ReminderSubmitterRevisedVersionWarning", o["id"])
-                emailing.delete_reminder_for_submitter("#ReminderSubmitterRevisedVersionNeeded", o["id"])
-
-            elif o.status == "Under consideration" and (f["status"].startswith("Pre-")):
-                emailing.send_to_managers(o["id"], f["status"])
-                emailing.send_to_corecommenders(o["id"], f["status"])
-                emailing.send_to_recommender_status_changed(o["id"], f["status"])
-                # delete reminders
-                emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderReviewersNeeded", o["id"])
-                emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionSoonDue", o["id"])
-                emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionDue", o["id"])
-                emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionOverDue", o["id"])
-                emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderRevisedDecisionSoonDue", o["id"])
-                emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderRevisedDecisionDue", o["id"])
-                emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderRevisedDecisionOverDue", o["id"])
-
-            elif o.status in ("Pending", "Awaiting consideration", "Under consideration",
-                                "Scheduled submission pending", "Scheduled submission under consideration",
-                                "Pre-submission",
-                        ) and f["status"] == "Cancelled":
-                emailing.send_to_managers(o["id"], f["status"])
-                emailing.send_to_recommender_status_changed(o["id"], f["status"])
-                emailing.send_to_corecommenders(o["id"], f["status"])
-                emailing.send_to_reviewers_article_cancellation(o["id"], f["status"])
+            if f["status"] == "Not considered":
                 emailing.send_to_submitter(o["id"], f["status"])
 
-            elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Scheduled submission pending":
-                articleId = o.id
-                emailing.delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionSoonDue", articleId)
-                emailing.delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionDue", articleId)
-                emailing.delete_reminder_for_submitter("#ReminderSubmitterScheduledSubmissionOverDue", articleId)
-                emailing.send_to_recommender_preprint_submitted(o["id"])
-                emailing.send_to_managers(o["id"], f["status"])
+            if f["status"] == "Rejected" and isScheduledTrack(o):
+                recommender_module.cancel_scheduled_reviews(o["id"])
 
-            elif o.status == "Scheduled submission pending" and f["status"] == "Scheduled submission under consideration":
-                emailing.send_to_recommender_preprint_validated(o["id"])
-                emailing.create_reminder_for_recommender_validated_scheduled_submission(o["id"])
-                emailing.create_reminder_for_recommender_validated_scheduled_submission_late(o["id"])
-
-            elif o.status == "Scheduled submission under consideration" and f["status"] == "Under consideration":
-                emailing.send_to_reviewers_preprint_submitted(o["id"])
-                emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderPreprintValidatedScheduledSubmission", o["id"])
-                emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderPreprintValidatedScheduledSubmissionLate", o["id"])
-
-            elif o.status != f["status"]:
-                if o["status"].startswith("Pre-") and f["status"] == "Under consideration": return
-                emailing.send_to_managers(o["id"], f["status"])
-                emailing.send_to_recommender_status_changed(o["id"], f["status"])
-                emailing.send_to_corecommenders(o["id"], f["status"])
-                
-                if f["status"] == "Not considered":
+            if f["status"] in ("Awaiting revision", "Rejected", "Recommended", "Recommended-private"):
+                if not o.is_scheduled:
                     emailing.send_to_submitter(o["id"], f["status"])
-
-                if f["status"] == "Rejected" and isScheduledTrack(o):
-                    recommender_module.cancel_scheduled_reviews(o["id"])
-
-                if f["status"] in ("Awaiting revision", "Rejected", "Recommended", "Recommended-private"):
-                    if not o.is_scheduled:
-                        emailing.send_to_submitter(o["id"], f["status"])
-                    emailing.send_decision_to_reviewers(o["id"], f["status"])
-                    lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
-                    for lr in lastRecomm:
-                        lr.is_closed = True
-                        lr.update_record()
-                        # delete reminders
-                        emailing.delete_all_reminders_from_recommendation_id(lr.id)
-
-                if f["status"] in ("Recommended", "Recommended-private"):
+                emailing.send_decision_to_reviewers(o["id"], f["status"])
+                lastRecomm = db((db.t_recommendations.article_id == o.id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL)
+                for lr in lastRecomm:
+                    lr.is_closed = True
+                    lr.update_record()
                     # delete reminders
-                    print("RECOMMENDED")
-                    emailing.delete_all_reminders_from_article_id(o["id"])
+                    emailing.delete_all_reminders_from_recommendation_id(lr.id)
 
-                if o["status"] == "Pre-revision" and f["status"] == "Awaiting revision":
-                    # create reminders
-                    emailing.create_reminder_for_submitter_revised_version_warning(o["id"])
-                    emailing.create_reminder_for_submitter_revised_version_needed(o["id"])
-    return None
+            if f["status"] in ("Recommended", "Recommended-private"):
+                # delete reminders
+                print("RECOMMENDED")
+                emailing.delete_all_reminders_from_article_id(o["id"])
+
+            if o["status"] == "Pre-revision" and f["status"] == "Awaiting revision":
+                # create reminders
+                emailing.create_reminder_for_submitter_revised_version_warning(o["id"])
+                emailing.create_reminder_for_submitter_revised_version_needed(o["id"])
 
 
 def newArticle(s, articleId):
