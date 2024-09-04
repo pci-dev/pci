@@ -116,19 +116,7 @@
 
 				{{if not printable:}}      
 					<a class="pci2-tool-link-right pci2-flex-row pci2-align-items-center" id="author-reply"
-						onclick="if( jQuery('#recomm-process-container' ).hasClass('pci2-panel-closed')) { 
-							jQuery('#recomm-process-container').removeClass('pci2-panel-closed') 						
-							jQuery('#icon-recomm-process').removeClass('glyphicon-rotate') 
-							jQuery('#icon-recomm-process').addClass('glyphicon-rotate-reversed') 
-							jQuery('#title-recomm-process').removeClass('pci2-half-opacity')
-							jQuery('#label-recomm-process').text('{{=T('Close')}}')
-						} else {
-							jQuery('#recomm-process-container').addClass('pci2-panel-closed') 						
-							jQuery('#icon-recomm-process').removeClass('glyphicon-rotate-reversed') 
-							jQuery('#icon-recomm-process').addClass('glyphicon-rotate')
-							jQuery('#title-recomm-process').addClass('pci2-half-opacity')
-							jQuery('#label-recomm-process').text('{{=T('Open')}}')
-						}" 
+						onclick="toggleTimeline()" 
 					>
 						{{if (roundNumber >= 1 and isRecommAvalaibleToSubmitter) or (roundNumber >= 2):}}
 							<span id="label-recomm-process">{{=T('Open')}}</span>
@@ -200,5 +188,36 @@
 {{if 'confirmationScript' in locals():}}
 	{{=confirmationScript}}
 {{pass}}
+
+<script>
+	function toggleTimeline() {
+		if( document.getElementById('recomm-process-container' ).classList.contains('pci2-panel-closed')) { 
+			openTimeline();
+		} else {
+			closeTimeline();
+		}
+	}
+
+	function openTimeline() {
+		document.getElementById('recomm-process-container').classList.remove('pci2-panel-closed');
+		document.getElementById('icon-recomm-process').classList.remove('glyphicon-rotate');
+		document.getElementById('icon-recomm-process').classList.add('glyphicon-rotate-reversed');
+		document.getElementById('title-recomm-process').classList.remove('pci2-half-opacity');
+		document.getElementById('label-recomm-process').textContent = '{{=T('Close')}}';
+	}
+
+	function closeTimeline() {
+		document.getElementById('recomm-process-container').classList.add('pci2-panel-closed');				
+		document.getElementById('icon-recomm-process').classList.remove('glyphicon-rotate-reversed');
+		document.getElementById('icon-recomm-process').classList.add('glyphicon-rotate');
+		document.getElementById('title-recomm-process').classList.add('pci2-half-opacity');
+		document.getElementById('label-recomm-process').textContent = '{{=T('Open')}}';
+	}
+
+	if (!window.location.pathname.endsWith('/user/recommendations')) {
+		closeTimeline();
+	}
+
+</script>
 <script src="{{=URL('static', 'js/pci-init-tinymce.js')}}"></script>
 <script src="{{=URL('static', 'js/pci-init-tinymce-inline.js')}}"></script>
