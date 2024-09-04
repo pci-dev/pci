@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import re
+from typing import Optional
 from gluon import current
-from gluon.tools import Auth
 from gluon.html import *
-from gluon.contrib.markdown import WIKI
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.markdown import WIKI # type: ignore
+from gluon.contrib.appconfig import AppConfig # type: ignore
+from models.recommendation import Recommendation
+from models.group import Role
 import requests
 import datetime
-import re
+
+from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 description = myconf.take("app.description")
@@ -136,9 +139,28 @@ def is_recommender():
     )
 
 ######################################################################################################################################################################
-def is_co_recommender(recommId: int):
-    db, auth = current.db, current.auth
-    return bool(db((db.t_press_reviews.recommendation_id == recommId) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0)
+def is_co_recommender(recommendation_id: int, user_id: Optional[int] = None):
+    db = current.db
+    if user_id is None:
+        user_id = current.auth.user_id
+
+    return bool(db((db.t_press_reviews.recommendation_id == recommendation_id) & (db.t_press_reviews.contributor_id == user_id)).count() > 0)
+
+
+def user_is_in_recommender_team(article_id: int, user_id: Optional[int] = None):
+    if user_id is None:
+        user_id = current.auth.user_id
+        
+    if not current.auth.has_membership(Role.RECOMMENDER.value, user_id=user_id):
+        return False
+    
+    recommendations = Recommendation.get_by_article_id(article_id)
+    for recommendation in recommendations:
+        if recommendation.recommender_id == user_id or is_co_recommender(recommendation.id, user_id):
+            return True
+    
+    return False
+
 
 ######################################################################################################################################################################
 def extract_name(s):
