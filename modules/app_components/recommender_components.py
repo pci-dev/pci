@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List
 from models.article import is_scheduled_submission
 from gluon import current
-from gluon.globals import Request, Response
-from gluon.tools import Auth
 from gluon.html import *
 from app_modules import common_tools
 from gluon.sqlhtml import *
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from models.article import Article, ArticleStatus
 from models.recommendation import Recommendation
 
 from app_modules import common_small_html
 from models.review import Review, ReviewState
+from models.user import User
+
+from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 
@@ -49,8 +50,12 @@ def getReviewsSubTable(recommendation: Recommendation):
                 lastChange=common_small_html.mkElapsedDays(review.last_change),
                 actions=[],
             )
+
+            reviewer = User.get_by_id(review.reviewer_id)
+
             review_vars["actions"].append(dict(text=current.T("View e-mails"), link=URL(c="recommender", f="review_emails", vars=dict(reviewId=review.id))))
-            review_vars["actions"].append(dict(text=current.T("Prepare an e-mail"), link=URL(c="recommender", f="send_reviewer_generic_mail", vars=dict(reviewId=review.id))))
+            if reviewer and reviewer.email:
+                review_vars["actions"].append(dict(text=current.T("Prepare an e-mail"), link=URL(c="recommender", f="send_reviewer_generic_mail", vars=dict(reviewId=review.id))))
 
             if allowed_to_see_reviews and review.review_state == ReviewState.REVIEW_COMPLETED.value:
                 review_vars["actions"].append(dict(text=current.T("See review"), link=URL(c="recommender", f="one_review", vars=dict(reviewId=review.id))))
@@ -105,21 +110,19 @@ def getReviewsSubTable(recommendation: Recommendation):
     show_decision_link = False
     write_decision_link = None
     invite_reviewer_link = None
-    show_searching_for_reviewers_button = None
     show_remove_searching_for_reviewers_button = None
     if (
         not (recommendation.is_closed)
         and ((recommendation.recommender_id == auth.user_id) or auth.has_membership(role="manager") or auth.has_membership(role="administrator"))
         and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value))
     ):
-        invite_reviewer_link = cast(str, URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id)))
+        invite_reviewer_link = URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id))
 
-        show_searching_for_reviewers_button = not article.is_searching_reviewers
         show_remove_searching_for_reviewers_button = article.is_searching_reviewers
 
         show_decision_link = True
         if (nb_completed >= 2 and nb_on_going == 0) or recommendation_round > 1 or (pciRRactivated):
-            write_decision_link = cast(str, URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id)))
+            write_decision_link = URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id))
 
     round_number = recommendation_round
     component_vars = dict(

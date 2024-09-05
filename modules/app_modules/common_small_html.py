@@ -53,7 +53,7 @@ def mkLastChange(t):
 
 
 ######################################################################################################################################################################
-def mkElapsedDays(t):
+def mkElapsedDays(t: Optional[datetime.datetime]):
     if t:
         d = datetime.datetime.now() - t
         if d.days == 0:
@@ -177,10 +177,10 @@ def mkUserWithAffil_U(theUser: User, linked=False, fullURL=False):
 
 
 ######################################################################################################################################################################
-def mkUserWithMail(userId, linked=False, fullURL=False, reverse=False, orcid=False):
+def mkUserWithMail(userId: Optional[int], linked: bool = False, reverse: bool = False, orcid: bool = False):
     db = current.db
     if userId is not None:
-        theUser = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.orcid).last()
+        theUser: Optional[User] = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.orcid).last()
     else:
         theUser = None
 
@@ -191,7 +191,7 @@ def mkUserWithMail(userId, linked=False, fullURL=False, reverse=False, orcid=Fal
         return user_with_mail
 
 
-def _mkUser(theUser: User, linked=False, reverse=False):
+def _mkUser(theUser: Optional[User], linked: bool = False, reverse: bool = False):
         if theUser:
             if reverse: name = "%s, %s" % (theUser.last_name, theUser.first_name)
             else: name = "%s %s" % (theUser.first_name, theUser.last_name)
@@ -200,7 +200,7 @@ def _mkUser(theUser: User, linked=False, reverse=False):
                     A(
                         name,
                         _href=URL(c="public", f="user_public_page",
-                            scheme=True, vars=dict(userId=userId)),
+                            scheme=True, vars=dict(userId=theUser.id)),
                     ),
                     SPAN(" [%s]" % theUser.email))
             else:
@@ -367,7 +367,7 @@ def mkStatusBigDivUser(status: str, printable: bool = False):
 ######################################################################################################################################################################
 # Other status
 ######################################################################################################################################################################
-def mkReviewStateDiv(state: str, review: Optional[Review] = None):
+def mkReviewStateDiv(state: Optional[str], review: Optional[Review] = None):
     # state_txt = (current.T(state)).upper()
     state_txt = (state or "").upper()
     if state == ReviewState.AWAITING_RESPONSE.value or state == ReviewState.WILLING_TO_REVIEW.value:
