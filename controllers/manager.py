@@ -16,9 +16,9 @@ from typing import List, cast, Optional
 import codecs
 
 # import html2text
-from gluon.contrib.markdown import WIKI
+from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.dal import Row
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 
 from app_modules.helper import *
 
@@ -50,14 +50,20 @@ from app_modules.common_small_html import md_to_html
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
-from gluon.http import redirect
+from gluon.http import redirect # type: ignore
 
-from models.article import ArticleStatus, clean_vars_doi, clean_vars_doi_list
+from models.article import Article, ArticleStatus, clean_vars_doi, clean_vars_doi_list
 from models.user import User
 from models.membership import Membership
 
 from app_modules.common_tools import URL
 
+request = current.request
+session = current.session
+db = current.db
+auth = current.auth
+response = current.response
+T = current.T
 
 myconf = AppConfig(reload=True)
 
@@ -443,10 +449,10 @@ def recommendations():
     manager_authors = request.vars["manager_authors"]
     printable = "printable" in request.vars and request.vars["printable"] == "True"
 
-    try: art = db.t_articles[articleId]
+    try: art = Article.get_by_id(articleId)
     except: art = None
 
-    if art is None: redirect(request.home)
+    if art is None: return redirect(request.home)
 
     if manager_authors != None:
         art.update_record(manager_authors=manager_authors)
@@ -510,11 +516,18 @@ def recommendations():
         printableClass = ""
         response.view = "default/wrapper_normal.html"
 
+    recommendation_process = ongoing_recommendation.getRecommendationProcessForSubmitter(art, printable)
+
     myScript = common_tools.get_script("recommended_articles.js")
     viewToRender = "default/recommended_articles.html"
     confirmationScript = common_tools.get_script("confirmation.js")
 
     return dict(
+        isSubmitter=(art.user_id == auth.user_id),
+        isManager=current.auth.has_membership(role=Role.MANAGER.value),
+        isRecommender=user_is_in_recommender_team(art.id),
+        recommendationProgression=recommendation_process['content'],
+        isRecommAvalaibleToSubmitter=recommendation_process["isRecommAvalaibleToSubmitter"],
         viewToRender=viewToRender,
         recommHeaderHtml=recommHeaderHtml,
         recommStatusHeader=recommStatusHeader,

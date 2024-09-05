@@ -8,12 +8,12 @@ from dateutil.relativedelta import *
 from typing import cast, Optional, List
 from difflib import SequenceMatcher
 
-from gluon.http import redirect
+from gluon.http import redirect # type: ignore
 from lxml import html
 
-from gluon.utils import web2py_uuid
-from gluon.contrib.markdown import WIKI
-from gluon.html import markmin_serializer
+from gluon.utils import web2py_uuid # type: ignore
+from gluon.contrib.markdown import WIKI # type: ignore
+from gluon.html import markmin_serializer # type: ignore
 
 from app_modules.helper import *
 
@@ -41,12 +41,19 @@ from models.article import Article
 from models.review import Review
 
 from app_modules.common_small_html import md_to_html
-from app_modules.emailing import isScheduledTrack
+from app_modules.emailing import isScheduledTrack # type: ignore
 
 # to change to common
 from controller_modules import admin_module
 
 from app_modules.common_tools import URL
+
+request = current.request
+session = current.session
+db = current.db
+auth = current.auth
+response = current.response
+T = current.T
 
 
 # frequently used constants
@@ -731,11 +738,11 @@ def recommendations():
     printable = "printable" in request.vars and request.vars["printable"] == "True"
     articleId = request.vars["articleId"]
 
-    art = db.t_articles[articleId]
+    art = Article.get_by_id(articleId)
     if art is None:
         print("Missing article %s" % articleId)
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
     # NOTE: 2018-09-05 bug corrected by splitting the query and adding counts; weird but it works
     authCount = db((db.t_recommendations.recommender_id == auth.user_id) & (db.t_recommendations.article_id == articleId)).count()
@@ -790,9 +797,15 @@ def recommendations():
             printableClass = ""
             response.view = "default/wrapper_normal.html"
 
+        recommendation_process = ongoing_recommendation.getRecommendationProcessForSubmitter(art, printable)
         viewToRender = "default/recommended_articles.html"
 
         return dict(
+            isSubmitter=(art.user_id == auth.user_id),
+            isManager=current.auth.has_membership(role=Role.MANAGER.value),
+            isRecommender=user_is_in_recommender_team(art.id),
+            recommendationProgression=recommendation_process['content'],
+            isRecommAvalaibleToSubmitter=recommendation_process["isRecommAvalaibleToSubmitter"],
             viewToRender=viewToRender,
             recommStatusHeader=recommStatusHeader,
             recommHeaderHtml=recommHeaderHtml,
