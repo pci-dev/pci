@@ -48,11 +48,12 @@ class COARNotifier:
     def __init__(self):
         self.db = current.db
 
+        config = AppConfig()
+        self.enabled = config.get("coar_notify.enabled")
+        self.listeners = self.parse_listeners(config)
+
     base_url = URL("|", "|", scheme=True).replace("|/|", "")
 
-    enabled = AppConfig().get("coar_notify.enabled")
-    _listeners = AppConfig().get("coar_notify.listeners") or []
-    listeners = [item for item in _listeners  if item]
 
     def send_notification(self, notification, article):
         """Send a notification to the target inbox (article.doi HTTP header).
@@ -135,11 +136,11 @@ class COARNotifier:
 
         notification = json.loads(json.dumps(notification))
 
-        for target_inbox in self.listeners:
-            notification["target"]["id"] = target_inbox
-            notification["target"]["inbox"] = target_inbox
+        for listener in self.listeners:
+            notification["target"]["id"] = listener["id"]
+            notification["target"]["inbox"] = listener["inbox"]
             serialized_notification = json.dumps(notification, indent=2)
-            self._send_to_listener(target_inbox, serialized_notification)
+            self._send_to_listener(listener["inbox"], serialized_notification)
 
 
     def _send_to_listener(self, target_inbox, notification):
@@ -153,6 +154,16 @@ class COARNotifier:
             response.raise_for_status()
         except Exception as e:
             print(f"_send_to_listeners: {e}")
+
+
+    def parse_listeners(self, config):
+        listeners = config.get("coar_notify.listeners") or []
+        return [{
+            "id": config.get(f"coar_notify.{item}_id"),
+            "inbox": config.get(f"coar_notify.{item}_inbox"),
+            "name": item,
+            }
+            for item in listeners if item]
 
 
     def _review_as_jsonld(self, review):
