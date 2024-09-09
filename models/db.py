@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import cast
-from app_components.custom_validator import CUSTOM_VALID_URL
+from app_components.custom_validator import CUSTOM_VALID_URL, VALID_DOI
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect
@@ -494,7 +494,7 @@ db.define_table(
           comment=B('Please use the format "First name initials family name" as in "Marie S. Curie, Niels H. D. Bohr, Albert Einstein, John R. R. Tolkien, Donna T. Strickland"')),
     RequiredField("article_year", type="integer", label=T("Year")),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
-    RequiredField("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, default="https://", represent=lambda text, row: common_small_html.mkDOI(text), requires=CUSTOM_VALID_URL(), comment=SPAN(T("Note: for Stage 1 submissions, please make sure the link points exclusively to the manuscript file (and not to the broader project folder), and that any other links to supplementary materials, appendices, data, code, etc. are all within the manuscript file") if pciRRactivated else "")),
+    RequiredField("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, default="https://", represent=lambda text, row: common_small_html.mkDOI(text), requires=VALID_DOI(request.vars.preprint_server), comment=SPAN(T("Note: for Stage 1 submissions, please make sure the link points exclusively to the manuscript file (and not to the broader project folder), and that any other links to supplementary materials, appendices, data, code, etc. are all within the manuscript file") if pciRRactivated else "")),
     RequiredField("preprint_server", type="string", length=512, requires=IS_LENGTH(512, 0), label=
         T("Name of the server or open archive where your report has been deposited (eg OSF, Zenodo, arXiv, bioRxiv, HAL...)")
             if pciRRactivated else
