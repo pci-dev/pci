@@ -133,9 +133,12 @@ class COARNotifier:
         except:
             return
 
-        serialized_notification = json.dumps(notification, indent=2)
+        notification = json.loads(json.dumps(notification))
 
         for target_inbox in self.listeners:
+            notification["target"]["id"] = target_inbox
+            notification["target"]["inbox"] = target_inbox
+            serialized_notification = json.dumps(notification, indent=2)
             self._send_to_listener(target_inbox, serialized_notification)
 
 
