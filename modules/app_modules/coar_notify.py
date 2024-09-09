@@ -48,9 +48,12 @@ class COARNotifier:
     def __init__(self):
         self.db = current.db
 
+        config = AppConfig()
+        self.enabled = config.get("coar_notify.enabled")
+        self.listeners = self.parse_listeners(config)
+
     base_url = URL("|", "|", scheme=True).replace("|/|", "")
 
-    enabled = AppConfig().get("coar_notify.enabled")
 
     def send_notification(self, notification, article):
         """Send a notification to the target inbox (article.doi HTTP header).
@@ -121,6 +124,47 @@ class COARNotifier:
             direction="Outbound",
             http_status=http_status,
         )
+
+        self.send_to_listeners(notification)
+
+
+    def send_to_listeners(self, notification):
+        try:
+            assert notification["type"][0] == "Announce"
+        except:
+            return
+
+        notification = json.loads(json.dumps(notification))
+
+        for listener in self.listeners:
+            notification["target"]["id"] = listener["id"]
+            notification["target"]["inbox"] = listener["inbox"]
+            serialized_notification = json.dumps(notification, indent=2)
+            self._send_to_listener(listener["inbox"], serialized_notification)
+
+
+    def _send_to_listener(self, target_inbox, notification):
+        session = _get_requests_session()
+        try:
+            response = session.post(
+                target_inbox,
+                data=notification,
+                headers={"Content-Type": "application/ld+json"},
+            )
+            response.raise_for_status()
+        except Exception as e:
+            print(f"_send_to_listeners: {e}")
+
+
+    def parse_listeners(self, config):
+        listeners = config.get("coar_notify.listeners") or []
+        return [{
+            "id": config.get(f"coar_notify.{item}_id"),
+            "inbox": config.get(f"coar_notify.{item}_inbox"),
+            "name": item,
+            }
+            for item in listeners if item]
+
 
     def _review_as_jsonld(self, review):
         recommendation = self.db.t_recommendations[review.recommendation_id]
