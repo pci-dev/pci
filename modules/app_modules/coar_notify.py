@@ -51,7 +51,8 @@ class COARNotifier:
     base_url = URL("|", "|", scheme=True).replace("|/|", "")
 
     enabled = AppConfig().get("coar_notify.enabled")
-    listeners = AppConfig().get("coar_notify.listeners") or []
+    _listeners = AppConfig().get("coar_notify.listeners") or []
+    listeners = [item for item in _listeners  if item]
 
     def send_notification(self, notification, article):
         """Send a notification to the target inbox (article.doi HTTP header).
@@ -133,9 +134,8 @@ class COARNotifier:
             return
 
         serialized_notification = json.dumps(notification, indent=2)
-        listeners = [item for item in self.listeners if item]
 
-        for target_inbox in listeners:
+        for target_inbox in self.listeners:
             self._send_to_listener(target_inbox, serialized_notification)
 
 
