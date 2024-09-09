@@ -356,4 +356,4 @@ VALUES
 
 -- 2024-09-02 updates/newsletter-custom.sql
 INSERT INTO help_texts (hashtag,lang,contents) VALUES ('#SendMailSubscribersTitle','default','Send mail to all subscribers');
-INSERT INTO help_texts (hashtag,lang,contents) VALUES ('#SendMailSubscribersText','default','Send a general newsletter to all users that subscribe to the newsletter in their profile.');
+INSERT INTO help_texts (hashtag,lang,contents) VALUES ('#SendMailSubscribersText','default','Send a general newsletter to all users that subscribed to the newsletter in their profile.');
