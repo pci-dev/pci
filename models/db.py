@@ -17,6 +17,7 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.storage import Storage # for db.get_last_recomms()
 from pydal.objects import OpRow, Query, Set
 from pydal import Field, DAL
+from threading import Thread
 
 from gluon.custom_import import track_changes
 from gluon import current
@@ -887,13 +888,21 @@ def recommendationUpdated(s, updated_recommendation):
         and updated_recommendation.get('recommendation_state') == "Recommended"
     ):
         # COAR notification
-        coar_notifier = current.coar
+        Thread(target=send_coar_notifications, args=[
+            current.coar,
+            original_recommendation,
+            updated_recommendation,
+        ]).start()
+
+
+def send_coar_notifications(coar_notifier, original_recommendation, updated_recommendation):
         for review in db(
                 (db.t_recommendations.article_id == original_recommendation.article_id)
               & (db.t_reviews.recommendation_id == db.t_recommendations.id)
               & (db.t_reviews.review_state == 'Review completed')
         ).select(db.t_reviews.ALL):
             coar_notifier.review_completed(review)
+
         coar_notifier.article_endorsed(updated_recommendation)
 
 
