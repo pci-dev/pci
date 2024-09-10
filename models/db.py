@@ -905,6 +905,8 @@ def send_coar_notifications(coar_notifier, article_id, recommendation):
 
         coar_notifier.article_endorsed(recommendation)
 
+        db.commit()
+
 
 def setRecommendationDoi(s, _recomm):
     recomm = s.select().first()
