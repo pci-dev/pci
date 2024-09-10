@@ -202,9 +202,9 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
         submissionValidatedClassClass = "step-done"
     uploadDate = art.upload_timestamp.strftime("%d %B %Y") if art.upload_timestamp else ''
 
-    suggestedRecommendersCount = db(db.t_suggested_recommenders.article_id == art.id).count()
+    suggestedRecommendersCount = int(db(db.t_suggested_recommenders.article_id == art.id).count())
 
-    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id)
+    recomms = Article.get_last_recommendations(art.id, db.t_recommendations.id)
     totalRecomm = len(recomms)
 
     if totalRecomm > 0:
@@ -212,12 +212,12 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
 
     roundNumber = 1
 
-    recommStatus = None
+    recommStatus: Optional[str] = None
     reviewCount = 0
     acceptedReviewCount = 0
     completedReviewCount = 0
 
-    recommenderName = None
+    recommenderName: Optional[List[Any]] = None
 
     if totalRecomm > 0:
         for recomm in recomms:
@@ -226,11 +226,11 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             recommendationStepClass = "step-default"
             managerDecisionDoneClass = "step-default"
             authorsReplyClass = "step-default"
-            recommDate = recomm.last_change.strftime("%d %B %Y")
+            recommDate = recomm.last_change.strftime("%d %B %Y") if recomm.last_change else ""
             validationDate = recomm.validation_timestamp.strftime("%d %B %Y") if recomm.validation_timestamp else None
             if roundNumber < totalRecomm:
                 nextRound = recomms[roundNumber]
-                authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT)
+                authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT) if nextRound.recommendation_timestamp else ""
             else:
                 authorsReplyDate = None # current round
 
@@ -325,7 +325,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
     else:
         managerDecisionDoneStepClass = "progress-last-step-div"
         recommDate = False
-        lastReviewDate = None
+        lastReviewDate: Optional[datetime.datetime] = None
         authorsReplyDate = False
         validationDate = False
 
