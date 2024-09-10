@@ -890,20 +890,20 @@ def recommendationUpdated(s, updated_recommendation):
         # COAR notification
         Thread(target=send_coar_notifications, args=[
             current.coar,
-            original_recommendation,
+            original_recommendation.article_id,
             updated_recommendation,
         ]).start()
 
 
-def send_coar_notifications(coar_notifier, original_recommendation, updated_recommendation):
+def send_coar_notifications(coar_notifier, article_id, recommendation):
         for review in db(
-                (db.t_recommendations.article_id == original_recommendation.article_id)
+                (db.t_recommendations.article_id == article_id)
               & (db.t_reviews.recommendation_id == db.t_recommendations.id)
               & (db.t_reviews.review_state == 'Review completed')
         ).select(db.t_reviews.ALL):
             coar_notifier.review_completed(review)
 
-        coar_notifier.article_endorsed(updated_recommendation)
+        coar_notifier.article_endorsed(recommendation)
 
 
 def setRecommendationDoi(s, _recomm):
