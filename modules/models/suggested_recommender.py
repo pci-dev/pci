@@ -22,3 +22,13 @@ class SuggestedRecommender(Row):
     def get_suggested_recommender_by_article(article_id: int):
         db = current.db
         return cast(_[List[SuggestedRecommender]], db(db.t_suggested_recommenders.article_id == article_id).select())
+
+
+    @staticmethod
+    def nb_suggested_recommender(article_id: int, declined: bool = False):
+        db = current.db
+        if declined:
+            return int(db((db.t_suggested_recommenders.article_id == article_id) & (db.t_suggested_recommenders.declined == True)).count())
+        else:
+            return int(db(db.t_suggested_recommenders.article_id == article_id).count())
+    

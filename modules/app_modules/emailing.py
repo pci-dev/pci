@@ -2934,7 +2934,7 @@ def create_reminder_for_recommender_new_reviewers_needed(recommendation_id: int)
 
     hashtag_template = emailing_tools.get_correct_hashtag("#ReminderRecommenderNewReviewersNeeded", article)
 
-    mail_already_exists = MailQueue.there_are_mails_for_article_recommendation(article.id, recommendation.id, hashtag_template, SendingStatus.PENDING) > 0
+    mail_already_exists = MailQueue.there_are_mails_for_article_recommendation(article.id, recommendation.id, hashtag_template, [SendingStatus.PENDING]) > 0
     if mail_already_exists:
         return
     

@@ -218,6 +218,15 @@
 		closeTimeline();
 	}
 
+	const lastStepDone = document.querySelector('.pci2-flex-row.progress-last-step-div.step-done');
+	if (lastStepDone == null) {
+		const stepDone = document.querySelectorAll('.progress-step-div.step-done');
+		if (stepDone != null && stepDone.length > 0) {
+			const currentStep = stepDone[stepDone.length - 1];
+			currentStep.classList.add('current-step');
+		}
+	}
+
 </script>
 <script src="{{=URL('static', 'js/pci-init-tinymce.js')}}"></script>
 <script src="{{=URL('static', 'js/pci-init-tinymce-inline.js')}}"></script>
