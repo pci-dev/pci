@@ -482,8 +482,8 @@ def guess_article_id(body):
 
 def get_type(body):
     coar_types = [
-            "Endorsement", "Review",
             "Reject", "Accept",
+            "Endorsement", "Review",
             "Undo",
     ]
     for t in coar_types:
