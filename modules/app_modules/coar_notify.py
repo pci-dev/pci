@@ -249,16 +249,16 @@ class COARNotifier:
 
         send_ack(self, "TentativeAccept", article)
 
-    def send_acknowledge_and_reject(self, article):
+    def send_acknowledge_and_reject(self, article, resubmit=False):
         if not article.coar_notification_id: return
         if article.coar_notification_closed: return
         if current.article.get("coar_notification_closed"): return
 
         notification = \
-        send_ack(self, "Reject", article)
+        send_ack(self, "TentativeReject" if resubmit else "Reject", article)
 
-        current.article.coar_notification_closed = True
         current.article.coar_notification_id = notification["id"]
+        if not resubmit: current.article.coar_notification_closed = True
 
 
     def record_notification(
@@ -287,7 +287,9 @@ class COARNotifier:
 
 #
 
-def send_ack(self, typ: typing.Literal["TentativeAccept", "Reject"], article):
+def send_ack(self,
+        typ: typing.Literal["TentativeAccept", "Reject", "TentativeReject"],
+        article):
     origin_req = get_origin_request(article)
     if not origin_req: return
 
