@@ -196,7 +196,7 @@ def send_to_submitter(articleId: int, newStatus):
             hashtag_template = emailing_tools.get_correct_hashtag("#SubmitterAwaitingSubmission", article)
             if article.coar_notification_id: hashtag_template = "#SubmitterAwaitingSubmissionCOAR"
 
-            current.coar.send_acknowledge_and_reject(article)
+            current.coar.send_acknowledge_and_reject(article, resubmit=True)
 
         elif article.status != newStatus and newStatus == "Pre-recommended":
             return  # patience!
