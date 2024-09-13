@@ -299,7 +299,11 @@ def send_ack(self, typ: typing.Literal["TentativeAccept", "Reject"], article):
             "id": article.coar_notification_id,
             "object": origin_object,
             "type": "Offer"
-          },
+          }
+          if typ == "TentativeAccept"
+          else
+              origin_req
+          ,
           "inReplyTo": article.coar_notification_id,
           "actor": {
             "id": self.base_url,
