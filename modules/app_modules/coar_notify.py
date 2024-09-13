@@ -260,6 +260,11 @@ class COARNotifier:
         current.article.coar_notification_id = notification["id"]
         if not resubmit: current.article.coar_notification_closed = True
 
+        if resubmit: # transitonal: also send Reject (retyped copy)
+            notification["type"] = "Reject"
+            target_inbox = notification["target"]["inbox"]
+            self._send_notification(notification, target_inbox)
+
 
     def record_notification(
         self,
