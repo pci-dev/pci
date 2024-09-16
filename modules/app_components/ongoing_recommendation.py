@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta
 from typing import Any, Dict, List, Optional, cast
 from dateutil.relativedelta import *
 
@@ -258,6 +259,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             validationDate = recomm.validation_timestamp.strftime("%d %B %Y") if recomm.validation_timestamp else None
             nb_days_since_decision = 0
             nb_days_since_validation = 0
+            decision_due_date: Optional[datetime.datetime] = None
 
             if recomm.last_change:
                 nb_days = (datetime.datetime.now() - recomm.last_change).days
@@ -337,8 +339,14 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
 
                 count_anonymous_review += 1
 
+            if reviewCount == 0 and art.last_status_change:
+                decision_due_date = art.last_status_change + timedelta(days=10)
+
             if acceptedReviewCount >= 2:
                 reviewsStepDoneClass = "step-done"
+                if lastReviewDate:
+                    decision_due_date = lastReviewDate + timedelta(days=10)
+
 
             if completedReviewCount == acceptedReviewCount and completedReviewCount != 0:
                 recommendationStepClass = "step-done"
@@ -410,7 +418,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 reviewers=reviewers,
                 there_are_recommendation_reminder=there_are_recommendation_reminder,
                 nb_days_since_decision=nb_days_since_decision,
-                nb_days_since_validation=nb_days_since_validation
+                nb_days_since_validation=nb_days_since_validation,
+                decision_due_date=decision_due_date.strftime("%d %B %Y") if decision_due_date else ''
             )
             recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
 
@@ -457,7 +466,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             reviewers=[],
             there_are_recommendation_reminder=False,
             nb_days_since_decision=0,
-            nb_days_since_validation=0
+            nb_days_since_validation=0,
+            decision_due_date=None
         )
 
         recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
