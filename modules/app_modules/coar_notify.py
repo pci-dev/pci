@@ -294,7 +294,6 @@ def send_ack(self,
     origin_req = get_origin_request(article)
     if not origin_req: return
 
-    target_inbox = origin_req["origin"]["inbox"]
     del origin_req["@context"]
 
     notification = {
@@ -307,6 +306,7 @@ def send_ack(self,
           },
     }
 
+    target_inbox = origin_req["origin"]["inbox"]
     notification = self.add_base_notification_properties(notification, target_inbox)
     self._send_notification(notification, target_inbox)
 
