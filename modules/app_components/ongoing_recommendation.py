@@ -189,6 +189,9 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
 
 ########################################################################################################################################################################
 def getRecommendationProcessForSubmitter(art: Article, printable: bool):
+    if pciRRactivated:
+        return getRecommendationProcessForSubmitterRR(art, printable)
+    
     db = current.db
 
     is_submitter = bool(art.user_id == current.auth.user_id)
@@ -471,6 +474,181 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
         )
 
         recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
+    if (managerDecisionDoneClass == "step-done") or (managerDecisionDoneClass == "step-default" and art.status == "Recommended-private"):
+        isRecommAvalaibleToSubmitter = True
+    return dict(roundNumber=totalRecomm, isRecommAvalaibleToSubmitter=isRecommAvalaibleToSubmitter, content=recommendationDiv)
+
+
+def getRecommendationProcessForSubmitterRR(art: Article, printable: bool):
+    db = current.db
+
+    recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
+
+    submissionValidatedClassClass = "step-default"
+    havingRecommenderClass = "step-default"
+    reviewInvitationsAcceptedClass = "step-default"
+    reviewsStepDoneClass = "step-default"
+    recommendationStepClass = "step-default"
+    managerDecisionDoneClass = "step-default"
+    isRecommAvalaibleToSubmitter = False
+
+    if not (art.status in ["Pending", "Pending-survey", "Pre-submission"]):
+        submissionValidatedClassClass = "step-done"
+    uploadDate = art.upload_timestamp.strftime("%d %B %Y") if art.upload_timestamp else ''
+
+    suggestedRecommendersCount = db(db.t_suggested_recommenders.article_id == art.id).count()
+
+    recomms = db(db.t_recommendations.article_id == art.id).select(orderby=db.t_recommendations.id)
+    totalRecomm = len(recomms)
+
+    if totalRecomm > 0:
+        havingRecommenderClass = "step-done"
+
+    roundNumber = 1
+
+    recommStatus = None
+    reviewCount = 0
+    acceptedReviewCount = 0
+    completedReviewCount = 0
+
+    recommenderName = None
+
+    if totalRecomm > 0:
+        for recomm in recomms:
+            reviewInvitationsAcceptedClass = "step-default"
+            reviewsStepDoneClass = "step-default"
+            recommendationStepClass = "step-default"
+            managerDecisionDoneClass = "step-default"
+            authorsReplyClass = "step-default"
+            recommDate = recomm.last_change.strftime("%d %B %Y")
+            validationDate = recomm.validation_timestamp.strftime("%d %B %Y") if recomm.validation_timestamp else None
+            if roundNumber < totalRecomm:
+                nextRound = recomms[roundNumber]
+                authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT)
+            else:
+                authorsReplyDate = None # current round
+
+            recommenderName = common_small_html.getRecommAndReviewAuthors(
+                recomm=recomm, with_reviewers=False, linked=not (printable), fullURL=True,
+            )
+
+            recommStatus = None
+            reviewCount = 0
+            acceptedReviewCount = 0
+            completedReviewCount = 0
+
+            reviews = cast(List[Review], db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Cancelled")).select(
+                orderby=db.t_reviews.id
+            ))
+
+            lastReviewDate: Optional[datetime.datetime] = None
+            for review in reviews:
+                reviewCount += 1
+                if review.review_state == "Awaiting review":
+                    acceptedReviewCount += 1
+                if review.review_state == "Review completed":
+                    acceptedReviewCount += 1
+                    completedReviewCount += 1
+                if review.last_change:
+                    if not lastReviewDate:
+                        lastReviewDate = review.last_change
+                    elif review.last_change > lastReviewDate:
+                        lastReviewDate = review.last_change
+
+            if acceptedReviewCount >= 2:
+                reviewInvitationsAcceptedClass = "step-done"
+
+            if completedReviewCount == acceptedReviewCount and completedReviewCount != 0:
+                reviewsStepDoneClass = "step-done"
+
+            if recomm.recommendation_state == "Rejected" or recomm.recommendation_state == "Recommended" or recomm.recommendation_state == "Revision":
+                recommendationStepClass = "step-done"
+                recommStatus = recomm.recommendation_state
+
+            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision", "Scheduled submission revision")) or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
+                managerDecisionDoneClass = "step-done"
+
+            if recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
+                managerDecisionDoneStepClass = "progress-step-div"
+            else:
+                managerDecisionDoneStepClass = "progress-last-step-div"
+
+            if (roundNumber < totalRecomm) and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None)):
+                authorsReplyClass = "step-done"
+
+            if roundNumber == totalRecomm and recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
+                authorsReplyClassStepClass = "progress-last-step-div"
+            else:
+                authorsReplyClassStepClass = "progress-step-div"
+
+            recommendationLink = None
+            if recommStatus == "Recommended" and managerDecisionDoneClass == "step-done":
+                recommendationLink = common_tools.URL(c="articles", f="rec", vars=dict(id=art.id), scheme=True)
+
+            componentVars = dict(
+                printable=printable,
+                roundNumber=roundNumber,
+                articleStatus=art.status,
+                submissionValidatedClassClass=submissionValidatedClassClass,
+                havingRecommenderClass=havingRecommenderClass,
+                suggestedRecommendersCount=suggestedRecommendersCount,
+                recommenderName=recommenderName,
+                reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
+                reviewCount=reviewCount,
+                lastReviewDate=lastReviewDate.strftime("%d %B %Y") if lastReviewDate else '',
+                acceptedReviewCount=acceptedReviewCount,
+                reviewsStepDoneClass=reviewsStepDoneClass,
+                completedReviewCount=completedReviewCount,
+                recommendationStepClass=recommendationStepClass,
+                recommStatus=recommStatus,
+                recommDate=recommDate,
+                validationDate = validationDate,
+                authorsReplyDate=authorsReplyDate,
+                managerDecisionDoneClass=managerDecisionDoneClass,
+                managerDecisionDoneStepClass=managerDecisionDoneStepClass,
+                authorsReplyClass=authorsReplyClass,
+                authorsReplyClassStepClass=authorsReplyClassStepClass,
+                totalRecomm=totalRecomm,
+                recommendationLink=recommendationLink,
+                uploadDate=uploadDate,
+            )
+            recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter_rr.html", componentVars))) # type: ignore
+
+            roundNumber += 1
+
+    else:
+        managerDecisionDoneStepClass = "progress-last-step-div"
+        recommDate = False
+        lastReviewDate = None
+        authorsReplyDate = False
+        validationDate = False
+
+        componentVars = dict(
+            printable=printable,
+            roundNumber=roundNumber,
+            articleStatus=art.status,
+            submissionValidatedClassClass=submissionValidatedClassClass,
+            havingRecommenderClass=havingRecommenderClass,
+            suggestedRecommendersCount=suggestedRecommendersCount,
+            recommenderName=recommenderName,
+            reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
+            reviewCount=reviewCount,
+            lastReviewDate=lastReviewDate.strftime("%d %B %Y") if lastReviewDate else '',
+            acceptedReviewCount=acceptedReviewCount,
+            reviewsStepDoneClass=reviewsStepDoneClass,
+            completedReviewCount=completedReviewCount,
+            recommendationStepClass=recommendationStepClass,
+            recommStatus=recommStatus,
+            recommDate=recommDate,
+            validationDate = validationDate,
+            authorsReplyDate=authorsReplyDate,
+            managerDecisionDoneClass=managerDecisionDoneClass,
+            managerDecisionDoneStepClass=managerDecisionDoneStepClass,
+            totalRecomm=totalRecomm,
+            uploadDate=uploadDate,
+        )
+
+        recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter_rr.html", componentVars))) # type: ignore
     if (managerDecisionDoneClass == "step-done") or (managerDecisionDoneClass == "step-default" and art.status == "Recommended-private"):
         isRecommAvalaibleToSubmitter = True
     return dict(roundNumber=totalRecomm, isRecommAvalaibleToSubmitter=isRecommAvalaibleToSubmitter, content=recommendationDiv)
