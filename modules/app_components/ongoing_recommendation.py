@@ -208,7 +208,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
     isRecommAvalaibleToSubmitter = False
     nb_days_since_completion = 0
 
-    if art.status in ["Pending", "Pending-survey", "Pre-submission"]:
+    if art.status == ArticleStatus.PRE_SUBMISSION.value:
         articleHasBeenCompleted = False
 
     if art.upload_timestamp: 
@@ -219,7 +219,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
         else:
             nb_days_since_completion = nb_days
 
-    if not art.validation_timestamp:
+    if not articleHasBeenCompleted and not art.validation_timestamp:
         submissionValidatedClass = "step-default"
 
     uploadDate = art.upload_timestamp.strftime("%d %B %Y") if art.upload_timestamp else ''
@@ -229,8 +229,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
     declined_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id, declined=True)
 
     scheduled_reminder_suggested_recommender = \
-    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterSuggestedRecommenderNeeded", [SendingStatus.IN_QUEUE, SendingStatus.PENDING, SendingStatus.SENT])) > 0 or \
-    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterNewSuggestedRecommenderNeeded", [SendingStatus.IN_QUEUE, SendingStatus.PENDING, SendingStatus.SENT])) > 0
+    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0 or \
+    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterNewSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0
 
     recomms = Article.get_last_recommendations(art.id, db.t_recommendations.id)
     totalRecomm = len(recomms)
@@ -297,61 +297,75 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             completedReviewCount = 0
             declined_review_count = 0
 
-            there_are_review_reminder = \
-                MailQueue.there_are_mails_for_article_recommendation(art.id, recomm.id, "#ReminderRecommenderReviewersNeeded", [SendingStatus.IN_QUEUE, SendingStatus.PENDING, SendingStatus.SENT]) > 0 or \
-                MailQueue.there_are_mails_for_article_recommendation(art.id, recomm.id, "#ReminderRecommenderNewReviewersNeeded", [SendingStatus.IN_QUEUE, SendingStatus.PENDING, SendingStatus.SENT]) > 0
+            if roundNumber < 2:
+                there_are_review_reminder = \
+                len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderReviewersNeeded", [SendingStatus.PENDING])) > 0 or \
+                len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderNewReviewersNeeded", [SendingStatus.PENDING])) > 0
 
-            there_are_recommendation_reminder = MailQueue.there_are_mails_for_article_recommendation(art.id, recomm.id, "#ReminderRecommenderDecisionOverDue", [SendingStatus.IN_QUEUE, SendingStatus.PENDING, SendingStatus.SENT]) > 0
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderDecisionOverDue", [SendingStatus.PENDING])) > 0
+            else:
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderRevisedDecisionOverDue", [SendingStatus.PENDING])) > 0
 
-            reviews = cast(List[Review], db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state != "Cancelled")).select(
-                orderby=db.t_reviews.id
-            ))
+                there_are_review_reminder = \
+                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationNewUser", [SendingStatus.PENDING])) > 0 or \
+                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationRegisteredUser", [SendingStatus.PENDING])) > 0 or \
+                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerInvitationNewRoundRegisteredUser", [SendingStatus.PENDING])) > 0
+
+            reviews = Review.get_by_recommendation_id(recomm.id, db.t_reviews.id)
 
             lastReviewDate: Optional[datetime.datetime] = None
-            count_anonymous_review: int = 0
+            count_anonymous_review: int = 1
             reviewer_name: Optional[str] = None
             reviewers = []
 
             for review in reviews:
                 reviewCount += 1
-                if review.review_state == "Awaiting review":
+                if review.review_state == ReviewState.AWAITING_REVIEW.value:
                     acceptedReviewCount += 1
-                if review.review_state == "Review completed":
+                if review.review_state == ReviewState.REVIEW_COMPLETED.value:
                     acceptedReviewCount += 1
                     completedReviewCount += 1
-                if review.review_state == ReviewState.DECLINED.value:
+                if review.review_state in (ReviewState.DECLINED.value, ReviewState.DECLINED_MANUALLY.value, ReviewState.DECLINED_BY_RECOMMENDER.value):
                     declined_review_count += 1
-                if review.last_change:
+                if review.last_change and review.review_state == ReviewState.REVIEW_COMPLETED.value:
                     if not lastReviewDate:
                         lastReviewDate = review.last_change
                     elif review.last_change > lastReviewDate:
                         lastReviewDate = review.last_change
 
-                if not review.anonymously or (current.auth.has_membership(role=Role.MANAGER.value) and not is_submitter):
+                if is_submitter:
+                    reviewer_name = f"Anonymous reviewer {common_tools.find_reviewer_number(review, count_anonymous_review)}"
+                elif current.auth.has_membership(role=Role.MANAGER.value) or current.auth.has_membership(role=Role.RECOMMENDER.value):
                     reviewer_name = Review.get_reviewer_name(review)
                 else:
-                    reviewer_name = f"Anonymous reviewer {common_tools.find_reviewer_number(review, count_anonymous_review)}"
-                    
+                    if review.anonymously:
+                        reviewer_name = f"Anonymous reviewer {common_tools.find_reviewer_number(review, count_anonymous_review)}"
+                    else:
+                        reviewer_name = Review.get_reviewer_name(review)
 
                 if review.review_state == ReviewState.REVIEW_COMPLETED.value:
                     completed_date = review.last_change.strftime("%d %B %Y") if review.last_change else ""
                     reviewers.append(DIV(SPAN(SPAN(reviewer_name, _style="color: #29abe0") + ", completed: " , _style="font-weight: bold"), completed_date))
-                else:
+                elif review.review_state == ReviewState.AWAITING_REVIEW.value:
                     due_date = Review.get_due_date(review).strftime("%d %B %Y")
                     reviewers.append(DIV(SPAN(SPAN(reviewer_name, _style="color: #29abe0") + ", due date: ", _style="font-weight: bold"), due_date))
 
                 count_anonymous_review += 1
 
-            if reviewCount == 0 and art.last_status_change:
+            if acceptedReviewCount == 0 and not there_are_review_reminder and art.last_status_change:
                 decision_due_date = art.last_status_change + timedelta(days=10)
 
-            if acceptedReviewCount >= 2:
-                reviewsStepDoneClass = "step-done"
-                if lastReviewDate:
-                    decision_due_date = lastReviewDate + timedelta(days=10)
+            if roundNumber < 2:
+                if acceptedReviewCount >= 2:
+                    reviewsStepDoneClass = "step-done"
+            else:
+                if completedReviewCount == acceptedReviewCount and completedReviewCount >= 1 and not there_are_review_reminder:
+                    reviewsStepDoneClass = "step-done"
 
-
-            if completedReviewCount == acceptedReviewCount and completedReviewCount != 0:
+            if reviewsStepDoneClass == "step-done" and lastReviewDate:
+                decision_due_date = lastReviewDate + timedelta(days=10)
+                
+            if completedReviewCount == acceptedReviewCount and completedReviewCount >= 2:
                 recommendationStepClass = "step-done"
 
             if recomm.recommendation_state == "Rejected" or recomm.recommendation_state == "Recommended" or recomm.recommendation_state == "Revision":
@@ -466,7 +480,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             declined_review_count=declined_review_count,
             there_are_review_reminder=there_are_review_reminder,
             recommendation_date="",
-            reviewers=[],
+            reviewers=reviewers,
             there_are_recommendation_reminder=False,
             nb_days_since_decision=0,
             nb_days_since_validation=0,
