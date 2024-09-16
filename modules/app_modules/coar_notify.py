@@ -295,6 +295,8 @@ def send_ack(self,
     if not origin_req: return
 
     target_inbox = origin_req["origin"]["inbox"]
+    del origin_req["@context"]
+
     notification = {
           "type": typ,
           "object": origin_req,
