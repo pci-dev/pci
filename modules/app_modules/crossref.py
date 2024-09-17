@@ -59,10 +59,26 @@ def get_filename(recomm: Recommendation):
 
 
 def mk_affiliation(user: User):
-    if hasattr(user, "is_pseudo"): return "(unavailable)"
+    if hasattr(user, "is_pseudo"):
+        return "(unavailable)"
 
-    _ = user
-    return f"{_.laboratory}, {_.institution} – {_.city}, {_.country}"
+    affiliation = ""
+    if user.laboratory:
+        affiliation += user.laboratory
+    if user.laboratory and user.institution:
+        affiliation += ", "
+    if user.institution:
+        affiliation += f"{user.institution}"
+    if user.city or user.country:
+        affiliation += " – "
+    if user.city:
+        affiliation += user.city
+    if user.city and user.country:
+        affiliation += ", "
+    if user.country:
+        affiliation += user.country
+
+    return affiliation
 
 
 def post(filename: str, crossref_xml: str):
