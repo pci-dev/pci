@@ -128,9 +128,9 @@ def get_citation_list(recomm: Recommendation):
         doi = extract_doi(reference)
         if doi:
             doi = doi.replace('https://doi.org/', '')
-            citations.append(f"<citation key=\"ref{i + 1}\"><doi>{doi}</doi></citation>")
+            citations.append(f"<citation key=\"ref{i + 1}\"><doi>{html.escape(doi)}</doi></citation>")
         else:
-            citations.append(f"<citation key=\"refunstruc{i + 1}\"><unstructured_citation>{reference}</unstructured_citation></citation>")
+            citations.append(f"<citation key=\"refunstruc{i + 1}\"><unstructured_citation>{html.escape(reference)}</unstructured_citation></citation>")
     return citations
 
 
