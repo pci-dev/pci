@@ -1,6 +1,8 @@
+import html
 from app_modules.common_tools import extract_doi
-from typing import List, Optional
+from typing import Any, List, Optional
 from app_modules.httpClient import HttpClient
+from gluon.html import DIV, XML
 from models.article import Article
 from models.press_reviews import PressReview
 from models.recommendation import Recommendation
@@ -8,7 +10,6 @@ from models.user import User
 import re
 
 from gluon import current
-from gluon.html import TAG
 
 
 db = current.db
@@ -59,10 +60,26 @@ def get_filename(recomm: Recommendation):
 
 
 def mk_affiliation(user: User):
-    if hasattr(user, "is_pseudo"): return "(unavailable)"
+    if hasattr(user, "is_pseudo"):
+        return "(unavailable)"
 
-    _ = user
-    return f"{_.laboratory}, {_.institution} – {_.city}, {_.country}"
+    affiliation = ""
+    if user.laboratory:
+        affiliation += user.laboratory
+    if user.laboratory and user.institution:
+        affiliation += ", "
+    if user.institution:
+        affiliation += f"{user.institution}"
+    if user.city or user.country:
+        affiliation += " – "
+    if user.city:
+        affiliation += user.city
+    if user.city and user.country:
+        affiliation += ", "
+    if user.country:
+        affiliation += user.country
+
+    return affiliation
 
 
 def post(filename: str, crossref_xml: str):
@@ -111,10 +128,25 @@ def get_citation_list(recomm: Recommendation):
         doi = extract_doi(reference)
         if doi:
             doi = doi.replace('https://doi.org/', '')
-            citations.append(f"<citation key=\"ref{i + 1}\"><doi>{doi}</doi></citation>")
+            citations.append(f"<citation key=\"ref{i + 1}\"><doi>{html.escape(doi)}</doi></citation>")
         else:
-            citations.append(f"<citation key=\"refunstruc{i + 1}\"><unstructured_citation>{reference}</unstructured_citation></citation>")
+            citations.append(f"<citation key=\"refunstruc{i + 1}\"><unstructured_citation>{html.escape(reference)}</unstructured_citation></citation>")
     return citations
+
+
+def he(non_html_str: Optional[Any]):
+    """Html escape (he)"""
+
+    if non_html_str is None:
+        return ""
+    
+    if isinstance(non_html_str, DIV) or isinstance(non_html_str, XML):
+        non_html_str = str(non_html_str.flatten()) # type: ignore
+    elif not isinstance(non_html_str, str):
+        non_html_str = str(non_html_str)
+    
+    non_html_str = re.sub(r'\*(.*?)\*', r'\1', non_html_str)
+    return html.escape(non_html_str)
 
 
 def crossref_xml(recomm: Recommendation):
@@ -161,11 +193,11 @@ def crossref_xml(recomm: Recommendation):
             {crossref.xsd}"
         version="{crossref.version}">
     <head>
-        <doi_batch_id>{batch_id}</doi_batch_id>
+        <doi_batch_id>{he(batch_id)}</doi_batch_id>
         <timestamp>{timestamp}</timestamp>
         <depositor>
             <depositor_name>peercom</depositor_name>
-            <email_address>{pci.email}</email_address>
+            <email_address>{he(pci.email)}</email_address>
         </depositor>
         <registrant>Peer Community In</registrant>
     </head>
@@ -173,14 +205,14 @@ def crossref_xml(recomm: Recommendation):
     <journal>
 
     <journal_metadata language="en">
-        <full_title>{TAG(pci.long_name)}</full_title>
-        <abbrev_title>{TAG(pci.short_name)}</abbrev_title>
+        <full_title>{he(pci.long_name)}</full_title>
+        <abbrev_title>{he(pci.short_name)}</abbrev_title>
         """ + (f"""
         <issn media_type='electronic'>{pci.issn}</issn>
         """ if pci.issn else "") + f"""
         <doi_data>
-            <doi>{pci.doi}</doi>
-            <resource>{pci.url}/</resource>
+            <doi>{he(pci.doi)}</doi>
+            <resource>{he(pci.url)}/</resource>
         </doi_data>
     </journal_metadata>
 
@@ -196,21 +228,21 @@ def crossref_xml(recomm: Recommendation):
 
     <titles>
         <title>
-            {TAG(recomm_title)}
+            {he(recomm_title)}
         </title>
     </titles>
 
     <contributors>
         <person_name sequence='first' contributor_role='author'>
-            <given_name>{TAG(recommender.first_name)}</given_name>
-            <surname>{TAG(recommender.last_name)}</surname>
-            <affiliation>{TAG(recommender.affiliation)}</affiliation>
+            <given_name>{he(recommender.first_name)}</given_name>
+            <surname>{he(recommender.last_name)}</surname>
+            <affiliation>{he(recommender.affiliation)}</affiliation>
         </person_name>
         """ + "\n".join([f"""
         <person_name sequence='additional' contributor_role='author'>
-            <given_name>{TAG(co_recommender.first_name)}</given_name>
-            <surname>{TAG(co_recommender.last_name)}</surname>
-            <affiliation>{TAG(co_recommender.affiliation)}</affiliation>
+            <given_name>{he(co_recommender.first_name)}</given_name>
+            <surname>{he(co_recommender.last_name)}</surname>
+            <affiliation>{he(co_recommender.affiliation)}</affiliation>
         </person_name>
         """ for co_recommender in co_recommenders ]) + f"""
     </contributors>
@@ -222,7 +254,7 @@ def crossref_xml(recomm: Recommendation):
     </publication_date>
 
     <publisher_item>
-        <item_number item_number_type="article_number">{item_number}</item_number>
+        <item_number item_number_type="article_number">{he(item_number)}</item_number>
     </publisher_item>
 
     <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
@@ -235,26 +267,26 @@ def crossref_xml(recomm: Recommendation):
     <program xmlns="http://www.crossref.org/relations.xsd">
     <related_item>
         <description>
-            {TAG(recomm_description_text)}
+            {he(recomm_description_text)}
         </description>
         <inter_work_relation
             relationship-type="isReviewOf"
             identifier-type="{interwork_type}">
-            {interwork_ref}
+            {he(interwork_ref)}
         </inter_work_relation>
     </related_item>
     </program>
 
     <doi_data>
-        <doi>{recomm_doi}</doi>
+        <doi>{he(recomm_doi)}</doi>
         <resource>
-            {recomm_url}
+            {he(recomm_url)}
         </resource>
 
         <collection property="crawler-based">
         <item crawler="iParadigms">
         <resource>
-            {recomm_url}
+            {he(recomm_url)}
         </resource>
         </item>
         </collection>
@@ -262,7 +294,7 @@ def crossref_xml(recomm: Recommendation):
         <collection property="text-mining">
         <item>
         <resource content_version="vor">
-            {recomm_url}
+            {he(recomm_url)}
         </resource>
         </item>
         </collection>
