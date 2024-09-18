@@ -1,8 +1,6 @@
 from app_modules import crossref
 from app_modules.clockss import send_to_clockss
 
-crossref.init_conf()
-
 is_admin = auth.has_membership(role="administrator")
 
 def index():
