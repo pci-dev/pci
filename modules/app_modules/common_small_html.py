@@ -38,7 +38,7 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 # Time and date
 ######################################################################################################################################################################
-def mkLastChange(t):
+def mkLastChange(t: Optional[datetime.datetime]):
     if t:
         d = datetime.datetime.now() - t
         if d.days == 0:
@@ -184,14 +184,14 @@ def mkUserWithMail(userId: Optional[int], linked: bool = False, reverse: bool = 
     else:
         theUser = None
 
-    user_with_mail = _mkUser(theUser, linked, reverse)
+    user_with_mail = mk_user(theUser, linked, reverse)
     if orcid and theUser:
         return OrcidTools.build_name_with_orcid(user_with_mail, theUser.orcid)
     else:
         return user_with_mail
 
 
-def _mkUser(theUser: Optional[User], linked: bool = False, reverse: bool = False):
+def mk_user(theUser: Optional[User], linked: bool = False, reverse: bool = False):
         if theUser:
             if reverse: name = "%s, %s" % (theUser.last_name, theUser.first_name)
             else: name = "%s %s" % (theUser.first_name, theUser.last_name)
@@ -215,7 +215,7 @@ def _mkUser(theUser: Optional[User], linked: bool = False, reverse: bool = False
 ######################################################################################################################################################################
 # Article status
 ######################################################################################################################################################################
-statusArticles = dict()
+statusArticles: Optional[Dict[str, Dict[str, str]]] = dict()
 
 
 def mkStatusArticles():
@@ -237,13 +237,13 @@ def mkStatusSimple(status):
 
 ######################################################################################################################################################################
 # Builds a coloured status label
-def mkStatusDiv(status, showStage=False, stage1Id=None, reportStage="Stage not set", submission_change=False):
+def mkStatusDiv(status: str, showStage: bool = False, stage1Id: Optional[int] = None, reportStage: Optional[str] = "Stage not set", submission_change: Optional[bool] = False):
     auth = current.auth
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles()
     status_txt = (current.T(status)).upper()
-    color_class = statusArticles[status]["color_class"] or "default"
-    hint = statusArticles[status]["explaination"] or ""
+    color_class = statusArticles[status]["color_class"] or "default" if statusArticles is not None else "default"
+    hint = statusArticles[status]["explaination"] or "" if statusArticles is not None else ""
     change_text = "Triage revision" if submission_change else "Initial submission"
 
     if showStage:
@@ -262,18 +262,12 @@ def mkStatusDiv(status, showStage=False, stage1Id=None, reportStage="Stage not s
             reportStage = "STAGE 1"
             stage1Link = ""
 
-        if reportStage is not None:
-            result = DIV(
-                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T(reportStage)), stage1Link, _class="pci-status-addition", _style="text-align: center; width: 150px;"),
-                DIV(B(current.T(change_text)), _class="pci-status-addition", _style="text-align: center;"),
-            )
-        else:
-            result = DIV(
-                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T("Stage not set")), stage1Link, _class="pci-status-addition", _style="text-align: center; width: 150px;"),
-                DIV(B(current.T(change_text)), _class="pci-status-addition", _style="text-align: center;"),
-            )
+        result = DIV(
+            DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
+            DIV(B(current.T(reportStage)), stage1Link, _class="pci-status-addition", _style="text-align: center; width: 150px;"),
+            DIV(B(current.T(change_text)), _class="pci-status-addition", _style="text-align: center;"),
+        )
+        
 
     else:
         result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
@@ -549,7 +543,7 @@ def mkRepresentArticleLightLinkedWithStatus(article_id, urlArticle=None):
 
 
 ######################################################################################################################################################################
-def mkRepresentArticleLight(article_id):
+def mkRepresentArticleLight(article_id: int):
     db = current.db
     anchor = ""
     art = db.t_articles[article_id]
