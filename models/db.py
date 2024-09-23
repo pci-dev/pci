@@ -407,8 +407,10 @@ def newRegistration(s, f):
 
 
 def is_spam(user):
+    chars = myconf.get('config.banned_chars')
     return (
         re.match(".*[0-9]", f"{user.first_name} {user.last_name}")
+        or re.match(f".*[{chars}]", user.cv) and chars
     )
 
 
