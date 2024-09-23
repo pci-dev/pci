@@ -397,8 +397,28 @@ def newRegistration(s, f):
         f["registration_key"] = ""
     if o.registration_key != "" and f["registration_key"] == "" and (o["recover_email_key"] is None or o["recover_email_key"] == ""):
         emailing.send_new_user(o.id)
+
+        if is_spam(o):
+            Thread(target=discard_spam, args=[cast(User, o), db]).start()
+            return
+
         emailing.send_admin_new_user(o.id)
     return None
+
+
+def is_spam(user):
+    return (
+        re.match(".*[0-9]", f"{user.first_name} {user.last_name}")
+    )
+
+
+def discard_spam(user: User, db):
+    from time import sleep
+    sleep(10)
+    current.db = db
+    common_tools.delete_user_from_PCI(user)
+    db.commit()
+
 
 def ondelete_user(set: ...):
     user_to_delete = cast(User, set.select().first())
