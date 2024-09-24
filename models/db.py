@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import locale
+locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
+
 from typing import cast
 from app_components.custom_validator import CUSTOM_VALID_URL, VALID_DOI
 from app_modules.coar_notify import COARNotifier
@@ -397,8 +400,30 @@ def newRegistration(s, f):
         f["registration_key"] = ""
     if o.registration_key != "" and f["registration_key"] == "" and (o["recover_email_key"] is None or o["recover_email_key"] == ""):
         emailing.send_new_user(o.id)
+
+        if is_spam(o):
+            Thread(target=discard_spam, args=[cast(User, o), db]).start()
+            return
+
         emailing.send_admin_new_user(o.id)
     return None
+
+
+def is_spam(user):
+    chars = myconf.get('config.banned_chars')
+    return (
+        re.match(".*[0-9]", f"{user.first_name} {user.last_name}")
+        or re.match(f".*[{chars}]", user.cv) and chars
+    )
+
+
+def discard_spam(user: User, db):
+    from time import sleep
+    sleep(10)
+    current.db = db
+    common_tools.delete_user_from_PCI(user)
+    db.commit()
+
 
 def ondelete_user(set: ...):
     user_to_delete = cast(User, set.select().first())
