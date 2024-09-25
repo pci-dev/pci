@@ -1,14 +1,14 @@
-from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from enum import Enum
-from typing import Any, Iterable, List, Optional as _, Tuple, cast
+from typing import Any, List, Optional as _, Tuple, Union, cast, TYPE_CHECKING
 from models.article import is_scheduled_submission
-from models.article import Article
-from models.recommendation import Recommendation
-from models.report_survey import ReportSurvey
-from models.user import User
 from pydal.objects import Row, Rows
 from gluon import current
+
+if TYPE_CHECKING:
+    from models.article import Article
+    from models.recommendation import Recommendation
+    from models.user import User
 
 class ReviewDuration(Enum):
     FIVE_WORKING_DAY = 'Five working days'
@@ -62,19 +62,36 @@ class Review(Row):
 
 
     @staticmethod
-    def get_by_recommendation_id(id: int, order_by: _[Any] = None):
+    def get_by_recommendation_id(id: int, order_by: _[Any] = None, review_states: List[ReviewState] = []) -> List['Review']:
         db = current.db
-        if order_by:
-            return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select(orderby=order_by))
+
+        if len(review_states) > 0:
+            states = [state.value for state in review_states]
+            query = db((db.t_reviews.recommendation_id == id) & (db.t_reviews.review_state.belongs(states)))
         else:
-            return cast(Iterable[Review], db(db.t_reviews.recommendation_id == id).select())
+            query = db(db.t_reviews.recommendation_id == id)
+
+        if order_by:
+            return query.select(orderby=order_by)
+        else:
+            return query.select()
     
 
     @staticmethod
-    def get_by_article_id_and_state(article_id: int, state: ReviewState):
+    def get_by_article_id_and_state(article_id: int, review_states: Union[ReviewState, List[ReviewState]], order_by: _[Any] = None) -> List['Review']:
         db = current.db
-        recommendations_id = cast(Rows, db(db.t_recommendations.article_id == article_id).select(db.t_recommendations.id))
-        reviews = cast(List[Review],db((db.t_reviews.review_state == state.value) & (db.t_reviews.recommendation_id).belongs(recommendations_id)).select())
+        recommendations_id: Rows = db(db.t_recommendations.article_id == article_id).select(db.t_recommendations.id)
+
+        if not isinstance(review_states, List):
+            states = [review_states.value]
+        else:
+            states = [state.value for state in review_states]
+
+        query = db((db.t_reviews.review_state.belongs(states)) & (db.t_reviews.recommendation_id).belongs(recommendations_id))
+        if order_by:
+            reviews = query.select(orderby=order_by)
+        else:
+            reviews = query.select()
         return reviews
     
     
@@ -88,7 +105,7 @@ class Review(Row):
 
 
     @staticmethod
-    def accept_review(review: Review, article: Article, anonymous_agreement: _[bool] = False, state: ReviewState = ReviewState.AWAITING_REVIEW):
+    def accept_review(review: 'Review', article: 'Article', anonymous_agreement: _[bool] = False, state: ReviewState = ReviewState.AWAITING_REVIEW):
         review.review_state = state.value
         review.no_conflict_of_interest = True
         review.acceptation_timestamp = datetime.now()
@@ -99,13 +116,13 @@ class Review(Row):
     
 
     @staticmethod
-    def set_suggested_reviewers_send(review: Review):
+    def set_suggested_reviewers_send(review: 'Review'):
         review.suggested_reviewers_send = True
         return review.update_record()
     
     
     @staticmethod
-    def set_review_duration(review: Review, article: Article, review_duration: str):
+    def set_review_duration(review: 'Review', article: 'Article', review_duration: str):
         review.review_duration = review_duration
         if not is_scheduled_submission(article):
             due_date = Review.get_due_date_from_review_duration(review)
@@ -115,25 +132,25 @@ class Review(Row):
     
 
     @staticmethod
-    def set_review_status(review: Review, state: ReviewState):
+    def set_review_status(review: 'Review', state: ReviewState):
         review.review_state = state.value
         return review.update_record()
 
 
     @staticmethod
-    def get_unfinished_reviews(recommendation: Recommendation):
+    def get_unfinished_reviews(recommendation: 'Recommendation'):
         db = current.db
         return cast(int, db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs(ReviewState.AWAITING_RESPONSE.value, ReviewState.AWAITING_REVIEW.value))).count())
 
 
     @staticmethod
-    def is_reviewer_also_recommender(recommendation: Recommendation):
+    def is_reviewer_also_recommender(recommendation: 'Recommendation'):
         db = current.db
         return cast(bool, db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.reviewer_id == recommendation.recommender_id)).count() == 1)
 
 
     @staticmethod
-    def set_due_date(review: Review, due_date: datetime):
+    def set_due_date(review: 'Review', due_date: datetime):
         if review.acceptation_timestamp and due_date <= review.acceptation_timestamp:
             raise ValueError(f"Date must be after acceptation date. ({datetime.strftime(review.acceptation_timestamp, '%Y-%m-%d')})")
         review.due_date = due_date
@@ -141,11 +158,11 @@ class Review(Row):
     
 
     @staticmethod
-    def get_due_date(review: Review):
+    def get_due_date(review: 'Review'):
         if review.due_date:
             return review.due_date
         
-        due_date: _[datetime] = None
+        due_date: _[date] = None
         if current.isRR:
             due_date = Review.get_due_date_from_scheduled_submission_date(review)
         
@@ -156,7 +173,7 @@ class Review(Row):
 
 
     @staticmethod
-    def get_due_date_from_review_duration(review: Review):
+    def get_due_date_from_review_duration(review: 'Review'):
         nb_days_from_duration = Review.get_review_days_from_duration(review)
         if review.acceptation_timestamp:
             return review.acceptation_timestamp + timedelta(nb_days_from_duration)
@@ -165,7 +182,11 @@ class Review(Row):
         
 
     @staticmethod
-    def get_due_date_from_scheduled_submission_date(review: Review):
+    def get_due_date_from_scheduled_submission_date(review: 'Review'):
+        from models.article import Article
+        from models.recommendation import Recommendation
+        from models.report_survey import ReportSurvey
+
         recommendation = Recommendation.get_by_id(review.recommendation_id)
         if not recommendation:
             return None
@@ -186,7 +207,7 @@ class Review(Row):
     
 
     @staticmethod
-    def get_review_days_from_duration(review: _[Review]):
+    def get_review_days_from_duration(review: _['Review']):
         dow = datetime.today().weekday()
         duration: str = ''
 
@@ -214,7 +235,7 @@ class Review(Row):
     
 
     @staticmethod
-    def get_review_days_from_due_date(review: _[Review]):
+    def get_review_days_from_due_date(review: _['Review']):
         if review and review.due_date:
             diff = datetime.today() - review.due_date
             return abs(diff.days)
@@ -267,7 +288,9 @@ class Review(Row):
         
 
     @staticmethod
-    def get_reviewer_name(review: Review):
+    def get_reviewer_name(review: 'Review'):
+        from models.user import User
+        
         reviewer = User.get_by_id(review.reviewer_id)
         if not reviewer:
             return "?"
@@ -309,7 +332,7 @@ class Review(Row):
 
 
     @staticmethod
-    def are_equal(review_1: Review, review_2: Review):
+    def are_equal(review_1: 'Review', review_2: 'Review'):
         attributes = getattr(Review, '__annotations__', {})
 
         for attribute in attributes.keys():
