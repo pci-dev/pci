@@ -8,8 +8,8 @@ from PIL import Image
 
 from gluon import current, IS_IN_SET
 from gluon.html import *
-from gluon.contrib.markdown import WIKI
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.markdown import WIKI # type: ignore
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.sqlhtml import *
 from models.article import Article
 from models.recommendation import Recommendation
@@ -105,11 +105,11 @@ def mkLinkDOI(doi: Optional[str]):
 
 
 ######################################################################################################################################################################
-def mkUser(userId: Optional[int], linked: bool = False, orcid: bool = False, orcid_exponant: bool = False):
+def mkUser(userId: Optional[int], linked: bool = False, orcid: bool = False, orcid_exponant: bool = False, reverse: bool = False, mail_link: bool = False):
     if userId is not None:
         theUser = User.get_by_id(userId)
         if theUser:
-            return mkUser_U(theUser, linked=linked, orcid=orcid, orcid_exponant=orcid_exponant)
+            return mkUser_U(theUser, linked=linked, orcid=orcid, orcid_exponant=orcid_exponant, reverse=reverse, mail_link=mail_link)
         else:
             return SPAN("")
     else:
@@ -128,7 +128,7 @@ def mkUserId(userId, linked=False, fullURL=False):
 
 
 ######################################################################################################################################################################
-def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: bool = False, orcid_exponant: bool = False):
+def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: bool = False, orcid_exponant: bool = False, mail_link: bool = False):
     if not user:
         return SPAN("?")
     
@@ -141,7 +141,11 @@ def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: boo
     else:
         name = f"{first_name} {last_name}"
 
-    if linked and not user.deleted:
+    if mail_link and user.email and not user.deleted:
+        result = A(B(name),
+                    _href=f"mailto:{user.email}",
+                    _class="cyp-user-profile-link")    
+    elif linked and not user.deleted:
         result = A(B(name),
                     _href=URL(c="public", f="user_public_page",scheme=True, vars=dict(userId=user.id)),
                     _class="cyp-user-profile-link")
@@ -564,6 +568,52 @@ def mkRepresentArticleLight(article_id: int):
             (BR() + SPAN(art.article_source) if art.article_source else ""),
         )
     return anchor
+
+
+def represent_article_manager_board(article: Article):
+    html: List[Union[DIV, str]] = []
+    last_recommendation = Article.get_last_recommendation(article.id)
+
+    title = " ".join((article.title or "").split(" ")[:7])
+    if article.title and len(article.title) > len(title):
+        title += "…"
+    if article.ms_version:
+        try:
+            title += f" v{int(float(article.ms_version.strip().replace(',', '.')))}"
+        except:
+            pass
+
+    html.append(B(title, _class="article-title", _title=article.title))
+
+    if article.doi or article.doi_of_published_article:
+        html.append(" ")
+        html.append(A("DOI", _href=article.doi or article.doi_of_published_article, _target="_blank", _rel="noreferrer noopener"))
+
+    html.append(BR())
+    html.append(f"ArticleID #{article.id}")
+
+    html.append(BR())
+    html.append("Submitter: ")
+    html.append(mkUser(article.user_id, mail_link=True, orcid=True, reverse=True))
+
+    if last_recommendation:
+        html.append(BR())
+        html.append("Recommender: ")
+        html.append(mkUser(last_recommendation.recommender_id, mail_link=True, orcid=True, reverse=True))
+
+        press_reviews = PressReview.get_by_recommendation(last_recommendation.id)
+        if len(press_reviews) > 0:
+            html.append(BR())
+            html.append("Co-recommender: " if len(press_reviews) == 1 else "Co-recommenders: ") 
+        for i, press_review in enumerate(press_reviews):
+            if press_review.contributor_id:
+                co_recommender = mkUser(press_review.contributor_id, mail_link=True, orcid=True, reverse=True)
+                html.append(co_recommender)
+                if i + 1 < len(press_reviews):
+                    html.append(', ')
+
+
+    return DIV(*html, _style="width: max-content; max-width: 300px;")
 
 
 ######################################################################################################################################################################

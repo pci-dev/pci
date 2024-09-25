@@ -292,7 +292,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     ]   
     
     def article_row(article_id: int, article: Article):
-        return DIV(common_small_html.mkRepresentArticleLight(article_id), _class="pci-w300Cell")
+        return common_small_html.represent_article_manager_board(article)
     
     def submitter_row(user_id: int, article: Article):
         return SPAN(
@@ -410,9 +410,9 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         maxtextlength=250,
         paginate=20,
         fields=[
+            articles.id,
             articles.last_status_change,
             articles.status,
-            articles.id,
             articles.upload_timestamp,
             articles.user_id,
             articles.art_stage_1_id,
@@ -421,6 +421,9 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
             articles.already_published,
             articles.report_stage,
             articles.request_submission_change,
+            articles.ms_version,
+            articles.doi,
+            articles.doi_of_published_article
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
