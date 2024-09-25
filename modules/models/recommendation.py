@@ -144,6 +144,50 @@ class Recommendation(Row):
                         references.append(sub_line)
 
         return references
+    
+
+    @staticmethod
+    def get_decision_due_date(recommendation: 'Recommendation', article: 'Article', round_number: int):
+        from models.review import Review, ReviewState
+        from models.mail_queue import MailQueue, SendingStatus
+
+        if round_number == 1:
+            there_are_review_reminder = len(MailQueue.get_by_article_and_template(
+                    article,
+                    ["#ReminderRecommenderReviewersNeeded","#ReminderRecommenderNewReviewersNeeded"],
+                    [SendingStatus.PENDING])) > 0
+        else:
+            there_are_review_reminder = len(
+                MailQueue.get_by_article_and_template(
+                    article,
+                    ["#ReminderReviewerReviewInvitationNewUser","#ReminderReviewerReviewInvitationRegisteredUser", "#ReminderReviewerInvitationNewRoundRegisteredUser"],
+                    [SendingStatus.PENDING])) > 0
+            
+        accepted_reviews_count = 0
+        completed_reviews_count = 0
+        last_review_date: _[datetime] = None
+        decision_due_date: _[datetime] = None
+
+        reviews = Review.get_by_recommendation_id(recommendation.id, review_states=[ReviewState.AWAITING_REVIEW, ReviewState.REVIEW_COMPLETED])
+        for review in reviews:
+            if review.last_change and (not last_review_date or last_review_date < review.last_change):
+                last_review_date = review.last_change
+                
+            accepted_reviews_count += 1
+            if review == ReviewState.REVIEW_COMPLETED:
+                completed_reviews_count += 1
+
+        if accepted_reviews_count == 0 and not there_are_review_reminder and article.last_status_change:
+            decision_due_date = article.last_status_change + timedelta(days=10)
+        
+        if round_number == 1:
+            if accepted_reviews_count >= 2 and last_review_date:
+                decision_due_date = last_review_date + timedelta(days=10)
+        else:
+            if completed_reviews_count == accepted_reviews_count and completed_reviews_count >= 1 and not there_are_review_reminder and last_review_date:
+                decision_due_date = last_review_date + timedelta(days=10)
+
+        return decision_due_date
 
 
 def _get_reference_line_text(line: str):

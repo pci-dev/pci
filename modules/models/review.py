@@ -342,3 +342,22 @@ class Review(Row):
             if getattr(review_1, attribute, None) != getattr(review_2, attribute, None):
                 return False
         return True
+
+
+    @staticmethod
+    def get_most_recent_review_by_due_date(article_id: int, review_state: ReviewState):
+        reviews = Review.get_by_article_id_and_state(article_id, review_state)
+        most_recent: _[Tuple[Review, datetime]] = None
+        for review in reviews:
+            due_date = Review.get_due_date(review)
+            if not most_recent or most_recent[1] < due_date:
+                if isinstance(due_date, datetime):
+                    most_recent = (review, due_date)
+                else:
+                    most_recent = (review, datetime(
+                        year=due_date.year,
+                        month=due_date.month,
+                        day=due_date.day
+                    ))
+        
+        return most_recent
