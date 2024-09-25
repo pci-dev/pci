@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 import re
 from typing import Any, List, Optional as _, Union, cast, TypedDict
@@ -309,6 +309,112 @@ class Article(Row):
             f"peer-reviewed and recommended by {pci_long_name}",
             f"{article_doi}",
         ])
+    
+
+    @staticmethod
+    def get_alert_date(article: 'Article'):
+        from models.review import Review, ReviewState
+        from models.mail_queue import MailQueue, SendingStatus
+
+        if not article.last_status_change:
+            return None
+        
+        status = ArticleStatus(article.status)
+        recommendations = Recommendation.get_by_article_id(article.id, ~current.db.t_recommendations.id)
+        last_recommendation = recommendations[0] if recommendations else None
+        round_number = len(recommendations)
+        alert_date: _[datetime] = None
+        decision_due_date: _[datetime] = None
+
+        if round_number == 1:
+            if status == ArticleStatus.PRE_SUBMISSION:
+                alert_date = article.last_status_change + timedelta(days=16) # Submission awaiting completion
+            elif status == ArticleStatus.PENDING: 
+                alert_date = article.last_status_change + timedelta(days=2) # Submission pending validation
+            elif status == ArticleStatus.AWAITING_CONSIDERATION:
+                alert_date = article.last_status_change + timedelta(days=20) # Recommender needed
+            elif status == ArticleStatus.UNDER_CONSIDERATION:
+                awaiting_review_tuple = Review.get_most_recent_review_by_due_date(article.id, ReviewState.AWAITING_REVIEW)
+                if last_recommendation:
+                    decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)
+
+                if decision_due_date:
+                    alert_date = decision_due_date + timedelta(days=5) # Awaiting decision
+                elif awaiting_review_tuple:
+                    alert_date = awaiting_review_tuple[1] + timedelta(days=7) # Reviews underway
+                else:
+                    alert_date = article.last_status_change + timedelta(days=25) # Reviewers needed
+                    
+            elif status in (ArticleStatus.PRE_REVISION, ArticleStatus.PRE_REJECTED, ArticleStatus.PRE_RECOMMENDED):
+                alert_date = article.last_status_change + timedelta(days=2) # Decision pending validation
+            elif status == ArticleStatus.AWAITING_REVISION:
+                alert_date = article.last_status_change + timedelta(days=70) # Awaiting revision
+        else:
+            if status == ArticleStatus.UNDER_CONSIDERATION: # Evaluation and decision underway
+                potential_alert_date: _[datetime] = None
+
+                # Alert date 1
+                if last_recommendation:
+                    decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)
+                    if decision_due_date:
+                        potential_alert_date = decision_due_date + timedelta(days=5)
+
+                # Alert date 2
+                accepted_reviews = Review.get_by_article_id_and_state(article.id, [ReviewState.AWAITING_REVIEW, ReviewState.REVIEW_COMPLETED])
+                if len(accepted_reviews) == 0:
+                    review_reminders = MailQueue.get_by_article_and_template(article,
+                                                                                        ["#ReminderReviewerReviewInvitationNewUser","#ReminderReviewerReviewInvitationRegisteredUser", "#ReminderReviewerInvitationNewRoundRegisteredUser"],
+                                                                                        [SendingStatus.PENDING],
+                                                                                        current.db.mail_queue.sending_date)
+                    if len(review_reminders) > 0:
+                        first_sending_date = review_reminders[0].sending_date + timedelta(days=10)
+                        if not potential_alert_date or first_sending_date > potential_alert_date:
+                            potential_alert_date = first_sending_date
+
+                # Alert date 3
+                most_recent_awaiting_review_due_date: _[datetime] = None
+                for review in accepted_reviews:
+                    if review.review_state != ReviewState.AWAITING_REVIEW.value:
+                        continue
+
+                    awaiting_review_due_date = Review.get_due_date(review)
+                    if not isinstance(awaiting_review_due_date, datetime):
+                        awaiting_review_due_date = datetime(
+                            year=awaiting_review_due_date.year,
+                            month=awaiting_review_due_date.month,
+                            day=awaiting_review_due_date.day
+                        )
+
+                    if not most_recent_awaiting_review_due_date or most_recent_awaiting_review_due_date < awaiting_review_due_date:
+                        most_recent_awaiting_review_due_date = awaiting_review_due_date
+
+                if most_recent_awaiting_review_due_date:
+                    most_recent_awaiting_review_due_date = most_recent_awaiting_review_due_date + timedelta(days=7)
+                    if not potential_alert_date or potential_alert_date < most_recent_awaiting_review_due_date:
+                        potential_alert_date = most_recent_awaiting_review_due_date
+                    
+                # Alert date 4
+                if not most_recent_awaiting_review_due_date:
+                    most_recent_completed_review_date: _[datetime] = None
+                    for review in accepted_reviews:
+                        if review.review_state != ReviewState.REVIEW_COMPLETED.value or not review.last_change:
+                            continue
+
+                        if not most_recent_completed_review_date or review.last_change > most_recent_completed_review_date:
+                            most_recent_completed_review_date = review.last_change
+
+                    if most_recent_completed_review_date:
+                        most_recent_completed_review_date = most_recent_completed_review_date + timedelta(days=15)
+                        if not potential_alert_date or potential_alert_date < most_recent_completed_review_date:
+                            potential_alert_date = most_recent_completed_review_date
+
+                alert_date = potential_alert_date
+            elif status in (ArticleStatus.PRE_REVISION, ArticleStatus.PRE_REJECTED, ArticleStatus.PRE_RECOMMENDED): # Decision pending validation
+                alert_date = article.last_status_change + timedelta(days=2)
+            elif status == ArticleStatus.AWAITING_REVISION: # Awaiting Revision
+                alert_date = article.last_status_change + timedelta(days=21)
+
+        return alert_date
 
 
 def is_scheduled_submission(article: Article) -> bool:

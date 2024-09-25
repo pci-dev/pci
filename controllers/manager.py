@@ -293,6 +293,9 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     
     def article_row(article_id: int, article: Article):
         return common_small_html.represent_article_manager_board(article)
+
+    def alert_date_row(article_last_status_change: int, article: Article):
+        return common_small_html.represent_alert_manager_board(article)
     
     def submitter_row(user_id: int, article: Article):
         return SPAN(
@@ -378,10 +381,8 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.upload_timestamp.searchable = False
     articles.last_status_change.searchable = False
 
-    articles.status.represent = status_row
-
-    articles.upload_timestamp.represent = upload_timestamp_row
-    articles.last_status_change.represent = last_status_change_row
+    articles.last_status_change.represent = alert_date_row
+    articles.last_status_change.label = 'Alert date'
 
     for a_field in articles.fields:
         if not a_field in full_text_search_fields:

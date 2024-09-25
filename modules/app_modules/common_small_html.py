@@ -616,6 +616,17 @@ def represent_article_manager_board(article: Article):
     return DIV(*html, _style="width: max-content; max-width: 300px;")
 
 
+def represent_alert_manager_board(article: Article):
+    alert_date = Article.get_alert_date(article)
+
+    if not alert_date:
+        return ''
+    else:
+        return DIV(
+            STRONG(alert_date.strftime(DEFAULT_DATE_FORMAT), _style="color: #B90000; "),
+            _style="width: max-content;")
+    
+
 ######################################################################################################################################################################
 # Builds a nice representation of an article WITHOUT recommendations link
 def mkArticleCellNoRecomm(art0):
