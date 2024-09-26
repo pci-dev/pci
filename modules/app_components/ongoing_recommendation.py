@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta
 from typing import Any, Dict, List, Optional, cast
 from dateutil.relativedelta import *
 
@@ -8,6 +9,7 @@ from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.sqlhtml import *
 from app_modules.helper import *
+from models.mail_queue import MailQueue, SendingStatus
 from models.recommendation import Recommendation, RecommendationState
 
 from app_modules import common_tools
@@ -19,6 +21,7 @@ from controller_modules import manager_module
 from models.article import is_scheduled_submission
 from models.group import Role
 from models.review import Review, ReviewState
+from models.suggested_recommender import SuggestedRecommender
 
 myconf = AppConfig(reload=True)
 
@@ -186,6 +189,311 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
 
 ########################################################################################################################################################################
 def getRecommendationProcessForSubmitter(art: Article, printable: bool):
+    if pciRRactivated:
+        return getRecommendationProcessForSubmitterRR(art, printable)
+    
+    db = current.db
+
+    is_submitter = bool(art.user_id == current.auth.user_id)
+
+    recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
+
+    submissionValidatedClass = "step-done"
+    havingRecommenderClass = "step-default"
+    reviewInvitationsAcceptedClass = "step-default"
+    reviewsStepDoneClass = "step-default"
+    recommendationStepClass = "step-default"
+    managerDecisionDoneClass = "step-default"
+    articleHasBeenCompleted = True
+    isRecommAvalaibleToSubmitter = False
+    nb_days_since_completion = 0
+
+    if art.status == ArticleStatus.PRE_SUBMISSION.value:
+        articleHasBeenCompleted = False
+
+    if art.upload_timestamp: 
+        nb_days = (datetime.datetime.now() - art.upload_timestamp).days
+
+        if nb_days == 0:
+            nb_days_since_completion = -1
+        else:
+            nb_days_since_completion = nb_days
+
+    if not articleHasBeenCompleted and not art.validation_timestamp:
+        submissionValidatedClass = "step-default"
+
+    uploadDate = art.upload_timestamp.strftime("%d %B %Y") if art.upload_timestamp else ''
+    validation_article_date = art.validation_timestamp.strftime("%d %B %Y") if art.validation_timestamp else ""
+
+    invited_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id)
+    declined_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id, declined=True)
+
+    scheduled_reminder_suggested_recommender = \
+    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0 or \
+    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterNewSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0
+
+    recomms = Article.get_last_recommendations(art.id, db.t_recommendations.id)
+    totalRecomm = len(recomms)
+
+    if validation_article_date:
+        havingRecommenderClass = "step-done"
+
+    roundNumber = 1
+
+    recommStatus: Optional[str] = None
+    reviewCount = 0
+    acceptedReviewCount = 0
+    completedReviewCount = 0
+    declined_review_count = 0
+    there_are_review_reminder = False
+    reviewers: List[DIV] = []
+
+    recommenderName: Optional[List[Any]] = None
+
+    if totalRecomm > 0:
+        for recomm in recomms:
+            reviewInvitationsAcceptedClass = "step-done"
+            reviewsStepDoneClass = "step-default"
+            recommendationStepClass = "step-default"
+            managerDecisionDoneClass = "step-default"
+            authorsReplyClass = "step-default"
+            recommendation_last_change = recomm.last_change.strftime("%d %B %Y") if recomm.last_change else ""
+            recommendation_date = recomm.recommendation_timestamp.strftime("%d %B %Y") if recomm.recommendation_timestamp else ""
+            validationDate = recomm.validation_timestamp.strftime("%d %B %Y") if recomm.validation_timestamp else None
+            nb_days_since_decision = 0
+            nb_days_since_validation = 0
+            decision_due_date: Optional[datetime.datetime] = None
+
+            if recomm.last_change:
+                nb_days = (datetime.datetime.now() - recomm.last_change).days
+
+                if nb_days == 0:
+                    nb_days_since_decision = -1
+                else:
+                    nb_days_since_decision = nb_days
+
+            if recomm.validation_timestamp:
+                nb_days = (datetime.datetime.now() - recomm.validation_timestamp).days
+
+                if nb_days == 0:
+                    nb_days_since_validation = -1
+                else:
+                    nb_days_since_validation = nb_days
+
+
+            if roundNumber < totalRecomm:
+                nextRound = recomms[roundNumber]
+                authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT) if nextRound.recommendation_timestamp else ""
+            else:
+                authorsReplyDate = None # current round
+
+            recommenderName = common_small_html.getRecommAndReviewAuthors(
+                recomm=recomm, with_reviewers=False, linked=not (printable), fullURL=True,
+            )
+
+            recommStatus = None
+            reviewCount = 0
+            acceptedReviewCount = 0
+            completedReviewCount = 0
+            declined_review_count = 0
+
+            if roundNumber < 2:
+                there_are_review_reminder = \
+                len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderReviewersNeeded", [SendingStatus.PENDING])) > 0 or \
+                len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderNewReviewersNeeded", [SendingStatus.PENDING])) > 0
+
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderDecisionOverDue", [SendingStatus.PENDING])) > 0
+            else:
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderRevisedDecisionOverDue", [SendingStatus.PENDING])) > 0
+
+                there_are_review_reminder = \
+                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationNewUser", [SendingStatus.PENDING])) > 0 or \
+                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationRegisteredUser", [SendingStatus.PENDING])) > 0 or \
+                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerInvitationNewRoundRegisteredUser", [SendingStatus.PENDING])) > 0
+
+            reviews = Review.get_by_recommendation_id(recomm.id, db.t_reviews.id)
+
+            lastReviewDate: Optional[datetime.datetime] = None
+            count_anonymous_review: int = 1
+            reviewer_name: Optional[str] = None
+            reviewers = []
+
+            for review in reviews:
+                reviewCount += 1
+                if review.review_state == ReviewState.AWAITING_REVIEW.value:
+                    acceptedReviewCount += 1
+                if review.review_state == ReviewState.REVIEW_COMPLETED.value:
+                    acceptedReviewCount += 1
+                    completedReviewCount += 1
+                if review.review_state in (ReviewState.DECLINED.value, ReviewState.DECLINED_MANUALLY.value, ReviewState.DECLINED_BY_RECOMMENDER.value):
+                    declined_review_count += 1
+                if review.last_change and review.review_state == ReviewState.REVIEW_COMPLETED.value:
+                    if not lastReviewDate:
+                        lastReviewDate = review.last_change
+                    elif review.last_change > lastReviewDate:
+                        lastReviewDate = review.last_change
+
+                if is_submitter:
+                    reviewer_name = f"Anonymous reviewer {common_tools.find_reviewer_number(review, count_anonymous_review)}"
+                elif current.auth.has_membership(role=Role.MANAGER.value) or current.auth.has_membership(role=Role.RECOMMENDER.value):
+                    reviewer_name = Review.get_reviewer_name(review)
+                else:
+                    if review.anonymously:
+                        reviewer_name = f"Anonymous reviewer {common_tools.find_reviewer_number(review, count_anonymous_review)}"
+                    else:
+                        reviewer_name = Review.get_reviewer_name(review)
+
+                if review.review_state == ReviewState.REVIEW_COMPLETED.value:
+                    completed_date = review.last_change.strftime("%d %B %Y") if review.last_change else ""
+                    reviewers.append(DIV(SPAN(SPAN(reviewer_name, _style="color: #29abe0") + ", completed: " , _style="font-weight: bold"), completed_date))
+                elif review.review_state == ReviewState.AWAITING_REVIEW.value:
+                    due_date = Review.get_due_date(review).strftime("%d %B %Y")
+                    reviewers.append(DIV(SPAN(SPAN(reviewer_name, _style="color: #29abe0") + ", due date: ", _style="font-weight: bold"), due_date))
+
+                count_anonymous_review += 1
+
+            if acceptedReviewCount == 0 and not there_are_review_reminder and art.last_status_change:
+                decision_due_date = art.last_status_change + timedelta(days=10)
+
+            if roundNumber < 2:
+                if acceptedReviewCount >= 2:
+                    reviewsStepDoneClass = "step-done"
+            else:
+                if completedReviewCount == acceptedReviewCount and completedReviewCount >= 1 and not there_are_review_reminder:
+                    reviewsStepDoneClass = "step-done"
+
+            if reviewsStepDoneClass == "step-done" and lastReviewDate:
+                decision_due_date = lastReviewDate + timedelta(days=10)
+                
+            if completedReviewCount == acceptedReviewCount and completedReviewCount >= 2:
+                recommendationStepClass = "step-done"
+
+            if recomm.recommendation_state == "Rejected" or recomm.recommendation_state == "Recommended" or recomm.recommendation_state == "Revision":
+                recommendationStepClass = "step-done"
+                managerDecisionDoneClass = "step-done"
+                recommStatus = recomm.recommendation_state
+
+            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision", "Scheduled submission revision")) or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
+                managerDecisionDoneClass = "step-done"
+
+            if recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
+                managerDecisionDoneStepClass = "progress-step-div"
+            else:
+                managerDecisionDoneStepClass = "progress-last-step-div"
+
+            if validationDate:
+                authorsReplyClass = "step-done"
+
+            if (roundNumber < totalRecomm) and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None)):
+                authorsReplyClass = "step-done"
+            else:
+                authorsReplyClass = "step-done current-step"
+
+            if roundNumber == totalRecomm and recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
+                authorsReplyClassStepClass = "progress-last-step-div"
+            else:
+                authorsReplyClassStepClass = "progress-step-div"
+
+            recommendationLink: Optional[str] = None
+            if recommStatus == "Recommended" and managerDecisionDoneClass == "step-done":
+                recommendationLink = common_tools.URL(c="articles", f="rec", vars=dict(id=art.id), scheme=True)
+
+            componentVars = dict(
+                printable=printable,
+                roundNumber=roundNumber,
+                articleStatus=art.status,
+                submissionValidatedClass=submissionValidatedClass,
+                havingRecommenderClass=havingRecommenderClass,
+                invitedSuggestedRecommenderCount=invited_suggested_recommender_count,
+                declined_suggested_recommender_count=declined_suggested_recommender_count,
+                recommenderName=recommenderName,
+                reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
+                reviewCount=reviewCount,
+                lastReviewDate=lastReviewDate.strftime("%d %B %Y") if lastReviewDate else '',
+                acceptedReviewCount=acceptedReviewCount,
+                reviewsStepDoneClass=reviewsStepDoneClass,
+                completedReviewCount=completedReviewCount,
+                recommendationStepClass=recommendationStepClass,
+                recommStatus=recommStatus,
+                recommendation_last_change=recommendation_last_change,
+                validationDate = validationDate,
+                authorsReplyDate=authorsReplyDate,
+                managerDecisionDoneClass=managerDecisionDoneClass,
+                managerDecisionDoneStepClass=managerDecisionDoneStepClass,
+                authorsReplyClass=authorsReplyClass,
+                authorsReplyClassStepClass=authorsReplyClassStepClass,
+                totalRecomm=totalRecomm,
+                recommendationLink=recommendationLink,
+                uploadDate=uploadDate,
+                validationArticleDate=validation_article_date,
+                articleHasBeenCompleted=articleHasBeenCompleted,
+                nbDaysSinceCompletion=nb_days_since_completion,
+                scheduled_reminder_suggested_recommender=scheduled_reminder_suggested_recommender,
+                recommendation_date=recommendation_date,
+                declined_review_count=declined_review_count,
+                there_are_review_reminder=there_are_review_reminder,
+                reviewers=reviewers,
+                there_are_recommendation_reminder=there_are_recommendation_reminder,
+                nb_days_since_decision=nb_days_since_decision,
+                nb_days_since_validation=nb_days_since_validation,
+                decision_due_date=decision_due_date.strftime("%d %B %Y") if decision_due_date else ''
+            )
+            recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
+
+            roundNumber += 1
+
+    else:
+        managerDecisionDoneStepClass = "progress-last-step-div"
+        recommendation_last_change = False
+        lastReviewDate: Optional[datetime.datetime] = None
+        authorsReplyDate = False
+        validationDate = False
+
+        componentVars = dict(
+            printable=printable,
+            roundNumber=roundNumber,
+            articleStatus=art.status,
+            submissionValidatedClass=submissionValidatedClass,
+            havingRecommenderClass=havingRecommenderClass,
+            invitedSuggestedRecommenderCount=invited_suggested_recommender_count,
+            declined_suggested_recommender_count=declined_suggested_recommender_count,
+            recommenderName=recommenderName,
+            reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
+            reviewCount=reviewCount,
+            lastReviewDate=lastReviewDate.strftime("%d %B %Y") if lastReviewDate else '',
+            acceptedReviewCount=acceptedReviewCount,
+            reviewsStepDoneClass=reviewsStepDoneClass,
+            completedReviewCount=completedReviewCount,
+            recommendationStepClass=recommendationStepClass,
+            recommStatus=recommStatus,
+            recommendation_last_change=recommendation_last_change,
+            validationDate = validationDate,
+            validationArticleDate=validation_article_date,
+            authorsReplyDate=authorsReplyDate,
+            managerDecisionDoneClass=managerDecisionDoneClass,
+            managerDecisionDoneStepClass=managerDecisionDoneStepClass,
+            totalRecomm=totalRecomm,
+            uploadDate=uploadDate,
+            articleHasBeenCompleted=articleHasBeenCompleted,
+            nbDaysSinceCompletion=nb_days_since_completion,
+            scheduled_reminder_suggested_recommender=scheduled_reminder_suggested_recommender,
+            declined_review_count=declined_review_count,
+            there_are_review_reminder=there_are_review_reminder,
+            recommendation_date="",
+            reviewers=reviewers,
+            there_are_recommendation_reminder=False,
+            nb_days_since_decision=0,
+            nb_days_since_validation=0,
+            decision_due_date=None
+        )
+
+        recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
+    if (managerDecisionDoneClass == "step-done") or (managerDecisionDoneClass == "step-default" and art.status == "Recommended-private"):
+        isRecommAvalaibleToSubmitter = True
+    return dict(roundNumber=totalRecomm, isRecommAvalaibleToSubmitter=isRecommAvalaibleToSubmitter, content=recommendationDiv)
+
+
+def getRecommendationProcessForSubmitterRR(art: Article, printable: bool):
     db = current.db
 
     recommendationDiv = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
@@ -318,7 +626,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 recommendationLink=recommendationLink,
                 uploadDate=uploadDate,
             )
-            recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
+            recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter_rr.html", componentVars))) # type: ignore
 
             roundNumber += 1
 
@@ -354,7 +662,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             uploadDate=uploadDate,
         )
 
-        recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
+        recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter_rr.html", componentVars))) # type: ignore
     if (managerDecisionDoneClass == "step-done") or (managerDecisionDoneClass == "step-default" and art.status == "Recommended-private"):
         isRecommAvalaibleToSubmitter = True
     return dict(roundNumber=totalRecomm, isRecommAvalaibleToSubmitter=isRecommAvalaibleToSubmitter, content=recommendationDiv)

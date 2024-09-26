@@ -333,6 +333,10 @@ h4.pci2-recomm-article-h2 .glyphicon {
   font-size: 35px;
 }
 
+.step-default {
+  display: none;
+}
+
 .progress-step-div.step-default {
   border-left: 5px solid #eaeaea;
 }
@@ -346,19 +350,38 @@ h4.pci2-recomm-article-h2 .glyphicon {
 }
 
 .progress-step-div.step-done {
-  border-left: 5px solid #29abe0;
+  border-left: 5px solid #93c54b;
 }
+
+.progress-step-div.step-done.progress-last-step-div {
+  border-left: 0px;
+}
+
 .progress-step-div.step-done .progress-step-circle,
 .progress-last-step-div.step-done .progress-step-circle {
-  border: 5px solid #29abe0;
+  border: 5px solid #93c54b;
 }
 .progress-step-div.step-done h3,
 .progress-last-step-div.step-done h3 {
-  color: #29abe0;
+  color: #93c54b;
 }
 .progress-step-div.step-done .glyphicon,
 .progress-last-step-div.step-done .glyphicon {
   color: #555;
+}
+
+
+.progress-step-div.step-done.current-step {
+  border-left: 0px;
+}
+.progress-step-div.step-done.current-step .progress-step-circle,
+.progress-last-step-div.step-done.current-step .progress-step-circle {
+  border: 5px solid #29abe0;
+  margin-left: -35px;
+}
+.progress-step-div.step-done.current-step h3,
+.progress-last-step-div.step-done.current-step h3 {
+  color: #29abe0;
 }
 
 .progress-step-div.step-current {

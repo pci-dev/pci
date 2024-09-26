@@ -66,22 +66,40 @@ class MailQueue(Row):
 
 
     @staticmethod
-    def get_by_article_and_template(article: Article, hastag_template: str):
+    def get_by_article_and_template(article: Article, hastag_template: str, sending_status: List[SendingStatus] = []):
         db = current.db
-        mails = db(
-            (db.mail_queue.article_id == article.id) &
-            (db.mail_queue.mail_template_hashtag == hastag_template)
-        ).select()
+        sending_status_values = [s.value for s in sending_status]
+
+        if len(sending_status_values) == 0:
+            mails = db(
+                (db.mail_queue.article_id == article.id) &
+                (db.mail_queue.mail_template_hashtag == hastag_template)
+            ).select()
+        else:
+            mails = db(
+                (db.mail_queue.article_id == article.id) &
+                (db.mail_queue.mail_template_hashtag == hastag_template) &
+                (db.mail_queue.sending_status.belongs(sending_status_values))
+            ).select()
         return cast(List[MailQueue], mails)
 
 
     @staticmethod
-    def there_are_mails_for_article_recommendation(article_id: int, recommendation_id: int, hastag_template: str, sending_status: SendingStatus):
+    def there_are_mails_for_article_recommendation(article_id: int, recommendation_id: int, hastag_template: str, sending_status: List[SendingStatus] = []):
         db = current.db
-        mails = db(
+        sending_status_values = [s.value for s in sending_status]
+
+        if len(sending_status_values) == 0:
+            mails = db(
             (db.mail_queue.article_id == article_id) &
             (db.mail_queue.recommendation_id == recommendation_id) &
-            (db.mail_queue.sending_status == sending_status.value) &
             (db.mail_queue.mail_template_hashtag == hastag_template)
         ).count()
+        else:
+            mails = db(
+                (db.mail_queue.article_id == article_id) &
+                (db.mail_queue.recommendation_id == recommendation_id) &
+                (db.mail_queue.sending_status.belongs(sending_status_values)) &
+                (db.mail_queue.mail_template_hashtag == hastag_template)
+            ).count()
         return int(mails)
