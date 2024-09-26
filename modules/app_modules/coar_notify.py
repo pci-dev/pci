@@ -290,29 +290,23 @@ class COARNotifier:
 def send_ack(self,
         typ: typing.Literal["TentativeAccept", "Reject", "TentativeReject"],
         article):
+
     origin_req = get_origin_request(article)
     if not origin_req: return
 
-    target_inbox = origin_req["origin"]["inbox"]
-    origin_object = origin_req["object"]["id"]
+    del origin_req["@context"]
+
     notification = {
           "type": typ,
-          "object": {
-            "id": article.coar_notification_id,
-            "object": origin_object,
-            "type": "Offer"
-          }
-          if typ == "TentativeAccept"
-          else
-              origin_req
-          ,
+          "object": origin_req,
           "inReplyTo": article.coar_notification_id,
           "actor": {
             "id": self.base_url,
             "type": "Service",
           },
-        }
+    }
 
+    target_inbox = origin_req["origin"]["inbox"]
     notification = self.add_base_notification_properties(notification, target_inbox)
     self._send_notification(notification, target_inbox)
 
