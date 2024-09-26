@@ -15,6 +15,7 @@ from gluon.storage import Storage
 from app_modules.common_tools import cancel_decided_article_pending_reviews
 from app_modules import emailing
 from models.article import Article, ArticleStatus
+from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 from pydal import DAL
 
@@ -221,18 +222,22 @@ def do_validate_scheduled_submission():
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager")) # type: ignore
 def suggest_article_to():
-    articleId = request.vars["articleId"]
-    whatNext = request.vars["whatNext"]
-    recommenderId = request.vars["recommenderId"]
-    db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
-    redirect(whatNext)
+    request = current.request
+
+    article_id = int(request.vars["articleId"])
+    what_next = str(request.vars["whatNext"])
+    recommender_id = int(request.vars["recommenderId"])
+    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id)
+    redirect(what_next)
 
 
 ######################################################################################################################################################################
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role="manager")) # type: ignore
 def suggest_all_selected():
+    request = current.request
+
     article_id = int(request.vars["articleId"])
     what_next = str(request.vars["whatNext"])
     previous = str(request.vars["previous"])
@@ -241,11 +246,11 @@ def suggest_all_selected():
     recommender_ids = recommender_ids_var.split(',')
 
     if len(recommender_ids_var) == 0:
-        session.flash = 'No recommenders selected'
+        current.session.flash = 'No recommenders selected'
         redirect(previous)
 
     for recommender_id in recommender_ids:
-        db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommender_id, article_id=article_id)
+        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
     redirect(what_next)
 
 

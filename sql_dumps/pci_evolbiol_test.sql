@@ -3132,3 +3132,7 @@ ADD COLUMN if not exists pre_submission_token text;
 --- 2024-06-26 updates/fill_new_article.sql
 ALTER TABLE auth_user 
 ADD COLUMN IF NOT EXISTS new_article_cache jsonb;
+
+--- 2024-07-24 updates/suggested_reco_quick_decline_key.sql
+ALTER table t_suggested_recommenders 
+ADD COLUMN if not exists quick_decline_key text;

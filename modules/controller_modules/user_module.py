@@ -90,16 +90,10 @@ def mkRecommendation4ReviewFormat(row):
     db = current.db
     recomm = db(db.t_recommendations.id == row.recommendation_id).select(db.t_recommendations.id, db.t_recommendations.recommender_id).last()
     anchor = SPAN(common_small_html.mkUserWithMail(recomm.recommender_id))
-    return anchor
-
-
-######################################################################################################################################################################
-def do_suggest_article_to(articleId, recommenderId):
-    db = current.db
-    db.t_suggested_recommenders.update_or_insert(suggested_recommender_id=recommenderId, article_id=articleId)
+    return anchor    
 
 ######################################################################################################################################################################
-def do_exclude_article_from(articleId, recommenderId):
+def do_exclude_article_from(articleId: int, recommenderId: int):
     db = current.db
     db.t_excluded_recommenders.update_or_insert(excluded_recommender_id=recommenderId, article_id=articleId)
 
