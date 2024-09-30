@@ -623,7 +623,7 @@ def represent_alert_manager_board(article: Article):
         return ''
     else:
         return DIV(
-            STRONG(alert_date.strftime(DEFAULT_DATE_FORMAT), _style="color: #B90000; "),
+            STRONG(alert_date.strftime(DEFAULT_DATE_FORMAT), _style="color: #B90000;", _class="article-alert"),
             _style="width: max-content;")
     
 
