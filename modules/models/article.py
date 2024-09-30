@@ -116,6 +116,7 @@ class Article(Row):
     translated_keywords: _[List[TranslatedFieldDict]]
     methods_require_specific_expertise: _[str]
     rdv_date: _[date]
+    remarks: _[str]
 
 
     @staticmethod
@@ -274,8 +275,14 @@ class Article(Row):
 
     
     @staticmethod
-    def set_rdv_date(article: 'Article', rdv_date: date):
+    def set_rdv_date(article: 'Article', rdv_date: _[date]):
         article.rdv_date = rdv_date
+        article.update_record()
+
+
+    @staticmethod
+    def set_remarks(article: 'Article', remarks: _[str]):
+        article.remarks = remarks
         article.update_record()
 
 

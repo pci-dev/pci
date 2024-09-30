@@ -48,3 +48,38 @@ function rdvDateInputChange(articleId, url) {
         data: payload
     }).done((response) => {});
 }
+
+let remarksTimeoutId = null;
+let initialColorRemarks = null;
+
+function remarksInputChange(articleId, url) {
+    const remarksInput = document.getElementById(`remarks_${articleId}`);
+    if (remarksInput == null) {
+        return;
+    }
+
+    if (initialColorRemarks == null) {
+        initialColorRemarks = remarksInput.style.color;
+    }
+    remarksInput.style.color = '#6f6f6f';
+
+    if (remarksTimeoutId != null) {
+        clearTimeout(remarksTimeoutId);
+    }
+    remarksTimeoutId = setTimeout(sendRemarks, 1000, articleId, url, remarksInput)
+}
+
+function sendRemarks(articleId, url, remarksInput) {
+    payload = {
+        'article_id': articleId,
+        'remarks': remarksInput.value
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: payload
+    }).done((response) => {
+        remarksInput.style.color = initialColorRemarks;
+    });
+}
