@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from enum import Enum
 import re
 from typing import Any, List, Optional as _, Union, cast, TypedDict
@@ -115,6 +115,7 @@ class Article(Row):
     translated_title: _[List[TranslatedFieldDict]]
     translated_keywords: _[List[TranslatedFieldDict]]
     methods_require_specific_expertise: _[str]
+    rdv_date: _[date]
 
 
     @staticmethod
@@ -269,6 +270,12 @@ class Article(Row):
     @staticmethod
     def set_status(article: 'Article', status: ArticleStatus):
         article.status = status.value
+        article.update_record()
+
+    
+    @staticmethod
+    def set_rdv_date(article: 'Article', rdv_date: date):
+        article.rdv_date = rdv_date
         article.update_record()
 
 

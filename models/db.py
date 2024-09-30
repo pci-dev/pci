@@ -634,6 +634,7 @@ db.define_table(
     Field("translated_abstract", type="json", length=5000000, readable=False, writable=False),
     Field("translated_title", type="json", length=5000000, readable=False, writable=False),
     Field("translated_keywords", type="json", length=5000000, readable=False, writable=False),
+    Field("rdv_date", type="date", readable=False, writable=False),
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
