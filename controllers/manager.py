@@ -261,17 +261,11 @@ def completed_articles():
 def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, show_not_considered_button: bool = True):
     response.view = "default/myLayout.html"
 
-    # users
-    def index_by(field: str, query: ...): return { x[field]: x for x in db(query).select() }
-
-    users: Dict[int, User] = index_by("id", db.auth_user)
     last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
                    db.executesql("select max(id) from t_recommendations where article_id in " +
                        "(select id from t_articles where status in ('" + "','".join(statuses) + "')) " +
                        "group by article_id")
     last_recomms = [x[0] for x in last_recomms]
-    recomms = index_by("article_id", db.t_recommendations.id.belongs(last_recomms))
-    co_recomms = db(db.t_press_reviews.recommendation_id.belongs(last_recomms)).select()
 
     # articles
     articles = db.t_articles
@@ -290,7 +284,8 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         'keywords',
         'upload_timestamp',
         'thematics',
-        'rdv_date'
+        'rdv_date',
+        'remarks'
     ]   
     
     def article_row(article_id: int, article: Article):
@@ -324,7 +319,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
                      _min=datetime.date.today(),
                      _onchange=f'rdvDateInputChange({row.id}, "{URL(c="manager", f="edit_rdv_date", scheme=True)}")')
     
-    def represent_article_status(status: str, row: Article):
+    def represent_article_status(status: Optional[str], row: Article):
         timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(row, False)['content']
         if not isinstance(timeline, DIV):
             return 
@@ -356,6 +351,13 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         
         return DIV(XML(els), _style="font-size: 12px; width: max-content; max-width: 250px; max-height: 200px; overflow: scroll")
 
+    def represent_remarks(remarks: Optional[str], row: Article):
+        return TEXTAREA(remarks if remarks is not None else '',
+                        _id=f"remarks_{row.id}",
+                        _name=f"remarks_{row.id}",
+                        _style="height: 100px; width: 200px; resize: none; background: transparent; border: 1px #dfd7ca solid; border-radius: 4px",
+                        _oninput=f'remarksInputChange({row.id}, "{URL(c="manager", f="edit_remarks", scheme=True)}")')
+
     articles.id.readable = True
     articles.id.represent = article_row
     
@@ -383,6 +385,10 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
 
     articles.status.represent = represent_article_status
     articles.status.label = 'Current status'
+
+    articles.remarks.readable = True
+    articles.remarks.label = 'Remarks'
+    articles.remarks.represent = represent_remarks
 
     for a_field in articles.fields:
         if not a_field in full_text_search_fields:
@@ -433,7 +439,8 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
             articles.doi_of_published_article,
             articles.rdv_date,
             articles.status,
-            articles.validation_timestamp
+            articles.validation_timestamp,
+            articles.remarks
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
@@ -488,8 +495,28 @@ def edit_rdv_date():
     response.flash = "RDV date successfully update"
     return HTTP(200, new_date.isoformat() if new_date else '')
 
+
+@auth.requires(auth.has_membership(role=Role.MANAGER.value))
+def edit_remarks():
+    try:
+        article_id = int(request.vars.get("article_id"))
+        remarks = str(request.vars.get("remarks"))
+    except:
+        response.flash = "Bad arguments"
+        return HTTP(400, "Bad arguments")
     
+    article = Article.get_by_id(article_id)
+    if not article:
+        response.flash = "Article not found"
+        return HTTP(404, f"Article with id {article_id} not found")
     
+    try:
+        Article.set_remarks(article, remarks)
+    except:
+        response.flash = "Error to update remarks"
+        return HTTP(500, "Error to update remarks")
+
+    return HTTP(200, remarks)
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or is_recommender())
