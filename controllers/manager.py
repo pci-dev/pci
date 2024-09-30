@@ -10,6 +10,7 @@ from typing import Any, Dict, List, cast, Optional
 # import tweepy
 
 # import html2text
+from bs4 import BeautifulSoup
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig # type: ignore
@@ -298,31 +299,6 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     def alert_date_row(article_last_status_change: int, article: Article):
         return common_small_html.represent_alert_manager_board(article)
     
-    def submitter_row(user_id: int, article: Article):
-        return SPAN(
-            DIV(common_small_html.mkAnonymousArticleField(article.anonymous_submission or False, "", article.id)),
-            common_small_html.mk_user(users.get(article.user_id) if article.user_id else None),
-        )
-    
-    def recommender_row(article_title: str, article: Article):
-        article_id = article.id
-
-        recomm = recomms.get(article_id)
-        if not recomm:
-            return DIV("no recommender")
-
-        resu = DIV()
-        resu.append(common_small_html.mk_user(users.get(recomm.recommender_id))) # type: ignore
-
-        for co_recomm in co_recomms:
-            if co_recomm.recommendation_id == recomm.id:
-                resu.append(common_small_html.mk_user(users.get(co_recomm.contributor_id))) # type: ignore
-
-        if len(resu) > 1:
-            resu.insert(1, DIV(B("Co-recommenders:"))) # type: ignore
-
-        return resu
-    
     def link_body_row(row: Article):
         return DIV(
                 A(
@@ -354,6 +330,38 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
                      _value=rdv_date,
                      _min=datetime.date.today(),
                      _onchange=f'rdvDateInputChange({row.id}, "{URL(c="manager", f="edit_rdv_date", scheme=True)}")')
+    
+    def represent_article_status(status: str, row: Article):
+        timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(row, False)['content']
+        if not isinstance(timeline, DIV):
+            return 
+        
+        parser = BeautifulSoup(str(timeline.components[-1].text), 'html.parser') # type: ignore
+        step_done_els: ... = parser.find_all(class_="step-done") # type: ignore
+        if len(step_done_els) == 0:
+            return
+        step_done_last_el = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
+
+        els = ""
+        for el in step_done_last_el:
+            if el is None:
+                continue
+
+            if isinstance(el, str):
+                els += el
+            else:
+                if not el.has_attr('style'):
+                    el['style'] = ''
+                else:
+                    el['style'] += '; '
+
+                if el.name == 'h3':
+                    el["style"] += "font-weight: bold; font-size: 12px;"
+                else:
+                    el['style'] += 'font-size: 12px;'
+                els += f"{el}"
+        
+        return DIV(XML(els), _style="font-size: 12px; width: max-content; max-width: 250px; max-height: 200px; overflow: scroll")
 
     articles.id.readable = True
     articles.id.represent = article_row
@@ -361,12 +369,6 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.thematics.label = "Thematics fields"
     articles.thematics.type = "string"
     articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword)
-    
-    articles.user_id.represent = submitter_row
-    articles.user_id.label = 'Submitter'
-
-    articles.title.represent = recommender_row
-    articles.title.label = 'Recommenders'
 
     articles.rdv_date.label = 'Your RDV'
     articles.rdv_date.readable = True
@@ -376,14 +378,18 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.report_stage.readable = False
     articles.request_submission_change.readable = False
     articles.art_stage_1_id.readable = False
-    articles.status.readable = False
     articles.upload_timestamp.readable = False
+    articles.user_id.readable = False
+    articles.title.readable = False
 
     articles.upload_timestamp.searchable = False
     articles.last_status_change.searchable = False
 
     articles.last_status_change.represent = alert_date_row
     articles.last_status_change.label = 'Alert date'
+
+    articles.status.represent = represent_article_status
+    articles.status.label = 'Current status'
 
     for a_field in articles.fields:
         if not a_field in full_text_search_fields:
@@ -421,7 +427,6 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         fields=[
             articles.id,
             articles.last_status_change,
-            articles.status,
             articles.upload_timestamp,
             articles.user_id,
             articles.art_stage_1_id,
@@ -433,7 +438,9 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
             articles.ms_version,
             articles.doi,
             articles.doi_of_published_article,
-            articles.rdv_date
+            articles.rdv_date,
+            articles.status,
+            articles.validation_timestamp
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
