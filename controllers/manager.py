@@ -42,7 +42,7 @@ from app_modules.common_small_html import md_to_html
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
-from gluon.http import redirect # type: ignore
+from gluon.http import HTTP, redirect # type: ignore
 
 from models.article import Article, ArticleStatus, clean_vars_doi, clean_vars_doi_list
 from models.user import User
@@ -288,7 +288,8 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         'last_status_change',
         'keywords',
         'upload_timestamp',
-        'thematics'
+        'thematics',
+        'rdv_date'
     ]   
     
     def article_row(article_id: int, article: Article):
@@ -322,21 +323,6 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
 
         return resu
     
-    def status_row(article_status: str, article: Article):
-        return common_small_html.mkStatusDiv(
-        article_status,
-        showStage=pciRRactivated,
-        stage1Id=article.art_stage_1_id,
-        reportStage=article.report_stage,
-        submission_change=article.request_submission_change,
-    )
-    
-    def upload_timestamp_row(upload_timestamp: datetime.datetime, article: Article):
-        return common_small_html.mkLastChange(article.upload_timestamp)
-
-    def last_status_change_row(last_status_change: datetime.datetime, article: Article):
-        return common_small_html.mkLastChange(article.last_status_change)
-    
     def link_body_row(row: Article):
         return DIV(
                 A(
@@ -353,6 +339,14 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
                 else "",
                 ongoing_recommendation.validate_stage_button(db.t_articles[row.id]) if row.status == ArticleStatus.PRE_SUBMISSION.value else "",
         )
+    
+    def represent_rdv_date(rdv_date: Optional[datetime.date], row: Article):
+        return INPUT(_type="date",
+                     _id=f"rdv_date_{row.id}",
+                     _name=f"rdv_date_{row.id}",
+                     _value=rdv_date,
+                     _min=datetime.date.today(),
+                     _onchange=f'rdvDateInputChange({row.id}, "{URL(c="manager", f="edit_rdv_date", scheme=True)}")')
 
     articles.id.readable = True
     articles.id.represent = article_row
@@ -367,10 +361,17 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.title.represent = recommender_row
     articles.title.label = 'Recommenders'
 
+    articles.rdv_date.label = 'Your RDV'
+    articles.rdv_date.readable = True
+    articles.rdv_date.represent = represent_rdv_date
+
     articles.anonymous_submission.readable = False
     articles.report_stage.readable = False
     articles.request_submission_change.readable = False
     articles.art_stage_1_id.readable = False
+    articles.status.readable = False
+    articles.upload_timestamp.readable = False
+
     articles.upload_timestamp.searchable = False
     articles.last_status_change.searchable = False
 
@@ -424,7 +425,8 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
             articles.request_submission_change,
             articles.ms_version,
             articles.doi,
-            articles.doi_of_published_article
+            articles.doi_of_published_article,
+            articles.rdv_date
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
@@ -450,6 +452,37 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         script=common_tools.get_script("manager.js")
     )
 
+
+@auth.requires(auth.has_membership(role=Role.MANAGER.value))
+def edit_rdv_date():
+    try:
+        article_id = int(request.vars.get("article_id"))
+        new_date = request.vars.get("new_date")
+        new_date = datetime.date.fromisoformat(request.vars.get("new_date")) if new_date else None
+    except:
+        response.flash = "Bad arguments"
+        return HTTP(400, "Bad arguments")
+    
+    if new_date and datetime.date.today() > new_date:
+        response.flash = "Date must be upper than the today date"
+        return HTTP(403, "Date must be upper than the today date")
+
+    article = Article.get_by_id(article_id)
+    if not article:
+        response.flash = "Article not found"
+        return HTTP(404, f"Article with id {article_id} not found")
+    
+    try:
+        Article.set_rdv_date(article, new_date)
+    except:
+        response.flash = "Error to update RDV date"
+        return HTTP(500, "Error to update RDV date")
+
+    response.flash = "RDV date successfully update"
+    return HTTP(200, new_date.isoformat() if new_date else '')
+
+    
+    
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or is_recommender())

@@ -30,3 +30,21 @@ function showSetNotConsideredDialog(articleId, url) {
         });
     });
 }
+
+function rdvDateInputChange(articleId, url) {
+    const rdvInput = document.getElementById(`rdv_date_${articleId}`);
+    if (rdvInput == null) {
+        return;
+    }
+
+    payload = {
+        'article_id': articleId,
+        'new_date': rdvInput.value
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: payload
+    }).done((response) => {});
+}
