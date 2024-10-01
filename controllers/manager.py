@@ -378,7 +378,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
                     el['style'] += 'font-size: 12px;'
                 els += f"{el}"
         
-        return DIV(XML(els), _style="font-size: 12px; width: max-content; max-width: 250px; max-height: 200px; overflow: scroll")
+        return DIV(XML(els), _class="pci-status", _style="font-size: 12px; width: max-content; max-width: 250px; max-height: 200px; overflow: scroll")
 
     def represent_remarks(remarks: Optional[str], row: Article):
         return TEXTAREA(remarks if remarks is not None else '',
