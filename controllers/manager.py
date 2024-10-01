@@ -295,12 +295,38 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         return common_small_html.represent_alert_manager_board(article)
     
     def link_body_row(row: Article):
-        return DIV(
-                A(
-                    SPAN(current.T("View / Edit")),
-                    _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.id, recommender=auth.user_id)),
-                    _class="buttontext btn btn-default pci-button pci-manager",
-                    _title=current.T("View and/or edit"),
+
+        actions: List[DIV] = []
+        manager_actions =  ongoing_recommendation.get_recommendation_status_buttons(row)
+
+        if row.status == ArticleStatus.PRE_SUBMISSION.value:
+            validate_stage_button = ongoing_recommendation.validate_stage_button(row)
+            if validate_stage_button:
+                validate_stage_button: ... = validate_stage_button.components[0]
+                validate_stage_button.attributes['_style'] = ''
+                validate_stage_button.attributes['_class'] = ''
+                validate_stage_button.components[0].attributes['_class'] = ''
+                validate_stage_button.components[0].attributes['_style'] = ''
+                actions.append(validate_stage_button)
+
+        if (row.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value) and row.already_published is False and show_not_considered_button):
+            actions.append(ongoing_recommendation.not_considered_button(row, True))
+
+        if len(actions) > 0:
+            actions.append(LI(_role="separator", _class="divider"))
+
+        return \
+        DIV(
+            ongoing_recommendation.view_edit_button(row),
+            DIV(
+                BUTTON(
+                    "Actions",
+                    SPAN(_class="caret", _style="position: relative; left: 5px; bottom: 2px;"),
+                    _class="btn btn-default dropdown-toggle" if len(actions) == 0 else "btn btn-danger dropdown-toggle",
+                    _type="button",
+                    _id=f"action_{row.id}",
+                    **{'_data-toggle':'dropdown', '_aria-haspopup': 'true', '_aria-expanded': 'false'},
+                    _style="display: block",
                 ),
                 ongoing_recommendation.set_not_considered_tiny_button(row.id)
                 if (
@@ -309,7 +335,14 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
                 )
                 else "",
                 ongoing_recommendation.validate_stage_button(db.t_articles[row.id]) if row.status == ArticleStatus.PRE_SUBMISSION.value else "",
+                UL(
+                    *actions,
+                    *manager_actions,
+                _class="dropdown-menu"),
+            _class="btn-group"),
+            _style="display: flex; align-items: center; flex-direction: column;"
         )
+
     
     def represent_rdv_date(rdv_date: Optional[datetime.date], row: Article):
         return INPUT(_type="date",

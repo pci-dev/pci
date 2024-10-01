@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 from dateutil.relativedelta import *
 
 from gluon import current
@@ -104,6 +104,88 @@ def getRecommStatusHeader(art: Article, userDiv: bool, printable: bool, quiet: b
     )
 
     return XML(current.response.render("components/recommendation_header.html", componentVars))
+
+
+def get_recommendation_status_buttons(article: Article):
+    auth, request, T = current.auth, current.request, current.T
+
+    last_recommendation = Article.get_last_recommendation(article.id)
+    co_recommender = False
+    if last_recommendation:
+        co_recommender = is_co_recommender(last_recommendation.id)
+
+    # author's button allowing article edition
+    allow_edit_article = False
+    if article.user_id == auth.user_id and \
+        article.status in (ArticleStatus.PENDING.value,
+                           ArticleStatus.AWAITING_REVISION.value,
+                           ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value,
+                           ArticleStatus.PENDING_SURVEY.value,
+                           ArticleStatus.PRE_SUBMISSION.value):
+        allow_edit_article = True
+
+    # manager buttons
+    allow_manage_recommendations = False
+    if (last_recommendation or article.status == ArticleStatus.UNDER_CONSIDERATION.value) and auth.has_membership(role=Role.MANAGER.value) and not (article.user_id == auth.user_id):
+        allow_manage_recommendations = True
+
+    next_url = common_tools.URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=True)
+
+    allow_manage_request = False
+    manage_recommendation_button: Optional[Union[A, str]] = None
+    if auth.has_membership(role="manager") and not (article.user_id == auth.user_id):
+        allow_manage_request = True
+        manage_recommendation_button = manager_module.mkSuggestedRecommendersManagerButton(article, next_url, True)
+    
+    if pciRRactivated and last_recommendation \
+        and auth.has_membership(role=Role.RECOMMENDER.value) \
+        and ((last_recommendation.recommender_id == auth.user_id or co_recommender) and last_recommendation.recommendation_state in (RecommendationState.ONGOING.value,
+                                                                                                                                     RecommendationState.REVISION.value)):
+       allow_manage_request = True
+
+    printable_url = None
+    verify_url = None
+    if auth.has_membership(role="manager"):
+        printable_url = common_tools.URL(c="manager", f="article_emails", vars=dict(articleId=article.id, printable=True), scheme=True)
+    
+    if (auth.has_membership(role="recommender") or auth.has_membership(role="manager")) and article.user_id != auth.user_id:
+        verify_url = common_tools.URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=article.id, printable=True), scheme=True)
+
+    recommender_survey_button = None
+    if last_recommendation and (auth.user_id == last_recommendation.recommender_id or co_recommender):
+        printable_url = common_tools.URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=article.id), scheme=True)
+        recommender_survey_button = True
+
+    buttons: List[A] = []
+    if allow_edit_article:
+        buttons.append(A(T('Edit article'), _href=URL(c='user', f='edit_my_article', vars=dict(articleId=article.id))))
+        if pciRRactivated:
+            buttons.append(A(T('Edit report survey'), _href=URL(c='user', f='edit_report_survey', vars=dict(articleId=article.id))))
+
+    if allow_manage_request:
+        buttons.append(A(T('Edit article'), _href=URL(c='manager', f='edit_article', vars=dict(articleId=article.id))))
+        if pciRRactivated:
+            buttons.append(A(T('Edit report survey'), _href=URL(c='manager', f='edit_report_survey', vars=dict(articleId=article.id))))
+
+    if Article.current_user_has_edit_translation_right(article):
+        buttons.append(A(T('Edit translations'), _href=URL(c='article_translations', f='edit_all_article_translations', vars=dict(article_id=article.id))))
+
+    if pciRRactivated and recommender_survey_button:
+        buttons.append(A(T('Show report survey'), _href=URL(c='recommender', f='show_report_survey', vars=dict(articleId=article.id))))
+
+    if manage_recommendation_button:
+        buttons.append(manage_recommendation_button)
+
+    if allow_manage_recommendations:
+        buttons.append(A(T('Manage recommendation'), _href=URL(c='manager', f='manage_recommendations', vars=dict(articleId=article.id))))
+
+    if verify_url and printable_url:
+        buttons.append(A(T('Check co-authorship'), _href=verify_url))
+
+    if printable_url:
+        buttons.append(A(T('View e-mails'), _href=printable_url))
+    
+    return buttons
 
 
 ######################################################################################################################################################################
@@ -1373,6 +1455,34 @@ def validate_stage_button(article: Article):
             return None
 
 
+def not_considered_button(article: Article, without_style: bool = False):
+    if without_style:
+        style = 'cursor: pointer'
+        html_class = ''
+    else:
+        style = "width: 100px; white-space: normal; font-size: 9px; padding: 1px; line-height: 14px; cursor: pointer;"
+        html_class = "buttontext btn btn-danger pci-button pci-manager"
+
+    return A(
+                TAG(current.T('Prepare email informing authors that preprint not considered')),
+                _onclick=f'showSetNotConsideredDialog({article.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=article.id), user_signature=True)}")',
+                _class=html_class,
+                _id=f"button-set-not-considered-{article.id}",
+                _title=current.T('Prepare email informing authors that preprint not considered'),
+                _style=style
+            )
+
+
+def view_edit_button(article: Article):
+    return A(
+                SPAN(current.T("View / Edit")),
+                _href=URL(c="manager", f="recommendations", vars=dict(articleId=article.id, recommender=current.auth.user_id)),
+                _class="buttontext btn btn-default pci-button pci-manager",
+                _title=current.T("View and/or edit"),
+                _style="display: block; margin-left: 0px"
+            )
+
+
 def manager_action_button(action: str, text: str, info_text: str, art: Article, extra_button: Any = "", style: str ="success", base: str = "manager_actions", onclick: str = "return;"):
     return DIV(
         A(
@@ -1385,7 +1495,7 @@ def manager_action_button(action: str, text: str, info_text: str, art: Article, 
             _id=action,
             _onclick=onclick
         ),
-       LI(extra_button,_style="display: inline-block"),
+       LI(extra_button,_style="display: inline-block") if extra_button else "",
         _class="pci-EditButtons-centered  nav",
     )
 

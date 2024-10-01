@@ -1,27 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import re
-import copy
-import tempfile
-from datetime import datetime, timedelta
-import glob
-import os
-
 from gluon import current
-
 from app_modules import common_small_html
-
-# sudo pip install tweepy
-# import tweepy
-
-import codecs
-
-# import html2text
-from gluon.contrib.markdown import WIKI
-
 from app_modules.helper import *
-
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from models.article import Article
 
 myconf = AppConfig(reload=True)
@@ -35,7 +17,7 @@ not_considered_delay_in_days = myconf.get("config.unconsider_limit_days", defaul
 ######################################################################################################################################################################
 ## Manager Modules
 ######################################################################################################################################################################
-def mkSuggestedRecommendersManagerButton(row: Article, whatNext: str):
+def mkSuggestedRecommendersManagerButton(row: Article, whatNext: str, without_icon: bool = False):
     db, auth = current.db, current.auth
 
     if row.already_published:
@@ -53,12 +35,18 @@ def mkSuggestedRecommendersManagerButton(row: Article, whatNext: str):
     
     button = None
     if row.status in ("Awaiting consideration", "Pending"):
-        button = A(
-            I(_class="glyphicon glyphicon-user"),
-            current.T("Manage recommenders"),
-            _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link",
-            _href=URL(c="manager", f="suggested_recommenders", vars=myVars),
-        )
+        if without_icon:
+            button = A(
+                current.T("Manage recommenders"),
+                _href=URL(c="manager", f="suggested_recommenders", vars=myVars),
+            )
+        else:
+            button = A(
+                I(_class="glyphicon glyphicon-user"),
+                current.T("Manage recommenders"),
+                _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link",
+                _href=URL(c="manager", f="suggested_recommenders", vars=myVars),
+            )
 
     return button
 
@@ -66,7 +54,7 @@ def mkSuggestedRecommendersManagerButton(row: Article, whatNext: str):
 ######################################################################################################################################################################
 # From common.py
 ######################################################################################################################################################################
-def mkLastRecommendation(articleId):
+def mkLastRecommendation(articleId: int):
     db = current.db
     lastRecomm = db.get_last_recomm(articleId)
     if lastRecomm:
@@ -76,7 +64,7 @@ def mkLastRecommendation(articleId):
 
 
 ######################################################################################################################################################################
-def mkViewEditRecommendationsManagerButton(row):
+def mkViewEditRecommendationsManagerButton(row: Recommendation):
     return A(
         SPAN(current.T("View / Edit"), _class="buttontext btn btn-default pci-button"),
         _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.article_id)),
