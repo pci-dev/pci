@@ -350,14 +350,14 @@ class Review(Row):
         most_recent: _[Tuple[Review, datetime]] = None
         for review in reviews:
             due_date = Review.get_due_date(review)
-            if not most_recent or most_recent[1] < due_date:
-                if isinstance(due_date, datetime):
-                    most_recent = (review, due_date)
-                else:
-                    most_recent = (review, datetime(
+            if not isinstance(due_date, datetime):
+                due_date = datetime(
                         year=due_date.year,
                         month=due_date.month,
                         day=due_date.day
-                    ))
+                    )
+                
+            if not most_recent or most_recent[1] < due_date:
+                most_recent = (review, due_date)
         
         return most_recent
