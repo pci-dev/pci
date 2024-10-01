@@ -8,8 +8,8 @@ from PIL import Image
 
 from gluon import current, IS_IN_SET
 from gluon.html import *
-from gluon.contrib.markdown import WIKI
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.markdown import WIKI # type: ignore
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.sqlhtml import *
 from models.article import Article
 from models.recommendation import Recommendation
@@ -38,7 +38,7 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 # Time and date
 ######################################################################################################################################################################
-def mkLastChange(t):
+def mkLastChange(t: Optional[datetime.datetime]):
     if t:
         d = datetime.datetime.now() - t
         if d.days == 0:
@@ -105,11 +105,11 @@ def mkLinkDOI(doi: Optional[str]):
 
 
 ######################################################################################################################################################################
-def mkUser(userId: Optional[int], linked: bool = False, orcid: bool = False, orcid_exponant: bool = False):
+def mkUser(userId: Optional[int], linked: bool = False, orcid: bool = False, orcid_exponant: bool = False, reverse: bool = False, mail_link: bool = False):
     if userId is not None:
         theUser = User.get_by_id(userId)
         if theUser:
-            return mkUser_U(theUser, linked=linked, orcid=orcid, orcid_exponant=orcid_exponant)
+            return mkUser_U(theUser, linked=linked, orcid=orcid, orcid_exponant=orcid_exponant, reverse=reverse, mail_link=mail_link)
         else:
             return SPAN("")
     else:
@@ -128,7 +128,7 @@ def mkUserId(userId, linked=False, fullURL=False):
 
 
 ######################################################################################################################################################################
-def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: bool = False, orcid_exponant: bool = False):
+def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: bool = False, orcid_exponant: bool = False, mail_link: bool = False):
     if not user:
         return SPAN("?")
     
@@ -141,7 +141,11 @@ def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: boo
     else:
         name = f"{first_name} {last_name}"
 
-    if linked and not user.deleted:
+    if mail_link and user.email and not user.deleted:
+        result = A(B(name),
+                    _href=f"mailto:{user.email}",
+                    _class="cyp-user-profile-link")    
+    elif linked and not user.deleted:
         result = A(B(name),
                     _href=URL(c="public", f="user_public_page",scheme=True, vars=dict(userId=user.id)),
                     _class="cyp-user-profile-link")
@@ -184,14 +188,14 @@ def mkUserWithMail(userId: Optional[int], linked: bool = False, reverse: bool = 
     else:
         theUser = None
 
-    user_with_mail = _mkUser(theUser, linked, reverse)
+    user_with_mail = mk_user(theUser, linked, reverse)
     if orcid and theUser:
         return OrcidTools.build_name_with_orcid(user_with_mail, theUser.orcid)
     else:
         return user_with_mail
 
 
-def _mkUser(theUser: Optional[User], linked: bool = False, reverse: bool = False):
+def mk_user(theUser: Optional[User], linked: bool = False, reverse: bool = False):
         if theUser:
             if reverse: name = "%s, %s" % (theUser.last_name, theUser.first_name)
             else: name = "%s %s" % (theUser.first_name, theUser.last_name)
@@ -215,7 +219,7 @@ def _mkUser(theUser: Optional[User], linked: bool = False, reverse: bool = False
 ######################################################################################################################################################################
 # Article status
 ######################################################################################################################################################################
-statusArticles = dict()
+statusArticles: Optional[Dict[str, Dict[str, str]]] = dict()
 
 
 def mkStatusArticles():
@@ -237,13 +241,13 @@ def mkStatusSimple(status):
 
 ######################################################################################################################################################################
 # Builds a coloured status label
-def mkStatusDiv(status, showStage=False, stage1Id=None, reportStage="Stage not set", submission_change=False):
+def mkStatusDiv(status: str, showStage: bool = False, stage1Id: Optional[int] = None, reportStage: Optional[str] = "Stage not set", submission_change: Optional[bool] = False):
     auth = current.auth
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles()
     status_txt = (current.T(status)).upper()
-    color_class = statusArticles[status]["color_class"] or "default"
-    hint = statusArticles[status]["explaination"] or ""
+    color_class = statusArticles[status]["color_class"] or "default" if statusArticles is not None else "default"
+    hint = statusArticles[status]["explaination"] or "" if statusArticles is not None else ""
     change_text = "Triage revision" if submission_change else "Initial submission"
 
     if showStage:
@@ -262,18 +266,12 @@ def mkStatusDiv(status, showStage=False, stage1Id=None, reportStage="Stage not s
             reportStage = "STAGE 1"
             stage1Link = ""
 
-        if reportStage is not None:
-            result = DIV(
-                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T(reportStage)), stage1Link, _class="pci-status-addition", _style="text-align: center; width: 150px;"),
-                DIV(B(current.T(change_text)), _class="pci-status-addition", _style="text-align: center;"),
-            )
-        else:
-            result = DIV(
-                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T("Stage not set")), stage1Link, _class="pci-status-addition", _style="text-align: center; width: 150px;"),
-                DIV(B(current.T(change_text)), _class="pci-status-addition", _style="text-align: center;"),
-            )
+        result = DIV(
+            DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
+            DIV(B(current.T(reportStage)), stage1Link, _class="pci-status-addition", _style="text-align: center; width: 150px;"),
+            DIV(B(current.T(change_text)), _class="pci-status-addition", _style="text-align: center;"),
+        )
+        
 
     else:
         result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
@@ -549,7 +547,7 @@ def mkRepresentArticleLightLinkedWithStatus(article_id, urlArticle=None):
 
 
 ######################################################################################################################################################################
-def mkRepresentArticleLight(article_id):
+def mkRepresentArticleLight(article_id: int):
     db = current.db
     anchor = ""
     art = db.t_articles[article_id]
@@ -571,6 +569,63 @@ def mkRepresentArticleLight(article_id):
         )
     return anchor
 
+
+def represent_article_manager_board(article: Article):
+    html: List[Union[DIV, str]] = []
+    last_recommendation = Article.get_last_recommendation(article.id)
+
+    title = " ".join((article.title or "").split(" ")[:7])
+    if article.title and len(article.title) > len(title):
+        title += "…"
+    if article.ms_version:
+        try:
+            title += f" v{int(float(article.ms_version.strip().replace(',', '.')))}"
+        except:
+            pass
+
+    html.append(B(title, _class="article-title", _title=article.title))
+
+    if article.doi or article.doi_of_published_article:
+        html.append(" ")
+        html.append(A("DOI", _href=article.doi or article.doi_of_published_article, _target="_blank", _rel="noreferrer noopener"))
+
+    html.append(BR())
+    html.append(f"ArticleID #{article.id}")
+
+    html.append(BR())
+    html.append("Submitter: ")
+    html.append(mkUser(article.user_id, mail_link=True, orcid=True, reverse=True))
+
+    if last_recommendation:
+        html.append(BR())
+        html.append("Recommender: ")
+        html.append(mkUser(last_recommendation.recommender_id, mail_link=True, orcid=True, reverse=True))
+
+        press_reviews = PressReview.get_by_recommendation(last_recommendation.id)
+        if len(press_reviews) > 0:
+            html.append(BR())
+            html.append("Co-recommender: " if len(press_reviews) == 1 else "Co-recommenders: ") 
+        for i, press_review in enumerate(press_reviews):
+            if press_review.contributor_id:
+                co_recommender = mkUser(press_review.contributor_id, mail_link=True, orcid=True, reverse=True)
+                html.append(co_recommender)
+                if i + 1 < len(press_reviews):
+                    html.append(', ')
+
+
+    return DIV(*html, _style="width: max-content; max-width: 300px;")
+
+
+def represent_alert_manager_board(article: Article):
+    alert_date = Article.get_alert_date(article)
+
+    if not alert_date:
+        return ''
+    else:
+        return DIV(
+            STRONG(alert_date.strftime(DEFAULT_DATE_FORMAT), _style="color: #B90000;", _class="article-alert"),
+            _style="width: max-content;")
+    
 
 ######################################################################################################################################################################
 # Builds a nice representation of an article WITHOUT recommendations link

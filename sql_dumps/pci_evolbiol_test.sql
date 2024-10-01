@@ -3136,3 +3136,11 @@ ADD COLUMN IF NOT EXISTS new_article_cache jsonb;
 --- 2024-07-24 updates/suggested_reco_quick_decline_key.sql
 ALTER table t_suggested_recommenders 
 ADD COLUMN if not exists quick_decline_key text;
+
+--- 2024-10-01 updates/rdv_date.sql
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS rdv_date DATE;
+
+--- 2024-10-01 updates/remarks.sql
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS remarks text;

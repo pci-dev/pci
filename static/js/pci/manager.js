@@ -30,3 +30,75 @@ function showSetNotConsideredDialog(articleId, url) {
         });
     });
 }
+
+function rdvDateInputChange(articleId, url) {
+    const rdvInput = document.getElementById(`rdv_date_${articleId}`);
+    if (rdvInput == null) {
+        return;
+    }
+
+    payload = {
+        'article_id': articleId,
+        'new_date': rdvInput.value
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: payload
+    }).done((response) => {});
+}
+
+let remarksTimeoutId = null;
+let initialColorRemarks = null;
+
+function remarksInputChange(articleId, url) {
+    const remarksInput = document.getElementById(`remarks_${articleId}`);
+    if (remarksInput == null) {
+        return;
+    }
+
+    if (initialColorRemarks == null) {
+        initialColorRemarks = remarksInput.style.color;
+    }
+    remarksInput.style.color = '#6f6f6f';
+
+    if (remarksTimeoutId != null) {
+        clearTimeout(remarksTimeoutId);
+    }
+    remarksTimeoutId = setTimeout(sendRemarks, 1000, articleId, url, remarksInput)
+}
+
+function sendRemarks(articleId, url, remarksInput) {
+    const payload = {
+        'article_id': articleId,
+        'remarks': remarksInput.value
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: payload
+    }).done((response) => {
+        remarksInput.style.color = initialColorRemarks;
+    });
+}
+
+document.querySelectorAll('tr.with_id').forEach((tr) => {
+    const articleAlerts = tr.getElementsByClassName('article-alert');
+    if (articleAlerts.length !== 1) {
+        return;
+    }
+
+    const alertDate = new Date(articleAlerts[0].textContent);
+    const today = new Date();
+
+    if (today >= alertDate) {
+        if (tr.classList.contains('odd')) {
+            tr.style.background = "rgba(255, 165, 0, 0.18)";
+        } else {
+            tr.style.background = "rgba(255, 165, 0, 0.24)";
+        }
+    }
+
+});
