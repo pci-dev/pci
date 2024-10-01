@@ -259,6 +259,9 @@ def completed_articles():
 # Common function which allow management of articles filtered by status
 @auth.requires(auth.has_membership(role=Role.MANAGER.value) or is_recommender())
 def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, show_not_considered_button: bool = True):
+    if pciRRactivated:
+        return _manage_articles_rr(statuses, stats_query, show_not_considered_button)
+    
     response.view = "default/myLayout.html"
 
     last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
@@ -543,6 +546,204 @@ def edit_remarks():
         return HTTP(500, "Error to update remarks")
 
     return HTTP(200, remarks)
+
+
+@auth.requires(auth.has_membership(role=Role.MANAGER.value) or is_recommender())
+def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, show_not_considered_button: bool = True):
+    response.view = "default/myLayout.html"
+
+    # users
+    def index_by(field: str, query: ...): return { x[field]: x for x in db(query).select() }
+
+    users: Dict[int, User] = index_by("id", db.auth_user)
+    last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
+                   db.executesql("select max(id) from t_recommendations where article_id in " +
+                       "(select id from t_articles where status in ('" + "','".join(statuses) + "')) " +
+                       "group by article_id")
+    last_recomms = [x[0] for x in last_recomms]
+    recomms = index_by("article_id", db.t_recommendations.id.belongs(last_recomms))
+    co_recomms = db(db.t_press_reviews.recommendation_id.belongs(last_recomms)).select()
+
+    # articles
+    articles = db.t_articles
+    full_text_search_fields = [
+        'id',
+        'anonymous_submission',
+        'user_id',
+        'status',
+        'title',
+        'abstract',
+        'authors',
+        'art_stage_1_id',
+        'report_stage',
+        'request_submission_change',
+        'last_status_change',
+        'keywords',
+        'upload_timestamp',
+        'thematics'
+    ]   
+    
+    def article_row(article_id: int, article: Article):
+        return DIV(common_small_html.mkRepresentArticleLight(article_id), _class="pci-w300Cell")
+    
+    def submitter_row(user_id: int, article: Article):
+        return SPAN(
+            DIV(common_small_html.mkAnonymousArticleField(article.anonymous_submission or False, "", article.id)),
+            common_small_html.mk_user(users.get(article.user_id) if article.user_id else None),
+        )
+    
+    def recommender_row(article_title: str, article: Article):
+        article_id = article.id
+
+        recomm = recomms.get(article_id)
+        if not recomm:
+            return DIV("no recommender")
+
+        resu = DIV()
+        resu.append(common_small_html.mk_user(users.get(recomm.recommender_id))) # type: ignore
+
+        for co_recomm in co_recomms:
+            if co_recomm.recommendation_id == recomm.id:
+                resu.append(common_small_html.mk_user(users.get(co_recomm.contributor_id))) # type: ignore
+
+        if len(resu) > 1:
+            resu.insert(1, DIV(B("Co-recommenders:"))) # type: ignore
+
+        return resu
+    
+    def status_row(article_status: str, article: Article):
+        return common_small_html.mkStatusDiv(
+        article_status,
+        showStage=pciRRactivated,
+        stage1Id=article.art_stage_1_id,
+        reportStage=article.report_stage,
+        submission_change=article.request_submission_change,
+    )
+    
+    def upload_timestamp_row(upload_timestamp: datetime.datetime, article: Article):
+        return common_small_html.mkLastChange(article.upload_timestamp)
+
+    def last_status_change_row(last_status_change: datetime.datetime, article: Article):
+        return common_small_html.mkLastChange(article.last_status_change)
+    
+    def link_body_row(row: Article):
+        return DIV(
+                A(
+                    SPAN(current.T("View / Edit")),
+                    _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.id, recommender=auth.user_id)),
+                    _class="buttontext btn btn-default pci-button pci-manager",
+                    _title=current.T("View and/or edit"),
+                ),
+                ongoing_recommendation.validate_stage_button(db.t_articles[row.id]) if row.status == ArticleStatus.PRE_SUBMISSION.value else "",
+                A(
+                    TAG(current.T('Prepare email informing authors that preprint not considered')),
+                    _onclick=f'showSetNotConsideredDialog({row.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=row.id), user_signature=True)}")',
+                    _class="buttontext btn btn-danger pci-button pci-manager",
+                    _id=f"button-set-not-considered-{row.id}",
+                    _title=current.T('Prepare email informing authors that preprint not considered'),
+                    _style="width: 100px; white-space: normal; font-size: 9px; padding: 1px; line-height: 14px"
+                )
+                if (
+                    (row.status == ArticleStatus.AWAITING_CONSIDERATION.value or row.status == ArticleStatus.PENDING.value)
+                    and row.already_published is False and show_not_considered_button
+                )
+                else "",
+            )
+
+    articles.id.readable = True
+    articles.id.represent = article_row
+    
+    articles.thematics.label = "Thematics fields"
+    articles.thematics.type = "string"
+    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword)
+    
+    articles.user_id.represent = submitter_row
+    articles.user_id.label = 'Submitter'
+
+    articles.title.represent = recommender_row
+    articles.title.label = 'Recommenders'
+
+    articles.anonymous_submission.readable = False
+    articles.report_stage.readable = False
+    articles.request_submission_change.readable = False
+    articles.art_stage_1_id.readable = False
+    articles.upload_timestamp.searchable = False
+    articles.last_status_change.searchable = False
+
+    articles.status.represent = status_row
+
+    articles.upload_timestamp.represent = upload_timestamp_row
+    articles.last_status_change.represent = last_status_change_row
+
+    for a_field in articles.fields:
+        if not a_field in full_text_search_fields:
+            articles[a_field].readable = False
+
+    articles.id.label = "Article"
+
+    links: List[Dict[str, Any]] = [
+        dict(
+            header=T("Actions"),
+            body=link_body_row,
+        ),
+    ]
+    if stats_query:
+        query = stats_query
+    else:
+        #recomms.get(article_id)
+        query = (db.t_articles.id == db.v_article_id.id)
+        if statuses:
+            query = query & db.t_articles.status.belongs(statuses)
+        # recommenders only ever get here via menu "Recommender > Pending validation(s)"
+        if pciRRactivated and is_recommender():
+            query = db.pending_scheduled_submissions_query
+    original_grid = SQLFORM.grid( # type: ignore
+        query,
+        searchable=True,
+        details=False,
+        editable=False,
+        deletable=False,
+        create=False,
+        csv=csv,
+        exportclasses=expClass,
+        maxtextlength=250,
+        paginate=20,
+        fields=[
+            articles.last_status_change,
+            articles.status,
+            articles.id,
+            articles.upload_timestamp,
+            articles.user_id,
+            articles.art_stage_1_id,
+            articles.anonymous_submission,
+            articles.title,
+            articles.already_published,
+            articles.report_stage,
+            articles.request_submission_change,
+        ],
+        links=links,
+        left=db.v_article.on(db.t_articles.id == db.v_article.id),
+        orderby=~articles.last_status_change,
+        _class="web2py_grid action-button-absolute",
+    )
+
+    # options to be removed from the search dropdown:
+    remove_options = ['t_articles.upload_timestamp', 't_articles.last_status_change', 't_articles.anonymous_submission',
+                      'v_article_id.id', 'v_article_id.id_str', 'v_article.id', 'v_article.title', 'v_article.authors',
+                      'v_article.abstract', 'v_article.user_id', 'v_article.status', 'v_article.keywords', 'v_article.submission_date',
+                      'v_article.reviewers', 'v_article.thematics']
+    integer_fields = ['t_articles.id', 't_articles.user_id']
+
+    # the grid is adjusted after creation to adhere to our requirements
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields)
+
+    return dict(
+        customText=getText("#ManagerArticlesText"),
+        pageTitle=getTitle("#ManagerArticlesTitle"),
+        grid=grid,
+        absoluteButtonScript=common_tools.absoluteButtonScript,
+        script=common_tools.get_script("manager.js")
+    )
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or is_recommender())
