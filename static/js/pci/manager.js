@@ -46,7 +46,13 @@ function rdvDateInputChange(articleId, url) {
         type: 'POST',
         url: url,
         data: payload
-    }).done((response) => {});
+    }).done((response) => {
+        const rdvContainer = document.getElementById(`container-rdv-date-${articleId}`);
+        const newRdvContainer = document.createElement('div');
+        newRdvContainer.innerHTML = response;
+        rdvContainer.parentNode.replaceChild(newRdvContainer.firstChild, rdvContainer)
+        
+    });
 }
 
 let remarksTimeoutId = null;
@@ -83,22 +89,3 @@ function sendRemarks(articleId, url, remarksInput) {
         remarksInput.style.color = initialColorRemarks;
     });
 }
-
-document.querySelectorAll('tr.with_id').forEach((tr) => {
-    const articleAlerts = tr.getElementsByClassName('article-alert');
-    if (articleAlerts.length !== 1) {
-        return;
-    }
-
-    const alertDate = new Date(articleAlerts[0].textContent);
-    const today = new Date();
-
-    if (today >= alertDate) {
-        if (tr.classList.contains('odd')) {
-            tr.style.background = "rgba(255, 165, 0, 0.18)";
-        } else {
-            tr.style.background = "rgba(255, 165, 0, 0.24)";
-        }
-    }
-
-});

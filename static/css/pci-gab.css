@@ -278,6 +278,44 @@ div.w2p_flash.alert.custom-disappear {
   flex-direction: column;
 }
 
+.action-button-absolute
+  .web2py_htmltable
+  > table
+  > tbody
+  > tr.even
+  > td:last-child
+  > div {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0),
+    rgba(239, 243, 247, 255) 15%
+  );
+  background-image: -webkit-linear-gradient(
+    left,
+    rgba(239, 243, 247, 0.001) 0%,
+    rgba(239, 243, 247, 255) 15%
+  );
+}
+
+.action-button-absolute
+  .web2py_htmltable
+  > table
+  > tbody
+  > tr.odd
+  > td:last-child
+  > div {
+  background: #f7f9fb;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0),
+    rgba(247, 249, 251, 255) 15%
+  );
+  background-image: -webkit-linear-gradient(
+    left,
+    rgba(247, 249, 251, 0.001) 0%,
+    rgba(247, 249, 251) 15%
+  );
+}
 
 .tox-tinymce {
   border-radius: 4px !important;

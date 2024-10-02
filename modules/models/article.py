@@ -458,11 +458,13 @@ class Article(Row):
 
 
 def is_scheduled_submission(article: Article) -> bool:
+    report_survey = article.t_report_survey.select().first()
+
     return scheduledSubmissionActivated and (
         article.scheduled_submission_date is not None
         or article.status.startswith("Scheduled submission")
         or (
-            article.t_report_survey.select().first().q10 is not None
+            report_survey is not None and report_survey.q10 is not None
             and article.t_recommendations.count() == 1
         )
     )

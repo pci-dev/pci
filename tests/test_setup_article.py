@@ -154,7 +154,7 @@ class Manager_validates:
     if is_rr:
       select(".pci-status", "SUBMISSION PENDING VALIDATION")
     else:
-      select(".pci-status", contains="Submission pending validation")
+      select(".pci-status-mini", contains="Submission pending validation")
 
  def validate_submission(_):
     #select("a", "View / Edit").first().click()  # select(css, text/contains=xxx) should return a list-ish
@@ -177,7 +177,7 @@ class Manager_validates:
     if is_rr:
       select(".pci-status", f"{preprint} REQUIRING A RECOMMENDER".upper())
     else:
-      select(".pci-status", contains="Recommender needed")
+      select(".pci-status-mini", contains="Recommender needed")
 
  def check_article_status_is_no_longer_pending_validation(_):
     select(".dropdown-toggle", contains="For managers").click()

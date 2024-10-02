@@ -662,22 +662,29 @@ db.t_articles._after_insert.append(lambda s, i: newArticle(Storage(s), i))
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
 db.t_articles._after_update.append(lambda s, f: after_update_article(s, f))
 
-def after_update_article(s: ..., f: ...):
-    if not current.session.after_update_article:
-        current.session.after_update_article = True
-        article: Article = s.select().first()
-        Article.update_alert_date(article, False)
-        Article.update_current_step(article, False)
-        article.update_record()
+def update_alert_and_current_step_article(article_id: int):
+    if not current.session.update_alert_and_current_step_article:
+        current.session.update_alert_and_current_step_article = True
+        article = Article.get_by_id(article_id)
+        if article:
+            Article.update_alert_date(article, False)
+            Article.update_current_step(article, False)
+            article.update_record() # type: ignore
     else:
-        current.session.after_update_article = None
+        current.session.update_alert_and_current_step_article = None
 
-
+def after_update_article(s: ..., f: ...):
     if not current.session.disable_trigger_setPublishedDoi:
         if "status" in f:
             o = s.select().first()
             if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
                     emailing.send_message_to_recommender_and_reviewers(o["id"])
+
+    if not current.session.after_update_article:
+        current.session.after_update_article = True
+        update_alert_and_current_step_article(s.query.second)
+    else:
+        current.session.after_update_article = None
 
 
 def deltaStatus(s: ..., f: Article):
@@ -908,23 +915,27 @@ db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
 db.t_recommendations._before_update.append(lambda s, i: setRecommendationDoi(s, i))
 db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i)) \
         if current.coar.enabled else None
+db.t_recommendations._after_update.append(lambda s, i: after_recommendation_updated(s, i))
 
 def get_last_recomm(articleId):
     return db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
 
 db.get_last_recomm = get_last_recomm
 
-def newRecommendation(s, recomm):
-    article = db.t_articles[recomm.article_id]
+def newRecommendation(s: ..., recomm: Recommendation):
+    article = Article.get_by_id(recomm.article_id)
     if pciRRactivated:
         emailing.alert_managers_recommender_action_needed("#ManagersRecommenderAgreedAndNeedsToTakeAction", recomm.id)
 
-    if article.already_published:
+    if article and article.already_published:
         emailing.send_to_thank_recommender_postprint(recomm)
 
-    if isScheduledTrack(article):
+    if article and isScheduledTrack(article):
         # "send" future message as soon as we have a {{recommenderPerson}}
         emailing.send_to_submitter_scheduled_submission_open(article)
+
+def after_recommendation_updated(s: ..., recommendation: Recommendation):
+    update_alert_and_current_step_article(recommendation.article_id)
 
 
 def recommendationUpdated(s, updated_recommendation):
@@ -1149,7 +1160,7 @@ def before_review_done(s, new_review_values):
     current.session.old_review = old_review
 
 
-def after_review_done(s, current_review_values):
+def after_review_done(s: ..., current_review_values: Review):
     old_review: Review = current.session.old_review
     if old_review is None:
         return
@@ -1159,7 +1170,10 @@ def after_review_done(s, current_review_values):
         return
 
     review_id = current_review.id
-    recommendation = db.t_recommendations[current_review.recommendation_id]
+    recommendation = Recommendation.get_by_id(current_review.recommendation_id)
+    if not recommendation:
+        return
+    
     no_of_completed_reviews = db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state == "Review completed")).count()
     total_no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
     no_of_accepted_invites = total_no_of_accepted_invites
@@ -1315,6 +1329,8 @@ def after_review_done(s, current_review_values):
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionSoonDue", recommendation["article_id"])
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionDue", recommendation["article_id"])
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionOverDue", recommendation["article_id"])
+
+    update_alert_and_current_step_article(recommendation.article_id)
 
 db.define_table(
     "t_suggested_recommenders",

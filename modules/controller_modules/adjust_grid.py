@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from typing import List
+from typing import Any, Dict, List, Optional
 from app_modules.helper import OPTION, TR, TD
 from app_modules import common_small_html
 import re
+
+from gluon import A, TABLE
 
 
 remove_regulators = ['=', '<=', '!=', '<', '>', '>=', 'starts with', 'in', 'not in']
@@ -11,7 +13,11 @@ search_name2field = {'reviewers': 'auth_user', 'users': 'auth_user',
                      'articles2': 't_status_article', 'mail_queue': 'mail_queue', 'recommenders_about' : 'auth_user',
                      'main_articles': 'qy_articles', 'help_texts': 'help_texts'}
 
-def adjust_grid_basic(grid: ..., search_name: str, remove_options: List[str] = [], integer_fields: List[str] = []):
+def adjust_grid_basic(grid: ...,
+                      search_name: str,
+                      remove_options: List[str] = [],
+                      integer_fields: List[str] = [],
+                      columns_to_hide: List[str] = []):
     '''
     function that adjusts the grid after its generation
     '''
@@ -25,6 +31,8 @@ def adjust_grid_basic(grid: ..., search_name: str, remove_options: List[str] = [
     search_field = grid.element('.web2py_console form')
     panel_query_rows = grid.elements('div#w2p_query_panel div')
     input_buttons = grid.elements('form input.btn')
+    
+    add_btn: ... = None
 
     # individual changes
     panel.attributes.update({'_style':'display:flex'})
@@ -204,22 +212,54 @@ def adjust_grid_basic(grid: ..., search_name: str, remove_options: List[str] = [
     # default search to simple = hide advanced search console
     grid.element('div.web2py_console ').attributes.update({'_style': 'display:none'})
 
-
     # for the about/recommenders page, we introduce the character search widget
     if search_name == 'recommenders_about':
         result_table = grid.element('div.web2py_htmltable tbody')
         alphabetical_search_widget(result_table, web2py_grid)
 
+    if columns_to_hide:
+        remove_in_table(grid, columns_to_hide)
+
     return grid
 
 
-def alphabetical_search_widget(result_table, web2py_grid):
+def remove_in_table(grid: ..., columns_to_hide: List[str]):
+    table: ... = grid.components[1].components[0].components[0]
+    if not isinstance(table, TABLE):
+        return
+    
+    thead: ... = table.components[1] # type: ignore
+
+    column_index_to_hide: List[int] = []
+
+    for i, th in enumerate(thead.components[0].components):
+        link: ... = th.components[0]
+        column_id = ''
+        if isinstance(link, A):
+            column_id = str(link.attributes['_href']) # type: ignore
+        else:
+            column_id = link
+
+        for column in columns_to_hide:
+                if column in column_id:
+                    column_index_to_hide.append(i)
+
+    for i in column_index_to_hide:
+        thead.components[0].components[i].attributes['_style'] = 'display: none;'
+        for tr in table.components[2].components: # type: ignore
+            tr.components[i].attributes['_style'] = 'display: none;' # type: ignore
+
+
+def alphabetical_search_widget(result_table: ..., web2py_grid: ...):
     '''
     creates the alphabetical search widget for about/recommenders
     '''
-    markdown = lambda text,tag=None,attributes={}: {None: re.sub('\s+',' ',text), 'a':text}.get(tag,text)
-    chars = []
-    rows = result_table.elements('tr') if result_table else []
+    def markdown_fn(text: str, tag: Optional[str] = None, attributes: Dict[str, str]= {}):
+        return {None: re.sub(r'\s+',' ',text), 'a':text}.get(tag,text)
+
+    markdown = markdown_fn
+    chars: List[str] = []
+    rows: List[Any] = result_table.elements('tr') if result_table else []
 
     for i,row in enumerate(rows):
         columns_a = row.elements('td a')
