@@ -6,3 +6,4 @@ if __name__ == '__main__':
 
     for article in articles:
         Article.update_alert_date(article)
+        Article.update_current_step(article)
