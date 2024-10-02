@@ -643,6 +643,7 @@ db.define_table(
     Field("rdv_date", type="date", readable=False, writable=False),
     Field("remarks", type="text", readable=False, writable=False),
     Field("alert_date", type="date", readable=False, writable=False),
+    Field("current_step", type="text", readable=False, writable=False),
 
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
@@ -662,12 +663,14 @@ db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
 db.t_articles._after_update.append(lambda s, f: after_update_article(s, f))
 
 def after_update_article(s: ..., f: ...):
-    if not current.session.disable_trigger_update_alert_date:
-        current.session.disable_trigger_update_alert_date = True
+    if not current.session.after_update_article:
+        current.session.after_update_article = True
         article: Article = s.select().first()
-        alert_date = Article.update_alert_date(article)
+        Article.update_alert_date(article, False)
+        Article.update_current_step(article, False)
+        article.update_record()
     else:
-        current.session.disable_trigger_update_alert_date = None
+        current.session.after_update_article = None
 
 
     if not current.session.disable_trigger_setPublishedDoi:

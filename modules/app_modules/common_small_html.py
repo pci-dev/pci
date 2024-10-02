@@ -1,8 +1,10 @@
 from typing import Any, Dict, List, Optional, Union, cast
 from re import sub, match
 from datetime import datetime
+from app_components import ongoing_recommendation
 from dateutil.relativedelta import *
 
+from bs4 import BeautifulSoup
 import io
 from PIL import Image
 
@@ -624,6 +626,12 @@ def represent_alert_manager_board(article: Article):
             STRONG(article.alert_date.strftime(DEFAULT_DATE_FORMAT), _style="color: #B90000;", _class="article-alert"),
             _style="width: max-content;")
     
+
+def represent_current_step_manager_board(article: Article):
+    if article.current_step:
+        return XML(article.current_step)
+    else:
+        return ''
 
 ######################################################################################################################################################################
 # Builds a nice representation of an article WITHOUT recommendations link
@@ -1342,3 +1350,37 @@ def suggested_recommender_list(article_id: int):
     suggested_recommenders_html.append(recommender_list)
 
     return suggested_recommenders_html
+
+####################################################################################
+
+def get_current_step_article(article: Article):
+    timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(article, False)['content']
+    if not isinstance(timeline, DIV):
+        return 
+    
+    parser = BeautifulSoup(str(timeline.components[-1].text), 'html.parser') # type: ignore
+    step_done_els: ... = parser.find_all(class_="step-done") # type: ignore
+    if len(step_done_els) == 0:
+        return
+    step_done_last_el = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
+
+    els = ""
+    for el in step_done_last_el:
+        if el is None:
+            continue
+
+        if isinstance(el, str):
+            els += el
+        else:
+            if not el.has_attr('style'):
+                el['style'] = ''
+            else:
+                el['style'] += '; '
+
+            if el.name == 'h3':
+                el["style"] += "font-weight: bold; font-size: 12px;"
+            else:
+                el['style'] += 'font-size: 12px;'
+            els += f"{el}"
+    
+    return DIV(XML(els), _class="pci-status", _style="font-size: 12px; width: max-content; max-width: 250px; max-height: 200px; overflow: auto")
