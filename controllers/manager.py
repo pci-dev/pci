@@ -10,7 +10,6 @@ from typing import Any, Dict, List, cast, Optional
 # import tweepy
 
 # import html2text
-from bs4 import BeautifulSoup
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig # type: ignore
@@ -356,36 +355,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
                      _onchange=f'rdvDateInputChange({row.id}, "{URL(c="manager", f="edit_rdv_date", scheme=True)}")')
     
     def represent_article_status(status: Optional[str], row: Article):
-        timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(row, False)['content']
-        if not isinstance(timeline, DIV):
-            return 
-        
-        parser = BeautifulSoup(str(timeline.components[-1].text), 'html.parser') # type: ignore
-        step_done_els: ... = parser.find_all(class_="step-done") # type: ignore
-        if len(step_done_els) == 0:
-            return
-        step_done_last_el = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
-
-        els = ""
-        for el in step_done_last_el:
-            if el is None:
-                continue
-
-            if isinstance(el, str):
-                els += el
-            else:
-                if not el.has_attr('style'):
-                    el['style'] = ''
-                else:
-                    el['style'] += '; '
-
-                if el.name == 'h3':
-                    el["style"] += "font-weight: bold; font-size: 12px;"
-                else:
-                    el['style'] += 'font-size: 12px;'
-                els += f"{el}"
-        
-        return DIV(XML(els), _class="pci-status", _style="font-size: 12px; width: max-content; max-width: 250px; max-height: 200px; overflow: scroll")
+        return common_small_html.represent_current_step_manager_board(row)
 
     def represent_remarks(remarks: Optional[str], row: Article):
         return TEXTAREA(remarks if remarks is not None else '',
@@ -478,7 +448,8 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
             articles.rdv_date,
             articles.status,
             articles.validation_timestamp,
-            articles.remarks
+            articles.remarks,
+            articles.current_step
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
