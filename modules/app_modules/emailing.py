@@ -3660,7 +3660,7 @@ def create_reminder_user_complete_submission_biorxiv(article: Article):
     emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, article.id)
 
 ##################################################################################################################################################################
-def send_message_to_recommender_and_reviewers(article_id):
+def send_message_to_recommender_and_reviewers(article_id: int):
     db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[article_id]
