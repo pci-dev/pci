@@ -117,12 +117,19 @@ class Article(Row):
     methods_require_specific_expertise: _[str]
     rdv_date: _[date]
     remarks: _[str]
+    alert_date: _[date]
 
 
     @staticmethod
     def get_by_id(id: int):
         db = current.db
         return cast(_[Article], db.t_articles[id])
+    
+
+    @staticmethod
+    def get_all() -> List['Article']:
+        db = current.db
+        return db(db.t_articles).select()
     
 
     @staticmethod
@@ -326,7 +333,7 @@ class Article(Row):
     
 
     @staticmethod
-    def get_alert_date(article: 'Article'):
+    def update_alert_date(article: 'Article'):
         from models.review import Review, ReviewState
         from models.mail_queue import MailQueue, SendingStatus
 
@@ -427,6 +434,9 @@ class Article(Row):
                 alert_date = article.last_status_change + timedelta(days=2)
             elif status == ArticleStatus.AWAITING_REVISION: # Awaiting Revision
                 alert_date = article.last_status_change + timedelta(days=21)
+
+        article.alert_date = alert_date
+        article.update_record()
 
         return alert_date
 

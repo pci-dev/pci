@@ -1,0 +1,2 @@
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS alert_date DATE;

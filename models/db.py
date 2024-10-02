@@ -636,6 +636,7 @@ db.define_table(
     Field("translated_keywords", type="json", length=5000000, readable=False, writable=False),
     Field("rdv_date", type="date", readable=False, writable=False),
     Field("remarks", type="text", readable=False, writable=False),
+    Field("alert_date", type="date", readable=False, writable=False),
 
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
@@ -652,16 +653,23 @@ db.t_articles.user_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(la
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
 db.t_articles._after_insert.append(lambda s, i: newArticle(Storage(s), i))
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
-db.t_articles._after_update.append(lambda s, f: setPublishedDoi(s, f))
+db.t_articles._after_update.append(lambda s, f: after_update_article(s, f))
 
-def setPublishedDoi(s, f):
-    if current.session.disable_trigger_setPublishedDoi:
-        return
-    
-    if "status" in f:
-        o = s.select().first()
-        if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
-                emailing.send_message_to_recommender_and_reviewers(o["id"])
+def after_update_article(s: ..., f: ...):
+    if not current.session.disable_trigger_update_alert_date:
+        current.session.disable_trigger_update_alert_date = True
+        article: Article = s.select().first()
+        alert_date = Article.update_alert_date(article)
+    else:
+        current.session.disable_trigger_update_alert_date = None
+
+
+    if not current.session.disable_trigger_setPublishedDoi:
+        if "status" in f:
+            o = s.select().first()
+            if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
+                    emailing.send_message_to_recommender_and_reviewers(o["id"])
+
 
 def deltaStatus(s: ..., f: Article):
     if "status" not in f:

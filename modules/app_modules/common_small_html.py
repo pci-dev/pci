@@ -617,13 +617,11 @@ def represent_article_manager_board(article: Article):
 
 
 def represent_alert_manager_board(article: Article):
-    alert_date = Article.get_alert_date(article)
-
-    if not alert_date:
+    if not article.alert_date:
         return ''
     else:
         return DIV(
-            STRONG(alert_date.strftime(DEFAULT_DATE_FORMAT), _style="color: #B90000;", _class="article-alert"),
+            STRONG(article.alert_date.strftime(DEFAULT_DATE_FORMAT), _style="color: #B90000;", _class="article-alert"),
             _style="width: max-content;")
     
 

@@ -283,7 +283,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         'art_stage_1_id',
         'report_stage',
         'request_submission_change',
-        'last_status_change',
+        'alert_date',
         'keywords',
         'upload_timestamp',
         'thematics',
@@ -412,12 +412,13 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.upload_timestamp.readable = False
     articles.user_id.readable = False
     articles.title.readable = False
+    articles.last_status_change.readbale = False
 
     articles.upload_timestamp.searchable = False
     articles.last_status_change.searchable = False
 
-    articles.last_status_change.represent = alert_date_row
-    articles.last_status_change.label = 'Alert date'
+    articles.alert_date.represent = alert_date_row
+    articles.alert_date.readable = True
 
     articles.status.represent = represent_article_status
     articles.status.label = 'Current status'
@@ -461,6 +462,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         paginate=20,
         fields=[
             articles.id,
+            articles.alert_date,
             articles.last_status_change,
             articles.upload_timestamp,
             articles.user_id,
