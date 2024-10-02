@@ -579,29 +579,20 @@ def represent_article_manager_board(article: Article):
     title = " ".join((article.title or "").split(" ")[:7])
     if article.title and len(article.title) > len(title):
         title += "…"
-    if article.ms_version:
-        try:
-            title += f" v{int(float(article.ms_version.strip().replace(',', '.')))}"
-        except:
-            pass
 
     html.append(B(title, _class="article-title", _title=article.title))
-
-    if article.doi or article.doi_of_published_article:
-        html.append(" ")
-        html.append(A("DOI", _href=article.doi or article.doi_of_published_article, _target="_blank", _rel="noreferrer noopener"))
 
     html.append(BR())
     html.append(f"ArticleID #{article.id}")
 
     html.append(BR())
     html.append("Submitter: ")
-    html.append(mkUser(article.user_id, mail_link=True, orcid=True, reverse=True))
+    html.append(mkUser(article.user_id, mail_link=True, reverse=True))
 
     if last_recommendation:
         html.append(BR())
         html.append("Recommender: ")
-        html.append(mkUser(last_recommendation.recommender_id, mail_link=True, orcid=True, reverse=True))
+        html.append(mkUser(last_recommendation.recommender_id, mail_link=True, reverse=True))
 
         press_reviews = PressReview.get_by_recommendation(last_recommendation.id)
         if len(press_reviews) > 0:
@@ -609,13 +600,13 @@ def represent_article_manager_board(article: Article):
             html.append("Co-recommender: " if len(press_reviews) == 1 else "Co-recommenders: ") 
         for i, press_review in enumerate(press_reviews):
             if press_review.contributor_id:
-                co_recommender = mkUser(press_review.contributor_id, mail_link=True, orcid=True, reverse=True)
+                co_recommender = mkUser(press_review.contributor_id, mail_link=True, reverse=True)
                 html.append(co_recommender)
                 if i + 1 < len(press_reviews):
                     html.append(', ')
 
 
-    return DIV(*html, _style="width: max-content; max-width: 300px;")
+    return DIV(*html, _style="width: max-content; max-width: 250px;")
 
 
 def represent_alert_manager_board(article: Article):
