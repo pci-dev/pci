@@ -302,9 +302,17 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderReviewersNeeded", [SendingStatus.PENDING])) > 0 or \
                 len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderNewReviewersNeeded", [SendingStatus.PENDING])) > 0
 
-                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderDecisionOverDue", [SendingStatus.PENDING])) > 0
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art,
+                                                                                              ["#ReminderRecommenderDecisionOverDue"
+                                                                                               "#ReminderRecommenderDecisionSoonDue",
+                                                                                               "#ReminderRecommenderDecisionDue"],
+                                                                                               [SendingStatus.PENDING])) > 0
             else:
-                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderRevisedDecisionOverDue", [SendingStatus.PENDING])) > 0
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art,
+                                                                                              ["#ReminderRecommenderRevisedDecisionOverDue",
+                                                                                               "#ReminderRecommenderDecisionOverDue"
+                                                                                               "#ReminderRecommenderDecisionSoonDue",
+                                                                                               "#ReminderRecommenderDecisionDue"], [SendingStatus.PENDING])) > 0
 
                 there_are_review_reminder = \
                     len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationNewUser", [SendingStatus.PENDING])) > 0 or \
