@@ -1,7 +1,7 @@
 from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Iterable, List, Optional as _, Tuple, cast
+from typing import Any, Iterable, List, Optional as _, Tuple, Union, cast
 from models.article import is_scheduled_submission
 from models.article import Article
 from models.recommendation import Recommendation
@@ -37,7 +37,7 @@ class ReviewState(Enum):
 class Review(Row):
     id: int
     recommendation_id: int
-    reviewer_id: int
+    reviewer_id: _[int]
     review: _[str]
     last_change: _[datetime]
     is_closed: _[bool]
@@ -71,11 +71,20 @@ class Review(Row):
     
 
     @staticmethod
-    def get_by_article_id_and_state(article_id: int, state: ReviewState):
+    def get_by_article_id_and_state(article_id: int, state: Union[ReviewState, List[ReviewState]], order_by: _[Any] = None) -> List[Review]:
         db = current.db
+        if isinstance(state, ReviewState):
+            states = state.value
+        else:
+            states = [s.value for s in state]
+
         recommendations_id = cast(Rows, db(db.t_recommendations.article_id == article_id).select(db.t_recommendations.id))
-        reviews = cast(List[Review],db((db.t_reviews.review_state == state.value) & (db.t_reviews.recommendation_id).belongs(recommendations_id)).select())
-        return reviews
+        reviews = db((db.t_reviews.review_state.belongs(states)) & (db.t_reviews.recommendation_id).belongs(recommendations_id))
+
+        if order_by:
+            return reviews.select(orderby=order_by)
+        else:
+            return reviews.select()
     
     
     @staticmethod

@@ -1086,7 +1086,6 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
             reviewers_ids: List[int] = []
             reviewers_list: List[LI] = []
             current_reviewers_ids: List[int] = []
-            nb_anonymous = 1
             
             for review in reviews:
                 if review.review_state is None:  # delete this unfinished review declaration
@@ -1109,7 +1108,8 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
 
                 if reviewer_email:
                     reviewers_emails.append(reviewer_email)
-                reviewers_ids.append(reviewer_id)
+                if reviewer_id:
+                    reviewers_ids.append(reviewer_id)
 
                 html = LI(
                         common_small_html.mkUserWithMail(reviewer_id),
@@ -1121,19 +1121,18 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
                 if new_round or new_stage:
                     current_reviewers = Review.get_by_recommendation_id(recommendation.id)
                     for current_reviewer in current_reviewers:
-                        current_reviewers_ids.append(current_reviewer.reviewer_id)
+                        if current_reviewer.reviewer_id:
+                            current_reviewers_ids.append(current_reviewer.reviewer_id)
                     html = LI(
                         common_small_html.mkUserWithMail(reviewer_id),
                         " ",
                         B(T(" (YOU) ")) if reviewer_id and reviewer_id == recommendation.recommender_id else "",
-                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(review, nb_anonymous)} in the previous round of review)", _style="font-style: italic") if review.anonymously  and new_round else "",
-                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(review, nb_anonymous)} in the evaluation of the Stage 1)", _style="font-style: italic") if review.anonymously  and (new_stage and not new_round) else "",
+                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(review)} in the previous round of review)", _style="font-style: italic") if review.anonymously  and new_round else "",
+                        SPAN(f"(Anonymous reviewer {common_tools.find_reviewer_number(review)} in the evaluation of the Stage 1)", _style="font-style: italic") if review.anonymously  and (new_stage and not new_round) else "",
                         A( SPAN(current.T("Prepare an Invitation"), _class="btn btn-default"),
                             _href=URL(c="recommender_actions", f="suggest_review_to", vars=dict(recommId=latest_round_recommendation_id, reviewerId=reviewer_id, new_round=new_round, new_stage=new_stage), user_signature=True)) \
                                 if reviewer_id not in current_reviewers_ids else "",
                     )
-                    if review.anonymously:
-                        nb_anonymous += 1
                 
                 reviewers_list.append(html)
                     

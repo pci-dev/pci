@@ -16,6 +16,7 @@ from gluon.validators import IS_LIST_OF
 from models.article import Article
 from models.group import Role
 from models.membership import Membership
+from models.recommendation import Recommendation
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
 from models.user import User
@@ -270,30 +271,37 @@ def cancel_decided_article_pending_reviews(recomm):
 
 ###################################################################
 
-def find_reviewer_number(review: Review, count_anon: int):
+def find_reviewer_number(review: Review, between_just_anonyme: bool = True):
     '''
     function finds a number for the reviewer in order to differentiate between anonymous reviewers;
     it needs to be kept in mind that reviewers keep their number in different rounds of evaluation.
     '''
-    db = current.db
-    recommendations = db((db.t_articles.id == db.t_recommendations.article_id) & (db.t_recommendations.id == review.recommendation_id)).select()
-    article_id = recommendations[0].t_articles.id
-    recomms = db(db.t_recommendations.article_id == article_id).select(orderby=db.t_recommendations.id)
+    review_recommendation = Recommendation.get_by_id(review.recommendation_id)
+    if not review_recommendation:
+        return ''
+    
+    reviews = Review.get_by_article_id_and_state(review_recommendation.article_id, [
+        ReviewState.ASK_FOR_REVIEW,
+        ReviewState.AWAITING_RESPONSE,
+        ReviewState.AWAITING_REVIEW,
+        ReviewState.NEED_EXTRA_REVIEW_TIME,
+        ReviewState.REVIEW_COMPLETED,
+        ReviewState.WILLING_TO_REVIEW,
+    ], current.db.t_reviews.id)
 
-    if len(recomms) == 1: return str(count_anon)
-    else:
-        current_reviewer = review.reviewer_id
-        anon_reviewers = []
-        for recomm in recomms:
-            reviews = db(db.t_reviews.recommendation_id == recomm.id).select()
-            for review in reviews:
-                if review.anonymously == True:
-                    if review.reviewer_id not in anon_reviewers:
-                        anon_reviewers.append(review.reviewer_id)
-                    if review.reviewer_id == current_reviewer:
-                        return str(len(anon_reviewers))
+    reviews = list(filter(lambda r: r.reviewer_id is not None, reviews))
 
-    return str(count_anon)
+    if between_just_anonyme:
+        reviews = list(filter(lambda r: r.anonymously, reviews))
+
+    anonymous_reviewers: List[int] = []
+    for r in reviews:
+        if r.reviewer_id and r.reviewer_id not in anonymous_reviewers:
+            anonymous_reviewers.append(r.reviewer_id)
+        if r.reviewer_id == review.reviewer_id:
+            return str(len(anonymous_reviewers))
+
+    return ''
 
 ###########################################""""
 
