@@ -613,9 +613,14 @@ def represent_alert_manager_board(article: Article):
     if not article.alert_date:
         return ''
     else:
+        if article.alert_date <= datetime.date.today():
+            style = "color: #B90000;"
+        else:
+            style = ""
+
         return DIV(
-            STRONG(article.alert_date.strftime(DEFAULT_DATE_FORMAT), _style="color: #B90000;", _class="article-alert"),
-            _style="width: max-content;")
+            STRONG(article.alert_date.strftime(DEFAULT_DATE_FORMAT), _style=style, _class="article-alert"),
+            _style="width: 50px;")
     
 
 def represent_current_step_manager_board(article: Article):
@@ -623,6 +628,38 @@ def represent_current_step_manager_board(article: Article):
         return XML(article.current_step)
     else:
         return ''
+    
+
+def represent_rdv_date(article: Article):
+    input = INPUT(_type="date",
+                  _id=f"rdv_date_{article.id}",
+                  _name=f"rdv_date_{article.id}",
+                  _value=article.rdv_date,
+                  _min=datetime.date.today(),
+                  _onchange=f'rdvDateInputChange({article.id}, "{URL(c="manager", f="edit_rdv_date", scheme=True)}")',
+                  _style="flex")
+
+    if not article.rdv_date:
+        value = I(_class="glyphicon glyphicon-edit")
+        style = "font-size: 15px;"
+    else:
+        value = article.rdv_date.strftime(DEFAULT_DATE_FORMAT)
+        style = "background: none; color: inherit; border: 1px solid #dfd7ca; padding: 2px 2px 3px 2px; white-space: normal; width: 50px;"
+    
+    button = BUTTON(value,
+                    _popovertarget=f"rdv-date-popover-{article.id}",
+                    _class="your-rdv btn btn-default",
+                    _style=style)
+
+    return DIV(button,
+                CENTER(H3("Change RDV date", _style="margin-bottom: 20px;"),
+                    input,
+                    _popover="",
+                    _id=f"rdv-date-popover-{article.id}",
+                    _style="border: none; border-radius: 4px; padding: 10px 20px 20px 20px; box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;"),
+            _style="width: 50px;",
+            _id=f"container-rdv-date-{article.id}")
+
 
 ######################################################################################################################################################################
 # Builds a nice representation of an article WITHOUT recommendations link

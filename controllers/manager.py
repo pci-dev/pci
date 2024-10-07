@@ -38,7 +38,7 @@ from app_modules.article_translator import ArticleTranslator
 from models.group import Group, Role
 from models.review import Review
 
-from app_modules.common_small_html import md_to_html
+from app_modules.common_small_html import md_to_html, represent_rdv_date
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
@@ -347,12 +347,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
 
     
     def represent_rdv_date(rdv_date: Optional[datetime.date], row: Article):
-        return INPUT(_type="date",
-                     _id=f"rdv_date_{row.id}",
-                     _name=f"rdv_date_{row.id}",
-                     _value=rdv_date,
-                     _min=datetime.date.today(),
-                     _onchange=f'rdvDateInputChange({row.id}, "{URL(c="manager", f="edit_rdv_date", scheme=True)}")')
+        return common_small_html.represent_rdv_date(row)
     
     def represent_article_status(status: Optional[str], row: Article):
         return common_small_html.represent_current_step_manager_board(row)
@@ -454,7 +449,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
         orderby=~articles.last_status_change,
-        _class="web2py_grid action-button-absolute",
+        _class="web2py_grid action-button-absolute manage-article",
     )
 
     # options to be removed from the search dropdown:
@@ -501,8 +496,7 @@ def edit_rdv_date():
         response.flash = "Error to update RDV date"
         return HTTP(500, "Error to update RDV date")
 
-    response.flash = "RDV date successfully update"
-    return HTTP(200, new_date.isoformat() if new_date else '')
+    return represent_rdv_date(article)
 
 
 @auth.requires(auth.has_membership(role=Role.MANAGER.value))
