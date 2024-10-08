@@ -1037,9 +1037,10 @@ def getArticleSubmitter(art: Article):
     db, auth = current.db, current.auth
 
     class FakeSubmitter(object):
-        id = None
+        id = -1
         first_name = ""
         last_name = "[undisclosed]"
+        deleted = False
 
     hideSubmitter = True
 
