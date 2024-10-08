@@ -4,7 +4,7 @@ from datetime import datetime
 from app_components import ongoing_recommendation
 from dateutil.relativedelta import *
 
-from bs4 import BeautifulSoup
+import bs4
 import io
 from PIL import Image
 
@@ -1386,29 +1386,47 @@ def get_current_step_article(article: Article):
     if not isinstance(timeline, DIV):
         return 
     
-    parser = BeautifulSoup(str(timeline.components[-1].text), 'html.parser') # type: ignore
+    parser = bs4.BeautifulSoup(str(timeline.components[-1].text), 'html.parser') # type: ignore
     step_done_els: ... = parser.find_all(class_="step-done") # type: ignore
     if len(step_done_els) == 0:
         return
-    step_done_last_el = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
+    
+    final_step_done = False
+    step_done_container = step_done_els[-1]
+    if step_done_container.has_attr('class'):
+        step_done_container_class = step_done_container.attrs['class']
+        if 'step-done' in step_done_container_class \
+            and 'progress-last-step-div' in step_done_container_class \
+                and 'current-step' not in step_done_container_class:
+            final_step_done = True
+    
+    step_done_content = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
+    img = f"{_get_current_step_img(step_done_els)}"
 
     els = ""
-    for el in step_done_last_el:
+    for el in step_done_content:
         if el is None:
             continue
 
         if isinstance(el, str):
             els += el
         else:
-            if not el.has_attr('style'):
-                el['style'] = ''
-            else:
-                el['style'] += '; '
-
-            if el.name == 'h3':
-                el["style"] += "font-weight: bold; font-size: 12px;"
-            else:
-                el['style'] += 'font-size: 12px;'
             els += f"{el}"
     
-    return DIV(XML(els), _class="pci-status", _style="font-size: 12px; width: max-content; max-width: 250px; max-height: 200px; overflow: auto")
+    classes = "pci-status-mini"
+    if final_step_done:
+        classes += " final-step-done-mini"
+    return DIV(XML(img), XML(els), _class=classes)
+
+
+def _get_current_step_img(step_done_els: ...) -> Union[DIV, None]:
+    step_done_img = cast(List[Union[str, bs4.element.Tag, None]],  step_done_els[-1].find(class_="progress-step-circle").contents)
+    img: Optional[bs4.element.Tag] = None
+    for el in step_done_img:
+        if isinstance(el, bs4.element.Tag):
+            img = el
+
+    if not img:
+        return None
+    else:
+        return DIV(XML(f"{img}"), _class="mini-progress-step-circle pci2-flex-center")
