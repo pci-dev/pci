@@ -441,7 +441,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
-        orderby=~articles.last_status_change,
+        orderby=articles.alert_date|articles.rdv_date,
         _class="web2py_grid action-button-absolute manage-article",
     )
 
