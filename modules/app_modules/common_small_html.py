@@ -1420,6 +1420,8 @@ def get_current_step_article(article: Article):
     classes = "pci-status-mini"
     if final_step_done:
         classes += " final-step-done-mini"
+    if 'needed' in els.lower():
+        classes += " needed-step"
 
     return SPAN(SPAN(step, _class="step-number"), DIV(XML(img), XML(els), _class=classes))
 

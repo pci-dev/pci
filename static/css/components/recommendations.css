@@ -353,11 +353,15 @@ h4.pci2-recomm-article-h2 .glyphicon {
   margin: 0px;
   color: #29abe0;
   margin-bottom: 8px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .pci-status-mini.final-step-done-mini h3 {
   color: #93c54b;
+}
+
+.pci-status-mini.needed-step h3 {
+  color: #b90000;
 }
 
 .step-number {
