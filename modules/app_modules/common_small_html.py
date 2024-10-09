@@ -1254,20 +1254,21 @@ def unsubscribe_checkbox():
             DIV(
                 LABEL(
                     INPUT(_type="checkbox", _name="unsubscribe_checkbox", _id="unsubscribe_checkbox"),
-                    current.T('Please check this box if you want to unsubscribe.'),
+                    "Please check this box if you want to delete your account.",
                     _style="font-weight: normal"
                 ), _class="col-sm-offset-3 col-sm-9", **{'_data-toggle': 'collapse', '_data-target': '#unsubscribe-text', '_aria-expanded': 'false', '_aria-controls': 'unsubscribe-text'}
             ),
             DIV(
                 DIV(
-                    "All of your personal information will be removed from the site except in the following situations: If you are the author of any public reviews, public editorial decisions, public recommendations, or if you are the submitter of a recommended article, your name will still be present in the PCI database and will be publicly visible on the recommendation page of the corresponding article. If you are the author of any public anonymous reviews, hidden reviews, hidden editorial decisions, or if you are the submitter of an article that has not been recommended, your name will still be present in the PCI database, but will not be publicly viewable.",
+                    B("WARNING"),
+                    ": All of your personal information will be removed from the site except in the following situations: If you are the author of any public reviews, public editorial decisions, public recommendations, or if you are the submitter of a recommended article, your name will still be present in the PCI database and will be publicly visible on the recommendation page of the corresponding article. If you are the author of any public anonymous reviews, hidden reviews, hidden editorial decisions, or if you are the submitter of an article that has not been recommended, your name will still be present in the PCI database, but will not be publicly viewable.",
                     _class="well"),
             _class="collapse col-sm-offset-3 col-sm-9", _id="unsubscribe-text"),
 
           _class="form-group")
 
-    html.append(common_tools.get_script('unsubscribe.js'))
-    html.append(confirmationDialog('You are about to permanently delete your account, are you sure?', URL('default', 'unsubscribe', user_signature=True)))
+    html.append(common_tools.get_script('unsubscribe.js')) # type: ignore
+    html.append(confirmationDialog('You are about to permanently delete your account, are you sure?', URL('default', 'unsubscribe', user_signature=True))) # type: ignore
     return html
 
 ####################################################################################
