@@ -1,5 +1,5 @@
 {{if roundNumber == 1:}}
-    <div class="progress-step-div pci2-flex-row step-done">
+    <div class="progress-step-div pci2-flex-row step-done" data-step="1">
         <div class="progress-step-circle pci2-flex-center">
             <i class="glyphicon glyphicon-flag"></i>
         </div>
@@ -10,7 +10,7 @@
     </div>
 
     {{ if not articleHasBeenCompleted:}}
-        <div class="progress-step-div pci2-flex-row step-done">
+        <div class="progress-step-div pci2-flex-row step-done" data-step="2">
             <div class="progress-step-circle pci2-flex-center">
                 <i class="glyphicon glyphicon-edit"></i>
             </div>
@@ -27,7 +27,7 @@
         </div>
     {{pass}}
 
-    <div class="progress-step-div pci2-flex-row {{=submissionValidatedClass}}">
+    <div class="progress-step-div pci2-flex-row {{=submissionValidatedClass}}" data-step="3">
         <div class="progress-step-circle pci2-flex-center">
             <i class="glyphicon glyphicon-check"></i>
         </div>
@@ -49,7 +49,7 @@
         </div>
     </div>
 
-    <div class="progress-step-div pci2-flex-row {{=havingRecommenderClass}}">
+    <div class="progress-step-div pci2-flex-row {{=havingRecommenderClass}}" data-step="4">
         <div class="pci2-flex-center progress-step-circle">
             <i class="glyphicon glyphicon-education"></i>
         </div>
@@ -77,7 +77,7 @@
         (not recommendationStepClass == "step-done" or 
         (acceptedReviewCount >= 2 and completedReviewCount >= 2))
     ):}}
-        <div class="progress-step-div pci2-flex-row {{=reviewInvitationsAcceptedClass}}">
+        <div class="progress-step-div pci2-flex-row {{=reviewInvitationsAcceptedClass}}" data-step="5">
             <div class="pci2-flex-center progress-step-circle">
                 <i class="glyphicon glyphicon-envelope"></i>
             </div>
@@ -92,7 +92,7 @@
             </div>
         </div>
 
-        <div class="progress-step-div pci2-flex-row {{=reviewsStepDoneClass}}">
+        <div class="progress-step-div pci2-flex-row {{=reviewsStepDoneClass}}" data-step="6">
             <div class="pci2-flex-center progress-step-circle">
                 <i class="glyphicon glyphicon-eye-open"></i>
             </div>
@@ -111,7 +111,7 @@
         </div>
     {{pass}}
 
-    <div class="progress-step-div pci2-flex-row {{=recommendationStepClass}}">
+    <div class="progress-step-div pci2-flex-row {{=recommendationStepClass}}" data-step="7">
         <div class="pci2-flex-center progress-step-circle">
             <i class="glyphicon glyphicon-edit"></i>
         </div>
@@ -126,7 +126,7 @@
         </div>
     </div>
 
-    <div class="pci2-flex-row {{=managerDecisionDoneStepClass}} {{=managerDecisionDoneClass}}">
+    <div class="pci2-flex-row {{=managerDecisionDoneStepClass}} {{=managerDecisionDoneClass}}" data-step="9">
         <div class="pci2-flex-center progress-step-circle">
             <i class="glyphicon glyphicon-ok" ></i>
         </div>
@@ -158,7 +158,19 @@
         </div>
     </div>
 {{else:}}
-    <div class="progress-step-div pci2-flex-row step-done {{if validationDate and roundNumber == totalRecomm and recommStatus != 'Revision':}}progress-last-step-div{{pass}}">
+    <div class="progress-step-div pci2-flex-row step-done {{if validationDate and roundNumber == totalRecomm and recommStatus != 'Revision':}}progress-last-step-div{{pass}}"
+    data-step="{{if managerDecisionDoneClass == 'step-done' or (recommendationStepClass == 'step-done' and reviewsStepDoneClass == 'step-done' and reviewInvitationsAcceptedClass == 'step-done'):}}
+                    9
+                {{elif recommendationStepClass != 'step-done' and reviewsStepDoneClass == 'step-done' and reviewInvitationsAcceptedClass == 'step-done':}}
+                    7
+                {{elif reviewsStepDoneClass != 'step-done' and reviewInvitationsAcceptedClass == 'step-done':}}
+                    6
+                {{elif reviewInvitationsAcceptedClass != 'step-done':}}
+                    5
+                {{else:}}
+                    4
+                {{pass}}">
+
         <div class="progress-step-circle pci2-flex-center">
             <i class="glyphicon glyphicon-repeat"></i>
         </div>
@@ -221,7 +233,7 @@
 {{pass}}
 
 {{if recommStatus == "Revision" and (validationDate or authorsReplyDate):}}
-        <div class="pci2-flex-row {{=authorsReplyClassStepClass}} {{=authorsReplyClass}}">
+        <div class="pci2-flex-row {{=authorsReplyClassStepClass}} {{=authorsReplyClass}}" data-step="8">
             <div class="pci2-flex-center progress-step-circle">
                 <i class="glyphicon glyphicon-user"></i>
             </div>

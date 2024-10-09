@@ -287,7 +287,8 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         'upload_timestamp',
         'thematics',
         'rdv_date',
-        'remarks'
+        'remarks',
+        'current_step'
     ]   
     
     def article_row(article_id: int, article: Article):
@@ -371,6 +372,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.user_id.readable = False
     articles.title.readable = False
     articles.last_status_change.readbale = False
+    articles.status.readable = False
 
     articles.upload_timestamp.searchable = False
     articles.last_status_change.searchable = False
@@ -378,8 +380,9 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.alert_date.represent = alert_date_row
     articles.alert_date.readable = True
 
-    articles.status.represent = represent_article_status
-    articles.status.label = 'Current status'
+    articles.current_step.represent = represent_article_status
+    articles.current_step.label = 'Current status'
+    articles.current_step.readable = True
 
     articles.remarks.readable = True
     articles.remarks.label = 'Remarks'
@@ -435,9 +438,9 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
             articles.doi_of_published_article,
             articles.rdv_date,
             articles.status,
+            articles.current_step,
             articles.validation_timestamp,
             articles.remarks,
-            articles.current_step
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
