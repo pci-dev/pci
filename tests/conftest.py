@@ -3,7 +3,7 @@ from selenium import webdriver
 from argparse import Namespace
 from os import getenv
 
-DEFAULT_TIMEOUT = int(5)
+DEFAULT_TIMEOUT = int(6)
 DEFAULT_SLEEP = int(1)
 
 def get_driver():
