@@ -19,12 +19,30 @@ The inbox at `/coar_notify/inbox` has IP-whitelist access-control. Allowed
 client IPs can be configured via menu Admin > COAR whitelist - i.e. at
 `/admin/edit_config/coar_whitelist` or directly in the pci config database.
 
+The system can send copies of all outbound `coar-notify:Review/EndorsementAction`
+notification to a set of `coar listeners` specified in the conf.
+
 To enable COAR Notify, `private/appconfig.ini` should contain the following section:
 
 ```ini
 [coar_notify]
 enabled = True
 ```
+
+To specify a set of COAR Notify listeners, add the following
+in section `[coar_notify]`:
+
+```ini
+listeners = xxx, yyy,
+
+xxx_id = <target.id for notifications sent to xxx>
+xxx_inbox = <target.inbox for xxx>
+
+yyy_id = https://yyy.org/
+yyy_inbox = https://inbox.yyy.org/coar_notify/inbox
+```
+
+note: the trailing `,` in `listeners` is required, even for a single listener.
 
 
 Checking it works
