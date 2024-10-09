@@ -3144,3 +3144,11 @@ ADD COLUMN IF NOT EXISTS rdv_date DATE;
 --- 2024-10-01 updates/remarks.sql
 ALTER TABLE t_articles 
 ADD COLUMN IF NOT EXISTS remarks text;
+
+--- 2024-10-02 updates/alert_date.sql
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS alert_date DATE;
+
+--- 2024-10-02 updates/current_step.sql
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS current_step text;

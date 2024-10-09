@@ -117,12 +117,20 @@ class Article(Row):
     methods_require_specific_expertise: _[str]
     rdv_date: _[date]
     remarks: _[str]
+    alert_date: _[date]
+    current_step: _[str]
 
 
     @staticmethod
     def get_by_id(id: int):
         db = current.db
         return cast(_[Article], db.t_articles[id])
+    
+
+    @staticmethod
+    def get_all() -> List['Article']:
+        db = current.db
+        return db(db.t_articles).select()
     
 
     @staticmethod
@@ -326,7 +334,7 @@ class Article(Row):
     
 
     @staticmethod
-    def get_alert_date(article: 'Article'):
+    def update_alert_date(article: 'Article', update_record: bool = True):
         from models.review import Review, ReviewState
         from models.mail_queue import MailQueue, SendingStatus
 
@@ -428,7 +436,25 @@ class Article(Row):
             elif status == ArticleStatus.AWAITING_REVISION: # Awaiting Revision
                 alert_date = article.last_status_change + timedelta(days=21)
 
+        article.alert_date = alert_date
+        if update_record:
+            article.update_record()
+
         return alert_date
+
+
+    @staticmethod
+    def update_current_step(article: 'Article', update_record: bool = True):
+        from app_modules.common_small_html import get_current_step_article
+
+        current_step = get_current_step_article(article)
+        
+        article.current_step = str(current_step)
+        if update_record:
+            article.update_record()
+
+        return current_step
+
 
 
 def is_scheduled_submission(article: Article) -> bool:

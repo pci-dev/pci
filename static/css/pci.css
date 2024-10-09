@@ -1461,3 +1461,7 @@ body.impersonate.silent-mode {
 .evalutation-process-list > li:nth-child(1)::before {
   margin-right: 19px;
 }
+
+.manage-article th:last-child {
+  text-align: center;
+}

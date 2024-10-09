@@ -1,8 +1,10 @@
 from typing import Any, Dict, List, Optional, Union, cast
 from re import sub, match
 from datetime import datetime
+from app_components import ongoing_recommendation
 from dateutil.relativedelta import *
 
+import bs4
 import io
 from PIL import Image
 
@@ -577,29 +579,20 @@ def represent_article_manager_board(article: Article):
     title = " ".join((article.title or "").split(" ")[:7])
     if article.title and len(article.title) > len(title):
         title += "…"
-    if article.ms_version:
-        try:
-            title += f" v{int(float(article.ms_version.strip().replace(',', '.')))}"
-        except:
-            pass
 
     html.append(B(title, _class="article-title", _title=article.title))
-
-    if article.doi or article.doi_of_published_article:
-        html.append(" ")
-        html.append(A("DOI", _href=article.doi or article.doi_of_published_article, _target="_blank", _rel="noreferrer noopener"))
 
     html.append(BR())
     html.append(f"ArticleID #{article.id}")
 
     html.append(BR())
     html.append("Submitter: ")
-    html.append(mkUser(article.user_id, mail_link=True, orcid=True, reverse=True))
+    html.append(mkUser(article.user_id, mail_link=True, reverse=True))
 
     if last_recommendation:
         html.append(BR())
         html.append("Recommender: ")
-        html.append(mkUser(last_recommendation.recommender_id, mail_link=True, orcid=True, reverse=True))
+        html.append(mkUser(last_recommendation.recommender_id, mail_link=True, reverse=True))
 
         press_reviews = PressReview.get_by_recommendation(last_recommendation.id)
         if len(press_reviews) > 0:
@@ -607,25 +600,66 @@ def represent_article_manager_board(article: Article):
             html.append("Co-recommender: " if len(press_reviews) == 1 else "Co-recommenders: ") 
         for i, press_review in enumerate(press_reviews):
             if press_review.contributor_id:
-                co_recommender = mkUser(press_review.contributor_id, mail_link=True, orcid=True, reverse=True)
+                co_recommender = mkUser(press_review.contributor_id, mail_link=True, reverse=True)
                 html.append(co_recommender)
                 if i + 1 < len(press_reviews):
                     html.append(', ')
 
 
-    return DIV(*html, _style="width: max-content; max-width: 300px;")
+    return DIV(*html, _style="width: max-content; max-width: 250px;")
 
 
 def represent_alert_manager_board(article: Article):
-    alert_date = Article.get_alert_date(article)
-
-    if not alert_date:
+    if not article.alert_date:
         return ''
     else:
+        if article.alert_date <= datetime.date.today():
+            style = "color: #B90000;"
+        else:
+            style = ""
+
         return DIV(
-            STRONG(alert_date.strftime(DEFAULT_DATE_FORMAT), _style="color: #B90000;", _class="article-alert"),
-            _style="width: max-content;")
+            STRONG(article.alert_date.strftime(DEFAULT_DATE_FORMAT), _style=style, _class="article-alert"),
+            _style="width: 50px;")
     
+
+def represent_current_step_manager_board(article: Article):
+    if article.current_step:
+        return XML(article.current_step)
+    else:
+        return ''
+    
+
+def represent_rdv_date(article: Article):
+    input = INPUT(_type="date",
+                  _id=f"rdv_date_{article.id}",
+                  _name=f"rdv_date_{article.id}",
+                  _value=article.rdv_date,
+                  _min=datetime.date.today(),
+                  _onchange=f'rdvDateInputChange({article.id}, "{URL(c="manager", f="edit_rdv_date", scheme=True)}")',
+                  _style="flex")
+
+    if not article.rdv_date:
+        value = I(_class="glyphicon glyphicon-edit")
+        style = "font-size: 15px;"
+    else:
+        value = article.rdv_date.strftime(DEFAULT_DATE_FORMAT)
+        style = "background: none; color: inherit; border: 1px solid #dfd7ca; padding: 2px 2px 3px 2px; white-space: normal; width: 50px;"
+    
+    button = BUTTON(value,
+                    _popovertarget=f"rdv-date-popover-{article.id}",
+                    _class="your-rdv btn btn-default",
+                    _style=style)
+
+    return DIV(button,
+                CENTER(H3("Change RDV date", _style="margin-bottom: 20px;"),
+                    input,
+                    _popover="",
+                    _id=f"rdv-date-popover-{article.id}",
+                    _style="border: none; border-radius: 4px; padding: 10px 20px 20px 20px; box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;"),
+            _style="width: 50px;",
+            _id=f"container-rdv-date-{article.id}")
+
 
 ######################################################################################################################################################################
 # Builds a nice representation of an article WITHOUT recommendations link
@@ -1003,9 +1037,10 @@ def getArticleSubmitter(art: Article):
     db, auth = current.db, current.auth
 
     class FakeSubmitter(object):
-        id = None
+        id = -1
         first_name = ""
         last_name = "[undisclosed]"
+        deleted = False
 
     hideSubmitter = True
 
@@ -1343,3 +1378,62 @@ def suggested_recommender_list(article_id: int):
     suggested_recommenders_html.append(recommender_list)
 
     return suggested_recommenders_html
+
+####################################################################################
+
+def get_current_step_article(article: Article):
+    timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(article, False)['content']
+    if not isinstance(timeline, DIV):
+        return 
+    
+    parser = bs4.BeautifulSoup(str(timeline.components[-1].text), 'html.parser') # type: ignore
+    step_done_els: ... = parser.find_all(class_="step-done") # type: ignore
+    if len(step_done_els) == 0:
+        return
+    
+    final_step_done = False
+    step_done_container = step_done_els[-1]
+    if step_done_container.has_attr('class'):
+        step_done_container_class = step_done_container.attrs['class']
+        if 'step-done' in step_done_container_class \
+            and 'progress-last-step-div' in step_done_container_class \
+                and 'current-step' not in step_done_container_class:
+            final_step_done = True
+
+    step: int = 0
+    if step_done_container.has_attr('data-step'):
+        step = step_done_container.attrs['data-step']
+    
+    step_done_content = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
+    img = f"{_get_current_step_img(step_done_els)}"
+
+    els = ""
+    for el in step_done_content:
+        if el is None:
+            continue
+
+        if isinstance(el, str):
+            els += el
+        else:
+            els += f"{el}"
+    
+    classes = "pci-status-mini"
+    if final_step_done:
+        classes += " final-step-done-mini"
+    if 'needed' in els.lower():
+        classes += " needed-step"
+
+    return SPAN(SPAN(step, _class="step-number"), DIV(XML(img), XML(els), _class=classes))
+
+
+def _get_current_step_img(step_done_els: ...) -> Union[DIV, None]:
+    step_done_img = cast(List[Union[str, bs4.element.Tag, None]],  step_done_els[-1].find(class_="progress-step-circle").contents)
+    img: Optional[bs4.element.Tag] = None
+    for el in step_done_img:
+        if isinstance(el, bs4.element.Tag):
+            img = el
+
+    if not img:
+        return None
+    else:
+        return DIV(XML(f"{img}"), _class="mini-progress-step-circle pci2-flex-center")

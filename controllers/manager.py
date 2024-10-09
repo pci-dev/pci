@@ -11,7 +11,6 @@ from typing import Any, Dict, List, cast, Optional
 
 # import html2text
 from app_components.custom_validator import VALID_LIST_NAMES_MAIL
-from bs4 import BeautifulSoup
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig # type: ignore
@@ -40,7 +39,7 @@ from app_modules.article_translator import ArticleTranslator
 from models.group import Group, Role
 from models.review import Review
 
-from app_modules.common_small_html import md_to_html
+from app_modules.common_small_html import md_to_html, represent_rdv_date
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
@@ -285,12 +284,13 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         'art_stage_1_id',
         'report_stage',
         'request_submission_change',
-        'last_status_change',
+        'alert_date',
         'keywords',
         'upload_timestamp',
         'thematics',
         'rdv_date',
-        'remarks'
+        'remarks',
+        'current_step'
     ]   
     
     def article_row(article_id: int, article: Article):
@@ -343,44 +343,10 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
 
     
     def represent_rdv_date(rdv_date: Optional[datetime.date], row: Article):
-        return INPUT(_type="date",
-                     _id=f"rdv_date_{row.id}",
-                     _name=f"rdv_date_{row.id}",
-                     _value=rdv_date,
-                     _min=datetime.date.today(),
-                     _onchange=f'rdvDateInputChange({row.id}, "{URL(c="manager", f="edit_rdv_date", scheme=True)}")')
+        return common_small_html.represent_rdv_date(row)
     
     def represent_article_status(status: Optional[str], row: Article):
-        timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(row, False)['content']
-        if not isinstance(timeline, DIV):
-            return 
-        
-        parser = BeautifulSoup(str(timeline.components[-1].text), 'html.parser') # type: ignore
-        step_done_els: ... = parser.find_all(class_="step-done") # type: ignore
-        if len(step_done_els) == 0:
-            return
-        step_done_last_el = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
-
-        els = ""
-        for el in step_done_last_el:
-            if el is None:
-                continue
-
-            if isinstance(el, str):
-                els += el
-            else:
-                if not el.has_attr('style'):
-                    el['style'] = ''
-                else:
-                    el['style'] += '; '
-
-                if el.name == 'h3':
-                    el["style"] += "font-weight: bold; font-size: 12px;"
-                else:
-                    el['style'] += 'font-size: 12px;'
-                els += f"{el}"
-        
-        return DIV(XML(els), _class="pci-status", _style="font-size: 12px; width: max-content; max-width: 250px; max-height: 200px; overflow: scroll")
+        return common_small_html.represent_current_step_manager_board(row)
 
     def represent_remarks(remarks: Optional[str], row: Article):
         return TEXTAREA(remarks if remarks is not None else '',
@@ -407,15 +373,18 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.upload_timestamp.readable = False
     articles.user_id.readable = False
     articles.title.readable = False
+    articles.last_status_change.readbale = False
+    articles.status.readable = False
 
     articles.upload_timestamp.searchable = False
     articles.last_status_change.searchable = False
 
-    articles.last_status_change.represent = alert_date_row
-    articles.last_status_change.label = 'Alert date'
+    articles.alert_date.represent = alert_date_row
+    articles.alert_date.readable = True
 
-    articles.status.represent = represent_article_status
-    articles.status.label = 'Current status'
+    articles.current_step.represent = represent_article_status
+    articles.current_step.label = 'Current status'
+    articles.current_step.readable = True
 
     articles.remarks.readable = True
     articles.remarks.label = 'Remarks'
@@ -456,6 +425,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         paginate=20,
         fields=[
             articles.id,
+            articles.alert_date,
             articles.last_status_change,
             articles.upload_timestamp,
             articles.user_id,
@@ -470,13 +440,14 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
             articles.doi_of_published_article,
             articles.rdv_date,
             articles.status,
+            articles.current_step,
             articles.validation_timestamp,
-            articles.remarks
+            articles.remarks,
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
-        orderby=~articles.last_status_change,
-        _class="web2py_grid action-button-absolute",
+        orderby=articles.alert_date|articles.rdv_date,
+        _class="web2py_grid action-button-absolute manage-article",
     )
 
     # options to be removed from the search dropdown:
@@ -523,8 +494,7 @@ def edit_rdv_date():
         response.flash = "Error to update RDV date"
         return HTTP(500, "Error to update RDV date")
 
-    response.flash = "RDV date successfully update"
-    return HTTP(200, new_date.isoformat() if new_date else '')
+    return represent_rdv_date(article)
 
 
 @auth.requires(auth.has_membership(role=Role.MANAGER.value))
