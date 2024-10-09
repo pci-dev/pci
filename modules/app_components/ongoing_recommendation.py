@@ -302,9 +302,17 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderReviewersNeeded", [SendingStatus.PENDING])) > 0 or \
                 len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderNewReviewersNeeded", [SendingStatus.PENDING])) > 0
 
-                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderDecisionOverDue", [SendingStatus.PENDING])) > 0
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art,
+                                                                                              ["#ReminderRecommenderDecisionOverDue"
+                                                                                               "#ReminderRecommenderDecisionSoonDue",
+                                                                                               "#ReminderRecommenderDecisionDue"],
+                                                                                               [SendingStatus.PENDING])) > 0
             else:
-                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderRevisedDecisionOverDue", [SendingStatus.PENDING])) > 0
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art,
+                                                                                              ["#ReminderRecommenderRevisedDecisionOverDue",
+                                                                                               "#ReminderRecommenderDecisionOverDue"
+                                                                                               "#ReminderRecommenderDecisionSoonDue",
+                                                                                               "#ReminderRecommenderDecisionDue"], [SendingStatus.PENDING])) > 0
 
                 there_are_review_reminder = \
                     len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationNewUser", [SendingStatus.PENDING])) > 0 or \
@@ -314,7 +322,6 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             reviews = Review.get_by_recommendation_id(recomm.id, db.t_reviews.id)
 
             lastReviewDate: Optional[datetime.datetime] = None
-            count_anonymous_review: int = 1
             reviewer_name: Optional[str] = None
             reviewers = []
 
@@ -325,7 +332,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 if review.review_state == ReviewState.REVIEW_COMPLETED.value:
                     acceptedReviewCount += 1
                     completedReviewCount += 1
-                if review.review_state in (ReviewState.DECLINED.value, ReviewState.DECLINED_MANUALLY.value, ReviewState.DECLINED_BY_RECOMMENDER.value):
+                if review.review_state in (ReviewState.DECLINED.value, ReviewState.DECLINED_MANUALLY.value, ReviewState.DECLINED_BY_RECOMMENDER.value, ReviewState.CANCELLED.value):
                     declined_review_count += 1
                 if review.last_change and review.review_state == ReviewState.REVIEW_COMPLETED.value:
                     if not lastReviewDate:
@@ -334,12 +341,12 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                         lastReviewDate = review.last_change
 
                 if is_submitter:
-                    reviewer_name = f"Anonymous reviewer {common_tools.find_reviewer_number(review, count_anonymous_review)}"
+                    reviewer_name = f"Anonymous reviewer"
                 elif current.auth.has_membership(role=Role.MANAGER.value) or current.auth.has_membership(role=Role.RECOMMENDER.value):
                     reviewer_name = Review.get_reviewer_name(review)
                 else:
                     if review.anonymously:
-                        reviewer_name = f"Anonymous reviewer {common_tools.find_reviewer_number(review, count_anonymous_review)}"
+                        reviewer_name = f"Anonymous reviewer"
                     else:
                         reviewer_name = Review.get_reviewer_name(review)
 
@@ -349,8 +356,6 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 elif review.review_state == ReviewState.AWAITING_REVIEW.value:
                     due_date = Review.get_due_date(review).strftime("%d %B %Y")
                     reviewers.append(DIV(SPAN(SPAN(reviewer_name, _style="color: #29abe0") + ", due date: ", _style="font-weight: bold"), due_date))
-
-                count_anonymous_review += 1
 
             if acceptedReviewCount == 0 and not there_are_review_reminder and art.last_status_change:
                 decision_due_date = art.last_status_change + timedelta(days=10)

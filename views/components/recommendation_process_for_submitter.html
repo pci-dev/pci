@@ -85,7 +85,7 @@
                 <h3><b style="color: #333">Round {{=roundNumber}}: </b>Reviewers needed</h3>
                 <p>
                     <span style="font-weight: bold">Invited: </span>{{=reviewCount}}<br>
-                    <span style="font-weight: bold">Declined: </span>{{=declined_review_count}}<br>
+                    <span style="font-weight: bold">Declined or cancelled: </span>{{=declined_review_count}}<br>
                     <span style="font-weight: bold">Agreed: </span>{{=acceptedReviewCount}}<br>
                     <span style="font-weight: bold">Scheduled reminders to the recommender to invite reviewers: </span>{{if there_are_review_reminder:}}yes{{else:}}no{{pass}}<br>
                 </p>
@@ -121,7 +121,7 @@
                 <span style="font-weight: bold">Decision uploaded: </span>{{=recommendation_last_change}}<br>
             {{elif decision_due_date:}}
                 <span style="font-weight: bold">Decision due date: </span>{{=decision_due_date}}<br>
-                <span style="font-weight: bold">Scheduled reminders to the recommender? </span>{{if there_are_recommendation_reminder:}}yes{{else:}}no{{pass}}<br>
+                <span style="font-weight: bold">Scheduled reminders to the recommender: </span>{{if there_are_recommendation_reminder:}}yes{{else:}}no{{pass}}<br>
             {{pass}}
         </div>
     </div>
@@ -188,7 +188,7 @@
                 {{pass}}
             {{else:}}
                 <span style="font-weight: bold">Invited reviewers: </span>{{=reviewCount}}<br>
-                <span style="font-weight: bold">Declined reviewers: </span>{{=declined_review_count}}<br>
+                <span style="font-weight: bold">Declined or cancelled reviewers: </span>{{=declined_review_count}}<br>
                 <span style="font-weight: bold">Agreed reviewers: </span>{{=acceptedReviewCount}}<br>
 
                 {{if reviewsStepDoneClass != 'step-done':}}
