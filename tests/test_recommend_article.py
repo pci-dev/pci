@@ -50,7 +50,7 @@ class Manager_validates_decision:
         if is_rr:
            select(".pci-status", "RECOMMENDATION PENDING VALIDATION")
         else:
-            select(".pci-status", contains="Decision pending validation for less than a day")
+            select(".pci-status-mini", contains="Decision pending validation for less than a day")
 
     select("a", "View / Edit".upper()).click()
 
