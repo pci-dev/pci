@@ -352,7 +352,7 @@ h4.pci2-recomm-article-h2 .glyphicon {
   font-weight: bold;
   margin: 0px;
   color: #29abe0;
-  margin-bottom: 3px;
+  margin-bottom: 8px;
   font-size: 13px;
 }
 
@@ -360,7 +360,9 @@ h4.pci2-recomm-article-h2 .glyphicon {
   color: #93c54b;
 }
 
-
+.step-number {
+  display: none;
+}
 
 .progress-step-div .step-description {
   min-height: 125px;

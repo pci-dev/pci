@@ -1400,6 +1400,10 @@ def get_current_step_article(article: Article):
             and 'progress-last-step-div' in step_done_container_class \
                 and 'current-step' not in step_done_container_class:
             final_step_done = True
+
+    step: int = 0
+    if step_done_container.has_attr('data-step'):
+        step = step_done_container.attrs['data-step']
     
     step_done_content = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
     img = f"{_get_current_step_img(step_done_els)}"
@@ -1417,7 +1421,8 @@ def get_current_step_article(article: Article):
     classes = "pci-status-mini"
     if final_step_done:
         classes += " final-step-done-mini"
-    return DIV(XML(img), XML(els), _class=classes)
+
+    return SPAN(SPAN(step, _class="step-number"), DIV(XML(img), XML(els), _class=classes))
 
 
 def _get_current_step_img(step_done_els: ...) -> Union[DIV, None]:
