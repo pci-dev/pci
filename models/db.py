@@ -1302,6 +1302,7 @@ db.define_table(
     Field("email_sent", type="boolean", default=False, label=T("E-mail sent")),
     Field("declined", type="boolean", default=False, label=T("Declined")),
     Field("emailing", type="text", length=2097152, label=T("Emails history"), readable=False, writable=False),
+    Field("quick_decline_key", type="text", label=T("Quick decline key"), readable=False, writable=False),
     singular=T("Suggested recommender"),
     plural=T("Suggested recommenders"),
     migrate=False,
