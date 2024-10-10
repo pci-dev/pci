@@ -488,7 +488,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             componentVars = dict(
                 printable=printable,
                 roundNumber=roundNumber,
-                articleStatus=art.status,
+                article=art,
                 submissionValidatedClass=submissionValidatedClass,
                 havingRecommenderClass=havingRecommenderClass,
                 invitedSuggestedRecommenderCount=invited_suggested_recommender_count,
@@ -539,7 +539,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
         componentVars = dict(
             printable=printable,
             roundNumber=roundNumber,
-            articleStatus=art.status,
+            article=art,
             submissionValidatedClass=submissionValidatedClass,
             havingRecommenderClass=havingRecommenderClass,
             invitedSuggestedRecommenderCount=invited_suggested_recommender_count,
