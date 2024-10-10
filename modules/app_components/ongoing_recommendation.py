@@ -378,7 +378,14 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 managerDecisionDoneClass = "step-done"
                 recommStatus = recomm.recommendation_state
 
-            if (roundNumber == totalRecomm and art.status in ("Rejected", "Recommended", "Awaiting revision", "Scheduled submission revision")) or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
+            if (roundNumber == totalRecomm and art.status in (ArticleStatus.REJECTED.value,
+                                                              ArticleStatus.RECOMMENDED.value,
+                                                              ArticleStatus.AWAITING_REVISION.value,
+                                                              ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value,
+                                                              ArticleStatus.PRE_REJECTED.value,
+                                                              ArticleStatus.PRE_REVISION.value,
+                                                              ArticleStatus.PRE_RECOMMENDED.value)) \
+                or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
                 managerDecisionDoneClass = "step-done"
 
             if recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
