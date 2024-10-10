@@ -166,6 +166,8 @@
             <h3><b style="color: #333">Round {{=roundNumber}}: </b>
                 {{if validationDate:}}
                     Decision validated by the Managing board
+                {{elif managerDecisionDoneClass == "step-done":}}
+                    Decision pending validation
                 {{else:}}
                     Evaluation and decision underway
                 {{pass}}
