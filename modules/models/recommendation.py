@@ -1,5 +1,5 @@
-from __future__ import annotations # for self-ref param type Post in save_posts_in_db()
-from datetime import datetime
+from typing import TYPE_CHECKING
+from datetime import datetime, timedelta
 from enum import Enum
 import html
 import re
@@ -11,6 +11,9 @@ from models.press_reviews import PressReview
 from models.user import User
 from pydal.objects import Row
 from gluon import current
+
+if TYPE_CHECKING:
+    from article import Article
 
 
 class RecommendationState(Enum):
@@ -71,7 +74,7 @@ class Recommendation(Row):
 
 
     @staticmethod
-    def get_current_round_number(recommendation: Recommendation):
+    def get_current_round_number(recommendation: 'Recommendation'):
         db = current.db
         return cast(int, db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count())
     
@@ -94,7 +97,7 @@ class Recommendation(Row):
 
 
     @staticmethod
-    def get_recommenders_names(recommendation: Recommendation):
+    def get_recommenders_names(recommendation: 'Recommendation'):
         press_reviews = Recommendation.get_co_recommenders(recommendation.id)
         names: List[str] = []
         recommender_name = User.get_name_by_id(recommendation.recommender_id)
@@ -111,14 +114,14 @@ class Recommendation(Row):
 
 
     @staticmethod
-    def get_doi_id(recommendation: Recommendation):
+    def get_doi_id(recommendation: 'Recommendation'):
         regex = re.search("([0-9]+$)", recommendation.recommendation_doi or "", re.IGNORECASE)
         if regex:
             return str(regex.group(1))
 
 
     @staticmethod
-    def get_references(recommendation: Recommendation, remove_html_tag: bool = False):
+    def get_references(recommendation: 'Recommendation', remove_html_tag: bool = False):
         recommendation_text = recommendation.recommendation_comments or ''
         references: List[str] = []
         start_reference = False
@@ -141,6 +144,50 @@ class Recommendation(Row):
                         references.append(sub_line)
 
         return references
+    
+
+    @staticmethod
+    def get_decision_due_date(recommendation: 'Recommendation', article: 'Article', round_number: int):
+        from models.review import Review, ReviewState
+        from models.mail_queue import MailQueue, SendingStatus
+
+        if round_number == 1:
+            there_are_review_reminder = len(MailQueue.get_by_article_and_template(
+                    article,
+                    ["#ReminderRecommenderReviewersNeeded","#ReminderRecommenderNewReviewersNeeded"],
+                    [SendingStatus.PENDING])) > 0
+        else:
+            there_are_review_reminder = len(
+                MailQueue.get_by_article_and_template(
+                    article,
+                    ["#ReminderReviewerReviewInvitationNewUser","#ReminderReviewerReviewInvitationRegisteredUser", "#ReminderReviewerInvitationNewRoundRegisteredUser"],
+                    [SendingStatus.PENDING])) > 0
+            
+        accepted_reviews_count = 0
+        completed_reviews_count = 0
+        last_review_date: _[datetime] = None
+        decision_due_date: _[datetime] = None
+
+        reviews = Review.get_by_recommendation_id(recommendation.id, review_states=[ReviewState.AWAITING_REVIEW, ReviewState.REVIEW_COMPLETED])
+        for review in reviews:
+            if review.last_change and (not last_review_date or last_review_date < review.last_change):
+                last_review_date = review.last_change
+                
+            accepted_reviews_count += 1
+            if review == ReviewState.REVIEW_COMPLETED:
+                completed_reviews_count += 1
+
+        if accepted_reviews_count == 0 and not there_are_review_reminder and article.last_status_change:
+            decision_due_date = article.last_status_change + timedelta(days=10)
+        
+        if round_number == 1:
+            if accepted_reviews_count >= 2 and last_review_date:
+                decision_due_date = last_review_date + timedelta(days=10)
+        else:
+            if completed_reviews_count == accepted_reviews_count and completed_reviews_count >= 1 and not there_are_review_reminder and last_review_date:
+                decision_due_date = last_review_date + timedelta(days=10)
+
+        return decision_due_date
 
 
 def _get_reference_line_text(line: str):

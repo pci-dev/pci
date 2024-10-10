@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
 
 import locale
+
+from gluon.sqlhtml import SQLFORM
 locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
 
 from typing import cast
 from app_components.custom_validator import CUSTOM_VALID_URL, VALID_DOI
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
-from gluon.http import HTTP, redirect
+from gluon.http import HTTP, redirect # type: ignore
 from models.article import ArticleStatus
 from models.mail_queue import MailQueue, SendingStatus
 from models.recommendation import Recommendation, RecommendationState
 from models.article import Article
 from models.user import User
 from app_components.custom_field import RequiredField
-from pydal.validators import IS_IN_SET, IS_EMPTY_OR, IS_INT_IN_RANGE, IS_LENGTH, IS_NOT_EMPTY, Validator, IS_GENERIC_URL, IS_HTTP_URL
+from pydal.validators import IS_DATE, IS_FILE, IS_IN_DB, IS_IN_SET, IS_EMPTY_OR, IS_INT_IN_RANGE, IS_LENGTH, IS_LIST_OF, IS_LIST_OF_EMAILS, IS_NOT_EMPTY, Validator, IS_GENERIC_URL, IS_HTTP_URL
 from gluon.tools import Auth, Service, PluginManager, Mail
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.storage import Storage # for db.get_last_recomms()
 from pydal.objects import OpRow, Query, Set
 from pydal import Field, DAL
@@ -40,6 +42,10 @@ from models.review import ReviewDuration, ReviewState, Review
 
 from controller_modules import recommender_module
 
+request = current.request
+session = current.session
+response = current.response
+T = current.T
 
 # -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too
@@ -73,7 +79,7 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 from os import symlink, path
-def create_symlink(filename):
+def create_symlink(filename: str):
     base = current.request.folder
     target = base + "/languages/default.py"
     if not path.exists(target):
@@ -89,7 +95,7 @@ if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------
     # if NOT running on Google App Engine use SQLite or other DB
     # ---------------------------------------------------------------------
-    db = DAL(
+    db: ... = DAL(
         myconf.get("db.uri"),
         pool_size=myconf.get("db.pool_size"),
         migrate_enabled=myconf.get("db.migrate"),
@@ -200,9 +206,9 @@ response.form_label_separator = myconf.get("forms.separator") or ""
 # -------------------------------------------------------------------------
 
 # host names must be a list of allowed host names (glob syntax allowed)
-auth = Auth(db, host_names=myconf.get("host.names"))
+auth: ... = Auth(db, host_names=myconf.get("host.names"))
 service = Service()
-plugins = PluginManager()
+plugins: ... = PluginManager()
 
 auth.settings.expiration = 10800  # 3h in seconds
 auth.settings.host = host
@@ -634,6 +640,11 @@ db.define_table(
     Field("translated_abstract", type="json", length=5000000, readable=False, writable=False),
     Field("translated_title", type="json", length=5000000, readable=False, writable=False),
     Field("translated_keywords", type="json", length=5000000, readable=False, writable=False),
+    Field("rdv_date", type="date", readable=False, writable=False),
+    Field("remarks", type="text", readable=False, writable=False),
+    Field("alert_date", type="date", readable=False, writable=False),
+    Field("current_step", type="text", readable=False, writable=False),
+
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
@@ -649,16 +660,25 @@ db.t_articles.user_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(la
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
 db.t_articles._after_insert.append(lambda s, i: newArticle(Storage(s), i))
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
-db.t_articles._after_update.append(lambda s, f: setPublishedDoi(s, f))
+db.t_articles._after_update.append(lambda s, f: after_update_article(s, f))
 
-def setPublishedDoi(s, f):
-    if current.session.disable_trigger_setPublishedDoi:
-        return
-    
-    if "status" in f:
-        o = s.select().first()
-        if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
-                emailing.send_message_to_recommender_and_reviewers(o["id"])
+def after_update_article(s: ..., f: ...):
+    if not current.session.after_update_article:
+        current.session.after_update_article = True
+        article: Article = s.select().first()
+        Article.update_alert_date(article, False)
+        Article.update_current_step(article, False)
+        article.update_record()
+    else:
+        current.session.after_update_article = None
+
+
+    if not current.session.disable_trigger_setPublishedDoi:
+        if "status" in f:
+            o = s.select().first()
+            if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
+                    emailing.send_message_to_recommender_and_reviewers(o["id"])
+
 
 def deltaStatus(s: ..., f: Article):
     if "status" not in f:
