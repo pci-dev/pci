@@ -1,4 +1,29 @@
-{{if roundNumber == 1:}}
+{{if article.status in ("Not considered", "Cancelled"):}}
+    <div class="progress-step-div pci2-flex-row step-done">
+        <div class="progress-step-circle pci2-flex-center">
+            <i class="glyphicon glyphicon-flag"></i>
+        </div>
+        <div class="step-description">
+            <h3>Submission started</h3>
+                <p><span style="font-weight: bold;">Submission date: </span>{{=uploadDate}}</p>
+        </div>
+    </div>
+
+    <div class="progress-step-div pci2-flex-row step-done progress-last-step-div">
+        <div class="pci2-flex-center progress-step-circle">
+            <i class="glyphicon glyphicon-remove"></i>
+        </div>
+        <div class="step-description">
+            <h3><b style="color: #333"></b>Final outcome</h3>
+            {{if article.status == "Cancelled":}}
+                <span style="font-weight: bold">Cancelled: </span>{{=article.last_status_change.strftime("%d %B %Y")}}
+            {{else:}}
+                <span style="font-weight: bold">Not considered: </span>{{=article.last_status_change.strftime("%d %B %Y")}}
+            {{pass}}
+        </div>
+    </div>
+{{else:}}
+    {{if roundNumber == 1:}}
     <div class="progress-step-div pci2-flex-row step-done">
         <div class="progress-step-circle pci2-flex-center">
             <i class="glyphicon glyphicon-flag"></i>
@@ -68,10 +93,10 @@
             </p>
         </div>
     </div>
-{{pass}}
+    {{pass}}
 
 
-{{if roundNumber < 2:}}
+    {{if roundNumber < 2:}}
 
     {{if (roundNumber == 1) or (roundNumber > 1 and reviewCount > 0 and 
         (not recommendationStepClass == "step-done" or 
@@ -157,7 +182,7 @@
             {{pass}}
         </div>
     </div>
-{{else:}}
+    {{else:}}
     <div class="progress-step-div pci2-flex-row step-done {{if validationDate and roundNumber == totalRecomm and recommStatus != 'Revision':}}progress-last-step-div{{pass}}">
         <div class="progress-step-circle pci2-flex-center">
             <i class="glyphicon glyphicon-repeat"></i>
@@ -217,27 +242,27 @@
             {{pass}}
         </div>
     </div>
-{{pass}}
-
-{{if recommStatus == "Revision" and (validationDate or authorsReplyDate):}}
-        <div class="pci2-flex-row {{=authorsReplyClassStepClass}} {{=authorsReplyClass}}">
-            <div class="pci2-flex-center progress-step-circle">
-                <i class="glyphicon glyphicon-user"></i>
-            </div>
-            <div class="step-description">
-                <h3><b style="color: #333">Round {{=roundNumber}}: </b> Awaiting revision</h3>
-                {{if authorsReplyDate:}}
-                    <span style="font-weight: bold">Resubmitted: </span>{{=authorsReplyDate}}
-                {{elif validationDate:}}
-                    {{if nb_days_since_validation < 0:}}
-                        <p>Awaiting revision for less than a day</p>
-                    {{elif nb_days_since_validation <= 1:}}
-                        <p>Awaiting revision since {{=nb_days_since_validation}} day</p>
-                    {{else:}}
-                        <p>Awaiting revision since {{=nb_days_since_validation}} days</p>
-                    {{pass}}
-                {{pass}}
-            </div>
-        </div>
     {{pass}}
 
+    {{if recommStatus == "Revision" and (validationDate or authorsReplyDate):}}
+    <div class="pci2-flex-row {{=authorsReplyClassStepClass}} {{=authorsReplyClass}}">
+        <div class="pci2-flex-center progress-step-circle">
+            <i class="glyphicon glyphicon-user"></i>
+        </div>
+        <div class="step-description">
+            <h3><b style="color: #333">Round {{=roundNumber}}: </b>Awaiting revision</h3>
+            {{if authorsReplyDate:}}
+                <span style="font-weight: bold">Resubmitted: </span>{{=authorsReplyDate}}
+            {{elif validationDate:}}
+                {{if nb_days_since_validation < 0:}}
+                    <p>Awaiting revision for less than a day</p>
+                {{elif nb_days_since_validation <= 1:}}
+                    <p>Awaiting revision since {{=nb_days_since_validation}} day</p>
+                {{else:}}
+                    <p>Awaiting revision since {{=nb_days_since_validation}} days</p>
+                {{pass}}
+            {{pass}}
+        </div>
+    </div>
+    {{pass}}
+{{pass}}
