@@ -360,8 +360,12 @@ h4.pci2-recomm-article-h2 .glyphicon {
   color: #93c54b;
 }
 
-.pci-status-mini.needed-step h3 {
+.pci-status-mini.danger-step h3 {
   color: #b90000;
+}
+
+.pci-status-mini.warning-step h3 {
+  color: #f47c3c;
 }
 
 .step-number {

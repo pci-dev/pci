@@ -289,7 +289,11 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         'rdv_date',
         'remarks',
         'current_step'
-    ]   
+    ]
+
+    for a_field in articles.fields:
+        if not a_field in full_text_search_fields:
+            articles[a_field].readable = False
     
     def article_row(article_id: int, article: Article):
         return common_small_html.represent_article_manager_board(article)
@@ -298,47 +302,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         return common_small_html.represent_alert_manager_board(article)
     
     def link_body_row(row: Article):
-
-        actions: List[DIV] = []
-        manager_actions =  ongoing_recommendation.get_recommendation_status_buttons(row)
-
-        if row.status == ArticleStatus.PRE_SUBMISSION.value:
-            validate_stage_button = ongoing_recommendation.validate_stage_button(row)
-            if validate_stage_button:
-                validate_stage_button: ... = validate_stage_button.components[0]
-                validate_stage_button.attributes['_style'] = ''
-                validate_stage_button.attributes['_class'] = ''
-                validate_stage_button.components[0].attributes['_class'] = ''
-                validate_stage_button.components[0].attributes['_style'] = ''
-                actions.append(validate_stage_button)
-
-        if (row.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value) and row.already_published is False and show_not_considered_button):
-            actions.append(ongoing_recommendation.not_considered_button(row, True))
-
-        if len(actions) > 0:
-            actions.append(LI(_role="separator", _class="divider"))
-
-        return \
-        DIV(
-            ongoing_recommendation.view_edit_button(row),
-            DIV(
-                BUTTON(
-                    "Actions",
-                    SPAN(_class="caret", _style="position: relative; left: 5px; bottom: 2px;"),
-                    _class="btn btn-default dropdown-toggle" if len(actions) == 0 else "btn btn-danger dropdown-toggle",
-                    _type="button",
-                    _id=f"action_{row.id}",
-                    **{'_data-toggle':'dropdown', '_aria-haspopup': 'true', '_aria-expanded': 'false'},
-                    _style="display: block",
-                ),
-                UL(
-                    *actions,
-                    *manager_actions,
-                _class="dropdown-menu"),
-            _class="btn-group"),
-            _style="display: flex; align-items: center; flex-direction: column;"
-        )
-
+        return common_small_html.represent_link_column_manager_board(row, show_not_considered_button)
     
     def represent_rdv_date(rdv_date: Optional[datetime.date], row: Article):
         return common_small_html.represent_rdv_date(row)
@@ -369,10 +333,11 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.request_submission_change.readable = False
     articles.art_stage_1_id.readable = False
     articles.upload_timestamp.readable = False
-    articles.user_id.readable = False
-    articles.title.readable = False
     articles.last_status_change.readbale = False
     articles.status.readable = False
+
+    articles.user_id.label = 'Submitter'
+    articles.user_id.readable = True
 
     articles.upload_timestamp.searchable = False
     articles.last_status_change.searchable = False
@@ -388,11 +353,8 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     articles.remarks.label = 'Remarks'
     articles.remarks.represent = represent_remarks
 
-    for a_field in articles.fields:
-        if not a_field in full_text_search_fields:
-            articles[a_field].readable = False
-
     articles.id.label = "Article"
+    articles.keywords.label = "Keywords"
 
     links: List[Dict[str, Any]] = [
         dict(
@@ -452,11 +414,13 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     remove_options = ['t_articles.upload_timestamp', 't_articles.last_status_change', 't_articles.anonymous_submission',
                       'v_article_id.id', 'v_article_id.id_str', 'v_article.id', 'v_article.title', 'v_article.authors',
                       'v_article.abstract', 'v_article.user_id', 'v_article.status', 'v_article.keywords', 'v_article.submission_date',
-                      'v_article.reviewers', 'v_article.thematics']
+                      'v_article.reviewers', 'v_article.thematics', 'v_article.alert_date', 'v_article.rdv_date', 'v_article.current_step',
+                      'v_article.remarks']
     integer_fields = ['t_articles.id', 't_articles.user_id']
+    columns_to_hide = ['t_articles.user_id', 't_articles.title']
 
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields)
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields, columns_to_hide)
 
     return dict(
         customText=getText("#ManagerArticlesText"),
