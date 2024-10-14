@@ -13,7 +13,7 @@ from gluon.html import *
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.sqlhtml import *
-from models.article import Article
+from models.article import Article, ArticleStatus
 from models.recommendation import Recommendation
 from models.press_reviews import PressReview
 from models.review import Review, ReviewState
@@ -440,7 +440,7 @@ def mkAnonymousMask(anon):
 
 
 ######################################################################################################################################################################
-def mkAnonymousArticleField(anon: bool, value: Any, articleId: int):
+def mkAnonymousArticleField(anon: Optional[bool], value: Any, articleId: int):
     auth = current.auth
     recomm = Article.get_last_recommendation(articleId)
     isRecommender = recomm and recomm.recommender_id == auth.user_id
@@ -607,6 +607,48 @@ def represent_article_manager_board(article: Article):
 
 
     return DIV(*html, _style="width: max-content; max-width: 250px;")
+
+
+def represent_link_column_manager_board(article: Article, show_not_considered_button: bool):
+    actions: List[DIV] = []
+    manager_actions =  ongoing_recommendation.get_recommendation_status_buttons(article)
+
+    if article.status == ArticleStatus.PRE_SUBMISSION.value:
+        validate_stage_button = ongoing_recommendation.validate_stage_button(article)
+        if validate_stage_button:
+            validate_stage_button: ... = validate_stage_button.components[0]
+            validate_stage_button.attributes['_style'] = ''
+            validate_stage_button.attributes['_class'] = ''
+            validate_stage_button.components[0].attributes['_class'] = ''
+            validate_stage_button.components[0].attributes['_style'] = ''
+            actions.append(validate_stage_button)
+
+    if (article.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value) and article.already_published is False and show_not_considered_button):
+        actions.append(ongoing_recommendation.not_considered_button(article, True))
+
+    if len(actions) > 0:
+        actions.append(LI(_role="separator", _class="divider"))
+
+    return \
+    DIV(
+        ongoing_recommendation.view_edit_button(article),
+        DIV(
+            BUTTON(
+                "Actions",
+                SPAN(_class="caret", _style="position: relative; left: 5px; bottom: 2px;"),
+                _class="btn btn-default dropdown-toggle" if len(actions) == 0 else "btn btn-danger dropdown-toggle",
+                _type="button",
+                _id=f"action_{article.id}",
+                **{'_data-toggle':'dropdown', '_aria-haspopup': 'true', '_aria-expanded': 'false'},
+                _style="display: block",
+            ),
+            UL(
+                *actions,
+                *manager_actions,
+            _class="dropdown-menu"),
+        _class="btn-group"),
+        _style="display: flex; align-items: center; flex-direction: column;"
+    )
 
 
 def represent_alert_manager_board(article: Article):
@@ -1155,7 +1197,7 @@ def md_to_html(text: Optional[str]):
     ) # WIKI returns XML('<p>htmlized text</p>'), replace P with SPAN
 
 ################################################################################
-def mkSearchWidget(chars):
+def mkSearchWidget(chars: List[str]):
     container = DIV(_id='about-search-widget')
     label = LABEL('Quick access', _style='margin-right: 20px')
     span = SPAN(_class='pci-capitals')
@@ -1392,14 +1434,7 @@ def get_current_step_article(article: Article):
     if len(step_done_els) == 0:
         return
     
-    final_step_done = False
     step_done_container = step_done_els[-1]
-    if step_done_container.has_attr('class'):
-        step_done_container_class = step_done_container.attrs['class']
-        if 'step-done' in step_done_container_class \
-            and 'progress-last-step-div' in step_done_container_class \
-                and 'current-step' not in step_done_container_class:
-            final_step_done = True
 
     step: int = 0
     if step_done_container.has_attr('data-step'):
@@ -1417,18 +1452,45 @@ def get_current_step_article(article: Article):
             els += el
         else:
             els += f"{el}"
-    
-    classes = "pci-status-mini"
-    if final_step_done:
-        classes += " final-step-done-mini"
-    if 'needed' in els.lower():
-        classes += " needed-step"
+
+    classes = _get_step_classes(step_done_container, els)
 
     return SPAN(SPAN(step, _class="step-number"), DIV(XML(img), XML(els), _class=classes))
 
 
+def _is_final_step_done(step_done_container: ...):
+    final_step_done = False
+
+    if step_done_container.has_attr('class'):
+        step_done_container_class = step_done_container.attrs['class']
+        if 'step-done' in step_done_container_class \
+            and 'progress-last-step-div' in step_done_container_class \
+                and 'current-step' not in step_done_container_class:
+            final_step_done = True
+
+    return final_step_done
+
+
+def _get_step_classes(step_done_container: ..., els: str):
+    classes = "pci-status-mini"
+
+    if _is_final_step_done(step_done_container):
+        classes += " final-step-done-mini"
+
+    step_text = els.lower()
+    if 'awaiting revision' in step_text:
+        classes += " warning-step"
+    
+    if 'needed' in step_text or 'submission pending validation' in step_text:
+        classes += " danger-step"
+
+    return classes
+
+
+
 def _get_current_step_img(step_done_els: ...) -> Union[DIV, None]:
-    step_done_img = cast(List[Union[str, bs4.element.Tag, None]],  step_done_els[-1].find(class_="progress-step-circle").contents)
+    step_done_img = cast(List[Union[str, bs4.element.Tag, None]], 
+                                                 step_done_els[-1].find(class_="progress-step-circle").contents)
     img: Optional[bs4.element.Tag] = None
     for el in step_done_img:
         if isinstance(el, bs4.element.Tag):
