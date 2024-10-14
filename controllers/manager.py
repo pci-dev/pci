@@ -302,7 +302,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         return common_small_html.represent_alert_manager_board(article)
     
     def link_body_row(row: Article):
-        return common_small_html.represent_link_column_manager_board(row, show_not_considered_button)
+        return common_small_html.represent_link_column_manager_board(row)
     
     def represent_rdv_date(rdv_date: Optional[datetime.date], row: Article):
         return common_small_html.represent_rdv_date(row)
