@@ -609,7 +609,7 @@ def represent_article_manager_board(article: Article):
     return DIV(*html, _style="width: max-content; max-width: 250px;")
 
 
-def represent_link_column_manager_board(article: Article, show_not_considered_button: bool):
+def represent_link_column_manager_board(article: Article):
     actions: List[DIV] = []
     manager_actions =  ongoing_recommendation.get_recommendation_status_buttons(article)
 
@@ -623,7 +623,7 @@ def represent_link_column_manager_board(article: Article, show_not_considered_bu
             validate_stage_button.components[0].attributes['_style'] = ''
             actions.append(validate_stage_button)
 
-    if (article.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value) and article.already_published is False and show_not_considered_button):
+    if (article.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value)):
         actions.append(ongoing_recommendation.not_considered_button(article, True))
 
     if len(actions) > 0:
