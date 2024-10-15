@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from enum import Enum
 import re
-from typing import Any, List, Optional as _, Union, cast, TypedDict
+from typing import Any, List, Optional as _, Union, cast, TypedDict, TYPE_CHECKING
 from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
@@ -13,6 +13,9 @@ from gluon import current
 from models.recommendation import Recommendation
 
 from app_modules.lang import Lang
+
+if TYPE_CHECKING:
+    from models.report_survey import ReportSurvey
 
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -153,7 +156,7 @@ class Article(Row):
                 new_translation['public'] = False
             setattr(article, field.value, [new_translation])
 
-        article.update_record()
+        article.update_record() # type: ignore
 
 
     @staticmethod
@@ -171,7 +174,7 @@ class Article(Row):
 
         if index_to_remove != None:
             translations.pop(index_to_remove)
-            article.update_record()
+            article.update_record() # type: ignore
         
 
     @staticmethod
@@ -279,25 +282,25 @@ class Article(Row):
     @staticmethod
     def set_status(article: 'Article', status: ArticleStatus):
         article.status = status.value
-        article.update_record()
+        article.update_record() # type: ignore
 
     
     @staticmethod
     def set_rdv_date(article: 'Article', rdv_date: _[date]):
         article.rdv_date = rdv_date
-        article.update_record()
+        article.update_record() # type: ignore
 
 
     @staticmethod
     def set_remarks(article: 'Article', remarks: _[str]):
         article.remarks = remarks
-        article.update_record()
+        article.update_record() # type: ignore
 
 
     @staticmethod
     def remove_pre_submission_token(article: 'Article'):
         article.pre_submission_token = None
-        article.update_record()
+        article.update_record() # type: ignore
 
     
     @staticmethod
@@ -456,18 +459,19 @@ class Article(Row):
         return current_step
 
 
-
 def is_scheduled_submission(article: Article) -> bool:
-    report_survey = article.t_report_survey.select().first()
+    report_survey = cast(_[ReportSurvey], article.t_report_survey.select().first()) # type: ignore
 
-    return scheduledSubmissionActivated and (
+    is_scheduled_submission: ... = scheduledSubmissionActivated and (
         article.scheduled_submission_date is not None
         or article.status.startswith("Scheduled submission")
         or (
             report_survey is not None and report_survey.q10 is not None
-            and article.t_recommendations.count() == 1
+            and article.t_recommendations.count() == 1 # type: ignore
         )
     )
+
+    return bool(is_scheduled_submission)
 
 
 def clean_vars_doi_list(var_doi: _[List[str]]):
