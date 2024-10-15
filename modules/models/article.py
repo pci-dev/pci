@@ -122,6 +122,7 @@ class Article(Row):
     remarks: _[str]
     alert_date: _[date]
     current_step: _[str]
+    current_step_number: _[int]
 
 
     @staticmethod
@@ -441,7 +442,7 @@ class Article(Row):
 
         article.alert_date = alert_date
         if update_record:
-            article.update_record()
+            article.update_record() # type: ignore
 
         return alert_date
 
@@ -451,10 +452,15 @@ class Article(Row):
         from app_modules.common_small_html import get_current_step_article
 
         current_step = get_current_step_article(article)
-        
-        article.current_step = str(current_step)
+        if current_step is None:
+            article.current_step_number = None
+            article.current_step = None
+        else:
+            article.current_step_number = current_step[0]
+            article.current_step = str(current_step[1])
+
         if update_record:
-            article.update_record()
+            article.update_record() # type: ignore
 
         return current_step
 
