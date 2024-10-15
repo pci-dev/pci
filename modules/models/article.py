@@ -349,7 +349,7 @@ class Article(Row):
         alert_date: _[datetime] = None
         decision_due_date: _[datetime] = None
 
-        if round_number == 1:
+        if round_number <= 1:
             if status == ArticleStatus.PRE_SUBMISSION:
                 alert_date = article.last_status_change + timedelta(days=16) # Submission awaiting completion
             elif status == ArticleStatus.PENDING: 
