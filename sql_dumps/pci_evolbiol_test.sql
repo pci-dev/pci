@@ -3148,3 +3148,6 @@ ADD COLUMN IF NOT EXISTS alert_date DATE;
 --- 2024-10-02 updates/current_step.sql
 ALTER TABLE t_articles 
 ADD COLUMN IF NOT EXISTS current_step text;
+
+ALTER TABLE t_articles
+ADD COLUMN IF NOT EXISTS current_step_number smallint;

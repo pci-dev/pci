@@ -6,4 +6,7 @@ LOCK TABLE v_article IN ACCESS EXCLUSIVE MODE;
 ALTER TABLE t_articles
 ADD COLUMN IF NOT EXISTS current_step text;
 
+ALTER TABLE t_articles
+ADD COLUMN IF NOT EXISTS current_step_number smallint;
+
 COMMIT;
