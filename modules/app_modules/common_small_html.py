@@ -1443,6 +1443,7 @@ def get_current_step_article(article: Article):
     step_done_content = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
     img = f"{_get_current_step_img(step_done_els)}"
 
+    title = ""
     els = ""
     for el in step_done_content:
         if el is None:
@@ -1451,11 +1452,21 @@ def get_current_step_article(article: Article):
         if isinstance(el, str):
             els += el
         else:
-            els += f"{el}"
+            if el.name == 'h3':
+                title += f"{el}"
+            else:
+                els += f"{el}"
 
     classes = _get_step_classes(step_done_container, els)
 
-    return step_number, SPAN(SPAN(step_number, _class="step-number"), DIV(XML(img), XML(els), _class=classes))
+    return step_number, SPAN(
+        SPAN(step_number, _class="step-number"),
+        DIV(
+            DIV(XML(img), XML(title), _class="pci-status-title-mini"),
+            XML(els),
+            _class=classes
+        )
+    )
 
 
 def _is_final_step_done(step_done_container: ...):
