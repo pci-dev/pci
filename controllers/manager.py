@@ -323,7 +323,7 @@ def _manage_articles(statuses: Optional[List[str]] = None,
         return TEXTAREA(remarks if remarks is not None else '',
                         _id=f"remarks_{row.id}",
                         _name=f"remarks_{row.id}",
-                        _style="height: 100px; width: 200px; resize: none; background: transparent; border: 1px #dfd7ca solid; border-radius: 4px",
+                        _style="height: 100px; width: 375px; resize: none; background: transparent; border: 1px #dfd7ca solid; border-radius: 4px",
                         _oninput=f'remarksInputChange({row.id}, "{URL(c="manager", f="edit_remarks", scheme=True)}")')
 
     t_articles.id.readable = True
