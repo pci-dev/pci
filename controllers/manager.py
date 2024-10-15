@@ -84,7 +84,7 @@ def index():
 # Display ALL articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def all_articles():
-    resu = _manage_articles(None)
+    resu = _manage_articles(order_by=db.t_articles.alert_date|~db.t_articles.last_status_change)
     resu["customText"] = getText("#ManagerAllArticlesText")
     resu["titleIcon"] = "book"
     resu["pageTitle"] = getTitle("#ManagerAllArticlesTitle")
@@ -231,9 +231,14 @@ def presubmissions():
 
 ######################################################################################################################################################################
 # Display ongoing articles and allow management
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role=Role.MANAGER.value))
 def ongoing_articles():
-    resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration", "Scheduled submission revision"])
+    resu = _manage_articles(
+        [ArticleStatus.AWAITING_CONSIDERATION.value,
+         ArticleStatus.UNDER_CONSIDERATION.value,
+         ArticleStatus.AWAITING_REVISION.value,
+         ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value,
+         ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value])
     resu["customText"] = getText("#ManagerOngoingArticlesText")
     resu["titleIcon"] = "refresh"
     resu["pageTitle"] = getTitle("#ManagerOngoingArticlesTitle")
@@ -246,7 +251,7 @@ def ongoing_articles():
 @auth.requires(auth.has_membership(role="manager"))
 def completed_articles():
     db.t_articles.status.label = T("Outcome")
-    resu = _manage_articles(["Cancelled", "Recommended", "Rejected", "Not considered"])
+    resu = _manage_articles(["Cancelled", "Recommended", "Rejected", "Not considered"], order_by=~db.t_articles.last_status_change)
     resu["customText"] = getText("#ManagerCompletedArticlesText")
     resu["titleIcon"] = "ok-sign"
     resu["pageTitle"] = getTitle("#ManagerCompletedArticlesTitle")
@@ -257,7 +262,10 @@ def completed_articles():
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
 @auth.requires(auth.has_membership(role=Role.MANAGER.value) or is_recommender())
-def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, show_not_considered_button: bool = True):
+def _manage_articles(statuses: Optional[List[str]] = None,
+                     stats_query: Optional[Any] = None,
+                     show_not_considered_button: bool = True,
+                     order_by: ... = db.t_articles.alert_date|db.t_articles.rdv_date):
     if pciRRactivated:
         return _manage_articles_rr(statuses, stats_query, show_not_considered_button)
     
@@ -270,7 +278,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
     last_recomms = [x[0] for x in last_recomms]
 
     # articles
-    articles = db.t_articles
+    t_articles = db.t_articles
     full_text_search_fields = [
         'id',
         'anonymous_submission',
@@ -291,9 +299,9 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         'current_step'
     ]
 
-    for a_field in articles.fields:
+    for a_field in t_articles.fields:
         if not a_field in full_text_search_fields:
-            articles[a_field].readable = False
+            t_articles[a_field].readable = False
     
     def article_row(article_id: int, article: Article):
         return common_small_html.represent_article_manager_board(article)
@@ -314,47 +322,47 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         return TEXTAREA(remarks if remarks is not None else '',
                         _id=f"remarks_{row.id}",
                         _name=f"remarks_{row.id}",
-                        _style="height: 100px; width: 200px; resize: none; background: transparent; border: 1px #dfd7ca solid; border-radius: 4px",
+                        _style="height: 100px; width: 330px; resize: none; background: transparent; border: 1px #dfd7ca solid; border-radius: 4px",
                         _oninput=f'remarksInputChange({row.id}, "{URL(c="manager", f="edit_remarks", scheme=True)}")')
 
-    articles.id.readable = True
-    articles.id.represent = article_row
+    t_articles.id.readable = True
+    t_articles.id.represent = article_row
     
-    articles.thematics.label = "Thematics fields"
-    articles.thematics.type = "string"
-    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword)
+    t_articles.thematics.label = "Thematics fields"
+    t_articles.thematics.type = "string"
+    t_articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword)
 
-    articles.rdv_date.label = 'Your RDV'
-    articles.rdv_date.readable = True
-    articles.rdv_date.represent = represent_rdv_date
+    t_articles.rdv_date.label = 'Your RDV'
+    t_articles.rdv_date.readable = True
+    t_articles.rdv_date.represent = represent_rdv_date
 
-    articles.anonymous_submission.readable = False
-    articles.report_stage.readable = False
-    articles.request_submission_change.readable = False
-    articles.art_stage_1_id.readable = False
-    articles.upload_timestamp.readable = False
-    articles.last_status_change.readbale = False
-    articles.status.readable = False
+    t_articles.anonymous_submission.readable = False
+    t_articles.report_stage.readable = False
+    t_articles.request_submission_change.readable = False
+    t_articles.art_stage_1_id.readable = False
+    t_articles.upload_timestamp.readable = False
+    t_articles.last_status_change.readbale = False
+    t_articles.status.readable = False
 
-    articles.user_id.label = 'Submitter'
-    articles.user_id.readable = True
+    t_articles.user_id.label = 'Submitter'
+    t_articles.user_id.readable = True
 
-    articles.upload_timestamp.searchable = False
-    articles.last_status_change.searchable = False
+    t_articles.upload_timestamp.searchable = False
+    t_articles.last_status_change.searchable = False
 
-    articles.alert_date.represent = alert_date_row
-    articles.alert_date.readable = True
+    t_articles.alert_date.represent = alert_date_row
+    t_articles.alert_date.readable = True
 
-    articles.current_step.represent = represent_article_status
-    articles.current_step.label = 'Current status'
-    articles.current_step.readable = True
+    t_articles.current_step.represent = represent_article_status
+    t_articles.current_step.label = 'Current status'
+    t_articles.current_step.readable = True
 
-    articles.remarks.readable = True
-    articles.remarks.label = 'Remarks'
-    articles.remarks.represent = represent_remarks
+    t_articles.remarks.readable = True
+    t_articles.remarks.label = 'Remarks'
+    t_articles.remarks.represent = represent_remarks
 
-    articles.id.label = "Article"
-    articles.keywords.label = "Keywords"
+    t_articles.id.label = "Article"
+    t_articles.keywords.label = "Keywords"
 
     links: List[Dict[str, Any]] = [
         dict(
@@ -372,6 +380,7 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         # recommenders only ever get here via menu "Recommender > Pending validation(s)"
         if pciRRactivated and is_recommender():
             query = db.pending_scheduled_submissions_query
+
     original_grid = SQLFORM.grid( # type: ignore
         query,
         searchable=True,
@@ -384,30 +393,30 @@ def _manage_articles(statuses: List[str], stats_query: Optional[Any] = None, sho
         maxtextlength=250,
         paginate=20,
         fields=[
-            articles.id,
-            articles.alert_date,
-            articles.last_status_change,
-            articles.upload_timestamp,
-            articles.user_id,
-            articles.art_stage_1_id,
-            articles.anonymous_submission,
-            articles.title,
-            articles.already_published,
-            articles.report_stage,
-            articles.request_submission_change,
-            articles.ms_version,
-            articles.doi,
-            articles.doi_of_published_article,
-            articles.rdv_date,
-            articles.status,
-            articles.current_step,
-            articles.validation_timestamp,
-            articles.remarks,
+            t_articles.id,
+            t_articles.alert_date,
+            t_articles.last_status_change,
+            t_articles.upload_timestamp,
+            t_articles.user_id,
+            t_articles.art_stage_1_id,
+            t_articles.anonymous_submission,
+            t_articles.title,
+            t_articles.already_published,
+            t_articles.report_stage,
+            t_articles.request_submission_change,
+            t_articles.ms_version,
+            t_articles.doi,
+            t_articles.doi_of_published_article,
+            t_articles.rdv_date,
+            t_articles.status,
+            t_articles.current_step,
+            t_articles.validation_timestamp,
+            t_articles.remarks,
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
-        orderby=articles.alert_date|articles.rdv_date,
-        _class="web2py_grid action-button-absolute manage-article",
+        orderby=order_by,
+        _class="web2py_grid manage-article",
     )
 
     # options to be removed from the search dropdown:

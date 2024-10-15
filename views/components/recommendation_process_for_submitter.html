@@ -16,9 +16,9 @@
         <div class="step-description">
             <h3><b style="color: #333"></b>Final outcome</h3>
             {{if article.status == "Cancelled":}}
-                <span style="font-weight: bold">Cancelled: </span>{{=article.last_status_change.strftime("%d %B %Y")}}
+                <span style="font-weight: bold">Cancelled: </span>{{=article.last_status_change.strftime(date_format)}}
             {{else:}}
-                <span style="font-weight: bold">Not considered: </span>{{=article.last_status_change.strftime("%d %B %Y")}}
+                <span style="font-weight: bold">Not considered: </span>{{=article.last_status_change.strftime(date_format)}}
             {{pass}}
         </div>
     </div>

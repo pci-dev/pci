@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from enum import Enum
 import re
-from typing import Any, List, Optional as _, Union, cast, TypedDict, TYPE_CHECKING
+from typing import Any, List, Optional as _, Union, cast, TypedDict
 from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
@@ -13,9 +13,6 @@ from gluon import current
 from models.recommendation import Recommendation
 
 from app_modules.lang import Lang
-
-if TYPE_CHECKING:
-    from models.report_survey import ReportSurvey
 
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -352,7 +349,7 @@ class Article(Row):
         alert_date: _[datetime] = None
         decision_due_date: _[datetime] = None
 
-        if round_number == 1:
+        if round_number <= 1:
             if status == ArticleStatus.PRE_SUBMISSION:
                 alert_date = article.last_status_change + timedelta(days=16) # Submission awaiting completion
             elif status == ArticleStatus.PENDING: 
@@ -466,7 +463,9 @@ class Article(Row):
 
 
 def is_scheduled_submission(article: Article) -> bool:
-    report_survey = cast(_[ReportSurvey], article.t_report_survey.select().first()) # type: ignore
+    from models.report_survey import ReportSurvey
+    
+    report_survey = cast(_['ReportSurvey'], article.t_report_survey.select().first()) # type: ignore
 
     is_scheduled_submission: ... = scheduledSubmissionActivated and (
         article.scheduled_submission_date is not None

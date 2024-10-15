@@ -270,7 +270,7 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
 
 
 ########################################################################################################################################################################
-def getRecommendationProcessForSubmitter(art: Article, printable: bool):
+def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_format: str = "%d %B %Y"):
     if pciRRactivated:
         return getRecommendationProcessForSubmitterRR(art, printable)
     
@@ -304,8 +304,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
     if not articleHasBeenCompleted and not art.validation_timestamp:
         submissionValidatedClass = "step-default"
 
-    uploadDate = art.upload_timestamp.strftime("%d %B %Y") if art.upload_timestamp else ''
-    validation_article_date = art.validation_timestamp.strftime("%d %B %Y") if art.validation_timestamp else ""
+    uploadDate = art.upload_timestamp.strftime(date_format) if art.upload_timestamp else ''
+    validation_article_date = art.validation_timestamp.strftime(date_format) if art.validation_timestamp else ""
 
     invited_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id)
     declined_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id, declined=True)
@@ -339,9 +339,9 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             recommendationStepClass = "step-default"
             managerDecisionDoneClass = "step-default"
             authorsReplyClass = "step-default"
-            recommendation_last_change = recomm.last_change.strftime("%d %B %Y") if recomm.last_change else ""
-            recommendation_date = recomm.recommendation_timestamp.strftime("%d %B %Y") if recomm.recommendation_timestamp else ""
-            validationDate = recomm.validation_timestamp.strftime("%d %B %Y") if recomm.validation_timestamp else None
+            recommendation_last_change = recomm.last_change.strftime(date_format) if recomm.last_change else ""
+            recommendation_date = recomm.recommendation_timestamp.strftime(date_format) if recomm.recommendation_timestamp else ""
+            validationDate = recomm.validation_timestamp.strftime(date_format) if recomm.validation_timestamp else None
             nb_days_since_decision = 0
             nb_days_since_validation = 0
             decision_due_date: Optional[datetime.datetime] = None
@@ -433,10 +433,10 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                         reviewer_name = Review.get_reviewer_name(review)
 
                 if review.review_state == ReviewState.REVIEW_COMPLETED.value:
-                    completed_date = review.last_change.strftime("%d %B %Y") if review.last_change else ""
+                    completed_date = review.last_change.strftime(date_format) if review.last_change else ""
                     reviewers.append(DIV(SPAN(SPAN(reviewer_name, _style="color: #29abe0") + ", completed: " , _style="font-weight: bold"), completed_date))
                 elif review.review_state == ReviewState.AWAITING_REVIEW.value:
-                    due_date = Review.get_due_date(review).strftime("%d %B %Y")
+                    due_date = Review.get_due_date(review).strftime(date_format)
                     reviewers.append(DIV(SPAN(SPAN(reviewer_name, _style="color: #29abe0") + ", due date: ", _style="font-weight: bold"), due_date))
 
             if acceptedReviewCount == 0 and not there_are_review_reminder and art.last_status_change:
@@ -503,7 +503,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 recommenderName=recommenderName,
                 reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
                 reviewCount=reviewCount,
-                lastReviewDate=lastReviewDate.strftime("%d %B %Y") if lastReviewDate else '',
+                lastReviewDate=lastReviewDate.strftime(date_format) if lastReviewDate else '',
                 acceptedReviewCount=acceptedReviewCount,
                 reviewsStepDoneClass=reviewsStepDoneClass,
                 completedReviewCount=completedReviewCount,
@@ -530,7 +530,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
                 there_are_recommendation_reminder=there_are_recommendation_reminder,
                 nb_days_since_decision=nb_days_since_decision,
                 nb_days_since_validation=nb_days_since_validation,
-                decision_due_date=decision_due_date.strftime("%d %B %Y") if decision_due_date else ''
+                decision_due_date=decision_due_date.strftime(date_format) if decision_due_date else '',
+                date_format=date_format
             )
             recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
 
@@ -554,7 +555,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             recommenderName=recommenderName,
             reviewInvitationsAcceptedClass=reviewInvitationsAcceptedClass,
             reviewCount=reviewCount,
-            lastReviewDate=lastReviewDate.strftime("%d %B %Y") if lastReviewDate else '',
+            lastReviewDate=lastReviewDate.strftime(date_format) if lastReviewDate else '',
             acceptedReviewCount=acceptedReviewCount,
             reviewsStepDoneClass=reviewsStepDoneClass,
             completedReviewCount=completedReviewCount,
@@ -578,7 +579,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool):
             there_are_recommendation_reminder=False,
             nb_days_since_decision=0,
             nb_days_since_validation=0,
-            decision_due_date=None
+            decision_due_date=None,
+            date_format=date_format
         )
 
         recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore

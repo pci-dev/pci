@@ -328,7 +328,6 @@ h4.pci2-recomm-article-h2 .glyphicon {
   min-height: 40px;
   border-radius: 50%;
   background: white;
-  float: left;
   margin-right: 5px;
 
   i {
@@ -341,18 +340,21 @@ h4.pci2-recomm-article-h2 .glyphicon {
 }
 
 .pci-status-mini {
-  font-size: 13px;
-  width: max-content;
-  max-width: 250px;
+  font-size: 12px;
   max-height: 200px;
   overflow: auto;
+}
+
+.pci-status-title-mini {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .pci-status-mini h3 {
   font-weight: bold;
   margin: 0px;
   color: #29abe0;
-  margin-bottom: 8px;
   font-size: 14px;
 }
 
