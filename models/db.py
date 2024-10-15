@@ -664,15 +664,12 @@ db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
 db.t_articles._after_update.append(lambda s, f: after_update_article(s, f))
 
 def update_alert_and_current_step_article(article_id: int):
-    if not current.session.update_alert_and_current_step_article:
-        current.session.update_alert_and_current_step_article = True
-        article = Article.get_by_id(article_id)
-        if article:
-            Article.update_alert_date(article, False)
-            Article.update_current_step(article, False)
-            article.update_record() # type: ignore
-    else:
-        current.session.update_alert_and_current_step_article = None
+    article = Article.get_by_id(article_id)
+    if article:
+        current.session.after_update_article = True
+        Article.update_alert_date(article, False)
+        Article.update_current_step(article, False)
+        article.update_record() # type: ignore
 
 def after_update_article(s: ..., f: ...):
     if not current.session.disable_trigger_setPublishedDoi:
@@ -682,7 +679,6 @@ def after_update_article(s: ..., f: ...):
                     emailing.send_message_to_recommender_and_reviewers(o["id"])
 
     if not current.session.after_update_article:
-        current.session.after_update_article = True
         update_alert_and_current_step_article(s.query.second)
     else:
         current.session.after_update_article = None
@@ -935,7 +931,8 @@ def newRecommendation(s: ..., recomm: Recommendation):
         # "send" future message as soon as we have a {{recommenderPerson}}
         emailing.send_to_submitter_scheduled_submission_open(article)
 
-def after_recommendation_updated(s: ..., recommendation: Recommendation):
+def after_recommendation_updated(s: ..., new_recommendation_values: ...):
+    recommendation: Recommendation = s.select().first()
     update_alert_and_current_step_article(recommendation.article_id)
 
 
