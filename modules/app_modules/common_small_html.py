@@ -1425,7 +1425,7 @@ def suggested_recommender_list(article_id: int):
 ####################################################################################
 
 def get_current_step_article(article: Article):
-    timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(article, False)['content']
+    timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(article, False, "%d\xa0%b")['content']
     if not isinstance(timeline, DIV):
         return 
     

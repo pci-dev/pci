@@ -341,9 +341,7 @@ h4.pci2-recomm-article-h2 .glyphicon {
 }
 
 .pci-status-mini {
-  font-size: 13px;
-  width: max-content;
-  max-width: 250px;
+  font-size: 12px;
   max-height: 200px;
   overflow: auto;
 }
