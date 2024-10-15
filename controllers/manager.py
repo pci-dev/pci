@@ -74,7 +74,7 @@ port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ACCENT_COLOR = '#fcc24d'
-Field.CC = db.Field.CC
+Field.CC = db.Field.CC # type: ignore
 ######################################################################################################################################################################
 ## Menu Routes
 ######################################################################################################################################################################
