@@ -580,7 +580,7 @@ db.define_table(
         requires=[IS_IN_DB(db, db.t_thematics.keyword, "%(keyword)s", multiple=True)],
         widget=SQLFORM.widgets.checkboxes.widget,
     ),
-    Field("already_published", type="boolean", label=T("Postprint"), default=False),
+    Field("already_published", type="boolean", label=T("Postprint"), default=False, readable=False, writable=False),
     Field("doi_of_published_article", type="string", label=T("DOI of published article"), length=512, unique=False, represent=lambda text, row: common_small_html.mkDOI(text), requires=IS_EMPTY_OR(IS_URL(mode='generic',allowed_schemes=['http', 'https'],prepend_scheme='https')), comment=T("URL must start with http:// or https://")),
     Field(
         "cover_letter",
