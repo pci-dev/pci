@@ -836,15 +836,18 @@ def deltaStatus(s: ..., f: Article):
 
 def newArticle(s: Article, article_id: int):
     if s.status in (ArticleStatus.PENDING_SURVEY.value, ArticleStatus.PRE_SUBMISSION.value): # pciRRactivated only
+        update_alert_and_current_step_article(article_id)
         return
 
     if s.coar_notification_id:
+        update_alert_and_current_step_article(article_id)
         return
 
     if s.already_published is False:
         emailing.send_to_managers(article_id, ArticleStatus.PENDING.value)
         emailing.send_to_submitter_acknowledgement_submission(article_id)
         emailing.create_reminder_for_submitter_suggested_recommender_needed(article_id)
+        update_alert_and_current_step_article(article_id)
 
 
 db.define_table(
@@ -926,6 +929,9 @@ def newRecommendation(s: ..., recomm: Recommendation):
     if article and isScheduledTrack(article):
         # "send" future message as soon as we have a {{recommenderPerson}}
         emailing.send_to_submitter_scheduled_submission_open(article)
+
+    update_alert_and_current_step_article(recomm.article_id)
+
 
 def after_recommendation_updated(s: ..., new_recommendation_values: ...):
     recommendation: Recommendation = s.select().first()
@@ -1142,7 +1148,8 @@ def reviewSuggested(s: ..., row: ...):
                      # renew reminder
                     if no_of_accepted_invites < 2 and recommendation.recommendation_state == "Ongoing":
                         emailing.alert_managers_recommender_action_needed("#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recommendation.id)
-    return None
+    
+    update_alert_and_current_step_article(recommendation.article_id)
 
 
 def before_review_delete(s: Set):
