@@ -177,12 +177,8 @@ def send_to_submitter(articleId: int, newStatus):
             current.coar.send_acknowledge_and_reject(article)
 
         elif article.status != newStatus and newStatus == "Not considered":
-            mail_vars["recommTarget"] = URL(
-                c="user", f="recommendations", vars=dict(articleId=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
-            )
-
-            hashtag_template = "#SubmitterNotConsideredSubmission"
             current.coar.send_acknowledge_and_reject(article)
+            return
 
         elif article.status != newStatus and newStatus == "Awaiting revision":
             mail_vars["recommTarget"] = URL(
