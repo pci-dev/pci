@@ -35,6 +35,7 @@ from app_modules import emailing_vars
 from app_modules import emailing
 
 from models.group import Role
+from models.report_survey import ReportSurvey
 from models.user import User
 from models.recommendation import Recommendation
 from models.article import Article
@@ -2801,10 +2802,10 @@ def edit_and_resend_email():
 def verify_co_authorship():
 
     response.view = "default/myLayout.html"
-    articleId = request.vars["articleId"]
-    article = db.t_articles[articleId]
-    recomm = db.get_last_recomm(articleId)
-    authors = extract_name(article.authors)
+    article_id = int(request.vars["articleId"])
+    article = Article.get_by_id(article_id)
+    recommendation = Recommendation.get_by_id(article_id)
+    authors = extract_name_from_author(article.authors)
     authors = [{"group" : "author", "name" : author} for author in authors]
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
@@ -2816,12 +2817,13 @@ def verify_co_authorship():
     reviewer_query = (db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Awaiting response", "Review completed"))
     is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
                             (db.t_suggested_recommenders.declined == False)).select(db.t_suggested_recommenders.suggested_recommender_id)
-    has_recommender = db(db.v_article_recommender.recommendation_id == recomm.id).select(db.v_article_recommender.recommender) if recomm else None
+    has_recommender = db(db.v_article_recommender.recommendation_id == recommendation.id).select(db.v_article_recommender.recommender) if recommendation else None
     has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state)
-    has_co_recommenders = db(db.t_press_reviews.recommendation_id == recomm.id).select(db.t_press_reviews.contributor_id) if recomm else None
+    has_co_recommenders = db(db.t_press_reviews.recommendation_id == recommendation.id).select(db.t_press_reviews.contributor_id) if recommendation else None
 
+    report_survey = ReportSurvey.get_by_article(article_id)
     grid = []
-    recommenders = []
+    recommenders: List[Dict[str, str]] = []
 
     # List of suggested recommenders
     if is_suggested and not has_recommender:
@@ -2832,6 +2834,14 @@ def verify_co_authorship():
         recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(user.contributor_id)} for user in has_co_recommenders]
     if has_reviewers:
         recommenders += common_small_html.group_reviewers(has_reviewers)
+    if report_survey and report_survey.q8:
+        names = report_survey.q8.split(',')
+        for name in names:
+            recommenders.append({'group': 'suggested reviewer', 'name': extract_name_without_email(name)})
+    if article.suggest_reviewers:
+        for reviewer in article.suggest_reviewers:
+            recommenders.append({'group': 'suggested reviewer', 'name': extract_name_without_email(reviewer)})
+
   
     grid = query_semantic_api(authors, recommenders) if len(recommenders) > 0 else SPAN("Submission has no recommender/reviewer assigned yet.")
 

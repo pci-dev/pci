@@ -2,7 +2,7 @@
 
 import gc
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Optional, cast
 from gluon.globals import Response
 from models.group import Role
 from models.review import ReviewState
@@ -365,3 +365,29 @@ def make_article_source(article):
     version = article.ms_version
     article_source = f"({year}), {preprint_server}, ver.{version}, peer-reviewed and recommended by {pci_name}"
     return article_source
+
+
+def fix_web2py_list_str_bug_article_form(form: SQLFORM):
+    comment_style = "display: block; margin-top: 5px; margin-bottom: 10px; color: #7f8177; list-style: none;"
+
+    suggest_reviewers_input = cast(Optional[DIV], form.element(_id="t_articles_suggest_reviewers_grow_input")) # type: ignore
+    if suggest_reviewers_input:
+        suggest_reviewers_input.append(SPAN(form.custom.comment.suggest_reviewers.components, _style=comment_style)) # type: ignore
+
+    opposed_reviewers_input = cast(Optional[DIV], form.element(_id="t_articles_competitors_grow_input")) # type: ignore
+    if opposed_reviewers_input:
+        opposed_reviewers_input.append(SPAN(form.custom.comment.competitors.components, _style=comment_style)) # type: ignore
+
+    data_doi_input = cast(Optional[DIV], form.element(_id="t_articles_data_doi_grow_input")) # type: ignore
+    if data_doi_input:
+        data_doi_input['_style'] = comment_style
+        data_doi_input.append(form.custom.comment.data_doi) # type: ignore
+
+    script_doi_input = cast(Optional[DIV], form.element(_id="t_articles_scripts_doi_grow_input")) # type: ignore
+    if script_doi_input:
+        script_doi_input.append(SPAN(form.custom.comment.scripts_doi, _style=comment_style)) # type: ignore
+
+    codes_doi_input = cast(Optional[DIV], form.element(_id="t_articles_codes_doi_grow_input")) # type: ignore
+    if codes_doi_input:
+        codes_doi_input['style'] = comment_style
+        codes_doi_input.append(SPAN(form.custom.comment.codes_doi, _style=comment_style)) # type: ignore
