@@ -281,7 +281,7 @@ def set_not_considered():
         session.flash = T('No author for this article')
         return redirect(request.env.http_referer, client_side=True)
 
-    if article.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value):
+    if article.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value, ArticleStatus.PRE_SUBMISSION.value):
         session.flash = T('Article set "Not considered"')
         article.status = ArticleStatus.NOT_CONSIDERED.value
         article.update_record()
