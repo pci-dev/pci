@@ -5,7 +5,7 @@ import os
 import datetime
 import time
 from re import sub, match
-from typing import Optional, cast, Any, Dict
+from typing import List, Optional, cast, Any, Dict
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -242,7 +242,7 @@ def send_to_submitter(articleId: int, newStatus):
 
 ######################################################################################################################################################################
 # Send email to the requester (if any)
-def send_to_submitter_acknowledgement_submission(articleId):
+def send_to_submitter_acknowledgement_submission(articleId: int):
     session, auth, db = current.session, current.auth, current.db
     print("send_to_submitter_acknowledgement_submission")
     mail_vars = emailing_tools.getMailCommonVars()
@@ -752,7 +752,7 @@ def send_to_recommenders_review_declined(reviewId):
 
 
 ######################################################################################################################################################################
-def send_to_recommenders_pending_review_request(reviewId):
+def send_to_recommenders_pending_review_request(reviewId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -932,7 +932,7 @@ def send_to_reviewer_review_request_declined(reviewId, newForm):
 
 
 ######################################################################################################################################################################
-def send_to_thank_reviewer_acceptation(reviewId):
+def send_to_thank_reviewer_acceptation(reviewId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -1026,7 +1026,7 @@ def send_to_thank_reviewer_done(reviewId, newForm):
 
 
 ######################################################################################################################################################################
-def send_to_admin_2_reviews_under_consideration(reviewId):
+def send_to_admin_2_reviews_under_consideration(reviewId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -1212,7 +1212,7 @@ def send_new_membreship(membershipId):
 
 
 ######################################################################################################################################################################
-def send_to_managers(articleId, newStatus):
+def send_to_managers(articleId: int, newStatus: str):
     session, auth, db, response = current.session, current.auth, current.db, current.response
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -1314,7 +1314,7 @@ def listCorrectHashtags(hashtags, article):
 
 
 ######################################################################################################################################################################
-def send_to_thank_recommender_postprint(recommId):
+def send_to_thank_recommender_postprint(recommId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2179,7 +2179,7 @@ def delete_newsletter_mail(userId: int):
 ######################################################################################################################################################################
 ## Reminders
 ######################################################################################################################################################################
-def create_reminder_for_submitter_suggested_recommender_needed(articleId):
+def create_reminder_for_submitter_suggested_recommender_needed(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2705,7 +2705,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(reviewId, rep
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_soon_due(reviewId):
+def create_reminder_for_reviewer_review_soon_due(reviewId: int):
     session, auth, db = current.session, current.auth, current.db
     
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2759,7 +2759,7 @@ def getScheduledReviewDueDate(article):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_due(reviewId):
+def create_reminder_for_reviewer_review_due(reviewId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2797,7 +2797,7 @@ def create_reminder_for_reviewer_review_due(reviewId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_over_due(reviewId):
+def create_reminder_for_reviewer_review_over_due(reviewId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2836,7 +2836,7 @@ def create_reminder_for_reviewer_review_over_due(reviewId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_scheduled_review_coming_soon(review):
+def create_reminder_for_reviewer_scheduled_review_coming_soon(review: Review):
     session, auth, db = current.session, current.auth, current.db
 
     recomm = db.t_recommendations[review.recommendation_id]
@@ -3379,7 +3379,7 @@ def create_reminder_recommender_could_make_decision(recommId):
     emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ################################################################################################
-def alert_managers_recommender_action_needed(hashtag_template, recommId):
+def alert_managers_recommender_action_needed(hashtag_template: str, recommId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -3396,7 +3396,7 @@ def alert_managers_recommender_action_needed(hashtag_template, recommId):
         emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ########################################################
-def delete_reminder_for_managers(hashtag_template, recommId):
+def delete_reminder_for_managers(hashtag_template: List[str], recommId: int):
     db = current.db
     recomm = db.t_recommendations[recommId]
 

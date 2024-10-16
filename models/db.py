@@ -836,7 +836,7 @@ def deltaStatus(s: ..., f: Article):
                 emailing.create_reminder_for_submitter_revised_version_needed(o["id"])
 
 
-def newArticle(s, articleId):
+def newArticle(s: Article, article_id: int):
     if s.status in (ArticleStatus.PENDING_SURVEY.value, ArticleStatus.PRE_SUBMISSION.value): # pciRRactivated only
         return
 
@@ -844,11 +844,9 @@ def newArticle(s, articleId):
         return
 
     if s.already_published is False:
-        emailing.send_to_managers(articleId, "Pending")
-        emailing.send_to_submitter_acknowledgement_submission(articleId)
-        emailing.create_reminder_for_submitter_suggested_recommender_needed(articleId)
-
-    return None
+        emailing.send_to_managers(article_id, ArticleStatus.PENDING.value)
+        emailing.send_to_submitter_acknowledgement_submission(article_id)
+        emailing.create_reminder_for_submitter_suggested_recommender_needed(article_id)
 
 
 db.define_table(
@@ -925,7 +923,7 @@ def newRecommendation(s: ..., recomm: Recommendation):
         emailing.alert_managers_recommender_action_needed("#ManagersRecommenderAgreedAndNeedsToTakeAction", recomm.id)
 
     if article and article.already_published:
-        emailing.send_to_thank_recommender_postprint(recomm)
+        emailing.send_to_thank_recommender_postprint(recomm.id)
 
     if article and isScheduledTrack(article):
         # "send" future message as soon as we have a {{recommenderPerson}}
@@ -1090,19 +1088,27 @@ def init_review(row):
     row.quick_decline_key = web2py_uuid()
 
 
-def reviewSuggested(s, row):
+def reviewSuggested(s: ..., row: ...):
     review_id = int(row["id"])
     recommendation_id = int(row["recommendation_id"])
     recommendation = Recommendation.get_by_id(recommendation_id)
+    if not recommendation:
+        return
+    
     article = Article.get_by_id(recommendation.article_id)
     review = Review.get_by_id(review_id)
+    if not review:
+        return
+    
     review_recommendation = Recommendation.get_by_id(review.recommendation_id)
     no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
 
     notify_submitter(row)
 
+    rev_recomm_mail: Optional[str] = None
     try:
-        rev_recomm_mail = db.auth_user[review_recommendation.recommender_id]["email"]
+        if review_recommendation:
+            rev_recomm_mail = db.auth_user[review_recommendation.recommender_id]["email"]
     except:
         rev_recomm_mail = None
     try:
