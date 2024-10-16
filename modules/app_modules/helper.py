@@ -57,8 +57,8 @@ def getHelp(myHashtag, myLanguage="default"):
 
 
 ######################################################################################################################################################################
-def getText(myHashtag, myLanguage="default", maxWidth="1200"):
-    request, auth, db = current.request, current.auth, current.db
+def getText(myHashtag: str, myLanguage: str = "default", maxWidth: str = "1200"):
+    auth, db = current.auth, current.db
     r0 = ""
     c = ""
     if not isinstance(db, str):
@@ -79,7 +79,7 @@ def getText(myHashtag, myLanguage="default", maxWidth="1200"):
 
         return DIV(
             DIV(r0, _class="pci-text-buttons", _style="max-width:" + maxWidth + "px"),
-            DIV(WIKI(c, safe_mode=False), _class="pci-infotext", _style="max-width:" + maxWidth + "px"),
+            DIV(WIKI(c, safe_mode=""), _class="pci-infotext", _style="max-width:" + maxWidth + "px"),
             _class="pci-infotextbox",
         )
 

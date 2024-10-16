@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from enum import Enum
 import re
 from typing import Any, List, Optional as _, Union, cast, TypedDict
@@ -115,12 +115,23 @@ class Article(Row):
     translated_title: _[List[TranslatedFieldDict]]
     translated_keywords: _[List[TranslatedFieldDict]]
     methods_require_specific_expertise: _[str]
+    rdv_date: _[date]
+    remarks: _[str]
+    alert_date: _[date]
+    current_step: _[str]
+    current_step_number: _[int]
 
 
     @staticmethod
     def get_by_id(id: int):
         db = current.db
         return cast(_[Article], db.t_articles[id])
+    
+
+    @staticmethod
+    def get_all() -> List['Article']:
+        db = current.db
+        return db(db.t_articles).select()
     
 
     @staticmethod
@@ -143,7 +154,7 @@ class Article(Row):
                 new_translation['public'] = False
             setattr(article, field.value, [new_translation])
 
-        article.update_record()
+        article.update_record() # type: ignore
 
 
     @staticmethod
@@ -161,7 +172,7 @@ class Article(Row):
 
         if index_to_remove != None:
             translations.pop(index_to_remove)
-            article.update_record()
+            article.update_record() # type: ignore
         
 
     @staticmethod
@@ -269,13 +280,25 @@ class Article(Row):
     @staticmethod
     def set_status(article: 'Article', status: ArticleStatus):
         article.status = status.value
-        article.update_record()
+        article.update_record() # type: ignore
+
+    
+    @staticmethod
+    def set_rdv_date(article: 'Article', rdv_date: _[date]):
+        article.rdv_date = rdv_date
+        article.update_record() # type: ignore
+
+
+    @staticmethod
+    def set_remarks(article: 'Article', remarks: _[str]):
+        article.remarks = remarks
+        article.update_record() # type: ignore
 
 
     @staticmethod
     def remove_pre_submission_token(article: 'Article'):
         article.pre_submission_token = None
-        article.update_record()
+        article.update_record() # type: ignore
 
     
     @staticmethod
@@ -309,17 +332,151 @@ class Article(Row):
             f"peer-reviewed and recommended by {pci_long_name}",
             f"{article_doi}",
         ])
+    
+
+    @staticmethod
+    def update_alert_date(article: 'Article', update_record: bool = True):
+        from models.review import Review, ReviewState
+        from models.mail_queue import MailQueue, SendingStatus
+
+        if not article.last_status_change:
+            return None
+        
+        status = ArticleStatus(article.status)
+        recommendations = Recommendation.get_by_article_id(article.id, ~current.db.t_recommendations.id)
+        last_recommendation = recommendations[0] if recommendations else None
+        round_number = len(recommendations)
+        alert_date: _[datetime] = None
+        decision_due_date: _[datetime] = None
+
+        if round_number <= 1:
+            if status == ArticleStatus.PRE_SUBMISSION:
+                alert_date = article.last_status_change + timedelta(days=16) # Submission awaiting completion
+            elif status == ArticleStatus.PENDING: 
+                alert_date = article.last_status_change + timedelta(days=2) # Submission pending validation
+            elif status == ArticleStatus.AWAITING_CONSIDERATION:
+                alert_date = article.last_status_change + timedelta(days=20) # Recommender needed
+            elif status == ArticleStatus.UNDER_CONSIDERATION:
+                awaiting_review_tuple = Review.get_most_recent_review_by_due_date(article.id, ReviewState.AWAITING_REVIEW)
+                if last_recommendation:
+                    decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)
+
+                if decision_due_date:
+                    alert_date = decision_due_date + timedelta(days=5) # Awaiting decision
+                elif awaiting_review_tuple:
+                    alert_date = awaiting_review_tuple[1] + timedelta(days=7) # Reviews underway
+                else:
+                    alert_date = article.last_status_change + timedelta(days=25) # Reviewers needed
+                    
+            elif status in (ArticleStatus.PRE_REVISION, ArticleStatus.PRE_REJECTED, ArticleStatus.PRE_RECOMMENDED):
+                alert_date = article.last_status_change + timedelta(days=2) # Decision pending validation
+            elif status == ArticleStatus.AWAITING_REVISION:
+                alert_date = article.last_status_change + timedelta(days=70) # Awaiting revision
+        else:
+            if status == ArticleStatus.UNDER_CONSIDERATION: # Evaluation and decision underway
+                potential_alert_date: _[datetime] = None
+
+                # Alert date 1
+                if last_recommendation:
+                    decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)
+                    if decision_due_date:
+                        potential_alert_date = decision_due_date + timedelta(days=5)
+
+                # Alert date 2
+                accepted_reviews = Review.get_by_article_id_and_state(article.id, [ReviewState.AWAITING_REVIEW, ReviewState.REVIEW_COMPLETED])
+                if len(accepted_reviews) == 0:
+                    review_reminders = MailQueue.get_by_article_and_template(article,
+                                                                                        ["#ReminderReviewerReviewInvitationNewUser","#ReminderReviewerReviewInvitationRegisteredUser", "#ReminderReviewerInvitationNewRoundRegisteredUser"],
+                                                                                        [SendingStatus.PENDING],
+                                                                                        current.db.mail_queue.sending_date)
+                    if len(review_reminders) > 0:
+                        first_sending_date = review_reminders[0].sending_date + timedelta(days=10)
+                        if not potential_alert_date or first_sending_date > potential_alert_date:
+                            potential_alert_date = first_sending_date
+
+                # Alert date 3
+                most_recent_awaiting_review_due_date: _[datetime] = None
+                for review in accepted_reviews:
+                    if review.review_state != ReviewState.AWAITING_REVIEW.value:
+                        continue
+
+                    awaiting_review_due_date = Review.get_due_date(review)
+                    if not isinstance(awaiting_review_due_date, datetime):
+                        awaiting_review_due_date = datetime(
+                            year=awaiting_review_due_date.year,
+                            month=awaiting_review_due_date.month,
+                            day=awaiting_review_due_date.day
+                        )
+
+                    if not most_recent_awaiting_review_due_date or most_recent_awaiting_review_due_date < awaiting_review_due_date:
+                        most_recent_awaiting_review_due_date = awaiting_review_due_date
+
+                if most_recent_awaiting_review_due_date:
+                    most_recent_awaiting_review_due_date = most_recent_awaiting_review_due_date + timedelta(days=7)
+                    if not potential_alert_date or potential_alert_date < most_recent_awaiting_review_due_date:
+                        potential_alert_date = most_recent_awaiting_review_due_date
+                    
+                # Alert date 4
+                if not most_recent_awaiting_review_due_date:
+                    most_recent_completed_review_date: _[datetime] = None
+                    for review in accepted_reviews:
+                        if review.review_state != ReviewState.REVIEW_COMPLETED.value or not review.last_change:
+                            continue
+
+                        if not most_recent_completed_review_date or review.last_change > most_recent_completed_review_date:
+                            most_recent_completed_review_date = review.last_change
+
+                    if most_recent_completed_review_date:
+                        most_recent_completed_review_date = most_recent_completed_review_date + timedelta(days=15)
+                        if not potential_alert_date or potential_alert_date < most_recent_completed_review_date:
+                            potential_alert_date = most_recent_completed_review_date
+
+                alert_date = potential_alert_date
+            elif status in (ArticleStatus.PRE_REVISION, ArticleStatus.PRE_REJECTED, ArticleStatus.PRE_RECOMMENDED): # Decision pending validation
+                alert_date = article.last_status_change + timedelta(days=2)
+            elif status == ArticleStatus.AWAITING_REVISION: # Awaiting Revision
+                alert_date = article.last_status_change + timedelta(days=21)
+
+        article.alert_date = alert_date
+        if update_record:
+            article.update_record() # type: ignore
+
+        return alert_date
+
+
+    @staticmethod
+    def update_current_step(article: 'Article', update_record: bool = True):
+        from app_modules.common_small_html import get_current_step_article
+
+        current_step = get_current_step_article(article)
+        if current_step is None:
+            article.current_step_number = None
+            article.current_step = None
+        else:
+            article.current_step_number = current_step[0]
+            article.current_step = str(current_step[1])
+
+        if update_record:
+            article.update_record() # type: ignore
+
+        return current_step
 
 
 def is_scheduled_submission(article: Article) -> bool:
-    return scheduledSubmissionActivated and (
+    from models.report_survey import ReportSurvey
+    
+    report_survey = cast(_['ReportSurvey'], article.t_report_survey.select().first()) # type: ignore
+
+    is_scheduled_submission: ... = scheduledSubmissionActivated and (
         article.scheduled_submission_date is not None
         or article.status.startswith("Scheduled submission")
         or (
-            article.t_report_survey.select().first().q10 is not None
-            and article.t_recommendations.count() == 1
+            report_survey is not None and report_survey.q10 is not None
+            and article.t_recommendations.count() == 1 # type: ignore
         )
     )
+
+    return bool(is_scheduled_submission)
 
 
 def clean_vars_doi_list(var_doi: _[List[str]]):
