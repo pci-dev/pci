@@ -662,6 +662,8 @@ def fill_new_article():
         if opposed_reviewers_reviewers_error:
             form.errors.opposed_reviewers = opposed_reviewers_reviewers_error
 
+        check_duplicate_submission(form)
+
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
         form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
@@ -721,6 +723,17 @@ def fill_new_article():
         form=form,
         myFinalScript=final_scripts
     )
+
+
+def check_duplicate_submission(form):
+    same_title = db(db.t_articles.title.lower() == form.vars.title.lower()).count()
+    same_url = db(db.t_articles.doi.lower() == form.vars.doi.lower()).count()
+
+    if same_title or same_url:
+        form.errors.duplicate = dict(
+            same_title=same_title, title=form.vars.title,
+            same_url=same_url, url=form.vars.doi,
+        )
 
 
 def _save_article_form(form: SQLFORM):
