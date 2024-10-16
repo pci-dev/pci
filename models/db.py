@@ -704,9 +704,11 @@ def deltaStatus(s: ..., f: Article):
         
         elif o.status == "Pending" and f["status"] == "Not considered":
             emailing.send_to_managers(o["id"], f["status"])
+            emailing.send_to_submitter(o["id"], f["status"])
 
         elif o.status == "Awaiting consideration" and f["status"] == "Not considered":
             emailing.send_to_managers(o["id"], f["status"])
+            emailing.send_to_submitter(o["id"], f["status"])
 
         elif o.status == "Awaiting consideration" and f["status"] == "Under consideration":
             emailing.send_to_managers(o["id"], f["status"])
