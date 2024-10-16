@@ -693,6 +693,10 @@ def fill_new_article():
         fix_web2py_list_str_bug_article_form(form)
         _save_article_form(form)
         _clean_article_form_saved(True)
+
+        if form.errors.duplicate:
+            redirect(URL(c="user", f="duplicate_submission", vars=form.errors.duplicate))
+
         response.flash = T("Form has errors", lazy=False)
 
 
@@ -734,6 +738,31 @@ def check_duplicate_submission(form):
             same_title=same_title, title=form.vars.title,
             same_url=same_url, url=form.vars.doi,
         )
+
+
+def duplicate_submission():
+    dup_info = (
+        "title and url" if request.vars.same_title and request.vars.same_url else
+        "title" if request.vars.same_title else
+        "url"
+    )
+    text = XML(f"""
+        An article with title '{request.vars.title}' and url = {request.vars.url}
+        is already submitted at this PCI with the same {dup_info}.
+        <br>
+        Your sumbission has thus not been registered.
+        <br>
+        Please contact the Managing Board at {myconf.get("contacts.contact")}
+        for more information.
+    """)
+    response.view = "default/myLayoutBot.html"
+    return dict(
+        #pageHelp=getHelp("#UserSubmitNewArticle"),
+        #pageTitle=getTitle("#UserSubmitNewArticleTitle"),
+        titleIcon="warning",
+        pageTitle="Duplicate submission",
+        customText=text,
+    )
 
 
 def _save_article_form(form: SQLFORM):
