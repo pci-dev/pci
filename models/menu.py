@@ -365,10 +365,6 @@ def _RecommendationMenu():
         )
     ]
 
-    if not pciRRactivated: recommendationsMenu += [
-            menu_entry("Recommend a postprint", "glyphicon-edit", URL("recommender", "new_submission", user_signature=True)),
-    ]
-
     recommendationsMenu += [
         divider(),
         (
@@ -394,17 +390,6 @@ def _RecommendationMenu():
             URL("recommender", "my_co_recommendations", vars=dict(pendingOnly=False), user_signature=True),
             _class="pci-recommender",
         ),
-    ]
-
-    if not pciRRactivated: recommendationsMenu += [
-            (
-                SPAN(
-                    menu_entry_item("Your recommendations of postprints", "glyphicon-certificate", _class="pci-recommender"),
-                    _class=classPostprintsOngoing,
-                ),
-                False,
-                URL("recommender", "my_recommendations", vars=dict(pressReviews=True), user_signature=True),
-            )
     ]
 
     if colorRequests:
