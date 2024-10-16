@@ -1986,13 +1986,14 @@ def send_submitter_generic_mail(author_email, articleId, form, mail_template):
 
     mail_content = mk_mail(form.subject, form.message)
     ccAddresses = exempt_addresses(cc_addresses, mail_template)
+    mail_subject = patch_email_subject(form.subject, articleId)
 
     db.mail_queue.insert(
         user_id             = auth.user_id,
         dest_mail_address   = author_email,
         replyto_addresses   = replyto_addresses,
         cc_mail_addresses   = ccAddresses,
-        mail_subject        = form.subject,
+        mail_subject        = mail_subject,
         mail_content        = mail_content,
 
         article_id          = articleId,
