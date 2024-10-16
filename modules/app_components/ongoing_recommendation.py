@@ -1390,6 +1390,17 @@ def manager_action_button(action: str, text: str, info_text: str, art: Article, 
     )
 
 
+def set_not_considered_tiny_button(article_id: int):
+    return A(
+        TAG(current.T('Prepare email informing authors that preprint not considered')),
+        _onclick=f'showSetNotConsideredDialog({article_id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=article_id), user_signature=True)}")',
+        _class="buttontext btn btn-danger pci-button pci-manager",
+        _id=f"button-set-not-considered-{article_id}",
+        _title=current.T('Prepare email informing authors that preprint not considered'),
+        _style="width: 100px; white-space: normal; font-size: 9px; padding: 1px; line-height: 14px"
+    )
+
+
 def put_in_presubmission_button(art: Article) -> Optional[Any]:
     return manager_action_button(
             "pre_submission_list",
