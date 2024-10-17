@@ -32,7 +32,10 @@ def version():
 
 
 def pci():
-    return json({
+    return json(_pci())
+
+def _pci():
+    return ({
         "theme": db.cfg.description.replace("Peer Community in ", ""),
     })
 
@@ -40,6 +43,7 @@ def pci():
 def coar_inbox():
     return json({
         "url": URL("coar_notify", "inbox", scheme=True),
+        "theme": _pci().get("theme"),
     })
 
 
