@@ -320,6 +320,60 @@ h4.pci2-recomm-article-h2 .glyphicon {
   background: white;
 }
 
+.mini-progress-step-circle {
+  border: 5px solid #29abe0;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  background: white;
+  margin-right: 5px;
+
+  i {
+    font-size: 20px;
+  }
+}
+
+.final-step-done-mini .mini-progress-step-circle {
+  border-color: #93c54b;
+}
+
+.pci-status-mini {
+  font-size: 12px;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.pci-status-title-mini {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pci-status-mini h3 {
+  font-weight: bold;
+  margin: 0px;
+  color: #29abe0;
+  font-size: 14px;
+}
+
+.pci-status-mini.final-step-done-mini h3 {
+  color: #93c54b;
+}
+
+.pci-status-mini.danger-step h3 {
+  color: #b90000;
+}
+
+.pci-status-mini.warning-step h3 {
+  color: #f47c3c;
+}
+
+.step-number {
+  display: none;
+}
+
 .progress-step-div .step-description {
   min-height: 125px;
   margin-left: 25px;

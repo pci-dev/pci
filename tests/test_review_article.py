@@ -7,6 +7,8 @@ users = config.users
 reviewer = users.reviewer
 recommender = users.recommender
 
+is_rr = config.is_rr
+
 from conftest import store as article
 
 
@@ -45,8 +47,12 @@ class External_user_reviews:
         login(users.manager)
         select(".dropdown-toggle span", "For managers").click()
         select(".dropdown-menu span", contains="Handling process(es) underway").click()
-        select("tr", contains="HANDLING PROCESS UNDERWAY") \
+        if is_rr:
+            select("tr", contains="HANDLING PROCESS UNDERWAY") \
                 .select("a", "VIEW / EDIT").click()
+        else:
+            select("tr", contains="Reviewers needed") \
+                    .select("a", "VIEW / EDIT").click()
         select("a", "View e-mails").click()
         select("tr", contains="#DefaultReviewInvitationNewUser") \
                 .select("a", "VIEW").click()
