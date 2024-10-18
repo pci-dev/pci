@@ -652,6 +652,8 @@ def fill_new_article():
         if pciRRactivated:
             form.vars.status = "Pending-survey"
 
+        check_duplicate_submission(form)
+
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
         form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
@@ -680,6 +682,10 @@ def fill_new_article():
     elif form.errors:
         _save_article_form(form)
         _clean_article_form_saved(True)
+
+        if form.errors.duplicate:
+            redirect(URL(c="user", f="duplicate_submission", vars=form.errors.duplicate))
+
         response.flash = T("Form has errors", lazy=False)
 
 
@@ -709,6 +715,42 @@ def fill_new_article():
         customText=customText,
         form=form,
         myFinalScript=final_scripts
+    )
+
+
+def check_duplicate_submission(form):
+    same_title = db(db.t_articles.title.lower() == form.vars.title.lower()).count()
+    same_url = db(db.t_articles.doi.lower() == form.vars.doi.lower()).count()
+
+    if same_title or same_url:
+        form.errors.duplicate = dict(
+            same_title=same_title, title=form.vars.title,
+            same_url=same_url, url=form.vars.doi,
+        )
+
+
+def duplicate_submission():
+    dup_info = (
+        "title and url" if request.vars.same_title and request.vars.same_url else
+        "title" if request.vars.same_title else
+        "url"
+    )
+    text = XML(f"""
+        An article with title '{request.vars.title}' and url = {request.vars.url}
+        is already submitted at this PCI with the same {dup_info}.
+        <br>
+        Your sumbission has thus not been registered.
+        <br>
+        Please contact the Managing Board at {myconf.get("contacts.contact")}
+        for more information.
+    """)
+    response.view = "default/myLayoutBot.html"
+    return dict(
+        #pageHelp=getHelp("#UserSubmitNewArticle"),
+        #pageTitle=getTitle("#UserSubmitNewArticleTitle"),
+        titleIcon="warning",
+        pageTitle="Duplicate submission",
+        customText=text,
     )
 
 
