@@ -23,6 +23,7 @@ from app_modules import common_small_html
 from app_modules.orcid import OrcidTools
 from app_modules.article_translator import ArticleTranslator
 from gluon.http import HTTP, redirect # type: ignore
+from app_components.custom_validator import VALID_LIST_NAMES_MAIL
 
 from gluon.sqlhtml import SQLFORM
 from gluon.storage import Storage
@@ -33,6 +34,7 @@ from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
 from models.user import User
 from pydal.validators import IS_IN_DB, IS_URL
+from app_components.article_components import fix_web2py_list_str_bug_article_form
 
 from app_modules.common_tools import URL
 
@@ -652,6 +654,14 @@ def fill_new_article():
         if pciRRactivated:
             form.vars.status = "Pending-survey"
 
+        suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.suggest_reviewers)
+        if suggested_reviewers_error:
+            form.errors.suggest_reviewers = suggested_reviewers_error
+
+        opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.opposed_reviewers)
+        if opposed_reviewers_reviewers_error:
+            form.errors.opposed_reviewers = opposed_reviewers_reviewers_error
+
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
         form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
@@ -678,6 +688,7 @@ def fill_new_article():
         else:
             redirect(URL(c="user", f="add_suggested_recommender", vars=myVars, user_signature=True))
     elif form.errors:
+        fix_web2py_list_str_bug_article_form(form)
         _save_article_form(form)
         _clean_article_form_saved(True)
         response.flash = T("Form has errors", lazy=False)
