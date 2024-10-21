@@ -1,19 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import re
-import copy
-import tempfile
 import datetime
-from datetime import timedelta
-import glob
 import os
-from typing import List, cast, Optional
+from typing import Any, Dict, List, cast, Optional
 
 
 # sudo pip install tweepy
 # import tweepy
-
-import codecs
 
 # import html2text
 from gluon.contrib.markdown import WIKI # type: ignore
@@ -44,19 +38,18 @@ from app_modules.article_translator import ArticleTranslator
 from models.group import Group, Role
 from models.review import Review
 
-from models.suggested_recommender import SuggestedRecommender
-
-from app_modules.common_small_html import md_to_html
+from app_modules.common_small_html import md_to_html, represent_rdv_date
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
-from gluon.http import redirect # type: ignore
+from gluon.http import HTTP, redirect # type: ignore
 
 from models.article import Article, ArticleStatus, clean_vars_doi, clean_vars_doi_list
 from models.user import User
 from models.membership import Membership
 
 from app_modules.common_tools import URL
+from pydal.validators import IS_IN_DB
 
 request = current.request
 session = current.session
@@ -81,7 +74,7 @@ port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ACCENT_COLOR = '#fcc24d'
-Field.CC = db.Field.CC
+Field.CC = db.Field.CC # type: ignore
 ######################################################################################################################################################################
 ## Menu Routes
 ######################################################################################################################################################################
@@ -91,7 +84,7 @@ def index():
 # Display ALL articles and allow management
 @auth.requires(auth.has_membership(role="manager"))
 def all_articles():
-    resu = _manage_articles(None, URL("manager", "all_articles", host=host, scheme=scheme, port=port))
+    resu = _manage_articles(order_by=db.t_articles.alert_date|~db.t_articles.last_status_change)
     resu["customText"] = getText("#ManagerAllArticlesText")
     resu["titleIcon"] = "book"
     resu["pageTitle"] = getTitle("#ManagerAllArticlesTitle")
@@ -203,7 +196,7 @@ def uninpersonate():
 def pending_articles():
     states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
 
-    resu = _manage_articles(states, URL("manager", "pending_articles", host=host, scheme=scheme, port=port), show_not_considered_button=False)
+    resu = _manage_articles(states, show_not_considered_button=False)
     resu["customText"] = getText("#ManagerPendingArticlesText")
     resu["titleIcon"] = "time"
     resu["pageTitle"] = getTitle("#ManagerPendingArticlesTitle")
@@ -215,7 +208,7 @@ def pending_articles():
 @auth.requires(auth.has_membership(role="manager"))
 def pending_surveys():
     resu = _manage_articles(
-        ["Pending-survey"], URL("manager", "pending_surveys", host=host, scheme=scheme, port=port)
+        ["Pending-survey"]
     )
     resu["customText"] = getText("#ManagerPendingSurveyReportsText")
     resu["titleIcon"] = "time"
@@ -227,7 +220,7 @@ def pending_surveys():
 @auth.requires(auth.has_membership(role="manager"))
 def presubmissions():
     resu = _manage_articles(
-        ["Pre-submission"], URL("manager", "presubmissions", host=host, scheme=scheme, port=port)
+        ["Pre-submission"]
     )
     resu["customText"] = getText("#ManagePresubmittedArticlesText")
     resu["titleIcon"] = "warning-sign"
@@ -238,9 +231,14 @@ def presubmissions():
 
 ######################################################################################################################################################################
 # Display ongoing articles and allow management
-@auth.requires(auth.has_membership(role="manager"))
+@auth.requires(auth.has_membership(role=Role.MANAGER.value))
 def ongoing_articles():
-    resu = _manage_articles(["Awaiting consideration", "Under consideration", "Awaiting revision", "Scheduled submission under consideration", "Scheduled submission revision"], URL("manager", "ongoing_articles", host=host, scheme=scheme, port=port))
+    resu = _manage_articles(
+        [ArticleStatus.AWAITING_CONSIDERATION.value,
+         ArticleStatus.UNDER_CONSIDERATION.value,
+         ArticleStatus.AWAITING_REVISION.value,
+         ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value,
+         ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value])
     resu["customText"] = getText("#ManagerOngoingArticlesText")
     resu["titleIcon"] = "refresh"
     resu["pageTitle"] = getTitle("#ManagerOngoingArticlesTitle")
@@ -253,7 +251,7 @@ def ongoing_articles():
 @auth.requires(auth.has_membership(role="manager"))
 def completed_articles():
     db.t_articles.status.label = T("Outcome")
-    resu = _manage_articles(["Cancelled", "Recommended", "Rejected", "Not considered"], URL("manager", "completed_articles", host=host, scheme=scheme, port=port))
+    resu = _manage_articles(["Cancelled", "Recommended", "Rejected", "Not considered"], order_by=~db.t_articles.last_status_change)
     resu["customText"] = getText("#ManagerCompletedArticlesText")
     resu["titleIcon"] = "ok-sign"
     resu["pageTitle"] = getTitle("#ManagerCompletedArticlesTitle")
@@ -263,14 +261,244 @@ def completed_articles():
 
 ######################################################################################################################################################################
 # Common function which allow management of articles filtered by status
-@auth.requires(auth.has_membership(role="manager") or is_recommender())
-def _manage_articles(statuses, whatNext, stats_query=None, show_not_considered_button: bool = True):
+@auth.requires(auth.has_membership(role=Role.MANAGER.value) or is_recommender())
+def _manage_articles(statuses: Optional[List[str]] = None,
+                     stats_query: Optional[Any] = None,
+                     show_not_considered_button: bool = True,
+                     order_by: ... = db.t_articles.alert_date|db.t_articles.rdv_date):
+    if pciRRactivated:
+        return _manage_articles_rr(statuses, stats_query, show_not_considered_button)
+    
+    response.view = "default/myLayout.html"
+
+    last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
+                   db.executesql("select max(id) from t_recommendations where article_id in " +
+                       "(select id from t_articles where status in ('" + "','".join(statuses) + "')) " +
+                       "group by article_id")
+    last_recomms = [x[0] for x in last_recomms]
+
+    # articles
+    t_articles = db.t_articles
+    full_text_search_fields = [
+        'id',
+        'anonymous_submission',
+        'user_id',
+        'status',
+        'title',
+        'abstract',
+        'authors',
+        'art_stage_1_id',
+        'report_stage',
+        'request_submission_change',
+        'alert_date',
+        'keywords',
+        'upload_timestamp',
+        'thematics',
+        'rdv_date',
+        'remarks',
+        'current_step'
+    ]
+
+    for a_field in t_articles.fields:
+        if not a_field in full_text_search_fields:
+            t_articles[a_field].readable = False
+    
+    def article_row(article_id: int, article: Article):
+        return common_small_html.represent_article_manager_board(article)
+
+    def alert_date_row(article_last_status_change: int, article: Article):
+        return common_small_html.represent_alert_manager_board(article)
+    
+    def link_body_row(row: Article):
+        return common_small_html.represent_link_column_manager_board(row)
+    
+    def represent_rdv_date(rdv_date: Optional[datetime.date], row: Article):
+        return common_small_html.represent_rdv_date(row)
+    
+    def represent_article_status(status: Optional[str], row: Article):
+        return common_small_html.represent_current_step_manager_board(row)
+
+    def represent_remarks(remarks: Optional[str], row: Article):
+        return TEXTAREA(remarks if remarks is not None else '',
+                        _id=f"remarks_{row.id}",
+                        _name=f"remarks_{row.id}",
+                        _style="height: 100px; width: 330px; resize: none; background: transparent; border: 1px #dfd7ca solid; border-radius: 4px",
+                        _oninput=f'remarksInputChange({row.id}, "{URL(c="manager", f="edit_remarks", scheme=True)}")')
+
+    t_articles.id.readable = True
+    t_articles.id.represent = article_row
+    
+    t_articles.thematics.label = "Thematics fields"
+    t_articles.thematics.type = "string"
+    t_articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword)
+
+    t_articles.rdv_date.label = 'Your RDV'
+    t_articles.rdv_date.readable = True
+    t_articles.rdv_date.represent = represent_rdv_date
+
+    t_articles.anonymous_submission.readable = False
+    t_articles.report_stage.readable = False
+    t_articles.request_submission_change.readable = False
+    t_articles.art_stage_1_id.readable = False
+    t_articles.upload_timestamp.readable = False
+    t_articles.last_status_change.readbale = False
+    t_articles.status.readable = False
+
+    t_articles.user_id.label = 'Submitter'
+    t_articles.user_id.readable = True
+
+    t_articles.upload_timestamp.searchable = False
+    t_articles.last_status_change.searchable = False
+
+    t_articles.alert_date.represent = alert_date_row
+    t_articles.alert_date.readable = True
+
+    t_articles.current_step.represent = represent_article_status
+    t_articles.current_step.label = 'Current status'
+    t_articles.current_step.readable = True
+
+    t_articles.remarks.readable = True
+    t_articles.remarks.label = 'Remarks'
+    t_articles.remarks.represent = represent_remarks
+
+    t_articles.id.label = "Article"
+    t_articles.keywords.label = "Keywords"
+
+    links: List[Dict[str, Any]] = [
+        dict(
+            header=T("Actions"),
+            body=link_body_row,
+        ),
+    ]
+    if stats_query:
+        query = stats_query
+    else:
+        #recomms.get(article_id)
+        query = (db.t_articles.id == db.v_article_id.id)
+        if statuses:
+            query = query & db.t_articles.status.belongs(statuses)
+        # recommenders only ever get here via menu "Recommender > Pending validation(s)"
+        if pciRRactivated and is_recommender():
+            query = db.pending_scheduled_submissions_query
+
+    original_grid = SQLFORM.grid( # type: ignore
+        query,
+        searchable=True,
+        details=False,
+        editable=False,
+        deletable=False,
+        create=False,
+        csv=csv,
+        exportclasses=expClass,
+        maxtextlength=250,
+        paginate=20,
+        fields=[
+            t_articles.id,
+            t_articles.alert_date,
+            t_articles.last_status_change,
+            t_articles.upload_timestamp,
+            t_articles.user_id,
+            t_articles.art_stage_1_id,
+            t_articles.anonymous_submission,
+            t_articles.title,
+            t_articles.already_published,
+            t_articles.report_stage,
+            t_articles.request_submission_change,
+            t_articles.ms_version,
+            t_articles.doi,
+            t_articles.doi_of_published_article,
+            t_articles.rdv_date,
+            t_articles.status,
+            t_articles.current_step,
+            t_articles.validation_timestamp,
+            t_articles.remarks,
+        ],
+        links=links,
+        left=db.v_article.on(db.t_articles.id == db.v_article.id),
+        orderby=order_by,
+        _class="web2py_grid manage-article",
+    )
+
+    # options to be removed from the search dropdown:
+    remove_options = ['t_articles.upload_timestamp', 't_articles.last_status_change', 't_articles.anonymous_submission',
+                      'v_article_id.id', 'v_article_id.id_str', 'v_article.id', 'v_article.title', 'v_article.authors',
+                      'v_article.abstract', 'v_article.user_id', 'v_article.status', 'v_article.keywords', 'v_article.submission_date',
+                      'v_article.reviewers', 'v_article.thematics', 'v_article.alert_date', 'v_article.rdv_date', 'v_article.current_step',
+                      'v_article.remarks']
+    integer_fields = ['t_articles.id', 't_articles.user_id']
+    columns_to_hide = ['t_articles.user_id', 't_articles.title']
+
+    # the grid is adjusted after creation to adhere to our requirements
+    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields, columns_to_hide)
+
+    return dict(
+        customText=getText("#ManagerArticlesText"),
+        pageTitle=getTitle("#ManagerArticlesTitle"),
+        grid=grid,
+        absoluteButtonScript=common_tools.absoluteButtonScript,
+        script=common_tools.get_script("manager.js")
+    )
+
+
+@auth.requires(auth.has_membership(role=Role.MANAGER.value))
+def edit_rdv_date():
+    try:
+        article_id = int(request.vars.get("article_id"))
+        new_date = request.vars.get("new_date")
+        new_date = datetime.date.fromisoformat(request.vars.get("new_date")) if new_date else None
+    except:
+        response.flash = "Bad arguments"
+        return HTTP(400, "Bad arguments")
+    
+    if new_date and datetime.date.today() > new_date:
+        response.flash = "Date must be upper than the today date"
+        return HTTP(403, "Date must be upper than the today date")
+
+    article = Article.get_by_id(article_id)
+    if not article:
+        response.flash = "Article not found"
+        return HTTP(404, f"Article with id {article_id} not found")
+    
+    try:
+        Article.set_rdv_date(article, new_date)
+    except:
+        response.flash = "Error to update RDV date"
+        return HTTP(500, "Error to update RDV date")
+
+    return represent_rdv_date(article)
+
+
+@auth.requires(auth.has_membership(role=Role.MANAGER.value))
+def edit_remarks():
+    try:
+        article_id = int(request.vars.get("article_id"))
+        remarks = str(request.vars.get("remarks"))
+    except:
+        response.flash = "Bad arguments"
+        return HTTP(400, "Bad arguments")
+    
+    article = Article.get_by_id(article_id)
+    if not article:
+        response.flash = "Article not found"
+        return HTTP(404, f"Article with id {article_id} not found")
+    
+    try:
+        Article.set_remarks(article, remarks)
+    except:
+        response.flash = "Error to update remarks"
+        return HTTP(500, "Error to update remarks")
+
+    return HTTP(200, remarks)
+
+
+@auth.requires(auth.has_membership(role=Role.MANAGER.value) or is_recommender())
+def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, show_not_considered_button: bool = True):
     response.view = "default/myLayout.html"
 
     # users
-    def index_by(field, query): return { x[field]: x for x in db(query).select() }
+    def index_by(field: str, query: ...): return { x[field]: x for x in db(query).select() }
 
-    users = index_by("id", db.auth_user)
+    users: Dict[int, User] = index_by("id", db.auth_user)
     last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
                    db.executesql("select max(id) from t_recommendations where article_id in " +
                        "(select id from t_articles where status in ('" + "','".join(statuses) + "')) " +
@@ -296,70 +524,53 @@ def _manage_articles(statuses, whatNext, stats_query=None, show_not_considered_b
         'keywords',
         'upload_timestamp',
         'thematics'
-    ]
-
-    def mkSubmitter(row):
+    ]   
+    
+    def article_row(article_id: int, article: Article):
+        return DIV(common_small_html.mkRepresentArticleLight(article_id), _class="pci-w300Cell")
+    
+    def submitter_row(user_id: int, article: Article):
         return SPAN(
-            DIV(common_small_html.mkAnonymousArticleField(row.anonymous_submission, "", row.id)),
-            common_small_html._mkUser(users.get(row.user_id)),
+            DIV(common_small_html.mkAnonymousArticleField(article.anonymous_submission or False, "", article.id)),
+            common_small_html.mk_user(users.get(article.user_id) if article.user_id else None),
         )
-
-    def mkRecommenders(row):
-        article_id = row.id
+    
+    def recommender_row(article_title: str, article: Article):
+        article_id = article.id
 
         recomm = recomms.get(article_id)
         if not recomm:
             return DIV("no recommender")
 
         resu = DIV()
-        resu.append(common_small_html._mkUser(users.get(recomm.recommender_id)))
+        resu.append(common_small_html.mk_user(users.get(recomm.recommender_id))) # type: ignore
 
         for co_recomm in co_recomms:
             if co_recomm.recommendation_id == recomm.id:
-                resu.append(common_small_html._mkUser(users.get(co_recomm.contributor_id)))
+                resu.append(common_small_html.mk_user(users.get(co_recomm.contributor_id))) # type: ignore
 
         if len(resu) > 1:
-            resu.insert(1, DIV(B("Co-recommenders:")))
+            resu.insert(1, DIV(B("Co-recommenders:"))) # type: ignore
 
         return resu
     
-    articles.id.readable = True
-    articles.id.represent = lambda text, row: DIV(common_small_html.mkRepresentArticleLight(text), _class="pci-w300Cell")
-    
-    articles.thematics.label = "Thematics fields"
-    articles.thematics.type = "string"
-    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
-    
-    articles.user_id.represent = lambda txt, row: mkSubmitter(row)
-    articles.user_id.label = 'Submitter'
-
-    articles.title.represent = lambda txt, row: mkRecommenders(row)
-    articles.title.label = 'Recommenders'
-
-    articles.anonymous_submission.readable = False
-    articles.report_stage.readable = False
-    articles.request_submission_change.readable = False
-    articles.art_stage_1_id.readable = False
-    articles.upload_timestamp.searchable = False
-    articles.last_status_change.searchable = False
-
-    articles.status.represent = lambda text, row: common_small_html.mkStatusDiv(
-        text, showStage=pciRRactivated, stage1Id=row.art_stage_1_id, reportStage=row.report_stage, submission_change=row.request_submission_change,
+    def status_row(article_status: str, article: Article):
+        return common_small_html.mkStatusDiv(
+        article_status,
+        showStage=pciRRactivated,
+        stage1Id=article.art_stage_1_id,
+        reportStage=article.report_stage,
+        submission_change=article.request_submission_change,
     )
+    
+    def upload_timestamp_row(upload_timestamp: datetime.datetime, article: Article):
+        return common_small_html.mkLastChange(article.upload_timestamp)
 
-    articles.upload_timestamp.represent = lambda text, row: common_small_html.mkLastChange(row.upload_timestamp)
-    articles.last_status_change.represent = lambda text, row: common_small_html.mkLastChange(row.last_status_change)
-
-    for a_field in articles.fields:
-        if not a_field in full_text_search_fields:
-            articles[a_field].readable = False
-
-    articles.id.label = "Article"
-
-    links = [
-        dict(
-            header=T("Actions"),
-            body=lambda row: DIV(
+    def last_status_change_row(last_status_change: datetime.datetime, article: Article):
+        return common_small_html.mkLastChange(article.last_status_change)
+    
+    def link_body_row(row: Article):
+        return DIV(
                 A(
                     SPAN(current.T("View / Edit")),
                     _href=URL(c="manager", f="recommendations", vars=dict(articleId=row.id, recommender=auth.user_id)),
@@ -372,8 +583,44 @@ def _manage_articles(statuses, whatNext, stats_query=None, show_not_considered_b
                     and row.already_published is False and show_not_considered_button
                 )
                 else "",
-                ongoing_recommendation.validate_stage_button(db.t_articles[row.id]) if row.status == ArticleStatus.PRE_SUBMISSION.value else "",
-            ),
+                ongoing_recommendation.validate_stage_button(row) if row.status == ArticleStatus.PRE_SUBMISSION.value else "",
+            )
+
+    articles.id.readable = True
+    articles.id.represent = article_row
+    
+    articles.thematics.label = "Thematics fields"
+    articles.thematics.type = "string"
+    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword)
+    
+    articles.user_id.represent = submitter_row
+    articles.user_id.label = 'Submitter'
+
+    articles.title.represent = recommender_row
+    articles.title.label = 'Recommenders'
+
+    articles.anonymous_submission.readable = False
+    articles.report_stage.readable = False
+    articles.request_submission_change.readable = False
+    articles.art_stage_1_id.readable = False
+    articles.upload_timestamp.searchable = False
+    articles.last_status_change.searchable = False
+
+    articles.status.represent = status_row
+
+    articles.upload_timestamp.represent = upload_timestamp_row
+    articles.last_status_change.represent = last_status_change_row
+
+    for a_field in articles.fields:
+        if not a_field in full_text_search_fields:
+            articles[a_field].readable = False
+
+    articles.id.label = "Article"
+
+    links: List[Dict[str, Any]] = [
+        dict(
+            header=T("Actions"),
+            body=link_body_row,
         ),
     ]
     if stats_query:
@@ -386,7 +633,7 @@ def _manage_articles(statuses, whatNext, stats_query=None, show_not_considered_b
         # recommenders only ever get here via menu "Recommender > Pending validation(s)"
         if pciRRactivated and is_recommender():
             query = db.pending_scheduled_submissions_query
-    original_grid = SQLFORM.grid(
+    original_grid = SQLFORM.grid( # type: ignore
         query,
         searchable=True,
         details=False,
@@ -433,7 +680,6 @@ def _manage_articles(statuses, whatNext, stats_query=None, show_not_considered_b
         absoluteButtonScript=common_tools.absoluteButtonScript,
         script=common_tools.get_script("manager.js")
     )
-
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or is_recommender())
@@ -1883,7 +2129,7 @@ def recommender_breakdown():
     goBack = URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=scheme, host=host, port=port)
     query = fetch_query(action, recommenderId)
     if action == "total_invitations" or action == "current_invitations":
-        resu = _manage_articles(None, URL("manager", "total_invitations", host=host, scheme=scheme, port=port), stats_query=query)
+        resu = _manage_articles(None, stats_query=query)
     else:
         resu = _all_recommendations(goBack, query, False)
     resu["customText"] = getText(f"{page_help_dict[action]}Text")

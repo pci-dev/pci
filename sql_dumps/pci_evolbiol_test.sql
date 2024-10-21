@@ -3132,3 +3132,22 @@ ADD COLUMN if not exists pre_submission_token text;
 --- 2024-06-26 updates/fill_new_article.sql
 ALTER TABLE auth_user 
 ADD COLUMN IF NOT EXISTS new_article_cache jsonb;
+
+--- 2024-10-01 updates/rdv_date.sql
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS rdv_date DATE;
+
+--- 2024-10-01 updates/remarks.sql
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS remarks text;
+
+--- 2024-10-02 updates/alert_date.sql
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS alert_date DATE;
+
+--- 2024-10-02 updates/current_step.sql
+ALTER TABLE t_articles 
+ADD COLUMN IF NOT EXISTS current_step text;
+
+ALTER TABLE t_articles
+ADD COLUMN IF NOT EXISTS current_step_number smallint;

@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
 
 import locale
+
+from gluon.sqlhtml import SQLFORM
 locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
 
 from typing import cast
 from app_components.custom_validator import CUSTOM_VALID_URL, VALID_DOI
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
-from gluon.http import HTTP, redirect
+from gluon.http import HTTP, redirect # type: ignore
 from models.article import ArticleStatus
 from models.mail_queue import MailQueue, SendingStatus
 from models.recommendation import Recommendation, RecommendationState
 from models.article import Article
 from models.user import User
 from app_components.custom_field import RequiredField
-from pydal.validators import IS_IN_SET, IS_EMPTY_OR, IS_INT_IN_RANGE, IS_LENGTH, IS_NOT_EMPTY, Validator, IS_GENERIC_URL, IS_HTTP_URL
+from pydal.validators import IS_DATE, IS_FILE, IS_IN_DB, IS_IN_SET, IS_EMPTY_OR, IS_INT_IN_RANGE, IS_LENGTH, IS_LIST_OF, IS_LIST_OF_EMAILS, IS_NOT_EMPTY, Validator, IS_GENERIC_URL, IS_HTTP_URL
 from gluon.tools import Auth, Service, PluginManager, Mail
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.storage import Storage # for db.get_last_recomms()
 from pydal.objects import OpRow, Query, Set
 from pydal import Field, DAL
@@ -40,6 +42,10 @@ from models.review import ReviewDuration, ReviewState, Review
 
 from controller_modules import recommender_module
 
+request = current.request
+session = current.session
+response = current.response
+T = current.T
 
 # -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too
@@ -73,7 +79,7 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 from os import symlink, path
-def create_symlink(filename):
+def create_symlink(filename: str):
     base = current.request.folder
     target = base + "/languages/default.py"
     if not path.exists(target):
@@ -89,7 +95,7 @@ if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------
     # if NOT running on Google App Engine use SQLite or other DB
     # ---------------------------------------------------------------------
-    db = DAL(
+    db: ... = DAL(
         myconf.get("db.uri"),
         pool_size=myconf.get("db.pool_size"),
         migrate_enabled=myconf.get("db.migrate"),
@@ -200,9 +206,9 @@ response.form_label_separator = myconf.get("forms.separator") or ""
 # -------------------------------------------------------------------------
 
 # host names must be a list of allowed host names (glob syntax allowed)
-auth = Auth(db, host_names=myconf.get("host.names"))
+auth: ... = Auth(db, host_names=myconf.get("host.names"))
 service = Service()
-plugins = PluginManager()
+plugins: ... = PluginManager()
 
 auth.settings.expiration = 10800  # 3h in seconds
 auth.settings.host = host
@@ -634,6 +640,12 @@ db.define_table(
     Field("translated_abstract", type="json", length=5000000, readable=False, writable=False),
     Field("translated_title", type="json", length=5000000, readable=False, writable=False),
     Field("translated_keywords", type="json", length=5000000, readable=False, writable=False),
+    Field("rdv_date", type="date", readable=False, writable=False),
+    Field("remarks", type="text", readable=False, writable=False),
+    Field("alert_date", type="date", readable=False, writable=False),
+    Field("current_step_number", type="integer", readable=False, writable=False),
+    Field("current_step", type="text", readable=False, writable=False),
+
     format="%(title)s (%(authors)s)",
     singular=T("Article"),
     plural=T("Articles"),
@@ -649,16 +661,28 @@ db.t_articles.user_id.requires = IS_EMPTY_OR(IS_IN_DB(db, db.auth_user.id, "%(la
 db.t_articles.status.requires = IS_IN_SET(statusArticles)
 db.t_articles._after_insert.append(lambda s, i: newArticle(Storage(s), i))
 db.t_articles._before_update.append(lambda s, f: deltaStatus(s, f))
-db.t_articles._after_update.append(lambda s, f: setPublishedDoi(s, f))
+db.t_articles._after_update.append(lambda s, f: after_update_article(s, f))
 
-def setPublishedDoi(s, f):
-    if current.session.disable_trigger_setPublishedDoi:
-        return
-    
-    if "status" in f:
-        o = s.select().first()
-        if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
-                emailing.send_message_to_recommender_and_reviewers(o["id"])
+def update_alert_and_current_step_article(article_id: int):
+    article = Article.get_by_id(article_id)
+    if article:
+        current.session.after_update_article = True
+        Article.update_alert_date(article, False)
+        Article.update_current_step(article, False)
+        article.update_record() # type: ignore
+
+def after_update_article(s: ..., f: ...):
+    if not current.session.disable_trigger_setPublishedDoi:
+        if "status" in f:
+            o = s.select().first()
+            if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
+                    emailing.send_message_to_recommender_and_reviewers(o["id"])
+
+    if not current.session.after_update_article:
+        update_alert_and_current_step_article(s.query.second)
+    else:
+        current.session.after_update_article = None
+
 
 def deltaStatus(s: ..., f: Article):
     if "status" not in f:
@@ -812,19 +836,20 @@ def deltaStatus(s: ..., f: Article):
                 emailing.create_reminder_for_submitter_revised_version_needed(o["id"])
 
 
-def newArticle(s, articleId):
+def newArticle(s: Article, article_id: int):
     if s.status in (ArticleStatus.PENDING_SURVEY.value, ArticleStatus.PRE_SUBMISSION.value): # pciRRactivated only
+        update_alert_and_current_step_article(article_id)
         return
 
     if s.coar_notification_id:
+        update_alert_and_current_step_article(article_id)
         return
 
     if s.already_published is False:
-        emailing.send_to_managers(articleId, "Pending")
-        emailing.send_to_submitter_acknowledgement_submission(articleId)
-        emailing.create_reminder_for_submitter_suggested_recommender_needed(articleId)
-
-    return None
+        emailing.send_to_managers(article_id, ArticleStatus.PENDING.value)
+        emailing.send_to_submitter_acknowledgement_submission(article_id)
+        emailing.create_reminder_for_submitter_suggested_recommender_needed(article_id)
+        update_alert_and_current_step_article(article_id)
 
 
 db.define_table(
@@ -888,23 +913,31 @@ db.t_recommendations._after_insert.append(lambda s, i: newRecommendation(s, i))
 db.t_recommendations._before_update.append(lambda s, i: setRecommendationDoi(s, i))
 db.t_recommendations._before_update.append(lambda s, i: recommendationUpdated(s, i)) \
         if current.coar.enabled else None
+db.t_recommendations._after_update.append(lambda s, i: after_recommendation_updated(s, i))
 
 def get_last_recomm(articleId):
     return db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
 
 db.get_last_recomm = get_last_recomm
 
-def newRecommendation(s, recomm):
-    article = db.t_articles[recomm.article_id]
+def newRecommendation(s: ..., recomm: Recommendation):
+    article = Article.get_by_id(recomm.article_id)
     if pciRRactivated:
         emailing.alert_managers_recommender_action_needed("#ManagersRecommenderAgreedAndNeedsToTakeAction", recomm.id)
 
-    if article.already_published:
-        emailing.send_to_thank_recommender_postprint(recomm)
+    if article and article.already_published:
+        emailing.send_to_thank_recommender_postprint(recomm.id)
 
-    if isScheduledTrack(article):
+    if article and isScheduledTrack(article):
         # "send" future message as soon as we have a {{recommenderPerson}}
         emailing.send_to_submitter_scheduled_submission_open(article)
+
+    update_alert_and_current_step_article(recomm.article_id)
+
+
+def after_recommendation_updated(s: ..., new_recommendation_values: ...):
+    recommendation: Recommendation = s.select().first()
+    update_alert_and_current_step_article(recommendation.article_id)
 
 
 def recommendationUpdated(s, updated_recommendation):
@@ -1061,19 +1094,27 @@ def init_review(row):
     row.quick_decline_key = web2py_uuid()
 
 
-def reviewSuggested(s, row):
+def reviewSuggested(s: ..., row: ...):
     review_id = int(row["id"])
     recommendation_id = int(row["recommendation_id"])
     recommendation = Recommendation.get_by_id(recommendation_id)
+    if not recommendation:
+        return
+    
     article = Article.get_by_id(recommendation.article_id)
     review = Review.get_by_id(review_id)
+    if not review:
+        return
+    
     review_recommendation = Recommendation.get_by_id(review.recommendation_id)
     no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
 
     notify_submitter(row)
 
+    rev_recomm_mail: Optional[str] = None
     try:
-        rev_recomm_mail = db.auth_user[review_recommendation.recommender_id]["email"]
+        if review_recommendation:
+            rev_recomm_mail = db.auth_user[review_recommendation.recommender_id]["email"]
     except:
         rev_recomm_mail = None
     try:
@@ -1109,7 +1150,8 @@ def reviewSuggested(s, row):
                      # renew reminder
                     if no_of_accepted_invites < 2 and recommendation.recommendation_state == "Ongoing":
                         emailing.alert_managers_recommender_action_needed("#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recommendation.id)
-    return None
+    
+    update_alert_and_current_step_article(recommendation.article_id)
 
 
 def before_review_delete(s: Set):
@@ -1129,7 +1171,7 @@ def before_review_done(s, new_review_values):
     current.session.old_review = old_review
 
 
-def after_review_done(s, current_review_values):
+def after_review_done(s: ..., current_review_values: Review):
     old_review: Review = current.session.old_review
     if old_review is None:
         return
@@ -1139,7 +1181,10 @@ def after_review_done(s, current_review_values):
         return
 
     review_id = current_review.id
-    recommendation = db.t_recommendations[current_review.recommendation_id]
+    recommendation = Recommendation.get_by_id(current_review.recommendation_id)
+    if not recommendation:
+        return
+    
     no_of_completed_reviews = db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state == "Review completed")).count()
     total_no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
     no_of_accepted_invites = total_no_of_accepted_invites
@@ -1295,6 +1340,8 @@ def after_review_done(s, current_review_values):
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionSoonDue", recommendation["article_id"])
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionDue", recommendation["article_id"])
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionOverDue", recommendation["article_id"])
+
+    update_alert_and_current_step_article(recommendation.article_id)
 
 db.define_table(
     "t_suggested_recommenders",

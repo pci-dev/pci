@@ -151,7 +151,10 @@ class Manager_validates:
     select(".dropdown-toggle span", "For managers").click()
     select(".dropdown-menu span", contains="Pending validation").click()
     select("tr", contains=article.title)
-    select(".pci-status", "SUBMISSION PENDING VALIDATION")
+    if is_rr:
+      select(".pci-status", "SUBMISSION PENDING VALIDATION")
+    else:
+      select(".pci-status-mini", contains="Submission pending validation")
 
  def validate_submission(_):
     #select("a", "View / Edit").first().click()  # select(css, text/contains=xxx) should return a list-ish
@@ -171,7 +174,10 @@ class Manager_validates:
     select(".dropdown-toggle", contains="For managers").click()
     select("a", f"All {articles}").click()
     select("tr", contains=article.title)
-    select(".pci-status", f"{preprint} REQUIRING A RECOMMENDER".upper())
+    if is_rr:
+      select(".pci-status", f"{preprint} REQUIRING A RECOMMENDER".upper())
+    else:
+      select(".pci-status-mini", contains="Recommender needed")
 
  def check_article_status_is_no_longer_pending_validation(_):
     select(".dropdown-toggle", contains="For managers").click()

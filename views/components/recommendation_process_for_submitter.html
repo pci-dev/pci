@@ -1,5 +1,5 @@
 {{if article.status in ("Not considered", "Cancelled"):}}
-    <div class="progress-step-div pci2-flex-row step-done">
+    <div class="progress-step-div pci2-flex-row step-done" data-step="1">
         <div class="progress-step-circle pci2-flex-center">
             <i class="glyphicon glyphicon-flag"></i>
         </div>
@@ -9,264 +9,273 @@
         </div>
     </div>
 
-    <div class="progress-step-div pci2-flex-row step-done progress-last-step-div">
+    <div class="progress-step-div pci2-flex-row step-done progress-last-step-div" data-step="0">
         <div class="pci2-flex-center progress-step-circle">
             <i class="glyphicon glyphicon-remove"></i>
         </div>
         <div class="step-description">
             <h3><b style="color: #333"></b>Final outcome</h3>
             {{if article.status == "Cancelled":}}
-                <span style="font-weight: bold">Cancelled: </span>{{=article.last_status_change.strftime("%d %B %Y")}}
+                <span style="font-weight: bold">Cancelled: </span>{{=article.last_status_change.strftime(date_format)}}
             {{else:}}
-                <span style="font-weight: bold">Not considered: </span>{{=article.last_status_change.strftime("%d %B %Y")}}
+                <span style="font-weight: bold">Not considered: </span>{{=article.last_status_change.strftime(date_format)}}
             {{pass}}
         </div>
     </div>
 {{else:}}
     {{if roundNumber == 1:}}
-    <div class="progress-step-div pci2-flex-row step-done">
-        <div class="progress-step-circle pci2-flex-center">
-            <i class="glyphicon glyphicon-flag"></i>
-        </div>
-        <div class="step-description">
-            <h3>Submission started</h3>
-                <p><span style="font-weight: bold;">Submission date: </span>{{=uploadDate}}</p>
-        </div>
-    </div>
-
-    {{ if not articleHasBeenCompleted:}}
         <div class="progress-step-div pci2-flex-row step-done">
             <div class="progress-step-circle pci2-flex-center">
-                <i class="glyphicon glyphicon-edit"></i>
+                <i class="glyphicon glyphicon-flag"></i>
             </div>
             <div class="step-description">
-                <h3>Submission awaiting completion</h3>
-                    {{if nbDaysSinceCompletion < 0:}}
-                        <p>Pending for less than a day</p>
-                    {{elif nbDaysSinceCompletion <= 1:}}
-                        <p>Pending since {{=nbDaysSinceCompletion}} day</p>
-                    {{else:}}
-                        <p>Pending since {{=nbDaysSinceCompletion}} days</p>
-                    {{pass}}
+                <h3>Submission started</h3>
+                    <p><span style="font-weight: bold;">Submission date: </span>{{=uploadDate}}</p>
             </div>
         </div>
-    {{pass}}
 
-    <div class="progress-step-div pci2-flex-row {{=submissionValidatedClass}}">
-        <div class="progress-step-circle pci2-flex-center">
-            <i class="glyphicon glyphicon-check"></i>
-        </div>
-        <div class="step-description">
-            <h3>Submission pending validation</h3>
-            {{if articleHasBeenCompleted: }}
-                {{if not validationArticleDate: }}
-                    {{if nbDaysSinceCompletion < 0:}}
-                        <p>Pending for less than a day</p>
-                    {{elif nbDaysSinceCompletion <= 1:}}
-                        <p>Pending since {{=nbDaysSinceCompletion}} day</p>
+        {{ if not articleHasBeenCompleted:}}
+            <div class="progress-step-div pci2-flex-row step-done" data-step="2">
+                <div class="progress-step-circle pci2-flex-center">
+                    <i class="glyphicon glyphicon-edit"></i>
+                </div>
+                <div class="step-description">
+                    <h3>Submission awaiting completion</h3>
+                        {{if nbDaysSinceCompletion < 0:}}
+                            <p>Pending for less than a day</p>
+                        {{elif nbDaysSinceCompletion <= 1:}}
+                            <p>Pending since {{=nbDaysSinceCompletion}} day</p>
+                        {{else:}}
+                            <p>Pending since {{=nbDaysSinceCompletion}} days</p>
+                        {{pass}}
+                </div>
+            </div>
+        {{pass}}
+
+        <div class="progress-step-div pci2-flex-row {{=submissionValidatedClass}}" data-step="3">
+            <div class="progress-step-circle pci2-flex-center">
+                <i class="glyphicon glyphicon-check"></i>
+            </div>
+            <div class="step-description">
+                <h3>Submission pending validation</h3>
+                {{if articleHasBeenCompleted: }}
+                    {{if not validationArticleDate: }}
+                        {{if nbDaysSinceCompletion < 0:}}
+                            <p>Pending for less than a day</p>
+                        {{elif nbDaysSinceCompletion <= 1:}}
+                            <p>Pending since {{=nbDaysSinceCompletion}} day</p>
+                        {{else:}}
+                            <p>Pending since {{=nbDaysSinceCompletion}} days</p>
+                        {{pass}}
                     {{else:}}
-                        <p>Pending since {{=nbDaysSinceCompletion}} days</p>
+                        <p><span style="font-weight: bold;">Submission validated: </span>{{=validationArticleDate}}</p>
                     {{pass}}
-                {{else:}}
-                    <p><span style="font-weight: bold;">Submission validated: </span>{{=validationArticleDate}}</p>
                 {{pass}}
-            {{pass}}
+            </div>
         </div>
-    </div>
 
-    <div class="progress-step-div pci2-flex-row {{=havingRecommenderClass}}">
-        <div class="pci2-flex-center progress-step-circle">
-            <i class="glyphicon glyphicon-education"></i>
-        </div>
-        <div class="step-description">
-            <h3>Recommender needed</h3>
-            <p>
-                <span style="font-weight: bold">Invited: </span>{{=invitedSuggestedRecommenderCount}}<br>
-                <span style="font-weight: bold">Declined: </span>{{=declined_suggested_recommender_count}}
-                {{if totalRecomm == 0:}}
-                    <br>
-                    <span style="font-weight: bold">Scheduled reminders to the submitter to suggest other recommenders: </span>{{if scheduled_reminder_suggested_recommender:}}yes{{else:}}no{{pass}}
-                {{else:}}
-                    <br>
-                    <span style="font-weight: bold;">Recommender: </span>{{=A(recommenderName)}} ({{=recommendation_date}})
-                {{pass}}
-            </p>
-        </div>
-    </div>
-    {{pass}}
-
-
-    {{if roundNumber < 2:}}
-
-    {{if (roundNumber == 1) or (roundNumber > 1 and reviewCount > 0 and 
-        (not recommendationStepClass == "step-done" or 
-        (acceptedReviewCount >= 2 and completedReviewCount >= 2))
-    ):}}
-        <div class="progress-step-div pci2-flex-row {{=reviewInvitationsAcceptedClass}}">
+        <div class="progress-step-div pci2-flex-row {{=havingRecommenderClass}}" data-step="4">
             <div class="pci2-flex-center progress-step-circle">
-                <i class="glyphicon glyphicon-envelope"></i>
+                <i class="glyphicon glyphicon-education"></i>
             </div>
             <div class="step-description">
-                <h3><b style="color: #333">Round {{=roundNumber}}: </b>Reviewers needed</h3>
+                <h3>Recommender needed</h3>
                 <p>
-                    <span style="font-weight: bold">Invited: </span>{{=reviewCount}}<br>
-                    <span style="font-weight: bold">Declined or cancelled: </span>{{=declined_review_count}}<br>
-                    <span style="font-weight: bold">Agreed: </span>{{=acceptedReviewCount}}<br>
-                    <span style="font-weight: bold">Scheduled reminders to the recommender to invite reviewers: </span>{{if there_are_review_reminder:}}yes{{else:}}no{{pass}}<br>
+                    <span style="font-weight: bold">Invited: </span>{{=invitedSuggestedRecommenderCount}}<br>
+                    <span style="font-weight: bold">Declined: </span>{{=declined_suggested_recommender_count}}
+                    {{if totalRecomm == 0:}}
+                        <br>
+                        <span style="font-weight: bold">Scheduled reminders to the submitter to suggest other recommenders: </span>{{if scheduled_reminder_suggested_recommender:}}yes{{else:}}no{{pass}}
+                    {{else:}}
+                        <br>
+                        <span style="font-weight: bold;">Recommender: </span>{{=A(recommenderName)}} ({{=recommendation_date}})
+                    {{pass}}
                 </p>
             </div>
         </div>
 
-        <div class="progress-step-div pci2-flex-row {{=reviewsStepDoneClass}}">
+        {{if (roundNumber == 1) or (roundNumber > 1 and reviewCount > 0 and 
+            (not recommendationStepClass == "step-done" or 
+            (acceptedReviewCount >= 2 and completedReviewCount >= 2))
+        ):}}
+            <div class="progress-step-div pci2-flex-row {{=reviewInvitationsAcceptedClass}}" data-step="5">
+                <div class="pci2-flex-center progress-step-circle">
+                    <i class="glyphicon glyphicon-envelope"></i>
+                </div>
+                <div class="step-description">
+                    <h3><b style="color: #333">Round {{=roundNumber}}: </b>Reviewers needed</h3>
+                    <p>
+                        <span style="font-weight: bold">Invited: </span>{{=reviewCount}}<br>
+                        <span style="font-weight: bold">Declined or cancelled: </span>{{=declined_review_count}}<br>
+                        <span style="font-weight: bold">Agreed: </span>{{=acceptedReviewCount}}<br>
+                        <span style="font-weight: bold">Scheduled reminders to the recommender to invite reviewers: </span>{{if there_are_review_reminder:}}yes{{else:}}no{{pass}}<br>
+                    </p>
+                </div>
+            </div>
+
+            <div class="progress-step-div pci2-flex-row {{=reviewsStepDoneClass}}" data-step="6">
+                <div class="pci2-flex-center progress-step-circle">
+                    <i class="glyphicon glyphicon-eye-open"></i>
+                </div>
+                <div class="step-description">
+                    <h3><b style="color: #333">Round {{=roundNumber}}: </b>Reviews underway</h3>
+                    {{if recommendationStepClass != 'step-done':}}
+                        {{if reviewers:}}
+                            {{for reviewer in reviewers:}}
+                                {{=reviewer}}
+                            {{pass}}
+                        {{pass}}
+                    {{else:}}
+                        <span style="font-weight: bold">All reviews uploaded: </span>{{=lastReviewDate}}
+                    {{pass}}
+                </div>
+            </div>
+        {{pass}}
+
+        <div class="progress-step-div pci2-flex-row {{=recommendationStepClass}}" data-step="7">
             <div class="pci2-flex-center progress-step-circle">
-                <i class="glyphicon glyphicon-eye-open"></i>
+                <i class="glyphicon glyphicon-edit"></i>
             </div>
             <div class="step-description">
-                <h3><b style="color: #333">Round {{=roundNumber}}: </b>Reviews underway</h3>
-                {{if recommendationStepClass != 'step-done':}}
-                    {{if reviewers:}}
-                        {{for reviewer in reviewers:}}
-                            {{=reviewer}}
-                        {{pass}}
-                    {{pass}}
-                {{else:}}
-                    <span style="font-weight: bold">All reviews uploaded: </span>{{=lastReviewDate}}
+                <h3><b style="color: #333">Round {{=roundNumber}}: </b>Awaiting decision</h3>
+                {{if managerDecisionDoneClass == "step-done":}}
+                    <span style="font-weight: bold">Decision uploaded: </span>{{=recommendation_last_change}}<br>
+                {{elif decision_due_date:}}
+                    <span style="font-weight: bold">Decision due date: </span>{{=decision_due_date}}<br>
+                    <span style="font-weight: bold">Scheduled reminders to the recommender: </span>{{if there_are_recommendation_reminder:}}yes{{else:}}no{{pass}}<br>
                 {{pass}}
             </div>
         </div>
-    {{pass}}
 
-    <div class="progress-step-div pci2-flex-row {{=recommendationStepClass}}">
-        <div class="pci2-flex-center progress-step-circle">
-            <i class="glyphicon glyphicon-edit"></i>
-        </div>
-        <div class="step-description">
-            <h3><b style="color: #333">Round {{=roundNumber}}: </b>Awaiting decision</h3>
-            {{if managerDecisionDoneClass == "step-done":}}
-                <span style="font-weight: bold">Decision uploaded: </span>{{=recommendation_last_change}}<br>
-            {{elif decision_due_date:}}
-                <span style="font-weight: bold">Decision due date: </span>{{=decision_due_date}}<br>
-                <span style="font-weight: bold">Scheduled reminders to the recommender: </span>{{if there_are_recommendation_reminder:}}yes{{else:}}no{{pass}}<br>
-            {{pass}}
-        </div>
-    </div>
-
-    <div class="pci2-flex-row {{=managerDecisionDoneStepClass}} {{=managerDecisionDoneClass}}">
-        <div class="pci2-flex-center progress-step-circle">
-            <i class="glyphicon glyphicon-ok" ></i>
-        </div>
-        <div class="step-description">
-            <h3><b style="color: #333">Round {{=roundNumber}}: </b>
+        <div class="pci2-flex-row {{=managerDecisionDoneStepClass}} {{=managerDecisionDoneClass}}" data-step="9">
+            <div class="pci2-flex-center progress-step-circle">
+                <i class="glyphicon glyphicon-ok" ></i>
+            </div>
+            <div class="step-description">
+                <h3><b style="color: #333">Round {{=roundNumber}}: </b>
+                    {{if validationDate:}}
+                        Decision validated by the Managing board
+                    {{elif managerDecisionDoneClass == "step-done":}}
+                        Decision pending validation
+                    {{else:}}
+                        Evaluation and decision underway
+                    {{pass}}
+                </h3>
                 {{if validationDate:}}
-                    Decision validated by the Managing board
-                {{elif managerDecisionDoneClass == "step-done":}}
-                    Decision pending validation
+                    {{if recommStatus == "Recommended":}}
+                        <b style="color: #089108">Recommended</b>: {{=validationDate}}
+                    {{elif recommStatus == "Revision":}}
+                        <b style="color: #ffbf00">Revision requested</b>: {{=validationDate}}
+                    {{elif recommStatus == "Rejected":}}
+                        <b style="color: #e61919">Rejected</b>: {{=validationDate}}
+                    {{pass}}
                 {{else:}}
-                    Evaluation and decision underway
+                    {{if nb_days_since_decision < 0:}}
+                        <p>Decision pending validation for less than a day</p>
+                    {{elif nb_days_since_decision <= 1:}}
+                        <p>Decision pending validation since {{=nb_days_since_decision}} day</p>
+                    {{else:}}
+                        <p>Decision pending validation since {{=nb_days_since_decision}} days</p>
+                    {{pass}}
                 {{pass}}
-            </h3>
-            {{if validationDate:}}
-                {{if recommStatus == "Recommended":}}
-                    <b style="color: #089108">Recommended</b>: {{=validationDate}}
-                {{elif recommStatus == "Revision":}}
-                    <b style="color: #ffbf00">Revision requested</b>: {{=validationDate}}
-                {{elif recommStatus == "Rejected":}}
-                    <b style="color: #e61919">Rejected</b>: {{=validationDate}}
-                {{pass}}
-            {{else:}}
-                {{if nb_days_since_decision < 0:}}
-                    <p>Decision pending validation for less than a day</p>
-                {{elif nb_days_since_decision <= 1:}}
-                    <p>Decision pending validation since {{=nb_days_since_decision}} day</p>
-                {{else:}}
-                    <p>Decision pending validation since {{=nb_days_since_decision}} days</p>
-                {{pass}}
-            {{pass}}
+            </div>
         </div>
-    </div>
     {{else:}}
-    <div class="progress-step-div pci2-flex-row step-done {{if validationDate and roundNumber == totalRecomm and recommStatus != 'Revision':}}progress-last-step-div{{pass}}">
-        <div class="progress-step-circle pci2-flex-center">
-            <i class="glyphicon glyphicon-repeat"></i>
-        </div>
-        <div class="step-description">
-            <h3><b style="color: #333">Round {{=roundNumber}}: </b>
+        <div class="progress-step-div pci2-flex-row step-done {{if validationDate and roundNumber == totalRecomm and recommStatus != 'Revision':}}progress-last-step-div{{pass}}"
+        data-step="{{if managerDecisionDoneClass == 'step-done' or (recommendationStepClass == 'step-done' and reviewsStepDoneClass == 'step-done' and reviewInvitationsAcceptedClass == 'step-done'):}}
+                        9
+                    {{elif recommendationStepClass != 'step-done' and reviewsStepDoneClass == 'step-done' and reviewInvitationsAcceptedClass == 'step-done':}}
+                        7
+                    {{elif reviewsStepDoneClass != 'step-done' and reviewInvitationsAcceptedClass == 'step-done':}}
+                        6
+                    {{elif reviewInvitationsAcceptedClass != 'step-done':}}
+                        5
+                    {{else:}}
+                        4
+                    {{pass}}">
+
+            <div class="progress-step-circle pci2-flex-center">
+                <i class="glyphicon glyphicon-repeat"></i>
+            </div>
+            <div class="step-description">
+                <h3><b style="color: #333">Round {{=roundNumber}}: </b>
+                    {{if validationDate:}}
+                        Decision validated by the Managing board
+                    {{elif managerDecisionDoneClass == "step-done":}}
+                        Decision pending validation
+                    {{else:}}
+                        Evaluation and decision underway
+                    {{pass}}
+                </h3>
                 {{if validationDate:}}
-                    Decision validated by the Managing board
+                    {{if recommStatus == "Recommended" and validationDate:}}
+                        <b style="color: #089108">Recommended</b>: {{=validationDate}}
+                    {{elif recommStatus == "Revision" and validationDate:}}
+                        <b style="color: #ffbf00">Revision requested</b>: {{=validationDate}}
+                    {{elif recommStatus == "Rejected" and validationDate:}}
+                        <b style="color: #e61919">Rejected</b>: {{=validationDate}}
+                    {{pass}}
                 {{elif managerDecisionDoneClass == "step-done":}}
-                    Decision pending validation
-                {{else:}}
-                    Evaluation and decision underway
-                {{pass}}
-            </h3>
-            {{if validationDate:}}
-                {{if recommStatus == "Recommended" and validationDate:}}
-                    <b style="color: #089108">Recommended</b>: {{=validationDate}}
-                {{elif recommStatus == "Revision" and validationDate:}}
-                    <b style="color: #ffbf00">Revision requested</b>: {{=validationDate}}
-                {{elif recommStatus == "Rejected" and validationDate:}}
-                    <b style="color: #e61919">Rejected</b>: {{=validationDate}}
-                {{pass}}
-            {{elif managerDecisionDoneClass == "step-done":}}
-                {{if nb_days_since_decision < 0:}}
-                    <p>Decision pending validation for less than a day</p>
-                {{elif nb_days_since_decision <= 1:}}
-                    <p>Decision pending validation since {{=nb_days_since_decision}} day</p>
-                {{else:}}
-                    <p>Decision pending validation since {{=nb_days_since_decision}} days</p>
-                {{pass}}
-            {{else:}}
-                <span style="font-weight: bold">Invited reviewers: </span>{{=reviewCount}}<br>
-                <span style="font-weight: bold">Declined or cancelled reviewers: </span>{{=declined_review_count}}<br>
-                <span style="font-weight: bold">Agreed reviewers: </span>{{=acceptedReviewCount}}<br>
-
-                {{if reviewsStepDoneClass != 'step-done':}}
-                    {{ if reviewCount > 0:}}
-                        <span style="font-weight: bold">Scheduled reminders to invited reviewers: </span>{{if there_are_review_reminder:}}yes{{else:}}no{{pass}}
+                    {{if nb_days_since_decision < 0:}}
+                        <p>Decision pending validation for less than a day</p>
+                    {{elif nb_days_since_decision <= 1:}}
+                        <p>Decision pending validation since {{=nb_days_since_decision}} day</p>
+                    {{else:}}
+                        <p>Decision pending validation since {{=nb_days_since_decision}} days</p>
                     {{pass}}
-                    {{if reviewers:}}
-                        <br><br>
-                        {{for reviewer in reviewers:}}
-                            {{=reviewer}}
+                {{else:}}
+                    <span style="font-weight: bold">Invited reviewers: </span>{{=reviewCount}}<br>
+                    <span style="font-weight: bold">Declined or cancelled reviewers: </span>{{=declined_review_count}}<br>
+                    <span style="font-weight: bold">Agreed reviewers: </span>{{=acceptedReviewCount}}<br>
+
+                    {{if reviewsStepDoneClass != 'step-done':}}
+                        {{ if reviewCount > 0:}}
+                            <span style="font-weight: bold">Scheduled reminders to invited reviewers: </span>{{if there_are_review_reminder:}}yes{{else:}}no{{pass}}
                         {{pass}}
+                        {{if reviewers:}}
+                            <br><br>
+                            {{for reviewer in reviewers:}}
+                                {{=reviewer}}
+                            {{pass}}
+                        {{pass}}
+                    {{else:}}
+                        <br>
+                        <span style="font-weight: bold">All reviews uploaded: </span> {{=lastReviewDate}}
                     {{pass}}
-                {{else:}}
-                    <span style="font-weight: bold">All reviews uploaded: </span> {{=lastReviewDate}}
-                {{pass}}
 
-                {{if decision_due_date:}}
+                    {{if decision_due_date:}}
+                        <br>
+                        <span style="font-weight: bold">Decision due date: </span>{{=decision_due_date}}
+                    {{pass}}
                     <br>
-                    <span style="font-weight: bold">Decision due date: </span>{{=decision_due_date}}
-                {{pass}}
-                <br>
 
-                {{if reviewCount == 0 or reviewsStepDoneClass == "step-done":}}
-                    <span style="font-weight: bold">Scheduled reminders to the recommender: </span>{{if there_are_recommendation_reminder:}}yes{{else:}}no{{pass}}
+                    {{if reviewCount == 0 or reviewsStepDoneClass == "step-done":}}
+                        <span style="font-weight: bold">Scheduled reminders to the recommender: </span>{{if there_are_recommendation_reminder:}}yes{{else:}}no{{pass}}
+                    {{pass}}
                 {{pass}}
-            {{pass}}
+            </div>
         </div>
-    </div>
     {{pass}}
 
     {{if recommStatus == "Revision" and (validationDate or authorsReplyDate):}}
-    <div class="pci2-flex-row {{=authorsReplyClassStepClass}} {{=authorsReplyClass}}">
-        <div class="pci2-flex-center progress-step-circle">
-            <i class="glyphicon glyphicon-user"></i>
-        </div>
-        <div class="step-description">
-            <h3><b style="color: #333">Round {{=roundNumber}}: </b>Awaiting revision</h3>
-            {{if authorsReplyDate:}}
-                <span style="font-weight: bold">Resubmitted: </span>{{=authorsReplyDate}}
-            {{elif validationDate:}}
-                {{if nb_days_since_validation < 0:}}
-                    <p>Awaiting revision for less than a day</p>
-                {{elif nb_days_since_validation <= 1:}}
-                    <p>Awaiting revision since {{=nb_days_since_validation}} day</p>
-                {{else:}}
-                    <p>Awaiting revision since {{=nb_days_since_validation}} days</p>
-                {{pass}}
-            {{pass}}
-        </div>
-    </div>
-    {{pass}}
+            <div class="pci2-flex-row {{=authorsReplyClassStepClass}} {{=authorsReplyClass}}" data-step="8">
+                <div class="pci2-flex-center progress-step-circle">
+                    <i class="glyphicon glyphicon-user"></i>
+                </div>
+                <div class="step-description">
+                    <h3><b style="color: #333">Round {{=roundNumber}}: </b> Awaiting revision</h3>
+                    {{if authorsReplyDate:}}
+                        <span style="font-weight: bold">Resubmitted: </span>{{=authorsReplyDate}}
+                    {{elif validationDate:}}
+                        {{if nb_days_since_validation < 0:}}
+                            <p>Awaiting revision for less than a day</p>
+                        {{elif nb_days_since_validation <= 1:}}
+                            <p>Awaiting revision since {{=nb_days_since_validation}} day</p>
+                        {{else:}}
+                            <p>Awaiting revision since {{=nb_days_since_validation}} days</p>
+                        {{pass}}
+                    {{pass}}
+                </div>
+            </div>
+        {{pass}}
 {{pass}}
