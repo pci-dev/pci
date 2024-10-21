@@ -585,6 +585,7 @@ def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, 
                     and row.already_published is False and show_not_considered_button
                 )
                 else "",
+                ongoing_recommendation.validate_stage_button(row) if row.status == ArticleStatus.PRE_SUBMISSION.value else "",
             )
 
     articles.id.readable = True
