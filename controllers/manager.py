@@ -240,8 +240,7 @@ def ongoing_articles():
          ArticleStatus.UNDER_CONSIDERATION.value,
          ArticleStatus.AWAITING_REVISION.value,
          ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value,
-         ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value],
-         order_by=db.t_articles.current_step_number|~db.t_articles.last_status_change)
+         ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value])
     resu["customText"] = getText("#ManagerOngoingArticlesText")
     resu["titleIcon"] = "refresh"
     resu["pageTitle"] = getTitle("#ManagerOngoingArticlesTitle")
@@ -254,7 +253,7 @@ def ongoing_articles():
 @auth.requires(auth.has_membership(role="manager"))
 def completed_articles():
     db.t_articles.status.label = T("Outcome")
-    resu = _manage_articles(["Cancelled", "Recommended", "Rejected", "Not considered"])
+    resu = _manage_articles(["Cancelled", "Recommended", "Rejected", "Not considered"], order_by=~db.t_articles.last_status_change)
     resu["customText"] = getText("#ManagerCompletedArticlesText")
     resu["titleIcon"] = "ok-sign"
     resu["pageTitle"] = getTitle("#ManagerCompletedArticlesTitle")
