@@ -577,20 +577,13 @@ def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, 
                     _class="buttontext btn btn-default pci-button pci-manager",
                     _title=current.T("View and/or edit"),
                 ),
-                ongoing_recommendation.validate_stage_button(db.t_articles[row.id]) if row.status == ArticleStatus.PRE_SUBMISSION.value else "",
-                A(
-                    TAG(current.T('Prepare email informing authors that preprint not considered')),
-                    _onclick=f'showSetNotConsideredDialog({row.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=row.id), user_signature=True)}")',
-                    _class="buttontext btn btn-danger pci-button pci-manager",
-                    _id=f"button-set-not-considered-{row.id}",
-                    _title=current.T('Prepare email informing authors that preprint not considered'),
-                    _style="width: 100px; white-space: normal; font-size: 9px; padding: 1px; line-height: 14px"
-                )
+                ongoing_recommendation.set_not_considered_tiny_button(row.id)
                 if (
-                    (row.status == ArticleStatus.AWAITING_CONSIDERATION.value or row.status == ArticleStatus.PENDING.value)
+                    row.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value, ArticleStatus.PRE_SUBMISSION.value)
                     and row.already_published is False and show_not_considered_button
                 )
                 else "",
+                ongoing_recommendation.validate_stage_button(row) if row.status == ArticleStatus.PRE_SUBMISSION.value else "",
             )
 
     articles.id.readable = True
