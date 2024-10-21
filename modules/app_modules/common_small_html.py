@@ -656,7 +656,7 @@ def represent_alert_manager_board(article: Article):
         return ''
     else:
         if article.alert_date <= datetime.date.today():
-            style = "color: #B90000;"
+            style = "color: #d9534f;"
         else:
             style = ""
 
