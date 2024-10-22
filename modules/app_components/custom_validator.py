@@ -74,20 +74,26 @@ class VALID_LIST_NAMES_MAIL(Validator):
     _regex: str
     _error_message: str
 
-    def __init__(self, is_list_string: bool = False, without_email: bool = False):
-        if without_email:
+    def __init__(self, is_list_string: bool = False, without_email: bool = False, optional_email: bool = False):
+        if optional_email:
+            self._regex = r"((([\w\-\.]+ )*[\w\-]+)+)|((([\w\-\.]+ )*[\w\-]+ [a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-z]+)+)"
+        elif without_email:
             self._regex = r"(([\w\-\.]+ )*[\w\-]+)+"
         else:
             self._regex = r"(([\w\-\.]+ )*[\w\-]+ [a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-z]+)+"
 
         if is_list_string:
-            if without_email:
+            if optional_email:
+                self._error_message = 'Pattern must be: <first name> <last name> <mail> (mail is optional)'
+            elif without_email:
                 self._error_message = 'Pattern must be: <first name> <last name>'
             else:
                 self._error_message = 'Pattern must be: <first name> <last name> <mail>'
 
         else:
-            if without_email:
+            if optional_email:
+                self._error_message = 'Pattern must be: <first name> <last name> <mail>, <first name> <last name> <mail>, ... (mail is optional)'
+            elif without_email:
                 self._error_message = 'Pattern must be: <first name> <last name>, <first name> <last name>, ...'
             else:
                 self._error_message = 'Pattern must be: <first name> <last name> <mail>, <first name> <last name> <mail>, ...'
