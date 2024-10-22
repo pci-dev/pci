@@ -289,6 +289,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
     articleHasBeenCompleted = True
     isRecommAvalaibleToSubmitter = False
     nb_days_since_completion = 0
+    article_cancelled = art.status in (ArticleStatus.CANCELLED.value, ArticleStatus.NOT_CONSIDERED.value)
 
     if art.status == ArticleStatus.PRE_SUBMISSION.value:
         articleHasBeenCompleted = False
@@ -478,12 +479,16 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
             if validationDate:
                 authorsReplyClass = "step-done"
 
-            if (roundNumber < totalRecomm) and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None)):
+            if (roundNumber < totalRecomm) \
+                and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None)) \
+                    or article_cancelled:
                 authorsReplyClass = "step-done"
             else:
                 authorsReplyClass = "step-done current-step"
 
-            if roundNumber == totalRecomm and recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
+            if roundNumber == totalRecomm and recommStatus == "Revision" \
+                and managerDecisionDoneClass == "step-done" \
+                    and not article_cancelled:
                 authorsReplyClassStepClass = "progress-last-step-div"
             else:
                 authorsReplyClassStepClass = "progress-step-div"
@@ -531,7 +536,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
                 nb_days_since_decision=nb_days_since_decision,
                 nb_days_since_validation=nb_days_since_validation,
                 decision_due_date=decision_due_date.strftime(date_format) if decision_due_date else '',
-                date_format=date_format
+                date_format=date_format,
+                article_cancelled=article_cancelled
             )
             recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
 
@@ -580,7 +586,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
             nb_days_since_decision=0,
             nb_days_since_validation=0,
             decision_due_date=None,
-            date_format=date_format
+            date_format=date_format,
+            article_cancelled=article_cancelled
         )
 
         recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
