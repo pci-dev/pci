@@ -460,6 +460,28 @@ class Article(Row):
             article.update_record() # type: ignore
 
         return current_step
+    
+
+    @staticmethod
+    def are_equal(article_1: 'Article', article_2: 'Article'):
+        attributes = getattr(Article, '__annotations__', {})
+
+        for attribute in attributes.keys():
+            if attribute == 'last_status_change':
+                continue
+
+            attr_1 = getattr(article_1, attribute, None)
+            attr_2 = getattr(article_2, attribute, None)
+            
+            if isinstance(attr_2, str) and len(attr_2) == 0 and attr_1 is None:
+                continue
+
+            if isinstance(attr_1, str) and len(attr_1) == 0 and attr_2 is None:
+                continue
+
+            if attr_1 != attr_2:
+                return False
+        return True
 
 
 def is_scheduled_submission(article: Article) -> bool:

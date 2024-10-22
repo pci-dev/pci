@@ -666,29 +666,41 @@ db.t_articles._after_update.append(lambda s, f: after_update_article(s, f))
 def update_alert_and_current_step_article(article_id: int):
     article = Article.get_by_id(article_id)
     if article:
-        current.session.after_update_article = True
         Article.update_alert_date(article, False)
         Article.update_current_step(article, False)
         article.update_record() # type: ignore
 
+
 def after_update_article(s: ..., f: ...):
+    if current.session.run_article_translation_for_default_langs:
+        return
+        
+    new_article = s.select().first()
+    old_article: Article = current.session.old_article
+    
+    if not old_article:
+        return
+
+    if Article.are_equal(old_article, new_article):
+        return
+
     if not current.session.disable_trigger_setPublishedDoi:
         if "status" in f:
-            o = s.select().first()
             if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
-                    emailing.send_message_to_recommender_and_reviewers(o["id"])
+                    emailing.send_message_to_recommender_and_reviewers(new_article["id"])
 
-    if not current.session.after_update_article:
-        update_alert_and_current_step_article(s.query.second)
-    else:
-        current.session.after_update_article = None
+    update_alert_and_current_step_article(s.query.second)
 
 
 def deltaStatus(s: ..., f: Article):
+    current.session.old_article = None
+
     if "status" not in f:
         return
     
     o: Article = s.select().first()
+    current.session.old_article = o
+
     recomm = Article.get_last_recommendation(o.id)
     current.article = f
 
