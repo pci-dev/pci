@@ -150,10 +150,14 @@ class ArticleTranslator(Translator):
 
     @staticmethod
     def run_article_translation_for_default_langs(article: Article, force: bool = False, public: Optional[bool] = None):
-        for lang in ArticleTranslator.DEFAULT_TARGET_LANG:
-            translator = ArticleTranslator(lang, article, public)
-            translator.run_article_translation(force)
-            sleep(1)
+        current.session.run_article_translation_for_default_langs = True
+        try:
+            for lang in ArticleTranslator.DEFAULT_TARGET_LANG:
+                translator = ArticleTranslator(lang, article, public)
+                translator.run_article_translation(force)
+                sleep(1)
+        finally:
+            current.session.run_article_translation_for_default_langs = None
 
 
     @staticmethod
