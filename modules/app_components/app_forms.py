@@ -366,8 +366,8 @@ def get_from_fields_report_survey_stage1():
             "At least some of the data/evidence that will be used to the answer the research question has been accessed and observed by the authors, including key variables, AND the authors have already conducted (and know the outcome of) at least some of their preregistered analyses [Level 0]",
         )
     )
-    db.t_report_survey.q8.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0), VALID_LIST_NAMES_MAIL()]
-    db.t_report_survey.q9.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0), VALID_LIST_NAMES_MAIL()]
+    db.t_report_survey.q8.requires = [IS_NOT_EMPTY(), IS_LENGTH(1024, 0), VALID_LIST_NAMES_MAIL(optional_email=True)]
+    db.t_report_survey.q9.requires = [IS_LENGTH(1024, 0), VALID_LIST_NAMES_MAIL(optional_email=True)]
     db.t_report_survey.q11.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
     db.t_report_survey.q12.requires = IS_IN_SET(("YES", "NO - PROVIDE DETAILS"))
     db.t_report_survey.q13.requires = IS_IN_SET(db.TOP_guidelines_choices)
