@@ -676,7 +676,7 @@ def after_update_article(s: ..., f: ...):
     if current.session.run_article_translation_for_default_langs:
         return
         
-    new_article = s.select().first()
+    new_article: Article = s.select().first()
     old_article: Article = current.session.old_article
     
     if not old_article:
@@ -685,10 +685,10 @@ def after_update_article(s: ..., f: ...):
     if Article.are_equal(old_article, new_article):
         return
 
-    if not current.session.disable_trigger_setPublishedDoi:
-        if "status" in f:
-            if f.status == "Recommended" and 'pcjournal' in (f.doi_of_published_article or ""):
-                    emailing.send_message_to_recommender_and_reviewers(new_article["id"])
+    if "status" in f:
+        if new_article.status != old_article.status or new_article.doi_of_published_article != old_article.doi_of_published_article:
+            if new_article.status == "Recommended" and 'pcjournal' in (new_article.doi_of_published_article or ""):
+                emailing.send_message_to_recommender_and_reviewers(new_article.id)
 
     update_alert_and_current_step_article(s.query.second)
 
