@@ -16,16 +16,12 @@
             </div>
             <div class="step-description">
                 <h3>Submission awaiting completion</h3>
-                    {{if article_cancelled:}}
-                        <p>{{=article.status}}</p>
+                    {{if nbDaysSinceCompletion < 0:}}
+                        <p>Pending for less than a day</p>
+                    {{elif nbDaysSinceCompletion <= 1:}}
+                        <p>Pending since {{=nbDaysSinceCompletion}} day</p>
                     {{else:}}
-                        {{if nbDaysSinceCompletion < 0:}}
-                            <p>Pending for less than a day</p>
-                        {{elif nbDaysSinceCompletion <= 1:}}
-                            <p>Pending since {{=nbDaysSinceCompletion}} day</p>
-                        {{else:}}
-                            <p>Pending since {{=nbDaysSinceCompletion}} days</p>
-                        {{pass}}
+                        <p>Pending since {{=nbDaysSinceCompletion}} days</p>
                     {{pass}}
             </div>
         </div>
@@ -39,16 +35,12 @@
             <h3>Submission pending validation</h3>
             {{if articleHasBeenCompleted: }}
                 {{if not validationArticleDate: }}
-                    {{if article_cancelled:}}
-                        <p>{{=article.status}}</p>
+                    {{if nbDaysSinceCompletion < 0:}}
+                        <p>Pending for less than a day</p>
+                    {{elif nbDaysSinceCompletion <= 1:}}
+                        <p>Pending since {{=nbDaysSinceCompletion}} day</p>
                     {{else:}}
-                        {{if nbDaysSinceCompletion < 0:}}
-                            <p>Pending for less than a day</p>
-                        {{elif nbDaysSinceCompletion <= 1:}}
-                            <p>Pending since {{=nbDaysSinceCompletion}} day</p>
-                        {{else:}}
-                            <p>Pending since {{=nbDaysSinceCompletion}} days</p>
-                        {{pass}}
+                        <p>Pending since {{=nbDaysSinceCompletion}} days</p>
                     {{pass}}
                 {{else:}}
                     <p><span style="font-weight: bold;">Submission validated: </span>{{=validationArticleDate}}</p>
@@ -153,16 +145,12 @@
                     <b style="color: #e61919">Rejected</b>: {{=validationDate}}
                 {{pass}}
             {{else:}}
-                {{if article_cancelled:}}
-                    <p>{{=article.status}}</p>
+                {{if nb_days_since_decision < 0:}}
+                    <p>Decision pending validation for less than a day</p>
+                {{elif nb_days_since_decision <= 1:}}
+                    <p>Decision pending validation since {{=nb_days_since_decision}} day</p>
                 {{else:}}
-                    {{if nb_days_since_decision < 0:}}
-                        <p>Decision pending validation for less than a day</p>
-                    {{elif nb_days_since_decision <= 1:}}
-                        <p>Decision pending validation since {{=nb_days_since_decision}} day</p>
-                    {{else:}}
-                        <p>Decision pending validation since {{=nb_days_since_decision}} days</p>
-                    {{pass}}
+                    <p>Decision pending validation since {{=nb_days_since_decision}} days</p>
                 {{pass}}
             {{pass}}
         </div>
@@ -203,16 +191,12 @@
                     <b style="color: #e61919">Rejected</b>: {{=validationDate}}
                 {{pass}}
             {{elif managerDecisionDoneClass == "step-done":}}
-                {{if article_cancelled:}}
-                    <p>{{=article.status}}</p>
+                {{if nb_days_since_decision < 0:}}
+                    <p>Decision pending validation for less than a day</p>
+                {{elif nb_days_since_decision <= 1:}}
+                    <p>Decision pending validation since {{=nb_days_since_decision}} day</p>
                 {{else:}}
-                    {{if nb_days_since_decision < 0:}}
-                        <p>Decision pending validation for less than a day</p>
-                    {{elif nb_days_since_decision <= 1:}}
-                        <p>Decision pending validation since {{=nb_days_since_decision}} day</p>
-                    {{else:}}
-                        <p>Decision pending validation since {{=nb_days_since_decision}} days</p>
-                    {{pass}}
+                    <p>Decision pending validation since {{=nb_days_since_decision}} days</p>
                 {{pass}}
             {{else:}}
                 <span style="font-weight: bold">Invited reviewers: </span>{{=reviewCount}}<br>
@@ -258,16 +242,12 @@
                 {{if authorsReplyDate:}}
                     <span style="font-weight: bold">Resubmitted: </span>{{=authorsReplyDate}}
                 {{elif validationDate:}}
-                    {{if article_cancelled:}}
-                        <p>{{=article.status}}</p>
+                    {{if nb_days_since_validation < 0:}}
+                        <p>Awaiting revision for less than a day</p>
+                    {{elif nb_days_since_validation <= 1:}}
+                        <p>Awaiting revision since {{=nb_days_since_validation}} day</p>
                     {{else:}}
-                        {{if nb_days_since_validation < 0:}}
-                            <p>Awaiting revision for less than a day</p>
-                        {{elif nb_days_since_validation <= 1:}}
-                            <p>Awaiting revision since {{=nb_days_since_validation}} day</p>
-                        {{else:}}
-                            <p>Awaiting revision since {{=nb_days_since_validation}} days</p>
-                        {{pass}}
+                        <p>Awaiting revision since {{=nb_days_since_validation}} days</p>
                     {{pass}}
                 {{pass}}
             </div>
