@@ -29,7 +29,7 @@ from gluon.sqlhtml import SQLFORM
 from gluon.storage import Storage
 from models.group import Role
 from models.review import Review, ReviewState
-from models.article import Article, clean_vars_doi, clean_vars_doi_list
+from models.article import Article, clean_vars_doi, clean_vars_doi_list, ArticleStatus
 from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
 from models.user import User
@@ -1253,7 +1253,7 @@ def my_articles():
     db.t_articles.report_stage.writable = False
     db.t_articles.report_stage.readable = False
     db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(
-        text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
+        text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id
     )
     db.t_articles.status.writable = False
     db.t_articles._id.represent = lambda text, row: common_small_html.mkArticleCellNoRecomm(row)
@@ -1359,41 +1359,54 @@ def my_reviews():
     pendingOnly = ("pendingOnly" in request.vars) and (request.vars["pendingOnly"] == "True")
     if pendingOnly:
         query = (query
-            & (db.t_reviews.review_state == "Awaiting response")
-            & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration")))
+            & (db.t_reviews.review_state == ReviewState.AWAITING_RESPONSE.value)
+            & (db.t_articles.status.belongs((ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)))
         )
         pageTitle = getTitle("#UserMyReviewsRequestsTitle")
         customText = getText("#UserMyReviewsRequestsText")
         btnTxt = current.T("Accept or decline")
     else:
         query = (query
-            & (db.t_reviews.review_state != "Awaiting response")
+            & (db.t_reviews.review_state != ReviewState.AWAITING_RESPONSE.value)
         )
         pageTitle = getTitle("#UserMyReviewsTitle")
         customText = getText("#UserMyReviewsText")
         btnTxt = current.T("View")
 
-    # db.t_articles._id.readable = False
-    db.t_articles._id.represent = lambda aId, row: common_small_html.mkRepresentArticleLight(aId)
+    def represent_article(article_id: int, row: Article):
+        return common_small_html.mkRepresentArticleLight(article_id)
+
+    def represent_recommendation(recommendation_id: int, row: Recommendation):
+        return common_small_html.mkArticleCellNoRecommFromId(recommendation_id)
+
+    def represent_article_status(status: str, row: ...):
+        return common_small_html.mkStatusDivUser(status,
+                                                 showStage=pciRRactivated,
+                                                 stage1Id=row.t_articles.art_stage_1_id)
+    
+    def represent_article_last_change(last_change: datetime.datetime, row: Article):
+        return DIV(common_small_html.mkElapsed(last_change), _style="min-width: 100px; text-align: center")
+
+    def represent_review(recommendation_id: int, row: ...):
+        return user_module.mkRecommendation4ReviewFormat(row.t_reviews)
+
+    db.t_articles._id.represent = represent_article
     db.t_articles._id.label = T("Article")
-    db.t_recommendations._id.represent = lambda rId, row: common_small_html.mkArticleCellNoRecommFromId(rId)
+    db.t_recommendations._id.represent = represent_recommendation
     db.t_recommendations._id.label = T("Recommendation")
 
     db.t_articles.art_stage_1_id.writable = False
     db.t_articles.art_stage_1_id.readable = False
     db.t_articles.report_stage.writable = False
     db.t_articles.report_stage.readable = False
-    db.t_articles.status.represent = lambda text, row: common_small_html.mkStatusDivUser(
-        text, showStage=pciRRactivated, stage1Id=row.t_articles.art_stage_1_id, reportStage=row.t_articles.report_stage
-    )
+    db.t_articles.status.represent = represent_article_status
 
     db.t_reviews.last_change.label = T("Days elapsed")
-    db.t_reviews.last_change.represent = lambda text, row: DIV(common_small_html.mkElapsed(text), _style="min-width: 100px; text-align: center")
+    db.t_reviews.last_change.represent = represent_article_last_change
     db.t_reviews.reviewer_id.writable = False
-    # db.t_reviews.recommendation_id.writable = False
-    # db.t_reviews.recommendation_id.label = T('Member in charge of the recommendation process')
+
     db.t_reviews.recommendation_id.label = T("Recommender")
-    db.t_reviews.recommendation_id.represent = lambda text, row: user_module.mkRecommendation4ReviewFormat(row.t_reviews)
+    db.t_reviews.recommendation_id.represent = represent_review
 
     db.t_articles.scheduled_submission_date.readable = False
     db.t_articles.scheduled_submission_date.writable = False
@@ -1412,14 +1425,11 @@ def my_reviews():
     else:
         db.t_reviews.recommendation_id.readable = False
 
-    links = [
-        dict(
-            header=T("Review uploaded as file") if not pciRRactivated else T("Review files"),
-            body=lambda row: A(T("file"), _href=URL(c="default", f='download', args=row.t_reviews.review_pdf)) if row.t_reviews.review_pdf else ""
-        ),
-        dict(
-            header=T("Review as text"),
-            body=lambda row: DIV(
+    def download_review_link(row: ...):
+        return A(T("file"), _href=URL(c="default", f='download', args=row.t_reviews.review_pdf)) if row.t_reviews.review_pdf else ""
+    
+    def review_as_text(row: ...):
+        return DIV(
                 DIV(
                     DIV(B("Review status : ", _style="margin-top: -2px; font-size: 14px"), common_small_html.mkReviewStateDiv(row.t_reviews["review_state"])),
                     _style="border-bottom: 1px solid #ddd",
@@ -1443,27 +1453,40 @@ def my_reviews():
                                 _style="margin-bottom: 20px",
                                 _class="text-center pci2-flex-center pci2-flex-column",
                             )
-                            if row.t_reviews["review_state"] == "Awaiting review"
+                            if row.t_reviews["review_state"] == ReviewState.AWAITING_REVIEW.value
                             else ""
                         ),
                     _style="color: #888",
                     _class="pci-div4wiki-large",
                 ),
-            ),
+            )
+
+    def view_edit_button(row: ...):
+        return A(
+            SPAN(btnTxt, _class="buttontext btn btn-default pci-reviewer pci-button"),
+            _href=URL(c="user", f="recommendations", vars=dict(articleId=row.t_articles.id), user_signature=True),
+            _class="",
+            _title=current.T("View and/or edit review"),
+        ) if row.t_reviews.review_state in (ReviewState.AWAITING_RESPONSE.value,
+                                            ReviewState.AWAITING_REVIEW.value,
+                                            ReviewState.REVIEW_COMPLETED.value,
+                                            ReviewState.WILLING_TO_REVIEW.value) else ""
+
+    links = [
+        dict(
+            header=T("Review uploaded as file") if not pciRRactivated else T("Review files"),
+            body=download_review_link
+        ),
+        dict(
+            header=T("Review as text"),
+            body=review_as_text
         ),
         dict(
             header=T(""),
-            body=lambda row: A(
-                SPAN(btnTxt, _class="buttontext btn btn-default pci-reviewer pci-button"),
-                _href=URL(c="user", f="recommendations", vars=dict(articleId=row.t_articles.id), user_signature=True),
-                _class="",
-                _title=current.T("View and/or edit review"),
-            )
-            if row.t_reviews.review_state in ("Awaiting response", "Awaiting review", "Review completed", "Willing to review")
-            else "",
+            body=view_edit_button
         ),
     ]
-    grid = SQLFORM.grid(
+    grid: ... = SQLFORM.grid( # type: ignore
         query,
         searchable=False,
         deletable=False,

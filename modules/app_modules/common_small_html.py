@@ -69,7 +69,7 @@ def mkElapsedDays(t: Optional[datetime.datetime]):
 
 
 ######################################################################################################################################################################
-def mkElapsed(t):
+def mkElapsed(t: datetime.datetime):
     if t:
         d = datetime.datetime.now() - t
         if d.days < 2:
@@ -283,7 +283,7 @@ def mkStatusDiv(status: str, showStage: bool = False, stage1Id: Optional[int] = 
 
 ######################################################################################################################################################################
 # Builds a coloured status label with pre-decision concealed
-def mkStatusDivUser(status, showStage=False, stage1Id=None, reportStage="Stage not set"):
+def mkStatusDivUser(status: str, showStage: bool = False, stage1Id: Optional[int] = None):
     auth = current.auth
     if statusArticles is None or len(statusArticles) == 0:
         mkStatusArticles()
@@ -292,8 +292,8 @@ def mkStatusDivUser(status, showStage=False, stage1Id=None, reportStage="Stage n
     else:
         status2 = status
     status_txt = (current.T(status2)).upper()
-    color_class = statusArticles[status2]["color_class"] or "default"
-    hint = statusArticles[status2]["explaination"] or ""
+    color_class = statusArticles.get(status2, {}).get("color_class", "default") if statusArticles else "default"
+    hint = statusArticles.get(status2, {}).get("explaination", "") if statusArticles else ""
 
     if showStage:
         if auth.has_membership(role="manager"):
@@ -311,17 +311,10 @@ def mkStatusDivUser(status, showStage=False, stage1Id=None, reportStage="Stage n
             reportStage = "STAGE 1"
             stage1Link = ""
 
-        if reportStage is not None:
-            result = DIV(
-                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T(reportStage)), stage1Link, _style="text-align: center; width: 150px;"),
-            )
-        else:
-            result = DIV(
-                DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
-                DIV(B(current.T("Stage not set")), stage1Link, _style="text-align: center; width: 150px;"),
-            )
-
+        result = DIV(
+            DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint), _style="text-align: center;"),
+            DIV(B(current.T(reportStage)), stage1Link, _style="text-align: center; width: 150px;"),
+        )
     else:
         result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
 
@@ -732,14 +725,13 @@ def mkArticleCellNoRecomm(art0):
 
 
 ######################################################################################################################################################################
-def mkArticleCellNoRecommFromId(recommId):
+def mkArticleCellNoRecommFromId(recommId: int):
     db = current.db
     anchor = ""
     recomm = db.t_recommendations[recommId]
     if recomm:
         art = db.t_articles[recomm.article_id]
         if art:
-            # if art.already_published:
             recommenders = [mkUser(recomm.recommender_id)]
             contribsQy = db(db.t_press_reviews.recommendation_id == recommId).select()
             n = len(contribsQy)
@@ -750,10 +742,9 @@ def mkArticleCellNoRecommFromId(recommId):
                     recommenders += ", "
                 else:
                     recommenders += " and "
-                recommenders += mkUser(contrib.contributor_id)
+                recommenders.append(mkUser(contrib.contributor_id))
             recommenders = SPAN(recommenders)
-            # else:
-            # recommenders = mkUser(recomm.recommender_id)
+
             doi_text = mkDOI(art.doi)
             if scheduledSubmissionActivated and  art.scheduled_submission_date is not None:
                 doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(art.scheduled_submission_date))))
