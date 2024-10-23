@@ -295,7 +295,10 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
         articleHasBeenCompleted = False
 
     if art.upload_timestamp: 
-        nb_days = (datetime.datetime.now() - art.upload_timestamp).days
+        if article_cancelled and art.last_status_change:
+            nb_days = (art.last_status_change - art.upload_timestamp).days
+        else:
+            nb_days = (datetime.datetime.now() - art.upload_timestamp).days
 
         if nb_days == 0:
             nb_days_since_completion = -1
@@ -348,7 +351,10 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
             decision_due_date: Optional[datetime.datetime] = None
 
             if recomm.last_change:
-                nb_days = (datetime.datetime.now() - recomm.last_change).days
+                if article_cancelled and art.last_status_change:
+                    nb_days = (art.last_status_change - recomm.last_change).days
+                else:
+                    nb_days = (datetime.datetime.now() - recomm.last_change).days
 
                 if nb_days == 0:
                     nb_days_since_decision = -1
@@ -356,7 +362,10 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
                     nb_days_since_decision = nb_days
 
             if recomm.validation_timestamp:
-                nb_days = (datetime.datetime.now() - recomm.validation_timestamp).days
+                if article_cancelled and art.last_status_change:
+                    nb_days = (art.last_status_change - recomm.validation_timestamp).days
+                else:
+                    nb_days = (datetime.datetime.now() - recomm.validation_timestamp).days
 
                 if nb_days == 0:
                     nb_days_since_validation = -1
