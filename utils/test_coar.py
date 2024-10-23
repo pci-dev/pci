@@ -76,7 +76,7 @@ request_endorsement = \
 {
   "@context": [
     "https://www.w3.org/ns/activitystreams",
-    "https://purl.org/coar/notify"
+    "https://coar-notify.net"
   ],
   "actor": {
     "id": "mailto:denis.bourguet@inrae.fr",
@@ -117,7 +117,7 @@ cancel_endorsement_request = """
 {
   "@context": [
     "https://www.w3.org/ns/activitystreams",
-    "https://purl.org/coar/notify"
+    "https://coar-notify.net"
   ],
   "actor": {
     "id": "https://some-organisation.org",
@@ -148,7 +148,7 @@ acknowledge_and_reject = """
 {
   "@context": [
     "https://www.w3.org/ns/activitystreams",
-    "https://purl.org/coar/notify"
+    "https://coar-notify.net"
   ],
   "actor": {
     "id": "https://generic-service.com",
@@ -185,7 +185,7 @@ acknowledge_and_tentative_accept = """
 {
   "@context": [
     "https://www.w3.org/ns/activitystreams",
-    "https://purl.org/coar/notify"
+    "https://coar-notify.net"
   ],
   "actor": {
     "id": "https://generic-service.com",
