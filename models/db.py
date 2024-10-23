@@ -6,7 +6,7 @@ from gluon.sqlhtml import SQLFORM
 locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
 
 from typing import cast
-from app_components.custom_validator import CUSTOM_VALID_URL, VALID_DOI
+from app_components.custom_validator import CUSTOM_VALID_URL, VALID_LIST_NAMES_MAIL, VALID_DOI
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect # type: ignore
@@ -522,7 +522,7 @@ db.define_table(
     )),
     Field("has_manager_in_authors", type="boolean", label=T("One or more authors of this article are members of the %s Managing Board" % appName), default=False),
     RequiredField("title", type="string", length=1024, label=T("Title"), requires=IS_LENGTH(1024, 0), comment="use asterix (*) to get italics"),
-    RequiredField("authors", type="string", length=4096, label=T("Authors"), requires=IS_LENGTH(4096, 0), represent=lambda t, r: ("") if (r.anonymous_submission) else (t),
+    RequiredField("authors", type="string", length=4096, label=T("Authors"), requires=[IS_LENGTH(4096, 0), VALID_LIST_NAMES_MAIL(without_email=True)], represent=lambda t, r: ("") if (r.anonymous_submission) else (t),
           comment=B('Please use the format "First name initials family name" as in "Marie S. Curie, Niels H. D. Bohr, Albert Einstein, John R. R. Tolkien, Donna T. Strickland"')),
     RequiredField("article_year", type="integer", label=T("Year")),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
@@ -603,6 +603,7 @@ db.define_table(
         label=T("Suggested reviewers - Suggest up to 10 reviewers (provide names and Email addresses). (Optional)"),
         length=20000,
         comment=SPAN(
+            DIV(T("e.g. John Doe john@doe.com")),
             T(" No need for them to be recommenders of %s. Please do not suggest reviewers for whom there might be a conflict of interest. Reviewers are not allowed to review preprints written by close colleagues (with whom they have published in the last four years, with whom they have received joint funding in the last four years, or with whom they are currently writing a manuscript, or submitting a grant proposal), or by family members, friends, or anyone for whom bias might affect the nature of the review - " % appName),
             A("see the code of conduct", _href="../about/ethics", _target="_blank"),
         ),
@@ -612,7 +613,7 @@ db.define_table(
         type="list:string",
         label=T("Opposed reviewers - Suggest up to 5 people not to invite as reviewers. (Optional)"),
         length=20000,
-        comment=SPAN(T("e.g. John Doe [john@doe.com]")),
+        comment=SPAN(T("e.g. John Doe john@doe.com")),
     ),
     Field(
         "parallel_submission",

@@ -1,4 +1,5 @@
-from typing import Optional
+import re
+from typing import List, Optional, Union
 
 from urllib.parse import urlparse
 from gluon import STRONG
@@ -68,3 +69,53 @@ class VALID_DOI(Validator):
             return value, self.error_message
         
         
+class VALID_LIST_NAMES_MAIL(Validator):
+
+    _regex: str
+    _error_message: str
+
+    def __init__(self, is_list_string: bool = False, without_email: bool = False, optional_email: bool = False):
+        if optional_email:
+            self._regex = r"((([\w\-\.]+ )*[\w\-]+)+)|((([\w\-\.]+ )*[\w\-]+ [a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-z]+)+)"
+        elif without_email:
+            self._regex = r"(([\w\-\.]+ )*[\w\-]+)+"
+        else:
+            self._regex = r"(([\w\-\.]+ )*[\w\-]+ [a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-z]+)+"
+
+        if is_list_string:
+            if optional_email:
+                self._error_message = 'Pattern must be: <first name> <last name> <mail> (mail is optional)'
+            elif without_email:
+                self._error_message = 'Pattern must be: <first name> <last name>'
+            else:
+                self._error_message = 'Pattern must be: <first name> <last name> <mail>'
+
+        else:
+            if optional_email:
+                self._error_message = 'Pattern must be: <first name> <last name> <mail>, <first name> <last name> <mail>, ... (mail is optional)'
+            elif without_email:
+                self._error_message = 'Pattern must be: <first name> <last name>, <first name> <last name>, ...'
+            else:
+                self._error_message = 'Pattern must be: <first name> <last name> <mail>, <first name> <last name> <mail>, ...'
+
+
+    def __call__(self, value: Optional[Union[str, List[str]]], record_id: Optional[int] = None):
+        if not value or len(value) == 0:
+            return value, None
+        
+        self._pattern = re.compile(self._regex)
+        
+        if isinstance(value, str):
+            people = value.split(',')
+            for person in people:
+                person = person.strip()
+                match = self._pattern.fullmatch(person)
+                if not match:
+                    return value, self._error_message
+        else:
+            for person in value:
+                match = self._pattern.fullmatch(person)
+                if not match:
+                    return value, self._error_message
+                
+        return value, None
