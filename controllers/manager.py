@@ -393,7 +393,7 @@ def _manage_articles(statuses: Optional[List[str]] = None,
         csv=csv,
         exportclasses=expClass,
         maxtextlength=250,
-        paginate=20,
+        paginate=50,
         fields=[
             t_articles.id,
             t_articles.alert_date,
