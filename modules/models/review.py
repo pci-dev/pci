@@ -112,13 +112,15 @@ class Review(Row):
         review.anonymous_agreement = anonymous_agreement or False
         if review.review_duration:
             Review.set_review_duration(review, article, review.review_duration)
-        return review.update_record()
+        review.update_record() # type: ignore
+        return review
     
 
     @staticmethod
     def set_suggested_reviewers_send(review: 'Review'):
         review.suggested_reviewers_send = True
-        return review.update_record()
+        review.update_record() # type: ignore
+        return review
     
     
     @staticmethod
@@ -128,13 +130,15 @@ class Review(Row):
             due_date = Review.get_due_date_from_review_duration(review)
             if due_date:
                 Review.set_due_date(review, due_date)
-        return review.update_record()
+        review.update_record() # type: ignore
+        return review
     
 
     @staticmethod
     def set_review_status(review: 'Review', state: ReviewState):
         review.review_state = state.value
-        return review.update_record()
+        review.update_record() # type: ignore
+        return review
 
 
     @staticmethod
@@ -154,7 +158,7 @@ class Review(Row):
         if review.acceptation_timestamp and due_date <= review.acceptation_timestamp:
             raise ValueError(f"Date must be after acceptation date. ({datetime.strftime(review.acceptation_timestamp, '%Y-%m-%d')})")
         review.due_date = due_date
-        review.update_record()
+        review.update_record() # type: ignore
     
 
     @staticmethod
@@ -345,9 +349,9 @@ class Review(Row):
 
 
     @staticmethod
-    def get_most_recent_review_by_due_date(article_id: int, review_state: ReviewState):
-        reviews = Review.get_by_article_id_and_state(article_id, review_state)
-        most_recent: _[Tuple[Review, datetime]] = None
+    def get_oldest_review_by_due_date(recommendation_id: int, review_state: List[ReviewState]):
+        reviews = Review.get_by_recommendation_id(recommendation_id, review_states=review_state)
+        oldest: _[Tuple[Review, datetime]] = None
         for review in reviews:
             due_date = Review.get_due_date(review)
             if not isinstance(due_date, datetime):
@@ -357,7 +361,7 @@ class Review(Row):
                         day=due_date.day
                     )
                 
-            if not most_recent or most_recent[1] < due_date:
-                most_recent = (review, due_date)
+            if not oldest or due_date < oldest[1]:
+                oldest = (review, due_date)
         
-        return most_recent
+        return oldest

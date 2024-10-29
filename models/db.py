@@ -667,8 +667,8 @@ db.t_articles._after_update.append(lambda s, f: after_update_article(s, f))
 def update_alert_and_current_step_article(article_id: int):
     article = Article.get_by_id(article_id)
     if article:
-        Article.update_alert_date(article, False)
         Article.update_current_step(article, False)
+        Article.update_alert_date(article, False)
         article.update_record() # type: ignore
 
 
