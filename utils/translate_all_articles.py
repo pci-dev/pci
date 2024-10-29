@@ -58,6 +58,4 @@ def main():
 
 
 if __name__ == "__main__":
-    current.session.disable_trigger_setPublishedDoi = True
     main()
-    current.session.disable_trigger_setPublishedDoi = None
