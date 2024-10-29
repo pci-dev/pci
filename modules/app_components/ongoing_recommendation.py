@@ -294,11 +294,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
     if art.status == ArticleStatus.PRE_SUBMISSION.value:
         articleHasBeenCompleted = False
 
-    if art.upload_timestamp: 
-        if article_cancelled and art.last_status_change:
-            nb_days = (art.last_status_change - art.upload_timestamp).days
-        else:
-            nb_days = (datetime.datetime.now() - art.upload_timestamp).days
+    if art.last_status_change: 
+        nb_days = (datetime.datetime.now() - art.last_status_change).days
 
         if nb_days == 0:
             nb_days_since_completion = -1
