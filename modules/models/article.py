@@ -468,23 +468,14 @@ class Article(Row):
             if not is_same_step:
                 current.db(current.db.t_articles.id == article.id).update(current_step=article.current_step)
 
-
         return current_step
     
 
     @staticmethod
     def get_current_step(article: 'Article'):
-        # Step without "since x days", update current step is useless
-        if article.current_step_number not in (2, 3, 9, 8):
-            return article.current_step
-        
-        # If step with "since x days", update current step
-        if article.last_status_change:
-            today = datetime.today()
-            if article.last_status_change.date() < today.date():
-                current_step = Article.update_current_step(article)
-                if current_step:
-                    return str(current_step[1])
+        current_step = Article.update_current_step(article)
+        if current_step:
+            return str(current_step[1])
     
 
     @staticmethod
