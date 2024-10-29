@@ -450,16 +450,41 @@ class Article(Row):
 
         current_step = get_current_step_article(article)
         if current_step is None:
+            is_same_number = article.current_step_number is None
+            is_same_step = article.current_step is None
+
             article.current_step_number = None
             article.current_step = None
         else:
+            is_same_number = article.current_step_number == current_step[0]
+            is_same_step = article.current_step == str(current_step[1])
+
             article.current_step_number = current_step[0]
             article.current_step = str(current_step[1])
 
         if update_record:
-            article.update_record() # type: ignore
+            if not is_same_number:
+                current.db(current.db.t_articles.id == article.id).update(current_step_number=article.current_step_number)
+            if not is_same_step:
+                current.db(current.db.t_articles.id == article.id).update(current_step=article.current_step)
+
 
         return current_step
+    
+
+    @staticmethod
+    def get_current_step(article: 'Article'):
+        # Step without "since x days", update current step is useless
+        if article.current_step_number not in (2, 3, 9, 8):
+            return article.current_step
+        
+        # If step with "since x days", update current step
+        if article.last_status_change:
+            today = datetime.today()
+            if article.last_status_change.date() < today.date():
+                current_step = Article.update_current_step(article)
+                if current_step:
+                    return str(current_step[1])
     
 
     @staticmethod

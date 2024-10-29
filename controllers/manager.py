@@ -414,6 +414,7 @@ def _manage_articles(statuses: Optional[List[str]] = None,
             t_articles.current_step,
             t_articles.validation_timestamp,
             t_articles.remarks,
+            t_articles.current_step_number
         ],
         links=links,
         left=db.v_article.on(db.t_articles.id == db.v_article.id),
