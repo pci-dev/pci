@@ -9,6 +9,10 @@ case $1 in
         edit_conf
         ;;
     inspect)
+        echo "---------------------------------------"
+        echo "The following script will run on 'edit'"
+        echo "---------------------------------------"
+        echo
         sed '1, /^edit_conf()/ d; /^# edit_conf/, $ d' $0
         ;;
     *)
