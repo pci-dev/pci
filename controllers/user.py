@@ -1373,10 +1373,10 @@ def my_reviews():
         customText = getText("#UserMyReviewsText")
         btnTxt = current.T("View")
 
-    def represent_article(article_id: int, row: Article):
-        return common_small_html.mkRepresentArticleLight(article_id)
+    def represent_article(article_id: int, row: ...):
+        return common_small_html.represent_article_with_recommendation_info(row.t_reviews.recommendation_id)
 
-    def represent_recommendation(recommendation_id: int, row: Recommendation):
+    def represent_recommendation(recommendation_id: int, row: ...):
         return common_small_html.mkArticleCellNoRecommFromId(recommendation_id)
 
     def represent_article_status(status: str, row: ...):

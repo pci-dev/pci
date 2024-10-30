@@ -565,6 +565,36 @@ def mkRepresentArticleLight(article_id: int):
     return anchor
 
 
+def represent_article_with_recommendation_info(recommendation_id: int):
+    recommendation = Recommendation.get_by_id(recommendation_id)
+    if not recommendation:
+        return ''
+
+    article = Article.get_by_id(recommendation.article_id)
+    if not article:
+        return ''
+
+    html = ''
+    
+    if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
+        doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))))
+    else:
+        doi_text = mkDOI(recommendation.doi)
+
+    html = DIV(
+            B(md_to_html(article.title), _class="article-title"),
+            DIV(mkAnonymousArticleField(article.anonymous_submission, article.authors, article.id)),
+            doi_text,
+            BR(),
+            SPAN(" " + current.T("ArticleID") + " #" + str(article.id)),            
+            BR(),
+            SPAN(" " + current.T("version") + " " + recommendation.ms_version) if recommendation.ms_version else "",
+            (BR() + SPAN(article.article_source) if article.article_source else ""),
+        )
+    
+    return html
+
+
 def represent_article_manager_board(article: Article):
     html: List[Union[DIV, str]] = []
     last_recommendation = Article.get_last_recommendation(article.id)
