@@ -198,6 +198,8 @@ def create_prefilled_submission(req, user):
     if not "authors" in meta_data or not meta_data["authors"]:
         meta_data["authors"] = author_data["name"]
 
+    check_duplicate_submission(doi, meta_data)
+
     return Article.create_prefilled_submission(user_id=user.id, 
                                                doi=doi, 
                                                coar_notification_id=coar_req_id,
@@ -219,6 +221,18 @@ def update_resubmitted_article(req, context):
         doi = req["object"]["ietf:cite-as"],
     )
     return article
+
+
+def check_duplicate_submission(doi, meta_data):
+    same_title = db(db.t_articles.title.lower() == meta_data["title"].lower()).count()
+    same_url = db(db.t_articles.doi.lower() == doi.lower()).count()
+
+    dup_info = (
+            "title" + (" and url" if same_url else "") if same_title else
+            "url" if same_url else None
+    )
+    if same_title or same_url:
+        fail(f"duplicate submission: an article with the same {dup_info} already exists")
 
 
 def record_request(body):
