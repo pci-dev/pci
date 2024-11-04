@@ -349,6 +349,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
             nb_days_since_decision = 0
             nb_days_since_validation = 0
             decision_due_date: Optional[datetime.datetime] = None
+            article_cancelled = art.status in (ArticleStatus.CANCELLED.value, ArticleStatus.NOT_CONSIDERED.value) and roundNumber == totalRecomm
 
             if recomm.last_change:
                 if article_cancelled and art.last_status_change:
