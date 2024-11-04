@@ -221,7 +221,7 @@ def mk_user(theUser: Optional[User], linked: bool = False, reverse: bool = False
 ######################################################################################################################################################################
 # Article status
 ######################################################################################################################################################################
-statusArticles: Optional[Dict[str, Dict[str, str]]] = dict()
+statusArticles: Optional[Dict[str, Dict[str, Optional[str]]]] = dict()
 
 
 def mkStatusArticles():
@@ -292,8 +292,9 @@ def mkStatusDivUser(status: str, showStage: bool = False, stage1Id: Optional[int
     else:
         status2 = status
     status_txt = (current.T(status2)).upper()
-    color_class = statusArticles.get(status2, {}).get("color_class", "default") if statusArticles else "default"
-    hint = statusArticles.get(status2, {}).get("explaination", "") if statusArticles else ""
+
+    color_class = (statusArticles.get(status2, {}).get("color_class", "default") if statusArticles else "default") or "default"
+    hint = (statusArticles.get(status2, {}).get("explaination", "") if statusArticles else "") or ""
 
     if showStage:
         if auth.has_membership(role="manager"):
