@@ -16,9 +16,9 @@ from app_modules.xml_jats_parser import DestinationApp, XMLJATSArticleElement, X
 
 myconf = AppConfig(reload=True)
 
-XML_FOLDER = str(myconf.get("ftp.biorxiv"))
-DONE_FOLDER = f"{XML_FOLDER}/done"
-FAILED_FOLDER = f"{XML_FOLDER}/failed"
+XML_FOLDER = Path(str(myconf.get("ftp.biorxiv")))
+DONE_FOLDER = XML_FOLDER.joinpath("done")
+FAILED_FOLDER = XML_FOLDER.joinpath("failed")
 
 def main():
      create_done_folder()
@@ -37,6 +37,11 @@ def main():
                continue
 
           xml_file = os.path.join(XML_FOLDER, file_name)
+          
+          if os.path.getsize(xml_file) == 0:
+               log(f"File {xml_file} is empty")
+               clean_xml(xml_file, True)
+               continue
           
           try:
                xml_jats_parser = XMLJATSParser(xml_file)
@@ -159,7 +164,7 @@ def clean_xml(xml_file: str, failed: bool):
      log(f"{xml_file} moved to {dest_folder}")
 
 
-def clean_folder(folder_path: str):
+def clean_folder(folder_path: Path):
      max_life_time = time.time() - 30 * 24 * 60 * 60 # 30 days
      for file_name in os.listdir(folder_path):
           file = os.path.join(folder_path, file_name)
@@ -172,7 +177,7 @@ def clean_folder(folder_path: str):
                log(f"{file} has been removed")
 
 
-def move_file(file_path: str, dest_folder: str):
+def move_file(file_path: str, dest_folder: Path):
      file_path_obj = Path(file_path)
 
      file_name = file_path_obj.name
@@ -198,7 +203,6 @@ def log(content: str):
      app = str(current.request.application)
 
      print(f"{now} {app}:{script} {content}")
-
 
 
 if __name__ == '__main__':
