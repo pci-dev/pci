@@ -8,6 +8,7 @@ from app_modules.helper import *
 
 from app_modules import common_small_html
 from models.article import ArticleStatus
+from models.review import Review
 from models.suggested_recommender import SuggestedRecommender
 
 from app_modules.common_tools import URL
@@ -86,7 +87,7 @@ def mk_exclude_recommender_button(row: ..., articleId :int, excludeList: List[in
     return anchor
 
 ######################################################################################################################################################################
-def mkRecommendation4ReviewFormat(row):
+def mkRecommendation4ReviewFormat(row: Review):
     db = current.db
     recomm = db(db.t_recommendations.id == row.recommendation_id).select(db.t_recommendations.id, db.t_recommendations.recommender_id).last()
     anchor = SPAN(common_small_html.mkUserWithMail(recomm.recommender_id))
@@ -98,7 +99,7 @@ def do_exclude_article_from(articleId: int, recommenderId: int):
     db.t_excluded_recommenders.update_or_insert(excluded_recommender_id=recommenderId, article_id=articleId)
 
 ######################################################################################################################################################################
-def getRecommender(row):
+def getRecommender(row: ...):
     db = current.db
     recomm = (
         db(db.t_recommendations.article_id == row["t_articles.id"]).select(db.t_recommendations.id, db.t_recommendations.recommender_id, orderby=db.t_recommendations.id).last()
@@ -107,19 +108,19 @@ def getRecommender(row):
         resu = SPAN(common_small_html.mkUser(recomm.recommender_id))
         corecommenders = db(db.t_press_reviews.recommendation_id == recomm.id).select(db.t_press_reviews.contributor_id)
         if len(corecommenders) > 0:
-            resu.append(BR())
-            resu.append(B(current.T("Co-recommenders:")))
-            resu.append(BR())
+            resu.append(BR()) # type: ignore
+            resu.append(B(current.T("Co-recommenders:"))) # type: ignore
+            resu.append(BR()) # type: ignore
             for corecommender in corecommenders:
-                resu.append(SPAN(common_small_html.mkUser(corecommender.contributor_id)) + BR())
+                resu.append(SPAN(common_small_html.mkUser(corecommender.contributor_id)) + BR()) # type: ignore
         return DIV(resu, _class="pci-w200Cell")
     else:
         return ""
 
 ######################################################################################################################################################################
-def getReviewers(recomm):
+def getReviewers(recomm: Recommendation):
     db = current.db
-    revList = []
+    revList: List[int] = []
     latestRound = db((db.t_recommendations.article_id == recomm.article_id)).select(
             db.t_recommendations.id, orderby=db.t_recommendations.id).last()
     reviewersList = db((db.t_reviews.recommendation_id == latestRound.id)).select(db.t_reviews.reviewer_id)
@@ -130,7 +131,7 @@ def getReviewers(recomm):
 ######################################################################################################################################################################
 def getAllRecommenders():
     db = current.db
-    recommList = []
+    recommList: List[int] = []
     recomm_query = db((db.auth_membership.group_id == 1)).select(db.auth_membership.user_id)
     for i in recomm_query:
         recommList.append(i.user_id)
