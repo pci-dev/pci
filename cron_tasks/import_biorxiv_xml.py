@@ -45,43 +45,44 @@ def main():
         xml_file = os.path.join(XML_FOLDER, file_name)
 
         if os.path.getsize(xml_file) == 0:
-            log(f"File {xml_file} is empty")
-            clean_xml(xml_file, True)
+            fail(f"File {xml_file} is empty", xml_file)
             continue
 
         try:
             xml_jats_parser = XMLJATSParser(xml_file)
         except Exception as e:
-            log(f"Error to parse {xml_file}: {e}")
-            emailing.send_import_biorxiv_alert(xml_file)
-            clean_xml(xml_file, True)
+            fail(f"Error to parse {xml_file}: {e}", xml_file)
             continue
 
         if not application_supported(xml_jats_parser.destination):
-            log(
+            fail(
                 f"Destination {xml_jats_parser.destination.value} exists, but not supported"
+                , xml_file
             )
-            emailing.send_import_biorxiv_alert(xml_file)
-            clean_xml(xml_file, True)
             continue
 
         if xml_jats_parser.destination != application:
             continue
 
-        emailing.send_import_biorxiv_alert(xml_file)
-        clean_xml(xml_file, False)
-
         user = add_author_in_db(xml_jats_parser.article.authors)
         if not user:
-            log(f"Unable to create or find user from document {xml_file}")
+            fail(f"Unable to create or find user from document {xml_file}", xml_file)
             continue
 
         article = add_article_in_db(xml_jats_parser.article, user)
         if not article:
-            log(f"Unable to create article from document {xml_file}")
+            fail(f"Unable to create article from document {xml_file}", xml_file)
             continue
 
         emailing.send_to_biorxiv_requester(user, article)
+        emailing.send_import_biorxiv_alert(xml_file)
+        clean_xml(xml_file, failed=False)
+
+
+def fail(msg: str, xml_file: str):
+    log(msg)
+    emailing.send_import_biorxiv_alert(xml_file)
+    clean_xml(xml_file, failed=True)
 
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
