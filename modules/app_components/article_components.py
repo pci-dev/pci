@@ -5,6 +5,7 @@ import os
 from typing import Any, Dict, Optional, cast
 from gluon.globals import Response
 from models.group import Role
+from models.recommendation import Recommendation
 from models.review import ReviewState
 import pytz, datetime
 from re import sub, match
@@ -42,7 +43,14 @@ scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", defaul
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
-def getRecommArticleRowCard(article, recomm, withImg=True, withScore=False, withDate=False, fullURL=False, withLastRecommOnly=False, orcid_exponant: bool = False):
+def getRecommArticleRowCard(article: Article,
+                            recomm: Recommendation,
+                            withImg: bool = True,
+                            withScore: bool = False,
+                            withDate: bool = False,
+                            fullURL: bool = False,
+                            withLastRecommOnly: bool = False,
+                            orcid_exponant: bool = False):
 
     isStage2 = article.art_stage_1_id is not None
     stage1Url = None
