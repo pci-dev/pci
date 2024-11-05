@@ -146,7 +146,7 @@ def index():
             t_articles.scheduled_submission_date,
             ],
         orderby=~t_articles.last_status_change,
-        _class="web2py_grid action-button-absolute",
+        _class="web2py_grid action-button-absolute undisplay-records",
     )
       # check url arguments passed to grid did not break db
       db.executesql("select 1")

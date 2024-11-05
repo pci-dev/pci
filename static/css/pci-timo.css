@@ -282,6 +282,10 @@
         margin-bottom: 2rem;
     }
 
+    .undisplay-records .web2py_counter {
+        display: none;
+    }
+
     .web2py_console .form-control {
         margin-bottom: .6rem;
     }
