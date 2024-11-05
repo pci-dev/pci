@@ -676,22 +676,25 @@ def represent_link_column_manager_board(article: Article):
 
 
 def represent_alert_manager_board(article: Article):
-    if not article.alert_date:
+    alert_date = Article.update_alert_date(article)
+
+    if not alert_date:
         return ''
     else:
-        if article.alert_date <= datetime.date.today():
+        if alert_date.date() <= datetime.date.today():
             style = "color: #d9534f;"
         else:
             style = ""
 
         return DIV(
-            STRONG(article.alert_date.strftime(DEFAULT_DATE_FORMAT), _style=style, _class="article-alert"),
+            STRONG(alert_date.strftime(DEFAULT_DATE_FORMAT), _style=style, _class="article-alert"),
             _style="width: 50px;")
     
 
 def represent_current_step_manager_board(article: Article):
-    if article.current_step:
-        return XML(article.current_step)
+    current_step = Article.get_current_step(article)
+    if current_step:
+        return XML(current_step)
     else:
         return ''
     
@@ -1460,7 +1463,7 @@ def get_current_step_article(article: Article):
 
     step_number: int = 0
     if step_done_container.has_attr('data-step'):
-        step_number = step_done_container.attrs['data-step']
+        step_number = int(step_done_container.attrs['data-step'])
     
     step_done_content = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
     img = f"{_get_current_step_img(step_done_els)}"

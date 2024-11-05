@@ -18,6 +18,19 @@ myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
 
+class ArticleStep:
+    FINAL_OUTCOME = 0
+    SUBMISSION_STARTED = 1
+    SUBMISSION_AWAITING_COMPLETION = 2
+    SUBMISSION_PENDING_VALIDATION = 3
+    RECOMMENDER_NEEDED = 4
+    REVIEWERS_NEEDED = 5
+    REVIEWS_UNDERWAY = 6
+    AWAITING_DECISION = 7
+    AWAITING_REVISION = 8
+    EVALUATION_AND_DECISION_UNDERWAY = 9
+
+
 class ArticleStage(Enum):
     STAGE_1 = 'STAGE 1'
     STAGE_2 = 'STAGE 2'
@@ -357,16 +370,19 @@ class Article(Row):
             elif status == ArticleStatus.AWAITING_CONSIDERATION:
                 alert_date = article.last_status_change + timedelta(days=20) # Recommender needed
             elif status == ArticleStatus.UNDER_CONSIDERATION:
-                awaiting_review_tuple = Review.get_most_recent_review_by_due_date(article.id, ReviewState.AWAITING_REVIEW)
-                if last_recommendation:
-                    decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)
-
-                if decision_due_date:
-                    alert_date = decision_due_date + timedelta(days=5) # Awaiting decision
-                elif awaiting_review_tuple:
-                    alert_date = awaiting_review_tuple[1] + timedelta(days=7) # Reviews underway
-                else:
+                if article.current_step_number == ArticleStep.REVIEWERS_NEEDED:
                     alert_date = article.last_status_change + timedelta(days=25) # Reviewers needed
+                elif article.current_step_number == ArticleStep.REVIEWS_UNDERWAY:
+                    if last_recommendation:
+                        awaiting_review_tuple = Review.get_oldest_review_by_due_date(last_recommendation.id, [ReviewState.AWAITING_REVIEW])
+                        if awaiting_review_tuple:
+                            alert_date = awaiting_review_tuple[1] + timedelta(days=7) # Reviews underway
+                elif article.current_step_number == ArticleStep.AWAITING_DECISION:
+                    if last_recommendation:
+                        decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)                            
+                        if decision_due_date:
+                            alert_date = decision_due_date + timedelta(days=5) # Awaiting decision
+                
                     
             elif status in (ArticleStatus.PRE_REVISION, ArticleStatus.PRE_REJECTED, ArticleStatus.PRE_RECOMMENDED):
                 alert_date = article.last_status_change + timedelta(days=2) # Decision pending validation
@@ -391,11 +407,11 @@ class Article(Row):
                                                                                         current.db.mail_queue.sending_date)
                     if len(review_reminders) > 0:
                         first_sending_date = review_reminders[0].sending_date + timedelta(days=10)
-                        if not potential_alert_date or first_sending_date > potential_alert_date:
+                        if not potential_alert_date or first_sending_date < potential_alert_date:
                             potential_alert_date = first_sending_date
 
                 # Alert date 3
-                most_recent_awaiting_review_due_date: _[datetime] = None
+                oldest_awaiting_review_due_date: _[datetime] = None
                 for review in accepted_reviews:
                     if review.review_state != ReviewState.AWAITING_REVIEW.value:
                         continue
@@ -408,16 +424,16 @@ class Article(Row):
                             day=awaiting_review_due_date.day
                         )
 
-                    if not most_recent_awaiting_review_due_date or most_recent_awaiting_review_due_date < awaiting_review_due_date:
-                        most_recent_awaiting_review_due_date = awaiting_review_due_date
+                    if not oldest_awaiting_review_due_date or awaiting_review_due_date < oldest_awaiting_review_due_date:
+                        oldest_awaiting_review_due_date = awaiting_review_due_date
 
-                if most_recent_awaiting_review_due_date:
-                    most_recent_awaiting_review_due_date = most_recent_awaiting_review_due_date + timedelta(days=7)
-                    if not potential_alert_date or potential_alert_date < most_recent_awaiting_review_due_date:
-                        potential_alert_date = most_recent_awaiting_review_due_date
+                if oldest_awaiting_review_due_date:
+                    oldest_awaiting_review_due_date = oldest_awaiting_review_due_date + timedelta(days=7)
+                    if not potential_alert_date or oldest_awaiting_review_due_date < potential_alert_date:
+                        potential_alert_date = oldest_awaiting_review_due_date
                     
                 # Alert date 4
-                if not most_recent_awaiting_review_due_date:
+                if not oldest_awaiting_review_due_date:
                     most_recent_completed_review_date: _[datetime] = None
                     for review in accepted_reviews:
                         if review.review_state != ReviewState.REVIEW_COMPLETED.value or not review.last_change:
@@ -428,7 +444,7 @@ class Article(Row):
 
                     if most_recent_completed_review_date:
                         most_recent_completed_review_date = most_recent_completed_review_date + timedelta(days=15)
-                        if not potential_alert_date or potential_alert_date < most_recent_completed_review_date:
+                        if not potential_alert_date or most_recent_completed_review_date < potential_alert_date:
                             potential_alert_date = most_recent_completed_review_date
 
                 alert_date = potential_alert_date
@@ -437,9 +453,11 @@ class Article(Row):
             elif status == ArticleStatus.AWAITING_REVISION: # Awaiting Revision
                 alert_date = article.last_status_change + timedelta(days=21)
 
+        is_same = article.alert_date == (alert_date.date() if alert_date else None)
         article.alert_date = alert_date
-        if update_record:
-            article.update_record() # type: ignore
+
+        if update_record and not is_same:
+            current.db(current.db.t_articles.id == article.id).update(alert_date=article.alert_date)
 
         return alert_date
 
@@ -450,16 +468,32 @@ class Article(Row):
 
         current_step = get_current_step_article(article)
         if current_step is None:
+            is_same_number = article.current_step_number is None
+            is_same_step = article.current_step is None
+
             article.current_step_number = None
             article.current_step = None
         else:
+            is_same_number = article.current_step_number == current_step[0]
+            is_same_step = article.current_step == str(current_step[1])
+
             article.current_step_number = current_step[0]
             article.current_step = str(current_step[1])
 
         if update_record:
-            article.update_record() # type: ignore
+            if not is_same_number:
+                current.db(current.db.t_articles.id == article.id).update(current_step_number=article.current_step_number)
+            if not is_same_step:
+                current.db(current.db.t_articles.id == article.id).update(current_step=article.current_step)
 
         return current_step
+    
+
+    @staticmethod
+    def get_current_step(article: 'Article'):
+        current_step = Article.update_current_step(article)
+        if current_step:
+            return str(current_step[1])
     
 
     @staticmethod

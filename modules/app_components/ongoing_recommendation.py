@@ -15,7 +15,7 @@ from models.recommendation import Recommendation, RecommendationState
 from app_modules import common_tools
 from app_modules import common_small_html
 from app_modules import hypothesis
-from models.article import ArticleStatus, Article
+from models.article import ArticleStatus, Article, ArticleStep
 
 from controller_modules import manager_module
 from models.article import is_scheduled_submission
@@ -294,11 +294,11 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
     if art.status == ArticleStatus.PRE_SUBMISSION.value:
         articleHasBeenCompleted = False
 
-    if art.upload_timestamp: 
-        if article_cancelled and art.last_status_change:
+    if art.last_status_change:
+        if article_cancelled and art.upload_timestamp:
             nb_days = (art.last_status_change - art.upload_timestamp).days
         else:
-            nb_days = (datetime.datetime.now() - art.upload_timestamp).days
+            nb_days = (datetime.datetime.now() - art.last_status_change).days
 
         if nb_days == 0:
             nb_days_since_completion = -1
@@ -547,7 +547,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
                 nb_days_since_validation=nb_days_since_validation,
                 decision_due_date=decision_due_date.strftime(date_format) if decision_due_date else '',
                 date_format=date_format,
-                article_cancelled=article_cancelled
+                article_cancelled=article_cancelled,
+                article_step=ArticleStep,
             )
             recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
 
@@ -597,7 +598,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
             nb_days_since_validation=0,
             decision_due_date=None,
             date_format=date_format,
-            article_cancelled=article_cancelled
+            article_cancelled=article_cancelled,
+            article_step=ArticleStep,
         )
 
         recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
