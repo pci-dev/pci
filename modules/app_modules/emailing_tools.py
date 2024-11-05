@@ -48,11 +48,11 @@ appName = myconf.take("app.name")
 def email_subject_header(articleId):
     return "%s #%s" % (appName, articleId)
 
-def patch_email_subject(subject, articleId):
+def patch_email_subject(subject: str, articleId: int):
     return subject.replace(appName, email_subject_header(articleId))
 
 
-def mkAuthors(article):
+def mkAuthors(article: Article):
     return article.authors if not article.anonymous_submission else current.T("[undisclosed]")
 
 
@@ -310,7 +310,7 @@ def clean_addresses(dirty_string_adresses):
     return ','.join(contacts), ', '.join(errors)
 
 ######################################################################################################################################################################
-def getMailTemplateHashtag(hashTag, myLanguage="default"):
+def getMailTemplateHashtag(hashTag: str, myLanguage: str = "default"):
     db = current.db
     query = (db.mail_templates.hashtag == hashTag) & (db.mail_templates.lang == myLanguage)
     item = db(query).select().first()
@@ -325,8 +325,7 @@ def getMailTemplateHashtag(hashTag, myLanguage="default"):
 
 
 ######################################################################################################################################################################
-def generateNewMailTemplates(hashTag, myLanguage):
-    db = current.db
+def generateNewMailTemplates(hashTag: str, myLanguage: str):
     baseHashtag = hashTag
     baseHashtag = baseHashtag.replace("Stage1", "")
     baseHashtag = baseHashtag.replace("Stage2", "")
