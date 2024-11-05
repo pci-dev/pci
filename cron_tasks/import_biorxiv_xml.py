@@ -75,13 +75,13 @@ def main():
             continue
 
         emailing.send_to_biorxiv_requester(user, article)
-        emailing.send_import_biorxiv_alert(xml_file)
+        emailing.send_import_biorxiv_alert(xml_file, "Success")
         clean_xml(xml_file, failed=False)
 
 
 def fail(msg: str, xml_file: str):
     log(msg)
-    emailing.send_import_biorxiv_alert(xml_file)
+    emailing.send_import_biorxiv_alert(xml_file, msg)
     clean_xml(xml_file, failed=True)
 
 
