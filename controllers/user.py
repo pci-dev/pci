@@ -1034,6 +1034,8 @@ def edit_my_article():
 
     form: ... = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=deletable, showid=False, fields = fields, extra_fields = manager_label + manager_fields, buttons=buttons)
     ArticleTranslator.add_edit_translation_buttons(article, form)
+    _hide_suggested_reviewer_for_user(article, form)
+
     article_version: Union[int, str, None] = None
 
     try:
@@ -1052,7 +1054,7 @@ def edit_my_article():
         not_empty = None
 
     # form.element(_type="submit")["_value"] = T("Save")
-    def onvalidation(form: ...):
+    def onvalidation(form: ...):        
         if not pciRRactivated:
             if isinstance(article_version, int):
                 if article_version > int(form.vars.ms_version):
@@ -1066,7 +1068,6 @@ def edit_my_article():
         if article == None:
             session.flash = T("Unavailable")
             return redirect(URL("my_articles", user_signature=True))
-    
         if prev_picture and form.vars.uploaded_picture:
             try: os.unlink(os.path.join(request.folder, "uploads", prev_picture))
             except: pass
@@ -1097,7 +1098,8 @@ def edit_my_article():
 
                 Article.remove_pre_submission_token(article)
 
-
+        _get_hidden_suggested_reviewer_for_user(article)
+        
         redirect(URL(c="user", f=target_page, vars=page_vars, anchor=anchor))
 
     elif form.errors:
@@ -1105,6 +1107,8 @@ def edit_my_article():
 
     if pciRRactivated and status['allow_submissions'] is False:
         form = getText("#SubmissionOnHoldInfo")
+
+    _get_hidden_suggested_reviewer_for_user(article)
 
     manager_script = common_tools.get_script("manager_selection.js")
     article_form_common_script = common_tools.get_script("article_form_common.js")
@@ -1118,6 +1122,40 @@ def edit_my_article():
         managerScript = manager_script,
         pciRRjsScript=pciRRjsScript,
     )
+
+
+def _hide_suggested_reviewer_for_user(article: Article, form: ...):
+    if article.user_id != current.auth.user_id:
+        return
+    
+    li_els = form.components[0].components[20].components[1].components[0].components
+    session.hidden_suggested_reviewer = []
+
+    for li in li_els.copy():
+        value: str = li.components[0].attributes['value']
+        if "suggested:" in value:
+            if value not in current.session.hidden_suggested_reviewer:
+                current.session.hidden_suggested_reviewer.append(value)
+            li_els.remove(li)
+
+
+def _get_hidden_suggested_reviewer_for_user(article: Article):
+    if article.user_id != current.auth.user_id:
+        return
+    
+    hidden_susggested_reviewer: List[str] = session.hidden_suggested_reviewer
+    if article.suggest_reviewers is None:
+        article.suggest_reviewers = []
+
+    reviewer_added = False
+
+    for suggested_reviewer in hidden_susggested_reviewer:
+        if suggested_reviewer not in article.suggest_reviewers:
+            article.suggest_reviewers.append(suggested_reviewer)
+            reviewer_added = True
+
+    if reviewer_added:
+        article.update_record() # type: ignore
 
 
 ######################################################################################################################################################################
