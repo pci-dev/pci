@@ -1841,7 +1841,8 @@ def send_reviewer_invitation(reviewId: int,
         recommendation_id=recommendation.id,
         mail_template_hashtag=hashtag_template,
         article_id=recommendation.article_id,
-        sender_name=sender_name
+        sender_name=sender_name,
+        review_id=reviewId
     )
 
     if review.review_state is None:
@@ -2665,7 +2666,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(reviewId: int,
         if not pciRRactivated and sender:
             sender_name = f'{sender.first_name} {sender.last_name}'
 
-        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name, review_id=reviewId)
 
 
 ######################################################################################################################################################################
@@ -2749,7 +2750,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(reviewId: int
         if not pciRRactivated and sender:
             sender_name = f'{sender.first_name} {sender.last_name}'
 
-        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name, review_id=reviewId)
 
 
 ######################################################################################################################################################################
