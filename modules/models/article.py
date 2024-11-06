@@ -389,26 +389,27 @@ class Article(Row):
             elif status == ArticleStatus.AWAITING_REVISION:
                 alert_date = article.last_status_change + timedelta(days=70) # Awaiting revision
         else:
-            if status == ArticleStatus.UNDER_CONSIDERATION: # Evaluation and decision underway
+            if status == ArticleStatus.UNDER_CONSIDERATION and last_recommendation: # Evaluation and decision underway
                 potential_alert_date: _[datetime] = None
 
                 # Alert date 1
-                if last_recommendation:
-                    decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)
-                    if decision_due_date:
-                        potential_alert_date = decision_due_date + timedelta(days=5)
+                decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)
+                if decision_due_date:
+                    potential_alert_date = decision_due_date + timedelta(days=5)
 
                 # Alert date 2
-                accepted_reviews = Review.get_by_article_id_and_state(article.id, [ReviewState.AWAITING_REVIEW, ReviewState.REVIEW_COMPLETED])
+                accepted_reviews = Review.get_by_recommendation_id(last_recommendation.id, review_states=[ReviewState.AWAITING_REVIEW, ReviewState.REVIEW_COMPLETED])
                 if len(accepted_reviews) == 0:
-                    review_reminders = MailQueue.get_by_article_and_template(article,
-                                                                                        ["#ReminderReviewerReviewInvitationNewUser","#ReminderReviewerReviewInvitationRegisteredUser", "#ReminderReviewerInvitationNewRoundRegisteredUser"],
-                                                                                        [SendingStatus.PENDING],
-                                                                                        current.db.mail_queue.sending_date)
-                    if len(review_reminders) > 0:
-                        first_sending_date = review_reminders[0].sending_date + timedelta(days=10)
-                        if not potential_alert_date or first_sending_date < potential_alert_date:
-                            potential_alert_date = first_sending_date
+                    review_sent = Review.get_by_recommendation_id(last_recommendation.id, review_states=[ReviewState.AWAITING_RESPONSE, ReviewState.DECLINED, ReviewState.CANCELLED])
+                    if len(review_sent) > 0:
+                        review_reminders = MailQueue.get_by_review_and_template([review.id for review in review_sent],
+                                                                                            ["#DefaultReviewInvitationNewUser","#DefaultReviewInvitationRegisteredUser", "#DefaultReviewInvitationNewRoundRegisteredUser"],
+                                                                                            [SendingStatus.SENT],
+                                                                                            current.db.mail_queue.sending_date)
+                        if len(review_reminders) > 0:
+                            first_sending_date = review_reminders[0].sending_date + timedelta(days=10)
+                            if not potential_alert_date or first_sending_date < potential_alert_date:
+                                potential_alert_date = first_sending_date
 
                 # Alert date 3
                 oldest_awaiting_review_due_date: _[datetime] = None
