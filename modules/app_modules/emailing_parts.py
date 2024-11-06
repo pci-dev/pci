@@ -1,40 +1,26 @@
 # -*- coding: utf-8 -*-
 
-import os
-import time
-from re import sub, match
-
-from datetime import datetime, timedelta
-
 # from copy import deepcopy
 from dateutil.relativedelta import *
-import traceback
-from pprint import pprint
 
 from gluon import current
-from gluon.tools import Auth
 from gluon.html import *
-from gluon.template import render
-from gluon.contrib.markdown import WIKI
-from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Mail
+from gluon.contrib.markdown import WIKI # type: ignore
+from gluon.contrib.appconfig import AppConfig # type: ignore
 
 from gluon.custom_import import track_changes
 
 track_changes(True)
-import socket
-
-from uuid import uuid4
-from contextlib import closing
-import shutil
 
 from app_modules import common_tools
 from app_modules import common_small_html
 
+from app_modules.common_tools import URL
+
 myconf = AppConfig(reload=True)
 scheme = myconf.take("alerts.scheme")
 host = myconf.take("alerts.host")
-port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+port = myconf.take("alerts.port", cast=lambda v: common_tools.takePort(v)) # type: ignore
 
 
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -46,8 +32,8 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 
 
-def getReviewHTML(rewiewId):
-    db, auth = current.db, current.auth
+def getReviewHTML(rewiewId: int):
+    db= current.db
     review = db.t_reviews[rewiewId]
 
     reviewAuthorAndDate = SPAN(
@@ -68,15 +54,15 @@ def getReviewHTML(rewiewId):
     return DIV(
         H4(reviewAuthorAndDate, _style="margin-top: 10px; font-weight: bold; color: #555; margin-bottom: 10px"),
         DIV(
-            WIKI((review.review if review.review else ""), safe_mode=False),
+            WIKI((review.review if review.review else ""), safe_mode=''),
             pdfLink,
             _style="border-left: 1px solid #e0e0e0; padding: 5px 15px; margin-bottom: 10px;"
         )
     )
 
 
-def getAuthorsReplyLinks(recommId):
-    db, auth = current.db, current.auth
+def getAuthorsReplyLinks(recommId: int):
+    db= current.db
     recomm = db.t_recommendations[recommId]
     
     authorsReplyPdfLink = ""
@@ -98,15 +84,15 @@ def getAuthorsReplyLinks(recommId):
     return authorsReplyPdfLink, authorsReplyTrackChangeFileLink
 
 
-def getAuthorsReplyHTML(recommId):
-    db, auth = current.db, current.auth
+def getAuthorsReplyHTML(recommId: int):
+    db = current.db
     authorsReplyPdfLink, authorsReplyTrackChangeFileLink = getAuthorsReplyLinks(recommId)
     recomm = db.t_recommendations[recommId]
 
     return DIV(
         H4(current.T("Author's Reply"), _style="margin-top: 10px; font-weight: bold; color: #555; margin-bottom: 10px"),
         DIV(
-            WIKI(recomm.reply or "", safe_mode=False),
+            WIKI(recomm.reply or "", safe_mode=''),
             authorsReplyPdfLink,
             authorsReplyTrackChangeFileLink,
             _style="border-left: 1px solid #e0e0e0; padding: 5px 15px; margin-bottom: 10px;"
