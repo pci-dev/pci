@@ -14,15 +14,15 @@ from controller_modules import adjust_grid
 from app_modules.emailing import send_conditional_acceptation_review_mail, send_unsubscription_alert_for_manager
 from app_modules import emailing
 from app_modules.orcid import OrcidTools
-from gluon import DAL
+from gluon import IS_IN_DB
 # -------------------------------------------------------------------------
 # app configuration made easy. Look inside private/appconfig.ini
 # once in production, remove reload=True to gain full speed
 # -------------------------------------------------------------------------
-from gluon.contrib.appconfig import AppConfig
-from gluon.http import HTTP, redirect
+from gluon.contrib.appconfig import AppConfig # type: ignore
+from gluon.http import HTTP, redirect # type: ignore
 from gluon.sqlhtml import SQLFORM
-from gluon.utils import web2py_uuid
+from gluon.utils import web2py_uuid # type: ignore
 
 from models.article import Article
 from models.recommendation import Recommendation
@@ -40,7 +40,13 @@ from app_modules.common_tools import URL
 
 
 myconf = AppConfig(reload=True)
-db = cast(DAL, db)
+
+db = current.db
+request = current.request
+response = current.response
+auth = current.auth
+T = current.T
+session = current.session
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
@@ -67,7 +73,7 @@ def index():
 
     recomms = db.get_last_recomms()
 
-    def articleRow(row):
+    def articleRow(article_id: int, row: ...):
         return article_components.getRecommArticleRowCard(
                         row,
                         recomms.get(row.id),
@@ -76,11 +82,11 @@ def index():
 
     t_articles = db.v_article
 
-    t_articles.id.represent = lambda text, row: articleRow(row)
+    t_articles.id.represent = articleRow
 
     # make advanced search form field use simple dropdown widget
     t_articles.thematics.type = "string"
-    t_articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+    t_articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero="")
 
     for field in ("""
     anonymous_submission
@@ -115,7 +121,7 @@ def index():
     .split()): t_articles[field].readable = False
 
     try:
-      original_grid = SQLFORM.grid(
+      original_grid = SQLFORM.grid( # type: ignore
         (t_articles.status == "Recommended"),
         maxtextlength=250,
         paginate=10,
@@ -140,7 +146,7 @@ def index():
             t_articles.scheduled_submission_date,
             ],
         orderby=~t_articles.last_status_change,
-        _class="web2py_grid action-button-absolute",
+        _class="web2py_grid action-button-absolute undisplay-records",
     )
       # check url arguments passed to grid did not break db
       db.executesql("select 1")
@@ -150,7 +156,7 @@ def index():
 
     integer_fields = ['v_article.article_year']
     remove_options = ['v_article.id']
-    try: grid = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options, integer_fields)
+    try: grid: ... = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options, integer_fields)
     except: grid = original_grid
 
     tweeterAcc = myconf.get("social.tweeter")
@@ -165,13 +171,13 @@ def index():
         ),
         A(
             SPAN(IMG(_alt="mastodon", _src=URL(c="static", f="images/mastodon-logo.svg")),),
-            _href="https://spore.social/%(mastodonAcc)s"%locals(),
+            _href=f"https://spore.social/{mastodonAcc}",
             _class="btn pci-twitter-btn",
             _style="float:right;",
         ) if pciRRactivated else
         A(
             SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
-            _href="https://twitter.com/%(tweeterAcc)s"%locals(),
+            _href=f"https://twitter.com/{tweeterAcc}",
             _class="btn pci-twitter-btn",
             _style="float:right;",
         ),
