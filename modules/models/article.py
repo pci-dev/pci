@@ -400,10 +400,13 @@ class Article(Row):
                 # Alert date 2
                 accepted_reviews = Review.get_by_recommendation_id(last_recommendation.id, review_states=[ReviewState.AWAITING_REVIEW, ReviewState.REVIEW_COMPLETED])
                 if len(accepted_reviews) == 0:
-                    review_sent = Review.get_by_recommendation_id(last_recommendation.id, review_states=[ReviewState.AWAITING_RESPONSE, ReviewState.DECLINED, ReviewState.CANCELLED])
+                    review_sent = Review.get_by_recommendation_id(last_recommendation.id, review_states=[ReviewState.AWAITING_RESPONSE, ReviewState.DECLINED, ReviewState.DECLINED_MANUALLY, ReviewState.DECLINED_BY_RECOMMENDER, ReviewState.CANCELLED])
                     if len(review_sent) > 0:
                         review_reminders = MailQueue.get_by_review_and_template([review.id for review in review_sent],
-                                                                                            ["#DefaultReviewInvitationNewUser","#DefaultReviewInvitationRegisteredUser", "#DefaultReviewInvitationNewRoundRegisteredUser"],
+                                                                                            [
+                                                                                                "#DefaultReviewInvitationNewRoundRegisteredUser",
+                                                                                                "#DefaultReviewInvitationNewRoundNewReviewerRegisteredUser",
+                                                                                                "#DefaultReviewInvitationNewRoundNewReviewerNewUser"],
                                                                                             [SendingStatus.SENT],
                                                                                             current.db.mail_queue.sending_date)
                         if len(review_reminders) > 0:
