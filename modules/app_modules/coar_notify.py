@@ -92,14 +92,9 @@ class COARNotifier:
 
     def _send_notification(self, notification, target_inbox):
         serialized_notification = json.dumps(notification, indent=2)
-        session = _get_requests_session()
 
         try:
-            response = session.post(
-                target_inbox,
-                data=serialized_notification,
-                headers={"Content-Type": "application/ld+json"},
-            )
+            response = post_notification(target_inbox, serialized_notification)
         except requests.exceptions.MissingSchema:
             http_status = 418 # no target_inbox found in Link header
         except requests.exceptions.RequestException as e:
@@ -144,13 +139,8 @@ class COARNotifier:
 
 
     def _send_to_listener(self, target_inbox, notification):
-        session = _get_requests_session()
         try:
-            response = session.post(
-                target_inbox,
-                data=notification,
-                headers={"Content-Type": "application/ld+json"},
-            )
+            response = post_notification(target_inbox, notification)
             response.raise_for_status()
         except Exception as e:
             print(f"_send_to_listeners: {e}")
@@ -286,6 +276,18 @@ class COARNotifier:
         )
 
 #
+
+
+def post_notification(target_inbox, notification):
+    session = _get_requests_session()
+    response = session.post(
+            target_inbox,
+            data=notification,
+            headers={"Content-Type": "application/ld+json"},
+            timeout=(1, 4),
+    )
+    return response
+
 
 def send_ack(self,
         typ: typing.Literal["TentativeAccept", "Reject", "TentativeReject"],
