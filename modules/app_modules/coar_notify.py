@@ -284,6 +284,7 @@ def post_notification(target_inbox, notification):
             target_inbox,
             data=notification,
             headers={"Content-Type": "application/ld+json"},
+            timeout=(1, 4),
     )
     return response
 
