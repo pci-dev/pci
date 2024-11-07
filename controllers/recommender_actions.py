@@ -102,7 +102,10 @@ def do_accept_new_article_to_recommend():
         redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
     else:
         if article.status == ArticleStatus.UNDER_CONSIDERATION.value:
-            last_recommendation = db((db.t_recommendations.article_id == article_id) & (db.t_recommendations.is_closed == False)).select(db.t_recommendations.ALL).first()
+            last_recommendation = (
+                    db((db.t_recommendations.article_id == article_id) & (db.t_recommendations.is_closed == False))
+                    .select(db.t_recommendations.ALL, orderby=db.t_recommendations.id).last()
+            )
             if last_recommendation is not None and last_recommendation.id is not None:
                 recommendation_id = last_recommendation.id
                 reviewers_list_selection = db((db.t_reviews.recommendation_id == recommendation_id) & (db.t_reviews.reviewer_id == db.auth_user.id)).select(
