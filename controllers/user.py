@@ -654,13 +654,8 @@ def fill_new_article():
         if pciRRactivated:
             form.vars.status = "Pending-survey"
 
-        suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.suggest_reviewers)
-        if suggested_reviewers_error:
-            form.errors.suggest_reviewers = suggested_reviewers_error
-
-        opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.opposed_reviewers)
-        if opposed_reviewers_reviewers_error:
-            form.errors.opposed_reviewers = opposed_reviewers_reviewers_error
+        check_suggested_and_opposed_reviewers(form)
+        check_duplicate_submission(form)
 
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
@@ -691,6 +686,10 @@ def fill_new_article():
         fix_web2py_list_str_bug_article_form(form)
         _save_article_form(form)
         _clean_article_form_saved(True)
+
+        if form.errors.duplicate:
+            redirect(URL(c="user", f="duplicate_submission", vars=form.errors.duplicate))
+
         response.flash = T("Form has errors", lazy=False)
 
 
@@ -720,6 +719,52 @@ def fill_new_article():
         customText=customText,
         form=form,
         myFinalScript=final_scripts
+    )
+
+
+def check_suggested_and_opposed_reviewers(form):
+    suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.suggest_reviewers)
+    if suggested_reviewers_error:
+        form.errors.suggest_reviewers = suggested_reviewers_error
+
+    opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.opposed_reviewers)
+    if opposed_reviewers_reviewers_error:
+        form.errors.opposed_reviewers = opposed_reviewers_reviewers_error
+
+
+def check_duplicate_submission(form):
+    same_title = db(db.t_articles.title.lower() == form.vars.title.lower()).count()
+    same_url = db(db.t_articles.doi.lower() == form.vars.doi.lower()).count()
+
+    if same_title or same_url:
+        form.errors.duplicate = dict(
+            same_title=same_title, title=form.vars.title,
+            same_url=same_url, url=form.vars.doi,
+        )
+
+
+def duplicate_submission():
+    dup_info = (
+        "title and url" if request.vars.same_title and request.vars.same_url else
+        "title" if request.vars.same_title else
+        "url"
+    )
+    text = XML(f"""
+        An article with title '{request.vars.title}' and url = {request.vars.url}
+        is already submitted at this PCI with the same {dup_info}.
+        <br>
+        Your sumbission has thus not been registered.
+        <br>
+        Please contact the Managing Board at {myconf.get("contacts.contact")}
+        for more information.
+    """)
+    response.view = "default/myLayoutBot.html"
+    return dict(
+        #pageHelp=getHelp("#UserSubmitNewArticle"),
+        #pageTitle=getTitle("#UserSubmitNewArticleTitle"),
+        titleIcon="warning",
+        pageTitle="Duplicate submission",
+        customText=text,
     )
 
 
