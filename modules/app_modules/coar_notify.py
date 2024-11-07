@@ -343,6 +343,11 @@ def __get_target_inbox(article):
 
 
 def _get_target_inbox(article):
+    origin_request = get_origin_request(article)
+
+    if origin_request:
+        return origin_request["origin"]["inbox"]
+    else:
         return get_signposting_inbox(article)
 
 
