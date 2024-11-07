@@ -21,6 +21,7 @@ from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Mail
 
 from gluon.custom_import import track_changes
+from models.article import Article
 
 track_changes(True)
 import socket
@@ -86,7 +87,7 @@ def getMails(role: str):
 ######################################################################################################################################################################
 # PCI RR vars
 ######################################################################################################################################################################
-def getPCiRRinvitationTexts(article, new_stage=False):
+def getPCiRRinvitationTexts(article: Article, new_stage: bool = False):
     report_survey = article.t_report_survey.select().last()
 
     stage1_art = current.db.t_articles[article.art_stage_1_id]
@@ -118,7 +119,7 @@ def getPCiRRinvitationTexts(article, new_stage=False):
 
 
 ######################################################################################################################################################################
-def getPCiRRScheduledSubmissionsVars(article):
+def getPCiRRScheduledSubmissionsVars(article: Article):
     scheduledSubmissionDate = ""
     scheduledSubmissionLatestReviewStartDate = ""
     scheduledReviewDueDate = ""
@@ -156,7 +157,7 @@ def getPCiRRrecommendationText(article):
     return recommendation_text
 
 
-def getPCiRRstageVars(article):
+def getPCiRRstageVars(article: Article):
     if article.art_stage_1_id is None:
         return {}
 

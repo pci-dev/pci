@@ -98,6 +98,34 @@ class MailQueue(Row):
 
 
     @staticmethod
+    def get_by_review_and_template(review_id: List[int],
+                                   hastag_template: List[str],
+                                   sending_status: List[SendingStatus] = [],
+                                   order_by: _[Any] = None) -> List['MailQueue'] :
+        db = current.db
+        sending_status_values = [s.value for s in sending_status]
+
+        if len(sending_status_values) == 0:
+            query = db(
+                (db.mail_queue.review_id.belongs(review_id)) &
+                (db.mail_queue.mail_template_hashtag.belongs(hastag_template))
+            )
+        else:
+            query = db(
+                (db.mail_queue.review_id.belongs(review_id)) &
+                (db.mail_queue.mail_template_hashtag.belongs(hastag_template)) &
+                (db.mail_queue.sending_status.belongs(sending_status_values))
+            )
+
+        if order_by:
+            mails = query.select(orderby=order_by)
+        else:
+            mails = query.select()
+            
+        return mails
+
+
+    @staticmethod
     def there_are_mails_for_article_recommendation(article_id: int, recommendation_id: int, hastag_template: str, sending_status: List[SendingStatus] = []):
         db = current.db
         sending_status_values = [s.value for s in sending_status]

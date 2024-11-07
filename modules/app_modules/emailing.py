@@ -5,7 +5,7 @@ import os
 import datetime
 import time
 from re import sub, match
-from typing import List, Optional, cast, Any, Dict
+from typing import List, Optional, cast, Any, Dict, Union
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
@@ -17,9 +17,9 @@ from gluon.globals import Session
 from gluon.sqlhtml import SQLFORM
 from gluon.tools import Auth
 from gluon.html import *
-from gluon.template import render
-from gluon.contrib.markdown import WIKI
-from gluon.contrib.appconfig import AppConfig
+from gluon.template import render # type: ignore
+from gluon.contrib.markdown import WIKI # type: ignore
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.tools import Mail
 from gluon.storage import Storage
 import models.article
@@ -1709,13 +1709,23 @@ def send_to_recommender_preprint_validated(articleId):
 ######################################################################################################################################################################
 # Mail with templates
 ######################################################################################################################################################################
-def send_reviewer_invitation(reviewId, replyto_addresses, cc_addresses, hashtag_template, subject, message, reset_password_key=None, linkTarget=None, declineLinkTarget=None, new_round=False, new_stage=False):
+def send_reviewer_invitation(reviewId: int,
+                             replyto_addresses: str,
+                             cc_addresses: List[str],
+                             hashtag_template: str,
+                             subject: str,
+                             message: str,
+                             reset_password_key: Optional[str] = None,
+                             linkTarget: Optional[str] = None,
+                             declineLinkTarget: Optional[str] = None,
+                             new_round: bool = False,
+                             new_stage: bool = False):
     session, auth, db = current.session, current.auth, current.db
 
     reg_user_reminder_template = None
     new_user_reminder_template = None
 
-    reports = []
+    reports: List[Dict[str, Union[bool, str]]] = []
 
     review = Review.get_by_id(reviewId)
     if not review:
@@ -1742,15 +1752,18 @@ def send_reviewer_invitation(reviewId, replyto_addresses, cc_addresses, hashtag_
         sender = User.get_by_id(recommendation.recommender_id)
     else:
         sender = cast(User, auth.user)
+
+    if not sender:
+        return
     
     mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recommendation, reviewer.last_name)
     mail_vars["LastName"] = reviewer.last_name
     mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
     mail_vars["destAddress"] = reviewer.email
-    mail_vars["reviewDuration"] = (review.review_duration).lower()
+    mail_vars["reviewDuration"] = (review.review_duration).lower() if review.review_duration else ''
     message = emailing_tools.replaceMailVars(message, mail_vars)
 
-    content = DIV(WIKI(message, safe_mode=False))
+    content = DIV(WIKI(message, safe_mode=''))
     reviewer_invitation_buttons = None
 
     if reset_password_key:
@@ -1768,7 +1781,8 @@ def send_reviewer_invitation(reviewId, replyto_addresses, cc_addresses, hashtag_
                 port=mail_vars["port"],
             )
 
-        reviewer_invitation_buttons = generate_reviewer_invitation_buttons(link, declineLinkTarget, review.review_duration, article)
+        if declineLinkTarget and review.review_duration:
+            reviewer_invitation_buttons = generate_reviewer_invitation_buttons(link, declineLinkTarget, review.review_duration, article)
         if hashtag_template == "#DefaultReviewInvitationNewUserStage2":
             new_user_reminder_template = emailing_tools.get_correct_hashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
@@ -1776,7 +1790,7 @@ def send_reviewer_invitation(reviewId, replyto_addresses, cc_addresses, hashtag_
 
     elif linkTarget:
         if review.review_state is None or review.review_state == "Awaiting response" or review.review_state == "":
-            if declineLinkTarget:
+            if declineLinkTarget and review.review_duration:
                 reviewer_invitation_buttons = generate_reviewer_invitation_buttons(linkTarget, declineLinkTarget, review.review_duration, article)
 
         elif review.review_state == "Awaiting review":
@@ -1797,7 +1811,7 @@ def send_reviewer_invitation(reviewId, replyto_addresses, cc_addresses, hashtag_
         prev_recomm = common_tools.get_prev_recomm(recommendation)
         authors_reply = emailing_parts.getAuthorsReplyHTML(prev_recomm.id)
 
-    message = render(
+    message: ... = render(
         filename=MAIL_HTML_LAYOUT,
         context=dict(
             subject=subject_without_appname,
@@ -1827,14 +1841,15 @@ def send_reviewer_invitation(reviewId, replyto_addresses, cc_addresses, hashtag_
         recommendation_id=recommendation.id,
         mail_template_hashtag=hashtag_template,
         article_id=recommendation.article_id,
-        sender_name=sender_name
+        sender_name=sender_name,
+        review_id=reviewId
     )
 
     if review.review_state is None:
         review.review_state = "Awaiting response"
-        review.update_record()
+        review.update_record() # type: ignore
 
-    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+    reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports) # type: ignore
 
     emailing_tools.getFlashMessage(reports)
 
@@ -1877,11 +1892,11 @@ def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, revi
     if pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or models.article.is_scheduled_submission(article)):
         pass
     else:
-        html.components[1].components.append(B(current.T("OR")))
-        html.components[1].components.append(more_delay_button)
+        html.components[1].components.append(B(current.T("OR"))) # type: ignore
+        html.components[1].components.append(more_delay_button) # type: ignore
         
-    html.components[1].components.append(B(current.T("OR")))
-    html.components[1].components.append(decline_button)
+    html.components[1].components.append(B(current.T("OR"))) # type: ignore
+    html.components[1].components.append(decline_button) # type: ignore
 
     return html
     
@@ -2585,11 +2600,22 @@ def reviewLink(**kwargs):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_new_user(reviewId, replyto_addresses, message:str, reviewer_invitation_buttons=None, hashtag_template=None, new_stage=False):
+def create_reminder_for_reviewer_review_invitation_new_user(reviewId: int,
+                                                            replyto_addresses: str,
+                                                            message:str,
+                                                            reviewer_invitation_buttons: Optional[DIV] = None,
+                                                            hashtag_template: Optional[str] = None,
+                                                            new_stage: bool = False):
     session, auth, db = current.session, current.auth, current.db
 
     review = Review.get_by_id(reviewId)
+    if not review:
+        return
+    
     recomm = Recommendation.get_by_id(review.recommendation_id)
+    if not recomm:
+        return
+    
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
@@ -2600,6 +2626,9 @@ def create_reminder_for_reviewer_review_invitation_new_user(reviewId, replyto_ad
         else:
             sender = cast(User, auth.user)
 
+        if not sender:
+            return
+
         mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recomm, reviewer.last_name)
         mail_vars["message"] = message
 
@@ -2609,7 +2638,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(reviewId, replyto_ad
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
         mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
         
-        mail_vars["reviewDuration"] = (review.review_duration).lower()
+        mail_vars["reviewDuration"] = (review.review_duration).lower() if review.review_duration else ''
 
 
         if pciRRactivated:
@@ -2637,15 +2666,27 @@ def create_reminder_for_reviewer_review_invitation_new_user(reviewId, replyto_ad
         if not pciRRactivated and sender:
             sender_name = f'{sender.first_name} {sender.last_name}'
 
-        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, sender_name=sender_name, review_id=reviewId)
 
 
 ######################################################################################################################################################################
-def create_reminder_for_reviewer_review_invitation_registered_user(reviewId, replyto_addresses, message: str, reviewer_invitation_buttons=None, new_round=False, hashtag_template=None, new_stage=False):
+def create_reminder_for_reviewer_review_invitation_registered_user(reviewId: int,
+                                                                   replyto_addresses: str,
+                                                                   message: str,
+                                                                   reviewer_invitation_buttons: Optional[DIV] = None,
+                                                                   new_round: bool = False,
+                                                                   hashtag_template: Optional[str] = None,
+                                                                   new_stage: bool = False):
     session, auth, db = current.session, current.auth, current.db
 
     review = Review.get_by_id(reviewId)
+    if not review:
+        return
+    
     recomm = Recommendation.get_by_id(review.recommendation_id)
+    if not recomm:
+        return
+    
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
@@ -2656,6 +2697,9 @@ def create_reminder_for_reviewer_review_invitation_registered_user(reviewId, rep
         else:
             sender = cast(User, auth.user)
 
+        if not sender:
+            return
+
         mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recomm, reviewer.last_name)
         mail_vars["message"] = message
 
@@ -2665,7 +2709,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(reviewId, rep
         
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
         mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
-        mail_vars["reviewDuration"] = (review.review_duration).lower()
+        mail_vars["reviewDuration"] = (review.review_duration).lower() if review.review_duration else ''
         mail_vars["replytoAddresses"] = replyto_addresses
 
         _recomm = common_tools.get_prev_recomm(recomm) if new_round else recomm
@@ -2706,7 +2750,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(reviewId, rep
         if not pciRRactivated and sender:
             sender_name = f'{sender.first_name} {sender.last_name}'
 
-        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id, reviewer_invitation_buttons=reviewer_invitation_buttons, authors_reply=authors_reply, sender_name=sender_name, review_id=reviewId)
 
 
 ######################################################################################################################################################################

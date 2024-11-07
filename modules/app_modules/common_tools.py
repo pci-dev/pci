@@ -16,6 +16,7 @@ from gluon.validators import IS_LIST_OF
 from models.article import Article
 from models.group import Role
 from models.membership import Membership
+from models.recommendation import Recommendation
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
 from models.user import User
@@ -123,7 +124,7 @@ def pci_redirect(url):
 
 
 ###################################################################
-def get_prev_recomm(recomm):
+def get_prev_recomm(recomm: Recommendation):
     db = current.db
     last_recomm = db(
             (db.t_recommendations.article_id == recomm.article_id) &
