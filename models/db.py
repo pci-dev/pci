@@ -972,6 +972,8 @@ def recommendationUpdated(s, updated_recommendation):
 
 
 def send_coar_notifications(coar_notifier, article_id, recommendation):
+        current.db = db
+
         for review in db(
                 (db.t_recommendations.article_id == article_id)
               & (db.t_reviews.recommendation_id == db.t_recommendations.id)
