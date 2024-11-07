@@ -343,6 +343,15 @@ def __get_target_inbox(article):
 
 
 def _get_target_inbox(article):
+    origin_request = get_origin_request(article)
+
+    if origin_request:
+        return origin_request["origin"]["inbox"]
+    else:
+        return get_signposting_inbox(article)
+
+
+def get_signposting_inbox(article):
     """Grab the inbox url from the Link entry (if any) provided by the repo
     We expect a HEAD request to adhere to https://www.w3.org/TR/ldn/#discovery
     """
