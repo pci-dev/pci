@@ -217,9 +217,14 @@ class Article(Row):
 
 
     @staticmethod
-    def get_last_recommendation(article_id: int):
+    def get_last_recommendation(article_id: int, cache: bool = False) -> _[Recommendation]:
         db = current.db
-        return cast(_[Recommendation], db(db.t_recommendations.article_id == article_id).select(orderby=db.t_recommendations.id).last())
+        
+        query = db(db.t_recommendations.article_id == article_id)
+        if cache:
+            return query.select(orderby=db.t_recommendations.id, cache=(current.cache.ram, 30)).last()
+        else:
+            return query.select(orderby=db.t_recommendations.id).last()
 
 
     @staticmethod

@@ -1398,6 +1398,7 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
         emailing.send_to_suggested_recommender(article.id, suggested_recommender.suggested_recommender_id)
         emailing.create_reminder_for_suggested_recommender_invitation(article.id, suggested_recommender.suggested_recommender_id)
 
+    update_alert_and_current_step_article(article.id)
 
 def deleteSuggRecommender(s):
     sugg_recomm = s.select().first()
@@ -1513,6 +1514,34 @@ db.define_table(
     Field("sender_name", type="string", label=T("Sender name")),
     migrate=False,
 )
+
+
+def after_insert_mail(s: ..., mail_id: int):
+    mail_queue = MailQueue.get_mail_by_id(mail_id)
+    if not mail_queue:
+        return
+    
+    article_id: Optional[int] = None
+    
+    if mail_queue.article_id:
+        article_id = mail_queue.article_id
+    elif mail_queue.recommendation_id:
+        recommendation = Recommendation.get_by_id(mail_queue.recommendation_id)
+        if recommendation:
+            article_id = recommendation.article_id
+    elif mail_queue.review_id:
+        review = Review.get_by_id(mail_queue.review_id)
+        if review:
+            recommendation = Recommendation.get_by_id(review.recommendation_id)
+            if recommendation:
+                article_id = recommendation.article_id
+    
+    if article_id is not None:
+        update_alert_and_current_step_article(mail_queue.article_id)
+
+
+db.mail_queue._after_insert.append(after_insert_mail)
+
 
 db.define_table(
     "tweets",

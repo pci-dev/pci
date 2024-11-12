@@ -109,7 +109,7 @@ def getRecommStatusHeader(art: Article, userDiv: bool, printable: bool, quiet: b
 def get_recommendation_status_buttons(article: Article):
     auth, request, T = current.auth, current.request, current.T
 
-    last_recommendation = Article.get_last_recommendation(article.id)
+    last_recommendation = Article.get_last_recommendation(article.id, True)
     co_recommender = False
     if last_recommendation:
         co_recommender = is_co_recommender(last_recommendation.id)

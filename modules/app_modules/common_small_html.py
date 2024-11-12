@@ -598,7 +598,7 @@ def represent_article_with_recommendation_info(recommendation_id: int):
 
 def represent_article_manager_board(article: Article):
     html: List[Union[DIV, str]] = []
-    last_recommendation = Article.get_last_recommendation(article.id)
+    last_recommendation = Article.get_last_recommendation(article.id, True)
 
     title = " ".join((article.title or "").split(" ")[:7])
     if article.title and len(article.title) > len(title):
@@ -676,12 +676,12 @@ def represent_link_column_manager_board(article: Article):
 
 
 def represent_alert_manager_board(article: Article):
-    alert_date = Article.update_alert_date(article)
+    alert_date = article.alert_date
 
     if not alert_date:
         return ''
     else:
-        if alert_date.date() <= datetime.date.today():
+        if alert_date <= datetime.date.today():
             style = "color: #d9534f;"
         else:
             style = ""
@@ -692,7 +692,7 @@ def represent_alert_manager_board(article: Article):
     
 
 def represent_current_step_manager_board(article: Article):
-    current_step = Article.get_current_step(article)
+    current_step = article.current_step
     if current_step:
         return XML(current_step)
     else:
