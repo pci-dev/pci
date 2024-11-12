@@ -3,6 +3,7 @@
 import locale
 
 from gluon.sqlhtml import SQLFORM
+from models.suggested_recommender import SuggestedRecommender
 locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
 
 from typing import cast
@@ -11,8 +12,8 @@ from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect # type: ignore
 from models.article import ArticleStatus
-from models.mail_queue import MailQueue, SendingStatus
-from models.recommendation import Recommendation, RecommendationState
+from models.mail_queue import MailQueue
+from models.recommendation import Recommendation
 from models.article import Article
 from models.user import User
 from app_components.custom_field import RequiredField
@@ -1384,16 +1385,18 @@ db.t_suggested_recommenders._before_delete.append(lambda s: deleteSuggRecommende
 db.t_suggested_recommenders._before_update.append(lambda s, f: declineSuggRecommender(s, f))
 
 
-def appendSuggRecommender(f, i):
-    a = db.t_articles[f.article_id]
+def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: int):
+    article = Article.get_by_id(suggested_recommender.article_id)
+    if not article:
+        return
 
-    emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", a.id)
+    emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", article.id)
     # note: do NOT delete #ReminderSubmitterNewSuggestedRecommenderNeeded
 
-    if a and a["status"] == "Awaiting consideration":
+    if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
         # BUG : resend to all send to all
-        emailing.send_to_suggested_recommender(a["id"], f["suggested_recommender_id"])
-        emailing.create_reminder_for_suggested_recommender_invitation(a["id"], f["suggested_recommender_id"])
+        emailing.send_to_suggested_recommender(article.id, suggested_recommender.suggested_recommender_id)
+        emailing.create_reminder_for_suggested_recommender_invitation(article.id, suggested_recommender.suggested_recommender_id)
 
 
 def deleteSuggRecommender(s):
