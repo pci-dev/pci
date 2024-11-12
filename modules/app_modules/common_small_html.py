@@ -13,7 +13,7 @@ from gluon.html import *
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.sqlhtml import *
-from models.article import Article, ArticleStatus
+from models.article import Article, ArticleStatus, StepNumber
 from models.recommendation import Recommendation
 from models.press_reviews import PressReview
 from models.review import Review, ReviewState
@@ -1461,9 +1461,9 @@ def get_current_step_article(article: Article):
     
     step_done_container = step_done_els[-1]
 
-    step_number: int = 0
+    step_number: StepNumber = StepNumber(0)
     if step_done_container.has_attr('data-step'):
-        step_number = int(step_done_container.attrs['data-step'])
+        step_number = StepNumber(step_done_container.attrs['data-step'])
     
     step_done_content = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
     img = f"{_get_current_step_img(step_done_els)}"

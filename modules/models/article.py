@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from enum import Enum
 import re
-from typing import Any, List, Optional as _, Union, cast, TypedDict
+from typing import Any, List, NewType, Optional as _, Union, cast, TypedDict
 from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
@@ -17,18 +17,19 @@ from app_modules.lang import Lang
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
+StepNumber = NewType('StepNumber', int)
 
 class ArticleStep:
-    FINAL_OUTCOME = 0
-    SUBMISSION_STARTED = 1
-    SUBMISSION_AWAITING_COMPLETION = 2
-    SUBMISSION_PENDING_VALIDATION = 3
-    RECOMMENDER_NEEDED = 4
-    REVIEWERS_NEEDED = 5
-    REVIEWS_UNDERWAY = 6
-    AWAITING_DECISION = 7
-    AWAITING_REVISION = 8
-    EVALUATION_AND_DECISION_UNDERWAY = 9
+    FINAL_OUTCOME = StepNumber(0)
+    SUBMISSION_STARTED = StepNumber(1)
+    SUBMISSION_AWAITING_COMPLETION = StepNumber(2)
+    SUBMISSION_PENDING_VALIDATION = StepNumber(3)
+    RECOMMENDER_NEEDED = StepNumber(4)
+    REVIEWERS_NEEDED = StepNumber(5)
+    REVIEWS_UNDERWAY = StepNumber(6)
+    AWAITING_DECISION = StepNumber(7)
+    AWAITING_REVISION = StepNumber(8)
+    EVALUATION_AND_DECISION_UNDERWAY = StepNumber(9)
 
 
 class ArticleStage(Enum):
@@ -132,7 +133,7 @@ class Article(Row):
     remarks: _[str]
     alert_date: _[date]
     current_step: _[str]
-    current_step_number: _[int]
+    current_step_number: _[StepNumber]
 
 
     @staticmethod
@@ -525,6 +526,13 @@ class Article(Row):
             if attr_1 != attr_2:
                 return False
         return True
+    
+
+    @staticmethod
+    def get_by_step(step: List[StepNumber]) -> List['Article']:
+        db = current.db
+        query = db(db.t_articles.current_step_number.belongs(step))
+        return query.select(orderby=db.t_articles.id)
 
 
 def is_scheduled_submission(article: Article) -> bool:
