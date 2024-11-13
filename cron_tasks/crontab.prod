@@ -15,6 +15,7 @@ SITE=PCICompStat
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIZool
 
@@ -24,6 +25,7 @@ SITE=PCIZool
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIEcology
 
@@ -33,6 +35,7 @@ SITE=PCIEcology
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIAnimSci
 
@@ -42,6 +45,7 @@ SITE=PCIAnimSci
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCINeuro
 
@@ -51,6 +55,7 @@ SITE=PCINeuro
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIEvolBiol
 
@@ -60,6 +65,7 @@ SITE=PCIEvolBiol
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIArchaeology
 
@@ -69,6 +75,7 @@ SITE=PCIArchaeology
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIForestWoodSci
 
@@ -78,6 +85,7 @@ SITE=PCIForestWoodSci
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIPaleo
 
@@ -87,6 +95,7 @@ SITE=PCIPaleo
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIGenomics
 
@@ -96,6 +105,7 @@ SITE=PCIGenomics
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIMCB
 
@@ -105,6 +115,7 @@ SITE=PCIMCB
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCINetworkSci
 
@@ -114,6 +125,7 @@ SITE=PCINetworkSci
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIEcotoxEnvChem
 
@@ -123,6 +135,7 @@ SITE=PCIEcotoxEnvChem
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIRegisteredReports
 
@@ -133,6 +146,7 @@ SITE=PCIRegisteredReports
 0 1   * * * $BASE/$SITE/$RUN warn_submitters.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIInfections
 
@@ -142,6 +156,7 @@ SITE=PCIInfections
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIMicrobiol
 
@@ -151,6 +166,7 @@ SITE=PCIMicrobiol
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 SITE=PCIHealthMovSci
 
@@ -160,6 +176,7 @@ SITE=PCIHealthMovSci
 0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
 0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
 */1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
+5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
 
 # force delete session files older than 3 days
