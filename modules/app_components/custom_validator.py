@@ -72,23 +72,35 @@ class VALID_DOI(Validator):
 class VALID_LIST_NAMES_MAIL(Validator):
 
     _regex: str
+    
     _error_message: str
+    _error_message_suggested: str
+
+    _first= r"[\w\-.]+"
+    _last= r"[\w\-]+"
+    _regex_name = r"({f}( +{f})+? +)?({l}( +{l})+)".format(f=_first,l=_last)
+    _regex_suggested = r"({f}( +{f})+? +)?({l}( +{l})*) suggested: ".format(f=_first,l=_last)
+    
+    _regex_email = r"[\w_\-\.]+@[\w_\-\.]+\.[a-z]+"
 
     def __init__(self, is_list_string: bool = False, without_email: bool = False, optional_email: bool = False):
         if optional_email:
-            self._regex = r"((([\w\-\.]+ )*[\w\-]+)+)|((([\w\-\.]+ )*[\w\-]+ [a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-z]+)+)"
+            self._regex = f"{self._regex_name}( {self._regex_email})?"
         elif without_email:
-            self._regex = r"(([\w\-\.]+ )*[\w\-]+)+"
+            self._regex = self._regex_name
         else:
-            self._regex = r"(([\w\-\.]+ )*[\w\-]+ [a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-z]+)+"
+            self._regex = f"{self._regex_name} {self._regex_email}"
 
         if is_list_string:
             if optional_email:
                 self._error_message = 'Pattern must be: <first name> <last name> <mail> (mail is optional)'
+                self._error_message_suggested = 'Pattern must be: <first name> <last name> suggested: <first name> <last name> <mail> (mail is optional)'
             elif without_email:
                 self._error_message = 'Pattern must be: <first name> <last name>'
+                self._error_message_suggested = 'Pattern must be: <first name> <last name> suggested: <first name> <last name>'
             else:
                 self._error_message = 'Pattern must be: <first name> <last name> <mail>'
+                self._error_message_suggested = 'Pattern must be: <first name> <last name> suggested: <first name> <last name> <mail>'
 
         else:
             if optional_email:
@@ -103,19 +115,27 @@ class VALID_LIST_NAMES_MAIL(Validator):
         if not value or len(value) == 0:
             return value, None
         
-        self._pattern = re.compile(self._regex)
-        
         if isinstance(value, str):
+            pattern = re.compile(self._regex)
+
             people = value.split(',')
             for person in people:
                 person = person.strip()
-                match = self._pattern.fullmatch(person)
+                match = pattern.fullmatch(person)
                 if not match:
                     return value, self._error_message
         else:
+            self._regex = f"({self._regex_suggested})?{self._regex}"
+            pattern = re.compile(self._regex)
+
             for person in value:
-                match = self._pattern.fullmatch(person)
+                match = pattern.fullmatch(person)
+                if "suggested:" in person:
+                    error_message = self._error_message_suggested
+                else:
+                    error_message = self._error_message
+                    
                 if not match:
-                    return value, self._error_message
+                    return value, error_message
                 
         return value, None
