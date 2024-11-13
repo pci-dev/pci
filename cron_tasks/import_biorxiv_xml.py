@@ -1,4 +1,4 @@
-from datetime import datetime
+from app_modules.common_tools import log
 from pathlib import Path
 import os
 import secrets
@@ -35,7 +35,7 @@ def main():
     try:
         application = DestinationApp(str(current.request.application))
     except:
-        log(f"Application {current.request.application} not found")
+        info(f"Application {current.request.application} not found")
         return
 
     for file_name in os.listdir(XML_FOLDER):
@@ -56,8 +56,8 @@ def main():
 
         if not application_supported(xml_jats_parser.destination):
             fail(
-                f"Destination {xml_jats_parser.destination.value} exists, but not supported"
-                , xml_file
+                f"Destination {xml_jats_parser.destination.value} exists, but not supported",
+                xml_file,
             )
             continue
 
@@ -85,14 +85,20 @@ def main():
 
 
 def fail(msg: str, xml_file: str):
-    log(msg)
+    info(msg)
     emailing.send_import_biorxiv_alert(xml_file, msg)
     clean_xml(xml_file, failed=True)
 
 
-def check_duplicate_submission(article_data):
-    same_title = db(db.t_articles.title.lower() == article_data.title.lower()).count()
-    same_url = db(db.t_articles.doi.lower() == article_data.doi.lower()).count()
+def info(msg: str):
+    log("import_biorxiv_xml.py", msg)
+
+
+def check_duplicate_submission(article_data: XMLJATSArticleElement):
+    db = current.db
+
+    same_title = db(db.t_articles.title.lower() == article_data.title.lower()).count() if article_data.title else None
+    same_url = db(db.t_articles.doi.lower() == article_data.doi.lower()).count() if article_data.doi else None
 
     dup_info = (
             "title" + (" and url" if same_url else "") if same_title else
@@ -125,7 +131,7 @@ def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
         pre_submission_token=secrets.token_urlsafe(64),
     )
 
-    log(f"Article added in database: {article}")
+    info(f"Article added in database: {article}")
 
     return article
 
@@ -133,12 +139,12 @@ def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
 def add_author_in_db(authors: List[XMLJATSAuthorElement]):
     for author in authors:
         if not author.email or not author.first_name or not author.last_name:
-            log(f"Missing author information: {author}")
+            info(f"Missing author information: {author}")
             continue
 
         user = User.get_by_email(author.email)
         if user:
-            log(f"Author already exists in database: {author} corresponding to {user}")
+            info(f"Author already exists in database: {author} corresponding to {user}")
             return user
         else:
             user = User.create_new_user(
@@ -149,7 +155,7 @@ def add_author_in_db(authors: List[XMLJATSAuthorElement]):
                 country=author.country,
                 orcid=author.orcid,
             )
-            log(f"Author {author} added in database: {user}")
+            info(f"Author {author} added in database: {user}")
             return user
 
 
@@ -168,13 +174,13 @@ def application_supported(destination: DestinationApp):
 def create_done_folder():
     if not os.path.exists(DONE_FOLDER):
         os.makedirs(DONE_FOLDER)
-        log(f"{DONE_FOLDER} created")
+        info(f"{DONE_FOLDER} created")
 
 
 def create_failed_folder():
     if not os.path.exists(FAILED_FOLDER):
         os.makedirs(FAILED_FOLDER)
-        log(f"{FAILED_FOLDER} created")
+        info(f"{FAILED_FOLDER} created")
 
 
 def clean_xml(xml_file: str, failed: bool):
@@ -184,7 +190,7 @@ def clean_xml(xml_file: str, failed: bool):
     try:
         os.remove(archive_file)
     except OSError:
-        log(f"No archive to clean found: {archive_file}")
+        info(f"No archive to clean found: {archive_file}")
         pass
 
     if failed:
@@ -192,7 +198,7 @@ def clean_xml(xml_file: str, failed: bool):
     else:
         dest_folder = DONE_FOLDER
     move_file(xml_file, dest_folder)
-    log(f"{xml_file} moved to {dest_folder}")
+    info(f"{xml_file} moved to {dest_folder}")
 
 
 def clean_folder(folder_path: Path):
@@ -205,7 +211,7 @@ def clean_folder(folder_path: Path):
         file_age = os.path.getmtime(file)
         if file_age <= max_life_time:
             os.remove(file)
-            log(f"{file} has been removed")
+            info(f"{file} has been removed")
 
 
 def move_file(file_path: str, dest_folder: Path):
@@ -226,14 +232,6 @@ def move_file(file_path: str, dest_folder: Path):
         new_file_name = f"{base_name}-{i}{extension}"
 
     return shutil.move(f"{origin_folder}/{file_name}", f"{dest_folder}/{new_file_name}")
-
-
-def log(content: str):
-    now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-    script = "import_biorxiv_xml.py"
-    app = str(current.request.application)
-
-    print(f"{now} {app}:{script} {content}")
 
 
 if __name__ == "__main__":

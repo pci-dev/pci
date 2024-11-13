@@ -1,9 +1,9 @@
 from models.article import Article, ArticleStep
+from app_modules.common_tools import log
 
 
-if __name__ == "__main__":
-
-    # articles with step containing "Since X days" 
+def main():
+    # articles with step containing "Since X days"
     articles = Article.get_by_step(
         [
             ArticleStep.SUBMISSION_AWAITING_COMPLETION,
@@ -13,14 +13,24 @@ if __name__ == "__main__":
         ]
     )
 
-    print(f"Articles that needs to have their alert date and current step refreshed: {[article.id for article in articles]}")
+    info(
+        f"Articles that needs to have their alert date and current step refreshed: {[article.id for article in articles]}",
+    )
 
     for article in articles:
         try:
             Article.update_alert_date(article)
             Article.update_current_step(article)
         except Exception as e:
-            print(f"Error to refresh for article {article.id}: {e}")
+            info(f"Error to refresh for article {article.id}: {e}")
             continue
 
-    print("Dashboard manager refreshed!")
+    info("Dashboard manager refreshed!")
+
+
+def info(msg: str):
+    log("refresh_dashboard_manager.py", msg)
+
+
+if __name__ == "__main__":
+    main()
