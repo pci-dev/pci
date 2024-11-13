@@ -22,8 +22,8 @@ def get_config():
 def users_dict(users):
     return Namespace(**{
         user: Namespace(
-                name=user,
-                email=user+"@pci.org",
+                name=f"{user} dude",
+                email=f"{user}@pci.org",
                 password="pci")
         for user in users
     })
@@ -136,7 +136,7 @@ def login(user):
     select.notif("Logged in").wait_clickable().click()
 
 def logout(user):
-    select(".dropdown-toggle", user.name).click()
+    select(".dropdown-toggle", user.name.split(' ')[0]).click()
     select(".dropdown-menu li", "Log out").click()
     select.notif("Logged out").wait_clickable().click()
 

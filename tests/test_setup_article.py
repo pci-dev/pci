@@ -13,7 +13,7 @@ reviewer = users.reviewer
 class article:
     doi = "http://DOI.org"
     title = "Title [%s]" % time.strftime("%a %-d %b %Y %H:%M:%S")
-    authors = "Author-1, Author-2"
+    authors = "First author test, Second author test"
     year = time.strftime("%Y")
     abstract = "Abstract"
     keywords = "Keywords"
@@ -216,8 +216,10 @@ class Recommender_handles:
  def search_and_invite_registered_reviewer(_):
     select(".btn", contains= "Invite a reviewer".upper()).click()
 
-    select("#no_table_reviewer_first_name").send_keys(reviewer.name)
-    select("#no_table_reviewer_last_name").send_keys("dude")
+    first_name = reviewer.name.split(' ')[0]
+    last_name = reviewer.name.split(' ')[1]
+    select("#no_table_reviewer_first_name").send_keys(first_name)
+    select("#no_table_reviewer_last_name").send_keys(last_name)
     select("#no_table_reviewer_email").send_keys(reviewer.email)
 
     select("input[type=submit]").click()
