@@ -581,7 +581,7 @@ def build_sugg_recommender_buttons(link_target: str, article_id: int, suggested_
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
-def send_to_suggested_recommender(articleId, suggRecommId):
+def send_to_suggested_recommender(articleId: int, suggRecommId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2459,7 +2459,7 @@ def mk_submitter_my_articles_url(mail_vars):
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_submitter(hashtag_template, articleId):
+def delete_reminder_for_submitter(hashtag_template: str, articleId: int):
     db = current.db
     article = db.t_articles[articleId]
     if article and article.user_id is not None:
@@ -2516,7 +2516,7 @@ def create_reminder_for_suggested_recommenders_invitation(articleId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_suggested_recommender_invitation(articleId, suggRecommId):
+def create_reminder_for_suggested_recommender_invitation(articleId: int, suggRecommId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()

@@ -60,7 +60,7 @@ auth = current.auth
 response = current.response
 T = current.T
 
-myconf = AppConfig(reload=True)
+myconf = AppConfig()
 
 csv = False  # no export allowed
 expClass = None  # dict(csv_with_hidden_cols=False, csv=False, html=False, tsv_with_hidden_cols=False, json=False, xml=False)

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from functools import reduce
 import os
 from re import match
@@ -429,3 +430,9 @@ def run_web2py_script(script_name: str, *args: ..., **kwargs: ...):
     p = subprocess.Popen(cmd,encoding='utf-8')
     del p
 
+
+def log(title: str, message: str):
+    now = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+    app = str(current.request.application)
+
+    print(f"{now} {app}:{title} {message}")
