@@ -158,7 +158,11 @@ def request_endorsement(req):
         emailing.send_to_coar_resubmitter(user, article)
     else:
         article = create_prefilled_submission(req, user)
-        emailing.send_to_coar_requester(user, article)
+        if article.status == "Awaiting revision":
+            update_article(article, req)
+            emailing.send_to_coar_resubmitter(user, article)
+        else:
+            emailing.send_to_coar_requester(user, article)
 
 
 def handle_resubmission(req, user):
@@ -216,6 +220,10 @@ def update_resubmitted_article(req, context):
     if article.status != "Awaiting revision":
         return article
 
+    update_article(article, req)
+
+
+def update_article(article, req):
     article.update_record(
         coar_notification_id = req["id"],
         coar_notification_closed = False,
