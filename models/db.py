@@ -1516,7 +1516,7 @@ db.define_table(
 )
 
 
-def after_insert_mail(s: ..., mail_id: int):
+def after_insert_or_update_mail(s: ..., mail_id: int):
     mail_queue = MailQueue.get_mail_by_id(mail_id)
     if not mail_queue:
         return
@@ -1540,7 +1540,8 @@ def after_insert_mail(s: ..., mail_id: int):
         update_alert_and_current_step_article(mail_queue.article_id)
 
 
-db.mail_queue._after_insert.append(after_insert_mail)
+db.mail_queue._after_insert.append(after_insert_or_update_mail)
+db.mail_queue._after_update.append(after_insert_or_update_mail)
 
 
 db.define_table(
