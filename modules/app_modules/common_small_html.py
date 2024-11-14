@@ -1463,7 +1463,7 @@ def get_current_step_article(article: Article):
 
     step_number: StepNumber = StepNumber(0)
     if step_done_container.has_attr('data-step'):
-        step_number = StepNumber(step_done_container.attrs['data-step'])
+        step_number = StepNumber(int(step_done_container.attrs['data-step']))
     
     step_done_content = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
     img = f"{_get_current_step_img(step_done_els)}"
