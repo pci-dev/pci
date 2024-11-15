@@ -400,9 +400,9 @@ def suggestion_sent_page():
 
 
 def send_suggested_reviewers():
-    text = request.post_vars.suggested_reviewers_text
-    review = db(db.t_reviews.quick_decline_key == request.post_vars.declineKey).select().last()
-    no_suggestions_clicked = request.post_vars.noluck
+    text = request.vars.suggested_reviewers_text
+    review = db(db.t_reviews.quick_decline_key == request.vars.declineKey).select().last()
+    no_suggestions_clicked = request.vars.noluck
     next = get_next()
     text = (text or "").strip()
 

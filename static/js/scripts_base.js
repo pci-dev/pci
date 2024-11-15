@@ -85,14 +85,21 @@ function deactivate_submit_btn() {
 function activate_submit_btn() {
     // activate submit button if text-box has content
     try {
-        let textbox = document.querySelector('#suggestion-textbox');
-        let submit_btn = document.querySelector('#suggestion-submission');
+        const textboxs = document.querySelectorAll('.suggestion-textbox');
+        const submit_btn = document.querySelector('#suggestion-submission');
 
-        if (textbox.value != '') {
-            submit_btn.removeAttribute('disabled');
+        let disableBtn = false;
+        for (textbox of textboxs) {
+            if (textbox.value.trim() === '') {
+                disableBtn = true;
+            }
+        }
+
+        if (disableBtn) {
+            submit_btn.setAttribute('disabled', '');
         }
         else {
-            submit_btn.setAttribute('disabled', '');
+            submit_btn.removeAttribute('disabled');
         }
     }
     catch { }
