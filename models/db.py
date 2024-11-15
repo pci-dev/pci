@@ -1516,32 +1516,41 @@ db.define_table(
 )
 
 
-def after_insert_or_update_mail(s: ..., mail_id: int):
-    mail_queue = MailQueue.get_mail_by_id(mail_id)
-    if not mail_queue:
+def after_insert_mail(s: ..., mail_id: int):
+    mail = MailQueue.get_mail_by_id(mail_id)
+    if not mail:
         return
-    
+
+    _update_alert_after_update_or_insert_mail(mail)
+
+
+def after_update_mail(s: ..., f: ...):
+    mail: MailQueue = s.select().first()
+    _update_alert_after_update_or_insert_mail(mail)
+
+
+def _update_alert_after_update_or_insert_mail(mail: MailQueue):
     article_id: Optional[int] = None
     
-    if mail_queue.article_id:
-        article_id = mail_queue.article_id
-    elif mail_queue.recommendation_id:
-        recommendation = Recommendation.get_by_id(mail_queue.recommendation_id)
+    if mail.article_id:
+        article_id = mail.article_id
+    elif mail.recommendation_id:
+        recommendation = Recommendation.get_by_id(mail.recommendation_id)
         if recommendation:
             article_id = recommendation.article_id
-    elif mail_queue.review_id:
-        review = Review.get_by_id(mail_queue.review_id)
+    elif mail.review_id:
+        review = Review.get_by_id(mail.review_id)
         if review:
             recommendation = Recommendation.get_by_id(review.recommendation_id)
             if recommendation:
                 article_id = recommendation.article_id
     
     if article_id is not None:
-        update_alert_and_current_step_article(mail_queue.article_id)
+        update_alert_and_current_step_article(mail.article_id)
 
 
-db.mail_queue._after_insert.append(after_insert_or_update_mail)
-db.mail_queue._after_update.append(after_insert_or_update_mail)
+db.mail_queue._after_insert.append(after_insert_mail)
+db.mail_queue._after_update.append(after_update_mail)
 
 
 db.define_table(
