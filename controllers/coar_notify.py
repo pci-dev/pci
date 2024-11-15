@@ -206,8 +206,6 @@ def create_prefilled_submission(req, user):
     if article:
         if article.status == "Awaiting revision":
             return article
-        else:
-            fail(f"duplicate submission: article #{article.id} has same url or title")
 
     return Article.create_prefilled_submission(user_id=user.id, 
                                                doi=doi, 
