@@ -199,7 +199,7 @@ def create_prefilled_submission(req, user):
     preprint_server = get_preprint_server(doi)
     guess_version(doi, meta_data)
 
-    if not "authors" in meta_data or not meta_data["authors"]:
+    if not meta_data.get("authors"):
         meta_data["authors"] = author_data["name"]
 
     article = check_duplicate_submission(doi, meta_data)
