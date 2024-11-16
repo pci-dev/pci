@@ -203,9 +203,7 @@ def create_prefilled_submission(req, user):
         meta_data["authors"] = author_data["name"]
 
     article = check_duplicate_submission(doi, meta_data)
-    if article:
-        if article.status == "Awaiting revision":
-            return article
+    if article: return article
 
     return Article.create_prefilled_submission(user_id=user.id, 
                                                doi=doi, 
@@ -235,8 +233,10 @@ def update_article(article, req):
 
 
 def check_duplicate_submission(doi, meta_data):
-    same_title = db(db.t_articles.title.lower() == meta_data["title"].lower())
-    same_url = db(db.t_articles.doi.lower() == doi.lower())
+    awaiting_revision = db.t_articles.status == "Awaiting revision"
+
+    same_title = db((db.t_articles.title.lower() == meta_data["title"].lower()) & awaiting_revision)
+    same_url = db((db.t_articles.doi.lower() == doi.lower()) & awaiting_revision)
 
     return same_title.select().first() or same_url.select().first()
 
