@@ -6,6 +6,7 @@ from gluon import STRONG
 from gluon.html import A, P
 from pydal.validators import IS_HTTP_URL
 from pydal.validators import Validator
+from app_modules.common_tools import strip_accents
 
 class CUSTOM_VALID_URL(Validator):
 
@@ -76,31 +77,38 @@ class VALID_LIST_NAMES_MAIL(Validator):
     _error_message: str
     _error_message_suggested: str
 
-    _first= r"[\w\-.]+"
-    _last= r"[\w\-]+"
-    _regex_name = r"({f}( +{f})+? +)?({l}( +{l})+)".format(f=_first,l=_last)
-    _regex_suggested = r"({f}( +{f})+? +)?({l}( +{l})*) suggested: ".format(f=_first,l=_last)
+    _name = r"[\w\-]+"
+    _first_name = r"{name}\.?".format(name=_name)
+    _separator = " +"
     
-    _regex_email = r"[\w_\-\.]+@[\w_\-\.]+\.[a-z]+"
+    _regex_email = r"[\w_\-\.]+@[\w_\-\.]+\.[a-zA-Z]+"
 
     def __init__(self, is_list_string: bool = False, without_email: bool = False, optional_email: bool = False):
         if optional_email:
-            self._regex = f"{self._regex_name}( {self._regex_email})?"
+            self._regex = "{name}({sep}{email})?".format(
+                name=self._regex_name(),
+                sep=self._separator,
+                email=self._regex_email
+            )
         elif without_email:
-            self._regex = self._regex_name
+            self._regex = self._regex_name()
         else:
-            self._regex = f"{self._regex_name} {self._regex_email}"
+            self._regex = "{name}{sep}{email}".format(
+                name=self._regex_name(),
+                sep=self._separator,
+                email=self._regex_email
+            )
 
         if is_list_string:
             if optional_email:
                 self._error_message = 'Pattern must be: <first name> <last name> <mail> (mail is optional)'
-                self._error_message_suggested = 'Pattern must be: <first name> <last name> suggested: <first name> <last name> <mail> (mail is optional)'
+                self._error_message_suggested = 'Pattern must be: <first name> <last name> <optional mail> suggested: <first name> <last name> <mail> (mail is optional)'
             elif without_email:
                 self._error_message = 'Pattern must be: <first name> <last name>'
-                self._error_message_suggested = 'Pattern must be: <first name> <last name> suggested: <first name> <last name>'
+                self._error_message_suggested = 'Pattern must be: <first name> <last name> <optional mail> suggested: <first name> <last name>'
             else:
                 self._error_message = 'Pattern must be: <first name> <last name> <mail>'
-                self._error_message_suggested = 'Pattern must be: <first name> <last name> suggested: <first name> <last name> <mail>'
+                self._error_message_suggested = 'Pattern must be: <first name> <last name> <optional mail> suggested: <first name> <last name> <mail>'
 
         else:
             if optional_email:
@@ -120,15 +128,17 @@ class VALID_LIST_NAMES_MAIL(Validator):
 
             people = value.split(',')
             for person in people:
-                person = person.strip()
+                person = strip_accents(person.strip())
                 match = pattern.fullmatch(person)
                 if not match:
                     return value, self._error_message
         else:
-            self._regex = f"({self._regex_suggested})?{self._regex}"
+            self._regex = self._regex_suggested_name(self._regex)
             pattern = re.compile(self._regex)
 
             for person in value:
+                person = strip_accents(person.strip())
+
                 match = pattern.fullmatch(person)
                 if "suggested:" in person:
                     error_message = self._error_message_suggested
@@ -139,3 +149,27 @@ class VALID_LIST_NAMES_MAIL(Validator):
                     return value, error_message
                 
         return value, None
+
+
+    def _sequence(self, regex: str):
+        return r"{name}(?:{separator}{name})".format(
+            name=regex,
+            separator=self._separator
+        )
+    
+
+    def _regex_name(self):
+        return r"({first}*?{sep})?({last}*)".format(
+            first=self._sequence(self._first_name),
+            last=self._sequence(self._name),
+            sep=self._separator,
+        )
+    
+
+    def _regex_suggested_name(self, regex: str):
+        return "({name}{sep}({email}{sep})?suggested:{sep})?{regex}".format(
+            name=self._regex_name(),
+            sep=self._separator,
+            email=self._regex_email,
+            regex=regex
+        )

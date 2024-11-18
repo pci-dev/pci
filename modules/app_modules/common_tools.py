@@ -7,6 +7,7 @@ from re import match
 import re
 import subprocess
 from typing import Any, Dict, List, Optional, Union, cast
+import unicodedata
 from zipfile import ZipFile
 import io
 from gluon import current
@@ -436,3 +437,8 @@ def log(title: str, message: str):
     app = str(current.request.application)
 
     print(f"{now} {app}:{title} {message}")
+
+
+def strip_accents(s: str):
+   return ''.join(c for c in unicodedata.normalize('NFD', s)
+                  if unicodedata.category(c) != 'Mn')
