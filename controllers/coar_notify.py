@@ -1,6 +1,7 @@
 import typing
 import json
 import requests
+import re
 
 from app_modules import emailing
 from http import HTTPStatus
@@ -522,8 +523,6 @@ def get_request_type(body):
 
     return req_type.capitalize() if req_type else "UNKNOWN"
 
-
-import re
 
 def get_person_name(body):
     name = re.match(r'.*"actor": .* "name": ("[^"]+")', body)
