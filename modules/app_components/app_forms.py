@@ -182,7 +182,7 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
         has_error: Optional[str] = None
 
         for i, value in enumerate(values):
-            _, error = VALID_LIST_NAMES_MAIL(is_list_string=True, optional_email=pciRRactivated)(value)
+            _, error = VALID_LIST_NAMES_MAIL(is_list_string=True, optional_email=True)(value)
             if error:
                 inputs[i].components[0].components[0].attributes['_style'] = 'border-color: red' # type: ignore
                 has_error = error
@@ -219,7 +219,7 @@ def _get_inputs_li(value: Optional[str] = None):
                         _value=value if value else '',
                         _name="suggest_reviewers",
                         _placeholder="John Doe john@doe.com",
-                        requires=VALID_LIST_NAMES_MAIL(True)
+                        requires=VALID_LIST_NAMES_MAIL(is_list_string=True, optional_email=True)
                     ),
                 ),
             )

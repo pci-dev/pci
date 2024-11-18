@@ -1395,11 +1395,11 @@ def edit_article():
                 form.errors.uploaded_picture = not_empty.error_message
             app_forms.checklist_validation(form)
 
-            suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.suggest_reviewers)
+            suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.suggest_reviewers)
             if suggested_reviewers_error:
                 form.errors.suggest_reviewers = suggested_reviewers_error
 
-            opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.opposed_reviewers)
+            opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.opposed_reviewers)
             if opposed_reviewers_reviewers_error:
                 form.errors.opposed_reviewers = opposed_reviewers_reviewers_error
 
