@@ -232,6 +232,8 @@ def _check_decline_review_request():
     message: Optional[str] = None
     if review is None:
         message = "Review '{}' not found".format(review_id)
+    elif not review.suggested_reviewers_send:
+        message = None
     elif review["review_state"] in ["Declined", "Declined manually", "Review completed", "Cancelled"]:
         message = current.T("You have already declined this invitation to review")
     elif review.quick_decline_key != quick_decline_key:

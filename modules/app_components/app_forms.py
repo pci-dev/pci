@@ -120,7 +120,6 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
         text = ' '
 
     if 'noluck' in current.request.post_vars:
-        if next:
             current.request._next = next 
 
             return redirect(
@@ -189,9 +188,7 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
 
         if not has_error:
             current.response.flash = 'Ok'
-
-            if next:
-                current.request._next = next 
+            current.request._next = next 
 
             return redirect(
                 URL("send_suggested_reviewers",
