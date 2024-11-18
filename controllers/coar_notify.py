@@ -236,8 +236,10 @@ def update_article(article, req):
 def check_duplicate_submission(doi, meta_data):
     awaiting_revision = db.t_articles.status == "Awaiting revision"
 
+    doi_nover = re.sub('v[0-9]+/?$', '', doi.lower())
+
     same_title = db((db.t_articles.title.lower() == meta_data["title"].lower()) & awaiting_revision)
-    same_url = db((db.t_articles.doi.lower() == doi.lower()) & awaiting_revision)
+    same_url = db((db.t_articles.doi.lower().startswith(doi_nover)) & awaiting_revision)
 
     return same_title.select().first() or same_url.select().first()
 
