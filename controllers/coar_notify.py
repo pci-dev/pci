@@ -158,7 +158,11 @@ def request_endorsement(req):
         emailing.send_to_coar_resubmitter(user, article)
     else:
         article = create_prefilled_submission(req, user)
-        emailing.send_to_coar_requester(user, article)
+        if article.status == "Awaiting revision":
+            update_article(article, req)
+            emailing.send_to_coar_resubmitter(user, article)
+        else:
+            emailing.send_to_coar_requester(user, article)
 
 
 def handle_resubmission(req, user):
@@ -195,10 +199,11 @@ def create_prefilled_submission(req, user):
     preprint_server = get_preprint_server(doi)
     guess_version(doi, meta_data)
 
-    if not "authors" in meta_data or not meta_data["authors"]:
+    if not meta_data.get("authors"):
         meta_data["authors"] = author_data["name"]
 
-    check_duplicate_submission(doi, meta_data)
+    article = check_duplicate_submission(doi, meta_data)
+    if article: return article
 
     return Article.create_prefilled_submission(user_id=user.id, 
                                                doi=doi, 
@@ -215,6 +220,10 @@ def update_resubmitted_article(req, context):
     if article.status != "Awaiting revision":
         return article
 
+    update_article(article, req)
+
+
+def update_article(article, req):
     article.update_record(
         coar_notification_id = req["id"],
         coar_notification_closed = False,
@@ -224,15 +233,12 @@ def update_resubmitted_article(req, context):
 
 
 def check_duplicate_submission(doi, meta_data):
-    same_title = db(db.t_articles.title.lower() == meta_data["title"].lower()).count()
-    same_url = db(db.t_articles.doi.lower() == doi.lower()).count()
+    awaiting_revision = db.t_articles.status == "Awaiting revision"
 
-    dup_info = (
-            "title" + (" and url" if same_url else "") if same_title else
-            "url" if same_url else None
-    )
-    if same_title or same_url:
-        fail(f"duplicate submission: an article with the same {dup_info} already exists")
+    same_title = db((db.t_articles.title.lower() == meta_data["title"].lower()) & awaiting_revision)
+    same_url = db((db.t_articles.doi.lower() == doi.lower()) & awaiting_revision)
+
+    return same_title.select().first() or same_url.select().first()
 
 
 def record_request(body):
