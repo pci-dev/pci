@@ -152,7 +152,7 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
             ),
             SPAN(
                 DIV(
-                    "e.g. John Doe john@doe.com"
+                    "e.g. John Doe john@doe.com (mail is optional)"
                 )
             ),
             _class="col-sm-9"
@@ -215,7 +215,7 @@ def _get_inputs_li(value: Optional[str] = None):
                         _type="text",
                         _value=value if value else '',
                         _name="suggest_reviewers",
-                        _placeholder="John Doe john@doe.com",
+                        _placeholder="John Doe john@doe.com (mail is optional)",
                         requires=VALID_LIST_NAMES_MAIL(is_list_string=True, optional_email=True)
                     ),
                 ),
