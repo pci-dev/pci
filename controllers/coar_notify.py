@@ -1,6 +1,7 @@
 import typing
 import json
 import requests
+import re
 
 from app_modules import emailing
 from http import HTTPStatus
@@ -235,8 +236,11 @@ def update_article(article, req):
 def check_duplicate_submission(doi, meta_data):
     awaiting_revision = db.t_articles.status == "Awaiting revision"
 
-    same_title = db((db.t_articles.title.lower() == meta_data["title"].lower()) & awaiting_revision)
-    same_url = db((db.t_articles.doi.lower() == doi.lower()) & awaiting_revision)
+    doi_nover = re.sub('v[0-9]+/?$', '', doi.lower())
+    title_norm = meta_data["title"].lower()
+
+    same_title = db((db.t_articles.title.lower() == title_norm) & awaiting_revision)
+    same_url = db((db.t_articles.doi.lower().startswith(doi_nover)) & awaiting_revision)
 
     return same_title.select().first() or same_url.select().first()
 
@@ -522,8 +526,6 @@ def get_request_type(body):
 
     return req_type.capitalize() if req_type else "UNKNOWN"
 
-
-import re
 
 def get_person_name(body):
     name = re.match(r'.*"actor": .* "name": ("[^"]+")', body)
