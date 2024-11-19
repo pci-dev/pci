@@ -98,6 +98,7 @@ def mkSimpleDOI(doi: Optional[str]):
 
 def mkLinkDOI(doi: Optional[str]):
     if doi:
+        doi = doi.strip()
         if match("^http", doi):
             return doi
         else:
