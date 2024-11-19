@@ -18,6 +18,7 @@ from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 applongname = myconf.take("app.longname")
+pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 ######################################################################################################################################################################
 # New common modules
@@ -113,15 +114,59 @@ def searchByThematic(myVars, allowBlank=True,redirectSearchArticle=False):
 
 ######################################################################################################################################################################
 def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = None):
-    if response == 'accept': text = ' also '
-    else: text = ' '
+    if response == 'accept':
+        text = ' also '
+    else:
+        text = ' '
 
-    return FORM(
+    if 'noluck' in current.request.post_vars:
+            current.request._next = next 
+
+            return redirect(
+                URL("send_suggested_reviewers",
+                    vars=dict(**current.request.vars)))
+
+    there_are_suggested_recommender = 'suggest_reviewers' in current.request.vars and len(current.request.vars.suggest_reviewers) > 0
+    inputs: List[LI] = []
+    
+    values: List[str] = []
+    if there_are_suggested_recommender:
+        if isinstance(current.request.vars.suggest_reviewers, str):
+            values = [current.request.vars.suggest_reviewers]
+            inputs.append(_get_inputs_li(values[0]))
+        else:
+            values = current.request.vars.suggest_reviewers
+            for value in values:
+                inputs.append(_get_inputs_li(value))
+                
+    else:
+        inputs.append(_get_inputs_li())
+
+
+    input_container = DIV(
         DIV(
-            H5("We welcome your suggestions on who might%sbe a suitable reviewer for this article. Please enter the names and email of suggested reviewers here (one line per reviewer):"%text, _class="decline-review-title", _style="font-size: initial")
+            UL(
+                inputs,
+                _class="w2p_list",
+                _style="list-style: none"
+            ),
+            SPAN(
+                DIV(
+                    "e.g. John Doe john@doe.com (mail is optional)"
+                )
+            ),
+            _class="col-sm-9"
+        ),
+        _class="form-group",
+    )
+
+    form = FORM(
+        DIV(
+            H5("We welcome your suggestions on who might%sbe a suitable reviewer for this article. Please enter the names and email of suggested reviewers here:"%text, _class="decline-review-title", _style="font-size: initial")
         ),
         DIV(
-            TEXTAREA(_name="suggested_reviewers_text", keepvalues=True, _class="form-control", _id="suggestion-textbox", _style="resize: none")
+            input_container,
+            _style="margin-bottom: 20px"
         ),
         DIV(
             BUTTON(current.T("Send these suggestions to the recommender"), _type="submit", _id="suggestion-submission", _class="btn btn-success"),
@@ -129,17 +174,60 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
             _class="pci2-flex-center",
         ),
         hidden={"declineKey":declineKey},
-        _action=URL("send_suggested_reviewers", vars=dict(_next=next)),
         _style="max-width: 800px; display: inline-block",
     )
 
+    if there_are_suggested_recommender:
+        has_error: Optional[str] = None
+
+        for i, value in enumerate(values):
+            _, error = VALID_LIST_NAMES_MAIL(is_list_string=True, optional_email=True)(value)
+            if error:
+                inputs[i].components[0].components[0].attributes['_style'] = 'border-color: red' # type: ignore
+                has_error = error
+
+        if not has_error:
+            current.response.flash = 'Ok'
+            current.request._next = next 
+
+            return redirect(
+                URL("send_suggested_reviewers",
+                    vars=dict(suggested_reviewers_text='\n'.join(values), **current.request.vars)))
+        else:
+            current.response.flash = "Form has errors"
+            input_container.append( # type: ignore
+                DIV(
+                    DIV(
+                        has_error,
+                        _style="display: inline-block",
+                        _class="error"
+                    ),
+                    _class="error_wrapper"))
+
+    return form
+
+
+def _get_inputs_li(value: Optional[str] = None):
+    return LI(
+                DIV(
+                    INPUT(
+                        _class="suggestion-textbox form-control string",
+                        _type="text",
+                        _value=value if value else '',
+                        _name="suggest_reviewers",
+                        _placeholder="John Doe john@doe.com (mail is optional)",
+                        requires=VALID_LIST_NAMES_MAIL(is_list_string=True, optional_email=True)
+                    ),
+                ),
+            )
 
 from gluon import IS_EMPTY_OR, IS_LIST_OF_EMAILS
 
-def cc_widget(field, value):
+
+def cc_widget(field: ..., value: Optional[str]) -> ...:
     field.requires = IS_EMPTY_OR(IS_LIST_OF_EMAILS(error_message="invalid (list of) e-mail(s): %s"))
 
-    return SQLFORM.widgets.string.widget(field, ('' if value is None else ', '.join(value)))
+    return SQLFORM.widgets.string.widget(field, ('' if value is None else ', '.join(value))) # type: ignore
 
 
 #########################################################################
@@ -478,7 +566,7 @@ def get_from_fields_report_survey_stage2(article: Article):
     ]
 
 ########################################################################################################################
-def checklist_validation(form):
+def checklist_validation(form: ...):
     if form.vars.results_based_on_data == "All or part of the results presented in this preprint are based on data" and form.vars.data_doi == []:
         form.errors.data_doi = "Provide the web address(es) to the data used"
     if form.vars.scripts_used_for_result == "Scripts were used to obtain or analyze the results" and form.vars.scripts_doi == []:

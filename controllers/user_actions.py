@@ -232,6 +232,8 @@ def _check_decline_review_request():
     message: Optional[str] = None
     if review is None:
         message = "Review '{}' not found".format(review_id)
+    elif not review.suggested_reviewers_send:
+        message = None
     elif review["review_state"] in ["Declined", "Declined manually", "Review completed", "Cancelled"]:
         message = current.T("You have already declined this invitation to review")
     elif review.quick_decline_key != quick_decline_key:
@@ -400,9 +402,9 @@ def suggestion_sent_page():
 
 
 def send_suggested_reviewers():
-    text = request.post_vars.suggested_reviewers_text
-    review = db(db.t_reviews.quick_decline_key == request.post_vars.declineKey).select().last()
-    no_suggestions_clicked = request.post_vars.noluck
+    text = request.vars.suggested_reviewers_text
+    review = db(db.t_reviews.quick_decline_key == request.vars.declineKey).select().last()
+    no_suggestions_clicked = request.vars.noluck
     next = get_next()
     text = (text or "").strip()
 

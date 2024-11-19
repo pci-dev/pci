@@ -7,6 +7,7 @@ from re import match
 import re
 import subprocess
 from typing import Any, Dict, List, Optional, Union, cast
+import unicodedata
 from zipfile import ZipFile
 import io
 from gluon import current
@@ -34,7 +35,7 @@ def URL(a: Optional[str] = None,
         r: Optional[str] = None,
         args: Optional[Any] = None,
         vars: Optional[Dict[str, Any]] = None,
-        anchor: str ='',
+        anchor: Optional[str] ='',
         extension: Optional[str] = None,
         env: Optional[str] = None,
         hmac_key: Optional[str] = None,
@@ -193,7 +194,7 @@ def get_manager_coauthors(artId):
     return manager_authors
 
 
-def extract_manager_ids(form, manager_ids):
+def extract_manager_ids(form: ..., manager_ids: List[str]):
     # extract the positively checked manager co-author IDs from the form
     manager_authors = []
     for m_id in manager_ids:
@@ -216,10 +217,10 @@ def get_managers():
             (~db.auth_user.id.belongs(admins)) &
             (db.auth_group.role == 'manager')
     ).select()
-    users = []
+    users: List[List[str]] = []
     for manager in manager_query:
         manager = manager.auth_user
-        user = ['%s'%(manager['id']), '%s %s, %s'%(manager['first_name'], manager['last_name'], manager['laboratory'])]
+        user: List[str] = ['%s'%(manager['id']), '%s %s, %s'%(manager['first_name'], manager['last_name'], manager['laboratory'])]
         if user not in users: users.append(user)
 
     return users

@@ -1,4 +1,3 @@
-import re
 from typing import List, Optional, Union
 
 from urllib.parse import urlparse
@@ -6,6 +5,7 @@ from gluon import STRONG
 from gluon.html import A, P
 from pydal.validators import IS_HTTP_URL
 from pydal.validators import Validator
+from app_modules.suggested_reviewers_parser import Reviewer
 
 class CUSTOM_VALID_URL(Validator):
 
@@ -70,25 +70,28 @@ class VALID_DOI(Validator):
         
         
 class VALID_LIST_NAMES_MAIL(Validator):
-
-    _regex: str
+    
     _error_message: str
+    _error_message_suggested: str
+
+    _without_email: bool
+    _optional_email: bool
 
     def __init__(self, is_list_string: bool = False, without_email: bool = False, optional_email: bool = False):
-        if optional_email:
-            self._regex = r"((([\w\-\.]+ )*[\w\-]+)+)|((([\w\-\.]+ )*[\w\-]+ [a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-z]+)+)"
-        elif without_email:
-            self._regex = r"(([\w\-\.]+ )*[\w\-]+)+"
-        else:
-            self._regex = r"(([\w\-\.]+ )*[\w\-]+ [a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-z]+)+"
+
+        self._without_email = without_email
+        self._optional_email = optional_email
 
         if is_list_string:
             if optional_email:
                 self._error_message = 'Pattern must be: <first name> <last name> <mail> (mail is optional)'
+                self._error_message_suggested = 'Pattern must be: <first name> <last name> <optional mail> suggested: <first name> <last name> <mail> (mail is optional)'
             elif without_email:
                 self._error_message = 'Pattern must be: <first name> <last name>'
+                self._error_message_suggested = 'Pattern must be: <first name> <last name> <optional mail> suggested: <first name> <last name>'
             else:
                 self._error_message = 'Pattern must be: <first name> <last name> <mail>'
+                self._error_message_suggested = 'Pattern must be: <first name> <last name> <optional mail> suggested: <first name> <last name> <mail>'
 
         else:
             if optional_email:
@@ -103,19 +106,34 @@ class VALID_LIST_NAMES_MAIL(Validator):
         if not value or len(value) == 0:
             return value, None
         
-        self._pattern = re.compile(self._regex)
-        
         if isinstance(value, str):
             people = value.split(',')
             for person in people:
-                person = person.strip()
-                match = self._pattern.fullmatch(person)
-                if not match:
-                    return value, self._error_message
+                try:
+                    reviewer = Reviewer.parse(person)
+                    self._check_constraints(reviewer)
+                except Exception as e:
+                    return value, f"{self._error_message} -> {person}: {e}"
         else:
             for person in value:
-                match = self._pattern.fullmatch(person)
-                if not match:
-                    return value, self._error_message
+                try:
+                    reviewer = Reviewer.parse(person)
+                    self._check_constraints(reviewer)
+                except Exception as e:
+                    if "suggested:" in person:
+                        error_message = self._error_message_suggested
+                    else:
+                        error_message = self._error_message
+                        
+                    return value, f"{error_message} -> {person}: {e}"
                 
         return value, None
+
+
+    def _check_constraints(self, reviewer: Reviewer):
+        if self._without_email:
+            if reviewer.suggested.email is not None:
+                raise Exception("Email is forbidden")
+        else:
+            if not self._optional_email and reviewer.suggested.email is None:
+                raise Exception("Email is required")

@@ -125,7 +125,7 @@ class Reviewer:
         row.select("a", "VIEW")
 
     def send_suggestion():
-        select(css="#suggestion-textbox").send_keys(users.test.email)
+        select(css=".suggestion-textbox").send_keys(f"{users.test.name} {users.test.email}")
         select(css="#suggestion-submission").wait_clickable().click()
 
     def check_notification(reviewer=reviewer):

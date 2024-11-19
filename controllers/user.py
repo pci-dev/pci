@@ -4,6 +4,7 @@ import os
 from datetime import date
 from typing import Any, Callable, List, Optional, Union, cast
 
+from gluon import Field
 from gluon.contrib.markdown import WIKI # type: ignore
 
 from app_modules.helper import *
@@ -33,7 +34,7 @@ from models.article import Article, clean_vars_doi, clean_vars_doi_list, Article
 from models.report_survey import ReportSurvey
 from models.recommendation import Recommendation
 from models.user import User
-from pydal.validators import IS_IN_DB, IS_URL
+from pydal.validators import IS_EMPTY_OR, IS_IN_DB, IS_IN_SET, IS_LENGTH, IS_NOT_EMPTY, IS_URL
 from app_components.article_components import fix_web2py_list_str_bug_article_form
 
 from app_modules.common_tools import URL
@@ -723,11 +724,11 @@ def fill_new_article():
 
 
 def check_suggested_and_opposed_reviewers(form):
-    suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.suggest_reviewers)
+    suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.suggest_reviewers)
     if suggested_reviewers_error:
         form.errors.suggest_reviewers = suggested_reviewers_error
 
-    opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True)(form.vars.opposed_reviewers)
+    opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.opposed_reviewers)
     if opposed_reviewers_reviewers_error:
         form.errors.opposed_reviewers = opposed_reviewers_reviewers_error
 
@@ -813,16 +814,16 @@ def edit_my_article():
     response.view = "default/myLayout.html"
     if not ("articleId" in request.vars):
         session.flash = T("Unavailable")
-        redirect(URL("my_articles", user_signature=True))
+        return redirect(URL("my_articles", user_signature=True))
     articleId = request.vars["articleId"]
     article = Article.get_by_id(articleId)
     if article == None:
         session.flash = T("Unavailable")
-        redirect(URL("my_articles", user_signature=True))
+        return redirect(URL("my_articles", user_signature=True))
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
     elif article.status not in ("Pending", "Awaiting revision", "Pending-survey", "Pre-submission", "Scheduled submission revision"):
         session.flash = T("Forbidden access")
-        redirect(URL("my_articles", user_signature=True))
+        return redirect(URL("my_articles", user_signature=True))
 
     user = db.auth_user[auth.user_id]
     if not user.ethical_code_approved:
@@ -1010,15 +1011,18 @@ def edit_my_article():
         if not pciRRactivated:
             myScript = common_tools.get_script("new_field_responsiveness.js")
 
-    buttons = [
+    buttons: List[Union[A, INPUT]] = [
         A("Cancel", _class="btn btn-default", _href=URL(c="user", f="recommendations", vars=dict(articleId=article.id), user_signature=True)),
         INPUT(_id="submit-article-btn", _type="Submit", _name="save", _class="btn btn-success", _value="Save"),
     ]
 
+    def manager_check(field: ..., value: ...) -> ...:
+        return SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()") # type: ignore
+
     try: article_manager_coauthors = article.manager_authors
     except: article_manager_coauthors = False
     managers = common_tools.get_managers()
-    manager_checks = {}
+    manager_checks: Dict[str, bool] = {}
     for m in managers:
         manager_checks[m[0]] = False
     if article_manager_coauthors:
@@ -1026,33 +1030,44 @@ def edit_my_article():
             manager_checks[amc] = True
     manager_ids = [m[0] for m in managers]
     manager_label = [Field('manager_label', 'string', label='Tick the box in front of the following names (who are members of the managing board) if they are co-authors of the article')]
-    manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=lambda field, value: SQLFORM.widgets.boolean.widget(field, value, _class='manager_checks', _onclick="check_checkboxes()")) for i,m in enumerate(managers)]
+    manager_fields = [Field('chk_%s'%m[0], 'boolean', default=manager_checks[m[0]], label=m[1], widget=manager_check) for _,m in enumerate(managers)]
 
-    form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=deletable, showid=False, fields = fields, extra_fields = manager_label + manager_fields, buttons=buttons)
+    form: ... = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=deletable, showid=False, fields = fields, extra_fields = manager_label + manager_fields, buttons=buttons)
     ArticleTranslator.add_edit_translation_buttons(article, form)
+    _hide_suggested_reviewer_for_user(article, form)
+
+    article_version: Union[int, str, None] = None
 
     try:
-        article_version = int(article.ms_version)
+        if article.ms_version is not None:
+            article_version = int(article.ms_version)
+        else:
+            article.ms_version = None
     except:
         article_version = article.ms_version
 
     prev_picture = article.uploaded_picture
 
     if type(db.t_articles.uploaded_picture.requires) == list: # non-RR see db.py
-        not_empty = db.t_articles.uploaded_picture.requires.pop()
+        not_empty = current.db.t_articles.uploaded_picture.requires.pop()
+    else:
+        not_empty = None
 
     # form.element(_type="submit")["_value"] = T("Save")
-    def onvalidation(form):
+    def onvalidation(form: ...):        
         if not pciRRactivated:
             if isinstance(article_version, int):
-                if int(article.ms_version) > int(form.vars.ms_version):
+                if article_version > int(form.vars.ms_version):
                     form.errors.ms_version = "New version number must be greater than or same as previous version number"
-            if not prev_picture and form.vars.uploaded_picture == b"":
+            if not prev_picture and form.vars.uploaded_picture == b"" and not_empty:
                 form.errors.uploaded_picture = not_empty.error_message
             app_forms.checklist_validation(form)
 
-    if form.process(onvalidation=onvalidation).accepted:
+    if form.process(onvalidation=onvalidation).accepted: # type: ignore
         article = Article.get_by_id(articleId)
+        if article == None:
+            session.flash = T("Unavailable")
+            return redirect(URL("my_articles", user_signature=True))
         if prev_picture and form.vars.uploaded_picture:
             try: os.unlink(os.path.join(request.folder, "uploads", prev_picture))
             except: pass
@@ -1063,7 +1078,7 @@ def edit_my_article():
         if form.vars.report_stage == "STAGE 1":
             article.art_stage_1_id = None
         article.request_submission_change = False
-        article.update_record()
+        article.update_record() # type: ignore
 
         manager_ids = common_tools.extract_manager_ids(form, manager_ids)
         page_vars = dict(articleId=article.id, manager_authors=manager_ids)
@@ -1083,7 +1098,8 @@ def edit_my_article():
 
                 Article.remove_pre_submission_token(article)
 
-
+        _get_hidden_suggested_reviewer_for_user(article)
+        
         redirect(URL(c="user", f=target_page, vars=page_vars, anchor=anchor))
 
     elif form.errors:
@@ -1091,6 +1107,8 @@ def edit_my_article():
 
     if pciRRactivated and status['allow_submissions'] is False:
         form = getText("#SubmissionOnHoldInfo")
+
+    _get_hidden_suggested_reviewer_for_user(article)
 
     manager_script = common_tools.get_script("manager_selection.js")
     article_form_common_script = common_tools.get_script("article_form_common.js")
@@ -1104,6 +1122,40 @@ def edit_my_article():
         managerScript = manager_script,
         pciRRjsScript=pciRRjsScript,
     )
+
+
+def _hide_suggested_reviewer_for_user(article: Article, form: ...):
+    if article.user_id != current.auth.user_id:
+        return
+    
+    li_els = form.components[0].components[20].components[1].components[0].components
+    session.hidden_suggested_reviewer = []
+
+    for li in li_els.copy():
+        value: str = li.components[0].attributes['value']
+        if "suggested:" in value:
+            if value not in current.session.hidden_suggested_reviewer:
+                current.session.hidden_suggested_reviewer.append(value)
+            li_els.remove(li)
+
+
+def _get_hidden_suggested_reviewer_for_user(article: Article):
+    if article.user_id != current.auth.user_id:
+        return
+    
+    hidden_susggested_reviewer: List[str] = session.hidden_suggested_reviewer
+    if article.suggest_reviewers is None:
+        article.suggest_reviewers = []
+
+    reviewer_added = False
+
+    for suggested_reviewer in hidden_susggested_reviewer:
+        if suggested_reviewer not in article.suggest_reviewers:
+            article.suggest_reviewers.append(suggested_reviewer)
+            reviewer_added = True
+
+    if reviewer_added:
+        article.update_record() # type: ignore
 
 
 ######################################################################################################################################################################
