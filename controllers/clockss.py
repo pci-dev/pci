@@ -1,19 +1,24 @@
-from typing import cast
 from app_modules.clockss import Clockss
 import os
 
-from gluon.globals import Request
-from gluon.html import DIV, FORM, H4, IFRAME, INPUT, PRE, URL
-from gluon.http import redirect
+from gluon import current
+from gluon.html import DIV, FORM, H4, IFRAME, INPUT, PRE
+from gluon.http import redirect # type: ignore
 from models.recommendation import Recommendation
 from models.pdf import PDF
-from pydal import DAL
 
 from models.article import Article
 
+from app_modules.common_tools import URL
+
+auth = current.auth
+db = current.db
+request = current.request
+T = current.T
+session = current.session
+response = current.response
+
 is_admin = bool(auth.has_membership(role="administrator"))
-db = cast(DAL, db)
-request = cast(Request, request)
 
 
 @auth.requires(is_admin)
@@ -48,8 +53,8 @@ def post_form():
     else:
         filename = clockss.build_pdf()
     
-    file_url = cast(str, URL(controller, "stream_pdf", args=filename))
-    url = cast(str, URL(c="manager", f="recommendations", vars=dict(articleId=recommendation.article_id), user_signature=True))
+    file_url = URL(controller, "stream_pdf", args=filename)
+    url = URL(c="manager", f="recommendations", vars=dict(articleId=recommendation.article_id), user_signature=True)
     form = FORM(
                 DIV(
                     message,                             
@@ -61,7 +66,7 @@ def post_form():
                 _style="text-align:center;",)
             )
         
-    if form.process().accepted:
+    if form.process().accepted: # type: ignore
         if disabled:
             session.flash = 'Already uploaded to Clockss'
             redirect(url)
@@ -69,7 +74,7 @@ def post_form():
             try:
                 attachments_dir= clockss.attachments_dir
                 PDF.save_pdf_to_db(recommendation, attachments_dir, filename)
-                clockss.compile_and_send()
+                clockss.package_and_send()
                 session.flash = T("Successfully uploaded to Clockss")
             except Exception as e:
                 session.flash = f"Error to upload to Clockss: {e}"

@@ -1,5 +1,15 @@
 from app_modules import crossref
 from app_modules.clockss import send_to_clockss
+from app_modules.common_tools import URL
+from gluon import PRE, SQLFORM, Field, current
+from models.recommendation import Recommendation
+
+auth = current.auth
+request = current.request
+db = current.db
+response = current.response
+T = current.T
+session = current.session
 
 is_admin = auth.has_membership(role="administrator")
 
@@ -24,7 +34,7 @@ def post_form():
 
     generated_xml = crossref.crossref_xml(recomm)
 
-    form = SQLFORM.factory(
+    form: ... = SQLFORM.factory( # type: ignore
         Field("xml", label=T("Crossref XML"), type="text", default=generated_xml),
     )
     form.element(_type="submit")["_value"] = T("Send to Crossref & Clockss")
@@ -81,7 +91,7 @@ def get_status():
     )
 
 
-def get_crossref_status(recomm):
+def get_crossref_status(recomm: Recommendation):
     status = crossref.get_status(recomm)
     if status.startswith("error:") \
     or crossref.QUEUED in status:
@@ -93,7 +103,7 @@ def get_crossref_status(recomm):
         return "success"
 
 
-def error(message):
+def error(message: str):
     response.view = "default/myLayout.html"
     return dict(
         form=PRE(message),
