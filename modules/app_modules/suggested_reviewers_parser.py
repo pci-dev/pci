@@ -4,7 +4,7 @@ from typing import Optional
 import unicodedata
 
 # Allow dashes in names like Machuca-Sepulveda.
-NAME = r"[\w\-]+"
+NAME = r"[\w\-']+"
 # Separate with any number of regular ascii whitespace.
 SEP = " +"
 EMAIL = r"[\w_\-\.]+@[\w_\-\.]+\.[a-zA-Z]+"
@@ -37,7 +37,7 @@ class FullName:
                     )
                 else:
                     name = name[:-1]
-            
+
             name = strip_accents(name)
             if not re.match(NAME + "$", name):
                 raise ParseError(f"Not a valid name: {repr(name)}.")
@@ -131,7 +131,9 @@ Reviewer.parse(
     "Marc-Olivier Dùrisson marc-olivier.durisson@bat.be suggested: "
     "Antonio Patate antonio.patate@usys.ethz.ch"
 )
-Reviewer.parse("toto titi suggested: Jéan-Marc De La Brënche hello-world.Yaguö@test.cefe.cnrs.fr")
+Reviewer.parse(
+    "toto titi suggested: Jéan-Marc De La Brënche hello-world.Yaguö@test.cefe.cnrs.fr"
+)
 Reviewer.parse("toto titi suggested: Jéan-Marcy De La Brënche")
 Reviewer.parse("Caroline JOYAUX suggested: Pierre-Jean Boubib boubib@mnhn.fr")
 Reviewer.parse("thom pci john@doe.com suggested: John Doe john@doe.com")
@@ -140,6 +142,7 @@ Reviewer.parse("Jéan-Marc De La Brënche hello-world.Yaguö@test.cefe.cnrs.fr")
 Reviewer.parse("Jéan-Marc De La Brënche")
 Reviewer.parse("toto titi suggested: toto tutu")
 Reviewer.parse("toto titi suggested: toto tutu@tef.fr")
+Reviewer.parse("AOUE E O'connor tutu@tef.fr")
 
 ########################################################################################
 # Failed parses.
