@@ -7,7 +7,7 @@ import unicodedata
 NAME = r"[\w\-']+"
 # Separate with any number of regular ascii whitespace.
 SEP = " +"
-EMAIL = r"[\w_\-\.]+@[\w_\-\.]+\.[a-zA-Z]+"
+EMAIL = r"[\w_\-\.+]+@[\w_\-\.]+\.[a-zA-Z]+"
 SUGGESTION_SEP = "suggested:"
 
 
@@ -142,6 +142,7 @@ Reviewer.parse("Jéan-Marc De La Brënche hello-world.Yaguö@test.cefe.cnrs.fr")
 Reviewer.parse("Jéan-Marc De La Brënche")
 Reviewer.parse("toto titi suggested: toto tutu")
 Reviewer.parse("toto titi suggested: toto tutu@tef.fr")
+Reviewer.parse("toto titi suggested:  toto reviewer1pci+fake_810@gmail.com")
 Reviewer.parse("AOUE E O'connor tutu@tef.fr")
 
 ########################################################################################
