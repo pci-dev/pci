@@ -51,7 +51,10 @@ def post_form():
     if form.process(keepvalues=True).accepted:
         status = crossref.post_and_forget(recomm, form.vars.xml)
         if not status:
-            send_to_clockss(article, recomm)
+            try:
+                send_to_clockss(article, recomm)
+            except Exception as e:
+                response.flash = f"{e}"
 
         form.element(_name="status", replace=PRE(status or "request sent"))
 
@@ -62,7 +65,6 @@ def post_form():
             _onclick= f'window.location.replace("{url}"); return false;'))
 
 
-    response.flash = None
     response.view = "default/myLayout.html"
     return dict(
         form=form,
