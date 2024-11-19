@@ -535,6 +535,31 @@ class Article(Row):
         return query.select(orderby=db.t_articles.id)
 
 
+    @staticmethod
+    def check_duplicate_submission(doi: str, title: str):
+        db = current.db
+
+        doi_norm = re.sub('v[0-9]+/?$', '', doi.lower()) # remove HAL version
+        title_norm = title.lower()
+        awaiting_revision = db.t_articles.status == ArticleStatus.AWAITING_REVISION.value
+
+        same_title = db((db.t_articles.title.lower() == title_norm)
+                        & awaiting_revision)
+        same_url = db((db.t_articles.doi.lower().startswith(doi_norm))
+                        & awaiting_revision)
+
+        same_title = same_title.select().first()
+        same_url = same_url.select().first()
+        is_dup = same_title or same_url
+
+        dup_info = (
+                "title" + (" and url" if same_url else "") if same_title else
+                "url" if same_url else
+                None
+        )
+        return dup_info
+
+
 def is_scheduled_submission(article: Article) -> bool:
     from models.report_survey import ReportSurvey
     

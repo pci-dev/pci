@@ -733,25 +733,22 @@ def check_suggested_and_opposed_reviewers(form):
 
 
 def check_duplicate_submission(form):
-    same_title = db(db.t_articles.title.lower() == form.vars.title.lower()).count()
-    same_url = db(db.t_articles.doi.lower() == form.vars.doi.lower()).count()
-
-    if same_title or same_url:
+    dup_info = Article.check_duplicate_submission(
+            form.vars.doi,
+            form.vars.title,
+    )
+    if dup_info:
         form.errors.duplicate = dict(
-            same_title=same_title, title=form.vars.title,
-            same_url=same_url, url=form.vars.doi,
+            title=form.vars.title,
+            url=form.vars.doi,
+            dup_info=dup_info,
         )
 
 
 def duplicate_submission():
-    dup_info = (
-        "title and url" if request.vars.same_title and request.vars.same_url else
-        "title" if request.vars.same_title else
-        "url"
-    )
     text = XML(f"""
         An article with title '{request.vars.title}' and url = {request.vars.url}
-        is already submitted at this PCI with the same {dup_info}.
+        is already submitted at this PCI with the same {request.vars.dup_info}.
         <br>
         Your sumbission has thus not been registered.
         <br>

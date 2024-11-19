@@ -95,18 +95,12 @@ def info(msg: str):
 
 
 def check_duplicate_submission(article_data: XMLJATSArticleElement):
-    db = current.db
-
-    same_title = db(db.t_articles.title.lower() == article_data.title.lower()).count() if article_data.title else None
-    same_url = db(db.t_articles.doi.lower() == article_data.doi.lower()).count() if article_data.doi else None
-
-    dup_info = (
-            "title" + (" and url" if same_url else "") if same_title else
-            "url" if same_url else None
+    dup_info = Article.check_duplicate_submission(
+            article_data.doi,
+            article_data.title,
     )
-    if same_title or same_url:
+    if dup_info:
         return(f"an article with the same {dup_info} already exists")
-
 
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
