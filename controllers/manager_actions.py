@@ -131,7 +131,10 @@ def do_recommend_article():
     
     status = crossref.post_and_forget(recomm)
     if not status:
-        send_to_clockss(art, recomm)
+        try:
+            send_to_clockss(art, recomm)
+        except Exception as e:
+            response.flash = f"{e}"
     
     redirect(redir_url)
 

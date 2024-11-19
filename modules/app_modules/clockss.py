@@ -286,30 +286,14 @@ class Clockss:
 
 
     def _replace_img_in_template(self):
-        pci = str(myconf.take("app.description")).lower()
-        img_map = {
-            'peer community in registered reports (test)': 'logo_PDF_rr.jpg',
-            'peer community in registered reports': 'logo_PDF_rr.jpg',
-            'peer community in zoology': 'logo_PDF_zool.jpg',
-            'peer community in ecology': 'logo_PDF_ecology.jpg',
-            'peer community in animal science': 'logo_PDF_animsci.jpg',
-            'peer community in archaeology': 'logo_PDF_archaeo.jpg',
-            'peer community in forest and wood sciences': 'logo_PDF_fws.jpg',
-            'peer community in genomics': 'logo_PDF_genomics.jpg',
-            'peer community in mathematical and computational biology': 'logo_PDF_mcb.jpg',
-            'peer community in network science': 'logo_PDF_networksci.jpg',
-            'peer community in paleontology': 'logo_PDF_paleo.jpg',
-            'peer community in neuroscience': 'logo_PDF_neuro.jpg',
-            'peer community in ecotoxicology and environmental chemistry': 'logo_PDF_ecotoxenvchem.jpg',
-            'peer community in infections': 'logo_PDF_infections.jpg',
-            'peer community in health and movement sciences': 'logo_PDF_healthandmovementsciences.jpg',
-            'peer community in microbiology': 'logo_PDF_microbiology.jpg',
-            'peer community in organization studies': 'logo_PDF_organizationstudies.jpg',
-            'peer community in computational statistics': 'logo_PDF_computationalstatistics.jpg',
-            'peer community in psychology': 'logo_PDF_psychology.jpg',
-        }
-        img = img_map.get(pci, 'logo_PDF_evolbiol.jpg')
-        return img
+        pci = str(myconf.take("app.name"))
+        pci = pci.replace(" ", "")
+
+        img = f"logo_PDF_{pci}.jpg"
+        if os.path.isfile(f"{self._get_templates_dir()}{img}"):
+            return img
+        else:
+            return "logo_PDF_PCIEvolBiol.jpg"
     
 
     def _replace_recommendation_process(self):
@@ -605,13 +589,12 @@ def send_to_clockss(article: Article, recommendation: Recommendation):
     try:
         filename = clockss.build_pdf()
     except Exception as e:
-        current.session.flash = f"Error building Clockss PDF: {e}"
-        return
+        raise Exception(f"Error building Clockss PDF: Compilation error")
     try:
         PDF.save_pdf_to_db(recommendation, attachments_dir, filename)
         clockss.package_and_send()
     except NoOptionError:
         PDF.delete_pdf_to_db(recommendation.id)
     except Exception as e:
-        current.session.flash = f"Error to upload to Clockss: {e}"
         PDF.delete_pdf_to_db(recommendation.id)
+        raise Exception(f"Error to upload to Clockss: {e}")
