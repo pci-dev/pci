@@ -1,4 +1,3 @@
-import re
 from typing import List, Optional, Union
 
 from urllib.parse import urlparse
@@ -6,7 +5,7 @@ from gluon import STRONG
 from gluon.html import A, P
 from pydal.validators import IS_HTTP_URL
 from pydal.validators import Validator
-from app_modules.common_tools import strip_accents
+from app_modules.suggested_reviewers_parser import Reviewer
 
 class CUSTOM_VALID_URL(Validator):
 
@@ -71,33 +70,17 @@ class VALID_DOI(Validator):
         
         
 class VALID_LIST_NAMES_MAIL(Validator):
-
-    _regex: str
     
     _error_message: str
     _error_message_suggested: str
 
-    _name = r"[\w\-]+"
-    _first_name = r"{name}\.?".format(name=_name)
-    _separator = " +"
-    
-    _regex_email = r"[\w_\-\.]+@[\w_\-\.]+\.[a-zA-Z]+"
+    _without_email: bool
+    _optional_email: bool
 
     def __init__(self, is_list_string: bool = False, without_email: bool = False, optional_email: bool = False):
-        if optional_email:
-            self._regex = "{name}({sep}{email})?".format(
-                name=self._regex_name(),
-                sep=self._separator,
-                email=self._regex_email
-            )
-        elif without_email:
-            self._regex = self._regex_name()
-        else:
-            self._regex = "{name}{sep}{email}".format(
-                name=self._regex_name(),
-                sep=self._separator,
-                email=self._regex_email
-            )
+
+        self._without_email = without_email
+        self._optional_email = optional_email
 
         if is_list_string:
             if optional_email:
@@ -124,52 +107,33 @@ class VALID_LIST_NAMES_MAIL(Validator):
             return value, None
         
         if isinstance(value, str):
-            pattern = re.compile(self._regex)
-
             people = value.split(',')
             for person in people:
-                person = strip_accents(person.strip())
-                match = pattern.fullmatch(person)
-                if not match:
-                    return value, self._error_message
+                try:
+                    reviewer = Reviewer.parse(person)
+                    self._check_constraints(reviewer)
+                except Exception as e:
+                    return value, f"{self._error_message} -> {person}: {e}"
         else:
-            self._regex = self._regex_suggested_name(self._regex)
-            pattern = re.compile(self._regex)
-
             for person in value:
-                person = strip_accents(person.strip())
-
-                match = pattern.fullmatch(person)
-                if "suggested:" in person:
-                    error_message = self._error_message_suggested
-                else:
-                    error_message = self._error_message
-                    
-                if not match:
-                    return value, error_message
+                try:
+                    reviewer = Reviewer.parse(person)
+                    self._check_constraints(reviewer)
+                except Exception as e:
+                    if "suggested:" in person:
+                        error_message = self._error_message_suggested
+                    else:
+                        error_message = self._error_message
+                        
+                    return value, f"{error_message} -> {person}: {e}"
                 
         return value, None
 
 
-    def _sequence(self, regex: str):
-        return r"{name}(?:{separator}{name})".format(
-            name=regex,
-            separator=self._separator
-        )
-    
-
-    def _regex_name(self):
-        return r"({first}*?{sep})?({last}*)".format(
-            first=self._sequence(self._first_name),
-            last=self._sequence(self._name),
-            sep=self._separator,
-        )
-    
-
-    def _regex_suggested_name(self, regex: str):
-        return "({name}{sep}({email}{sep})?suggested:{sep})?{regex}".format(
-            name=self._regex_name(),
-            sep=self._separator,
-            email=self._regex_email,
-            regex=regex
-        )
+    def _check_constraints(self, reviewer: Reviewer):
+        if self._without_email:
+            if reviewer.suggested.email is not None:
+                raise Exception("Email is forbidden")
+        else:
+            if not self._optional_email and reviewer.suggested.email is None:
+                raise Exception("Email is required")

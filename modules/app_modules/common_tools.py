@@ -437,8 +437,3 @@ def log(title: str, message: str):
     app = str(current.request.application)
 
     print(f"{now} {app}:{title} {message}")
-
-
-def strip_accents(s: str):
-   return ''.join(c for c in unicodedata.normalize('NFD', s)
-                  if unicodedata.category(c) != 'Mn')
