@@ -288,9 +288,10 @@ DATACITE_profile = "http://datacite.org/schema/kernel-4"
 def map_dc(metadata, xml_str):
     from lxml import objectify
     c = objectify.fromstring(xml_str.encode("utf8"))
+    profile = DC_profile
 
-    def get(elt): return str(c.find("{"+DC_profile+"}"+elt))
-    def get_all(elt): return map(str, c.findall("{"+DC_profile+"}"+elt))
+    def get(elt): return str(c.find("{"+profile+"}"+elt))
+    def get_all(elt): return map(str, c.findall("{"+profile+"}"+elt))
 
     authors = [ " ".join(reversed(x.split(", ")))
                     for x in get_all("creator") ]
