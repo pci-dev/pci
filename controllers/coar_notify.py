@@ -266,16 +266,31 @@ def get_preprint_server(doi):
 
 
 def get_signposting_metadata(doi):
+    profiles = {
+            DC_profile: map_dc,
+            DATACITE_profile: map_datacite,
+    }
+    for profile, mapper in profiles.items():
+        metadata = _get_metadata(doi, profile, mapper)
+        if metadata:
+            return metadata
+
+    fail(f"no supported sign-posting metadata found at doi={doi}")
+
+
+def _get_metadata(doi, profile, mapper):
     metadata = {}
     try:
-        metadata_url = get_link(doi, rel="describedby", formats=DC_profile)
+        metadata_url = get_link(doi, rel="describedby", formats=profile)
         # HAL currently uses "formats" but will eventually use "profile"
         if not metadata_url:
-            metadata_url = get_link(doi, rel="describedby", profile=DC_profile)
+            metadata_url = get_link(doi, rel="describedby", profile=profile)
+
+        assert metadata_url
 
         r = retry(requests.get, metadata_url)
 
-        map_dc(metadata, r.text)
+        mapper(metadata, r.text)
     except:
         pass
 
