@@ -296,6 +296,9 @@ def send_ack(self,
     origin_req = get_origin_request(article)
     if not origin_req: return
 
+    if typ == "TentativeAccept":
+        typ = [ typ, "coar-notify:EndorsementAction" ]
+
     del origin_req["@context"]
 
     notification = {
