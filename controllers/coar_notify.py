@@ -282,6 +282,7 @@ def get_signposting_metadata(doi):
     return metadata
 
 DC_profile = "http://purl.org/dc/elements/1.1/"
+DATACITE_profile = "http://datacite.org/schema/kernel-4"
 
 
 def map_dc(metadata, xml_str):
@@ -300,6 +301,25 @@ def map_dc(metadata, xml_str):
     metadata["article_year"] = get("date").split("-")[0]
     metadata["abstract"] = get("description")
     metadata["keywords"] = get("subject")
+
+
+def map_datacite(metadata, xml_str):
+    from lxml import objectify
+    c = objectify.fromstring(xml_str.encode("utf8"))
+    profile = DATACITE_profile
+
+    def get(elt): return str(c.find(elt, {"":profile}))
+    def get_all(elt): return map(str, c.findall(elt, {"":profile}))
+
+    authors = [ " ".join(reversed(x.split(", ")))
+                    for x in get_all("**/creatorName") ]
+
+    # map to db.t_article columns
+    metadata["title"] = get("*/title")
+    metadata["authors"] = ", ".join(authors)
+    metadata["article_year"] = get("publicationYear")
+    metadata["abstract"] = get("*/description")
+    metadata["keywords"] = get("*/subject")
 
 
 def map_HAL_json(metadata, content):
