@@ -754,7 +754,7 @@ def duplicate_submission():
         <u>Title:</u> {request.vars.title}<br>
         <u>URL:</u> {request.vars.url}<br>
         </div>
-        Your sumbission has thus not been registered.
+        Your submission has thus not been registered.
         <br>
         Please contact the Managing Board at {myconf.get("contacts.contact")}
         for more information.
