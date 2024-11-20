@@ -302,6 +302,9 @@ def send_ack(self,
           "type": typ,
           "object": origin_req,
           "inReplyTo": article.coar_notification_id,
+          "context": {
+              "id": article.doi,
+          },
           "actor": {
             "id": self.base_url,
             "type": "Service",
