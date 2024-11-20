@@ -748,13 +748,16 @@ def check_duplicate_submission(form):
 
 def duplicate_submission():
     text = XML(f"""
-        An article with title '{request.vars.title}' and url = {request.vars.url}
-        is already submitted at this PCI with the same {request.vars.dup_info}.
-        <br>
-        Your sumbission has thus not been registered.
+        An article with the same {request.vars.dup_info}
+        is already being evaluated in this PCI.
+        <div style="margin: 1em 0; line-height: 1.5em">
+        <u>Title:</u> {request.vars.title}<br>
+        <u>URL:</u> {request.vars.url}<br>
+        </div>
+        Therefore, your submission has not been registered.
         <br>
         Please contact the Managing Board at {myconf.get("contacts.contact")}
-        for more information.
+        for further assistance.
     """)
     response.view = "default/myLayoutBot.html"
     return dict(
