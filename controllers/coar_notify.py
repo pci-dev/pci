@@ -79,7 +79,9 @@ def inbox():
         except json.JSONDecodeError as e:
             fail(f"Invalid JSON: {e}")
         except Exception as e:
-            fail(f"{e.__class__.__name__}: {e}")
+            import traceback
+            fail(f"{e.__class__.__name__}: {e}" +
+                    "\n" + traceback.format_exc())
 
         add_location_header(coar_id=body['id'])
         return HTTP(status=HTTPStatus.CREATED.value)
