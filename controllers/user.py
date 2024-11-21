@@ -1135,6 +1135,7 @@ def _hide_suggested_reviewer_for_user(article: Article, form: ...):
     session.hidden_suggested_reviewer = []
 
     for li in li_els.copy():
+        if type(li.components[0]) is str: continue
         value: str = str(li.components[0].attributes['value'])
         if "suggested:" in value:
             if value not in current.session.hidden_suggested_reviewer:
