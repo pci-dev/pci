@@ -1142,6 +1142,10 @@ def _hide_suggested_reviewer_for_user(article: Article, form: ...):
                 current.session.hidden_suggested_reviewer.append(value)
             li_els.remove(li)
 
+    if len(li_els) == 0 and li:
+        li.components[0].attributes['_value'] = ""
+        li_els.append(li)
+
 
 def _get_hidden_suggested_reviewer_for_user(article: Article):
     if article.user_id != current.auth.user_id:
