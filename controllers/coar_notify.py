@@ -79,7 +79,9 @@ def inbox():
         except json.JSONDecodeError as e:
             fail(f"Invalid JSON: {e}")
         except Exception as e:
-            fail(f"{e.__class__.__name__}: {e}")
+            import traceback
+            fail(f"{e.__class__.__name__}: {e}" +
+                    "\n" + traceback.format_exc())
 
         add_location_header(coar_id=body['id'])
         return HTTP(status=HTTPStatus.CREATED.value)
@@ -266,30 +268,47 @@ def get_preprint_server(doi):
 
 
 def get_signposting_metadata(doi):
+    profiles = {
+            DC_profile: map_dc,
+            DATACITE_profile: map_datacite,
+    }
+    for profile, mapper in profiles.items():
+        metadata = _get_metadata(doi, profile, mapper)
+        if metadata:
+            return metadata
+
+    fail(f"no supported sign-posting metadata found at doi={doi}")
+
+
+def _get_metadata(doi, profile, mapper):
     metadata = {}
     try:
-        metadata_url = get_link(doi, rel="describedby", formats=DC_profile)
+        metadata_url = get_link(doi, rel="describedby", formats=profile)
         # HAL currently uses "formats" but will eventually use "profile"
         if not metadata_url:
-            metadata_url = get_link(doi, rel="describedby", profile=DC_profile)
+            metadata_url = get_link(doi, rel="describedby", profile=profile)
+
+        assert metadata_url
 
         r = retry(requests.get, metadata_url)
 
-        map_dc(metadata, r.text)
+        mapper(metadata, r.text)
     except:
         pass
 
     return metadata
 
 DC_profile = "http://purl.org/dc/elements/1.1/"
+DATACITE_profile = "http://datacite.org/schema/kernel-4"
 
 
 def map_dc(metadata, xml_str):
     from lxml import objectify
     c = objectify.fromstring(xml_str.encode("utf8"))
+    profile = DC_profile
 
-    def get(elt): return str(c.find("{"+DC_profile+"}"+elt))
-    def get_all(elt): return map(str, c.findall("{"+DC_profile+"}"+elt))
+    def get(elt): return str(c.find("{"+profile+"}"+elt))
+    def get_all(elt): return map(str, c.findall("{"+profile+"}"+elt))
 
     authors = [ " ".join(reversed(x.split(", ")))
                     for x in get_all("creator") ]
@@ -300,6 +319,25 @@ def map_dc(metadata, xml_str):
     metadata["article_year"] = get("date").split("-")[0]
     metadata["abstract"] = get("description")
     metadata["keywords"] = get("subject")
+
+
+def map_datacite(metadata, xml_str):
+    from lxml import objectify
+    c = objectify.fromstring(xml_str.encode("utf8"))
+    profile = DATACITE_profile
+
+    def get(elt): return str(c.find(elt, {"":profile}))
+    def get_all(elt): return map(str, c.findall(elt, {"":profile}))
+
+    authors = [ " ".join(reversed(x.split(", ")))
+                    for x in get_all("**/creatorName") ]
+
+    # map to db.t_article columns
+    metadata["title"] = get("*/title")
+    metadata["authors"] = ", ".join(authors)
+    metadata["article_year"] = get("publicationYear")
+    metadata["abstract"] = get("*/description")
+    metadata["keywords"] = get("*/subject")
 
 
 def map_HAL_json(metadata, content):
