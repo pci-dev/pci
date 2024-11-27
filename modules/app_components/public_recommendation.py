@@ -234,8 +234,8 @@ def _dublinc_core_meta_tag(article: Article):
 
 
 ######################################################################################################################################################################
-def getPublicReviewRoundsHtml(articleId):
-    db, auth = current.db, current.auth
+def getPublicReviewRoundsHtml(articleId: int):
+    db= current.db
 
     recomms = db((db.t_recommendations.article_id == articleId)).select(orderby=~db.t_recommendations.id)
 
