@@ -155,6 +155,35 @@ class Recommendation(Row):
 
 
     @staticmethod
+    def recommendation_decision_without_references(recommendation_decision: str):
+        recommendation_comments = recommendation_decision or ''
+        recommendation_text: List[str] = []
+
+        lines = recommendation_comments.splitlines()
+        reference_start = False
+
+        for line in lines:
+            sub_lines = line.split('<br>&nbsp;<br>')
+            for sub_line in sub_lines:
+                try:
+                    line_text = str(TAG(sub_line).flatten().lower().strip()) # type: ignore
+                except:
+                    line_text = sub_line
+                line_text = line_text.translate(str.maketrans('', '', string.punctuation))
+
+                if line_text in ['reference', 'references']:
+                    reference_start = True
+                    break
+
+                recommendation_text.append(f"\n{sub_line}")
+            
+            if reference_start:
+                break
+
+        return '\n'.join(recommendation_text)
+
+
+    @staticmethod
     def get_decision_due_date(recommendation: 'Recommendation', article: 'Article', round_number: int) -> _[datetime]:
         from models.review import Review, ReviewState
         from models.mail_queue import MailQueue, SendingStatus
