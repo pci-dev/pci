@@ -35,7 +35,7 @@ def URL(a: Optional[str] = None,
         r: Optional[str] = None,
         args: Optional[Any] = None,
         vars: Optional[Dict[str, Any]] = None,
-        anchor: Optional[str] ='',
+        anchor: str = '',
         extension: Optional[str] = None,
         env: Optional[str] = None,
         hmac_key: Optional[str] = None,
@@ -90,7 +90,7 @@ def get_script(scriptName: str):
 
 
 ######################################################################################################################################################################
-def getShortText(text, length):
+def getShortText(text: Optional[str], length: int):
     text = text or ""
     if len(text) > length:
         text = text[0:length] + "..."
