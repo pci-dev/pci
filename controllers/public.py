@@ -5,9 +5,18 @@ from app_modules.orcid import OrcidTools
 
 from app_components import article_components
 
-from gluon.storage import Storage
+from gluon import redirect # type: ignore
 
+from models.group import Group
 from models.user import User
+
+request = current.request
+auth = current.auth
+response = current.response
+T = current.T
+db = current.db
+
+from app_modules.common_tools import URL
 
 ######################################################################################################################################################################
 def index():
@@ -19,7 +28,7 @@ def index():
         request.vars["userId"] = auth.user.id
         return user_public_page()
     else:
-        redirect(URL("../.."))
+        return redirect(URL("../.."))
 
 
 def user_public_page():
@@ -35,7 +44,7 @@ def user_public_page():
             custom_text = "The user has been deleted or unsubscribed"
             raise Exception(custom_text)
 
-        return profile_page(user)
+        return _profile_page(user)
     except:
         return dict(
             pageHelp=getHelp("#PublicUserCard"),
@@ -45,7 +54,7 @@ def user_public_page():
         )
 
 
-def profile_page(user: User):
+def _profile_page(user: User):
             # (gab) is always on false ????
                 withMail = False
                 userId = user.id
@@ -58,7 +67,6 @@ def profile_page(user: User):
                     "'s profile",
                 )
 
-                name = LI(B(nameTitle))
                 full_address = [user.laboratory, user.institution, user.city, user.country]
                 full_address = [i for i in full_address if i is not None]
                 addr = LI(I(", ".join(full_address)))
@@ -81,31 +89,30 @@ def profile_page(user: User):
                 else:
                     userCv = ""
 
-                rolesQy = db((db.auth_membership.user_id == userId) & (db.auth_membership.group_id == db.auth_group.id)).select(db.auth_group.role)
-                rolesList = []
+                rolesQy: List[Group] = db((db.auth_membership.user_id == userId) & (db.auth_membership.group_id == db.auth_group.id)).select(db.auth_group.role)
+                rolesList: List[str] = []
                 for roleRow in rolesQy:
                     rolesList.append(roleRow.role)
                 roles = LI(B(", ".join(rolesList)))
 
                 recommsQy0sql = (
-                    """
+                    f"""
 						SELECT t_articles.id
 						FROM t_articles
 						JOIN t_recommendations ON (
 							t_recommendations.article_id = t_articles.id
 							AND t_recommendations.recommendation_state = 'Recommended'
 							AND t_recommendations.id IN (
-								SELECT DISTINCT recommendation_id FROM t_press_reviews WHERE t_press_reviews.contributor_id = %(userId)s
+								SELECT DISTINCT recommendation_id FROM t_press_reviews WHERE t_press_reviews.contributor_id = {userId}
 								UNION
-								SELECT id FROM t_recommendations WHERE recommender_id = %(userId)s
+								SELECT id FROM t_recommendations WHERE recommender_id = {userId}
 							)
 						)
 						WHERE t_articles.status = 'Recommended'
 						ORDER BY t_articles.last_status_change DESC
 					"""
-                    % locals()
                 )
-                recommsQy0 = []
+                recommsQy0: List[Any] = []
                 for t in db.executesql(recommsQy0sql):
                     recommsQy0.append(t[0])
 
@@ -113,12 +120,12 @@ def profile_page(user: User):
 
                 recommsQy = db(db.t_articles.id.belongs(recommsQy0)).select(db.t_articles.ALL, distinct=True, orderby=~db.t_articles.last_status_change,)
                 nbRecomms = len(recommsQy)
-                recomms = []
+                recomms: List[XML] = []
                 for row in recommsQy:
-                    recomms.append(article_components.getRecommArticleRowCard(row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    recomms.append(article_components.getRecommArticleRowCard(row, lastRecomms.get(row.id), withImg=True, withDate=True, fullURL=False,))
 
                 # reviews
-                reviews = []
+                reviews: List[XML] = []
                 reviewsQy = db(
                     (db.t_reviews.reviewer_id == userId)
                     & ~(db.t_reviews.anonymously == True)
@@ -131,7 +138,7 @@ def profile_page(user: User):
 
                 nbReviews = len(reviewsQy)
                 for row in reviewsQy:
-                    reviews.append(article_components.getRecommArticleRowCard(row, lastRecomms.get(row.id), withImg=True, withScore=False, withDate=True, fullURL=False,))
+                    reviews.append(article_components.getRecommArticleRowCard(row, lastRecomms.get(row.id), withImg=True, withDate=True, fullURL=False,))
 
                 return dict(
                     pageHelp=getHelp("#PublicUserCard"),
