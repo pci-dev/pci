@@ -58,8 +58,9 @@ def rec():
         session.flash = T("Item not recommended yet")
         redirect(request.home)
 
-    response.title = finalRecomm.recommendation_title
-    response.title = common_tools.getShortText(response.title, 64)
+    if finalRecomm.recommendation_title:
+        response.title = finalRecomm.recommendation_title
+        response.title = common_tools.getShortText(response.title, 64)
 
     nbRecomms = db((db.t_recommendations.article_id == art.id)).count()
     nbRevs = db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id)).count()
