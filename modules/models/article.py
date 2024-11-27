@@ -550,7 +550,6 @@ class Article(Row):
 
         same_title = same_title.select().first()
         same_url = same_url.select().first()
-        is_dup = same_title or same_url
 
         dup_info = (
                 "title" + (" and url" if same_url else "") if same_title else
