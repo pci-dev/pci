@@ -1,5 +1,5 @@
 from abc import ABCMeta
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict, cast
 from attr import dataclass
 from deep_translator import GoogleTranslator
 from deep_translator.base import BaseTranslator
@@ -55,10 +55,9 @@ class Translator:
             try:
                 engine = self._translators[i]
                 data_translated = engine.translate(text) # type: ignore
-                is_html_text = is_html(text)
 
-                if is_html_text and not is_html(data_translated):
-                    raw_text = str(is_html_text.flatten()) # type: ignore
+                if is_html(text) and not is_html(data_translated):
+                    raw_text = cast(str, is_html(text).flatten()) # type: ignore
                     data_translated = engine.translate(raw_text) # type: ignore
             except Exception as e:
                 print(e)
