@@ -3,7 +3,7 @@ import time
 from typing import Any, Dict, List, Optional as _, cast
 from pydal.validators import CRYPT
 
-from gluon.utils import web2py_uuid
+from gluon.utils import web2py_uuid # type: ignore
 from pydal.objects import Row
 from gluon import current
 
@@ -70,15 +70,15 @@ class User(Row):
     
 
     @staticmethod
-    def set_orcid(user: 'User', orcid: str):
+    def set_orcid(user: 'User', orcid: str) -> 'User':
         user.orcid = orcid
-        return user.update_record()
+        return user.update_record() # type: ignore
 
 
     @staticmethod
-    def set_no_orcid(user: 'User', no_orcid: bool = True):
+    def set_no_orcid(user: 'User', no_orcid: bool = True) -> 'User':
         user.no_orcid = no_orcid
-        return user.update_record()
+        return user.update_record() # type: ignore
     
 
     @staticmethod
@@ -105,7 +105,7 @@ class User(Row):
         
         max_time = (15 * 24 * 60 * 60) + int(time.time())
         recover_email_key = str( max_time) + "-" + web2py_uuid()
-        user.update_record(recover_email_key=recover_email_key, recover_email=new_email)
+        user.update_record(recover_email_key=recover_email_key, recover_email=new_email) # type: ignore
 
         return recover_email_key
 
@@ -128,13 +128,16 @@ class User(Row):
         user.email = user.recover_email
         user.recover_email = None
         user.recover_email_key = None
-        user.update_record()
+        user.update_record() # type: ignore
 
 
     @staticmethod
     def delete(user_id: int):
         from app_modules.common_tools import delete_user_from_PCI
-        delete_user_from_PCI(User.get_by_id(user_id))
+
+        user = User.get_by_id(user_id)
+        if user:
+            delete_user_from_PCI(user)
 
 
     @staticmethod
@@ -160,7 +163,7 @@ class User(Row):
     @staticmethod
     def set_deleted(user: 'User'):
         user.deleted = True
-        user.update_record()
+        user.update_record() # type: ignore
         return user
 
 
@@ -189,7 +192,7 @@ class User(Row):
         user.email_options = []
         user.orcid = None
 
-        user.update_record()
+        user.update_record() # type: ignore
 
     
     @staticmethod
@@ -208,7 +211,7 @@ class User(Row):
                         orcid: _[str] = None):
         db = current.db
         my_crypt = CRYPT(key=current.auth.settings.hmac_key)
-        crypt_pass = my_crypt(current.auth.random_password())[0]
+        crypt_pass = cast(str, my_crypt(current.auth.random_password())[0])
         
         if not reset_password_key:
             reset_password_key = User.generate_new_reset_password_key()
@@ -227,15 +230,15 @@ class User(Row):
 
 
     @staticmethod
-    def set_in_new_article_cache(user: 'User', article_data: Dict[Any, Any]):
+    def set_in_new_article_cache(user: 'User', article_data: Dict[Any, Any]) -> 'User':
         user.new_article_cache = article_data
-        return user.update_record()
+        return user.update_record() # type: ignore
 
 
     @staticmethod
-    def clear_new_article_cache(user: 'User'):
+    def clear_new_article_cache(user: 'User') -> 'User':
         user.new_article_cache = None
-        return user.update_record()
+        return user.update_record() # type: ignore
 
 
     @staticmethod
