@@ -225,6 +225,8 @@ def update_resubmitted_article(req, context):
 
     update_article(article, req)
 
+    return article
+
 
 def update_article(article, req):
     article.update_record(
