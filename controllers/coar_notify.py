@@ -234,7 +234,6 @@ def update_article(article, req):
         coar_notification_closed = False,
         doi = req["object"]["ietf:cite-as"],
     )
-    return article
 
 
 def check_duplicate_submission(doi, meta_data):
