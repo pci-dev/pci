@@ -1,10 +1,16 @@
 from datetime import date
-from typing import List
+from typing import List, Union
 
-from lang import Lang
-from serde import Optional, dataclass, serde, field
-from serde.json import Union
+from serde import Optional, Untagged, dataclass, serde, field
 from serde.json import to_json as serde_to_json
+
+from app_modules.lang import Lang
+
+
+@serde(rename_all="camelcase")
+class CreativeWork:
+    type: str = field(init=False, rename="@type", default="schema:CreativeWork")
+    headline: str
 
 
 @serde(rename_all="camelcase")
@@ -26,7 +32,7 @@ class MediaObject:
 
 @serde(rename_all="camelcase")
 class Answer:
-    type: str = field(init=False, rename="@type", default="schema:Comment")
+    type: str = field(init=False, rename="@type", default="schema:Answer")
     author: List[Person]
     text: Optional[str] = field(skip_if_false=True, default=None)
     content_url: Optional[str] = field(skip_if_false=True, default=None)
@@ -61,7 +67,7 @@ class ScholarlyArticle:
     identifier: Optional[str] = field(skip_if_false=True, default=None)
     abstract: Optional[str] = field(skip_if_false=True, default=None)
     is_part_of: Optional[Periodical] = field(skip_if_false=True, default=None)
-    citation: Optional[List["ScholarlyArticle"]] = field(skip_if_false=True, default=None)
+    citation: Optional[List[Union["ScholarlyArticle", CreativeWork]]] = field(skip_if_false=True, default=None)
     about: Optional[str] = field(skip_if_false=True, default=None)
     is_based_on: Optional["ScholarlyArticle"] = field(skip_if_false=True, default=None)
     image: Optional[str] = field(skip_if_false=True, default=None)
@@ -70,7 +76,7 @@ class ScholarlyArticle:
     associated_media: Optional[List[MediaObject]] = field(skip_if_false=True, default=None)
     keywords: Optional[str] = field(skip_if_default=True, default=None)
     funder: Optional[str] = field(skip_if_default=True, default=None)
-    associated_review: Optional[List["Recommendation"]] = field(skip_if_default=True, default=None)
+    associated_review: Optional[List[Union[CriticReview, "Recommendation"]]] = field(skip_if_default=True, default=None)
 
     headline_fr: Optional[str] = field(skip_if_false=True, default=None)
     headline_es: Optional[str] = field(skip_if_false=True, default=None)
@@ -114,8 +120,8 @@ class Recommendation:
     associated_review: Optional[List[Union[CriticReview, "Recommendation"]]] = field(skip_if_false=True, default=None)
 
 
-serde(Recommendation, rename_all="camelcase")
-serde(ScholarlyArticle, rename_all="camelcase")
+serde(Recommendation, rename_all="camelcase", tagging=Untagged)
+serde(ScholarlyArticle, rename_all="camelcase", tagging=Untagged)
 
 
 @serde(rename_all="camelcase")

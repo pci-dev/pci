@@ -340,3 +340,10 @@ class User(Row):
                 users_data[user.id].roles.append(group.role)
 
         return list(users_data.values())
+    
+
+    @staticmethod
+    def get_public_page_url(user_id: int):
+        from app_modules.common_tools import URL
+
+        return URL(c="public", f="user_public_page", vars=dict(userId=user_id), scheme=True)

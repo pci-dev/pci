@@ -8,6 +8,7 @@ from re import match
 import re
 import subprocess
 from typing import Any, Dict, List, Optional, Union, cast
+import html as html_python
 from zipfile import ZipFile
 import io
 from bs4 import BeautifulSoup
@@ -434,6 +435,12 @@ def log(title: str, message: str):
     app = str(current.request.application)
 
     print(f"{now} {app}:{title} {message}")
+
+
+def remove_html_tag(html_text: str):
+    html_text = re.sub('<[^<]+?>', '', html_text)
+    html_text = html_python.unescape(html_text)
+    return html_text
 
 
 def doi_to_url(doi: str):

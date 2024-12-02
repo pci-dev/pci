@@ -227,6 +227,22 @@ class Recommendation(Row):
         return decision_due_date
 
 
+    @staticmethod
+    def get_reply_pdf_url(recommendation: 'Recommendation'):
+        from app_modules.common_tools import URL
+
+        if recommendation.reply_pdf:
+            return URL("default", "download", args=recommendation.reply_pdf, scheme=True)
+
+
+    @staticmethod
+    def get_track_change_url(recommendation: 'Recommendation'):
+        from app_modules.common_tools import URL
+
+        if recommendation.track_change:
+            return URL("default", "download", args=recommendation.track_change, scheme=True)
+
+
 def _get_reference_line_text(line: str):
     try:
         line_text = str(TAG(line).flatten().lower().strip()) # type: ignore
