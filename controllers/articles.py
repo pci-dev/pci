@@ -81,7 +81,7 @@ def rec():
     recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(art, finalRecomm, printable)
     recommHeaderHtml = recommendationHeader["headerHtml"]
     recommMetadata = recommendationHeader["recommMetadata"]
-    dublin_core = recommendationHeader["dublin_core"]
+    schema_org = recommendationHeader["schema_org"]
 
     if len(recommMetadata) > 0:
         response.meta = recommMetadata
@@ -113,7 +113,7 @@ def rec():
         commentsTreeAndForm=commentsTreeAndForm,
         printableClass=printableClass,
         myBackButton=common_small_html.mkBackButton(),
-        dublinCore=dublin_core
+        metas=[schema_org]
     )
 
 
