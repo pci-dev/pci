@@ -2,6 +2,7 @@
 # this file is released under public domain and you can use without limitations
 
 from typing import Any, List, Optional
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.custom_import import track_changes
 from gluon.html import A, I, LI, SPAN
 from gluon import current
@@ -9,6 +10,9 @@ from models.user import User
 from app_modules import common_tools
 
 from app_modules.common_tools import URL, is_silent_mode
+
+myconf = AppConfig()
+postprint = bool(myconf.get("config.postprint", default=False))
 
 track_changes(True)
 
@@ -365,6 +369,11 @@ def _RecommendationMenu():
         )
     ]
 
+    if postprint:
+        recommendationsMenu += [
+            menu_entry("Recommend a postprint", "glyphicon-edit", URL("recommender", "new_submission", user_signature=True)),
+        ]
+
     recommendationsMenu += [
         divider(),
         (
@@ -383,6 +392,18 @@ def _RecommendationMenu():
             False,
             URL("recommender", "completed_evaluations", vars=dict(pressReviews=False), user_signature=True),
         ),
+    ]
+
+    if postprint:
+        recommendationsMenu += [
+            (
+                SPAN(
+                    menu_entry_item("Your recommendations of postprints", "glyphicon-certificate", _class="pci-recommender"),
+                    _class=classPostprintsOngoing,
+                ),
+                False,
+                URL("recommender", "my_recommendations", vars=dict(pressReviews=True), user_signature=True),
+            )
     ]
 
     recommendationsMenu += [
