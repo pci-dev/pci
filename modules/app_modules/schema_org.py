@@ -182,7 +182,7 @@ class SchemaOrg:
 
         return so.Answer(
             author=self._get_article_authors(),
-            text=recommendation.reply,
+            text=self._clean_text(recommendation.reply) if recommendation.reply else None,
             associated_media=media
         )
 
