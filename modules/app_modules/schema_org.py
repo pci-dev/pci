@@ -1,10 +1,10 @@
 from copy import copy
 from typing import Dict, List, Optional, Union
-from app_modules.article_translator import ArticleTranslator
 from app_modules import common_tools
 from app_modules import common_small_html
 from gluon import current
 from gluon.contrib.appconfig import AppConfig # type: ignore
+from app_modules.lang import Lang
 from models.article import Article, TranslatedFieldType
 from models.recommendation import Recommendation
 from models.review import Review, ReviewState
@@ -236,42 +236,56 @@ class SchemaOrg:
         if not article.validation_timestamp:
             raise SchemaOrgException(article, "Article doesn'nt have validation timestamp!")
 
-        scholarly_article = so.ScholarlyArticle(
+        all_headlines: List[so.TranslatedField] = []
+        all_abstracts: List[so.TranslatedField] = []
+        all_keywords: List[so.TranslatedField] = []
+
+        if article.title:
+            all_headlines.append(so.TranslatedField(value=article.title, language=Lang.EN.value.code))
+
+        if article.abstract:
+            all_abstracts.append(so.TranslatedField(value=self._clean_text(article.abstract), language=Lang.EN.value.code))
+
+        if article.keywords:
+            all_keywords.append(so.TranslatedField(value=article.keywords, language=Lang.EN.value.code))
+
+        title_translations = Article.get_all_translations(article, TranslatedFieldType.TITLE)
+        abstract_translations = Article.get_all_translations(article, TranslatedFieldType.ABSTRACT)
+        keywords_translations = Article.get_all_translations(article, TranslatedFieldType.KEYWORDS)
+
+        if title_translations:
+            for title_translation in title_translations:
+                title = title_translation["content"]
+                lang = title_translation["lang"]
+                all_headlines.append(so.TranslatedField(value=title, language=lang))
+        
+        if abstract_translations:
+            for abstract_translation in abstract_translations:
+                abstract = self._clean_text(abstract_translation["content"])
+                lang = abstract_translation["lang"]
+                all_abstracts.append(so.TranslatedField(value=abstract, language=lang))
+
+        if keywords_translations:
+            for keywords_translation in keywords_translations:
+                keywords = keywords_translation["content"]
+                lang = keywords_translation["lang"]
+                all_keywords.append(so.TranslatedField(value=keywords, language=lang))
+
+
+        self._scholarly_article = so.ScholarlyArticle(
             same_as=common_small_html.mkLinkDOI(article.doi),
             image=Article.get_image_url(article),
-            headline=article.title,
+            headline=all_headlines,
             author=self._get_article_authors(),
             archived_at=article.preprint_server,
             version=article.ms_version,
-            abstract=self._clean_text(article.abstract) if article.abstract else None,
-            keywords=article.keywords,
+            abstract=all_abstracts,
+            keywords=all_keywords,
             date_created=article.upload_timestamp.date(),
             date_published=article.validation_timestamp.date(),
             funder=article.funding,
             associated_media=self._get_article_medias()
         )
-
-        for lang in ArticleTranslator.DEFAULT_TARGET_LANG:
-            title = Article.get_translation(article, TranslatedFieldType.TITLE, lang)
-            abstract = Article.get_translation(article, TranslatedFieldType.ABSTRACT, lang)
-            keywords = Article.get_translation(article, TranslatedFieldType.KEYWORDS, lang)
-
-            code_lang = lang.value.code.lower().replace('-', '_')
-
-            if title:
-                title_param_name = f"title_{code_lang}"
-                setattr(scholarly_article, title_param_name, title["content"])
-
-            if abstract:
-                abstract_param_name = f"abstract_{code_lang}"
-                setattr(scholarly_article, abstract_param_name, self._clean_text(abstract["content"]))
-
-            if keywords:
-                keywords_param_name = f"keywords_{code_lang}"
-                setattr(scholarly_article, keywords_param_name, keywords["content"])
-
-        self._scholarly_article = scholarly_article
-
 
     def _get_article_medias(self):
         medias: List[so.MediaObject] = []
