@@ -19,7 +19,7 @@ from app_modules.common_small_html import md_to_html
 from app_components import article_components
 from app_modules import emailing
 from app_modules.common_tools import URL
-from app_modules.schema_org import SchemaOrg
+from app_modules.schema_org import SchemaOrg, SchemaOrgException
 
 myconf = AppConfig(reload=True)
 
@@ -158,7 +158,12 @@ def getArticleAndFinalRecommendation(art: Article,
 
     # Get METADATA (see next function)
     recommMetadata = getRecommendationMetadata(art, finalRecomm, pdfUrl, Recommendation.get_doi_id(finalRecomm))
-    schema_org = SchemaOrg(art).to_script_tag()
+
+    try:
+        schema_org = SchemaOrg(art).to_script_tag()
+    except SchemaOrgException as e:
+        schema_org = SCRIPT(f"{e}", _type="application/ld+json")
+        
 
     headerHtml = XML(current.response.render("components/last_recommendation.html", headerContent))
     return dict(headerHtml=headerHtml, recommMetadata=recommMetadata, schema_org=schema_org)
