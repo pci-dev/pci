@@ -146,9 +146,6 @@ class SchemaOrg:
         
         count_anonymous = 0
         for review in reviews:
-            if not review.review:
-                raise SchemaOrgException(self._article, f"Missing review text for review {review.id}")
-
             if not review.last_change:
                 raise SchemaOrgException(self._article, f"Missing review publish date for review {review.id}")
 
@@ -159,10 +156,16 @@ class SchemaOrg:
             else:
                 author = self._get_author(review.reviewer_id)
 
+            media: Optional[so.MediaObject] = None
+            if review.review_pdf:
+                media = so.MediaObject(content_url=Review.get_review_pdf_url(review),
+                                    name="Review pdf file")
+
             critic_reviews.append(so.CriticReview(
                 author=author,
-                review_body=self._clean_text(review.review),
-                date_published=review.last_change.date()
+                review_body=self._clean_text(review.review) if review.review else None,
+                date_published=review.last_change.date(),
+                associated_media=media
             ))
 
         return critic_reviews
