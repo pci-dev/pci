@@ -2,8 +2,8 @@
 {{extend 'layout.html'}}
 
 {{ block head }}
-	{{ if 'dublinCore' in locals(): }}
-		{{for meta in dublinCore:}}
+	{{ if 'metas' in locals(): }}
+		{{for meta in metas:}}
 			{{=meta}}
 		{{ pass }}
 	{{ pass }}
