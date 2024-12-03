@@ -2,7 +2,7 @@ from copy import copy
 from typing import Dict, List, Optional, Union
 from app_modules import common_tools
 from app_modules import common_small_html
-from gluon import current
+from gluon import XML, current
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from app_modules.lang import Lang
 from models.article import Article, TranslatedFieldType
@@ -59,6 +59,10 @@ class SchemaOrg:
 
     def to_json(self):
         return self._schema.to_json()
+    
+
+    def to_script_tag(self):
+        return XML(f'<script type="application/ld+json">{self.to_json()}</script>')
 
 
     def _init_root_recommendation(self):
