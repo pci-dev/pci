@@ -48,8 +48,9 @@ class Answer:
 class CriticReview:
     type: str = field(init=False, rename="@type", default="schema:CriticReview")
     author: Person
-    review_body: str
     date_published: date
+    review_body: Optional[str] = field(skip_if_false=True, default=None)
+    associated_media: Optional[MediaObject] = field(skip_if_false=True, default=None)
 
 
 @serde(rename_all="camelcase")
