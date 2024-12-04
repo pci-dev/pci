@@ -12,9 +12,15 @@ class TranslatedField:
 
 
 @serde(rename_all="camelcase")
+class Id:
+    id: str = field(rename="@id")
+
+
+@serde(rename_all="camelcase")
 class CreativeWork:
     type: str = field(init=False, rename="@type", default="schema:CreativeWork")
     headline: str
+    name: str
 
 
 @serde(rename_all="camelcase")
@@ -28,8 +34,8 @@ class Person:
 @serde(rename_all="camelcase")
 class MediaObject:
     type: str = field(init=False, rename="@type", default="schema:MediaObject")
+    name: str
     content_url: Optional[str] = field(skip_if_false=True, default=None)
-    name: Optional[str] = field(skip_if_false=True, default=None)
     archived_at: Optional[str] = field(skip_if_false=True, default=None)
     description: Optional[str] = field(skip_if_false=True, default=None)
 
@@ -37,17 +43,19 @@ class MediaObject:
 @serde(rename_all="camelcase")
 class Answer:
     type: str = field(init=False, rename="@type", default="schema:Answer")
+    name: str
     author: List[Person]
     text: Optional[str] = field(skip_if_false=True, default=None)
     content_url: Optional[str] = field(skip_if_false=True, default=None)
-    name: Optional[str] = field(skip_if_false=True, default=None)
     associated_media: Optional[MediaObject] = field(skip_if_false=True, default=None)
 
 
 @serde(rename_all="camelcase")
 class CriticReview:
     type: str = field(init=False, rename="@type", default="schema:CriticReview")
+    name: str
     author: Person
+    itemReviewed: Id
     date_published: date
     review_body: Optional[str] = field(skip_if_false=True, default=None)
     associated_media: Optional[MediaObject] = field(skip_if_false=True, default=None)
@@ -61,8 +69,9 @@ class Periodical:
 
 @dataclass
 class ScholarlyArticle:
+    id: str
     same_as: str
-
+    name: str
     type: str = field(init=False, rename="@type", default="schema:ScholarlyArticle")
 
     headline: Optional[Union[List[TranslatedField], str]] = field(skip_if_false=True, default=None)
@@ -92,6 +101,7 @@ class Recommendation:
     author: Person
     comment: Answer
     item_reviewed: ScholarlyArticle
+    name: str
 
     type: str = field(init=False, rename="@type", default="schema:Recommendation")
     associated_media: Optional[List[MediaObject]] = field(skip_if_false=True, default=None)
@@ -102,10 +112,20 @@ serde(Recommendation, rename_all="camelcase", tagging=Untagged)
 serde(ScholarlyArticle, rename_all="camelcase", tagging=Untagged)
 
 
+
+@serde(rename_all="camelcase")
+class LanguageContainer:
+    id: str = field(rename="@id")
+    container: str = field(init=False, rename="@container", default="@language")
+
+
 @serde(rename_all="camelcase")
 class Context:
     schema: str = field(init=False, default="https://schema.org/")
     language: str = field(init=False, rename="@language", default="en")
+    headline: LanguageContainer = field(init=False, default=LanguageContainer("schema:headline"))
+    abstract: LanguageContainer = field(init=False, default=LanguageContainer("schema:abstract"))
+    keywords: LanguageContainer = field(init=False, default=LanguageContainer("schema:keywords"))
 
 
 @serde(rename_all="camelcase")
