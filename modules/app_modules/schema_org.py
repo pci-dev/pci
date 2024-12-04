@@ -1,4 +1,5 @@
 from copy import copy
+from datetime import timezone
 from typing import Dict, List, Optional, Union
 from app_modules import common_tools
 from app_modules import common_small_html
@@ -80,6 +81,14 @@ class SchemaOrg:
         if not final_recommendation.recommendation_comments:
             raise SchemaOrgException(self._article, f"Recommendation {final_recommendation.id} doesn't have decision!")
 
+        is_based_on: List[Union[so.ScholarlyArticle, so.Comment, so.Recommendation]] = []
+        is_based_on.append(self._scholarly_article)
+        is_based_on.extend(self._get_recommendation_reviews(final_recommendation, self._scholarly_article.id))
+
+        nested_recommendation = self._get_associated_recommendation_and_reviews(self._scholarly_article.id, len(self._recommendations))
+        if nested_recommendation:
+            is_based_on.append(nested_recommendation)
+
         same_as = common_small_html.mkLinkDOI(final_recommendation.recommendation_doi)
         self._root_recommendation = so.ScholarlyArticle(
             same_as=same_as,
@@ -87,24 +96,21 @@ class SchemaOrg:
             id=same_as,
             headline=final_recommendation.recommendation_title,
             author=[self._get_author(final_recommendation.recommender_id)],
-            date_created=final_recommendation.last_change.date(),
-            date_published=final_recommendation.validation_timestamp.date(),
+            date_created=final_recommendation.last_change.replace(tzinfo=timezone.utc),
+            date_published=final_recommendation.validation_timestamp.replace(tzinfo=timezone.utc),
             identifier=Recommendation.get_doi_id(final_recommendation),
-            abstract=self._clean_text(Recommendation.recommendation_decision_without_references(final_recommendation.recommendation_comments)),
+            article_body=self._clean_text(Recommendation.recommendation_decision_without_references(final_recommendation.recommendation_comments)),
             citation=self._get_recommendation_body(final_recommendation),
             is_part_of=self._periodical,
-            is_based_on=self._scholarly_article,
-            associated_review=self._get_associated_recommendation_and_reviews(final_recommendation, self._scholarly_article.id),
+            is_based_on=is_based_on,
             associated_media=self._get_recommendation_medias(final_recommendation),
         )
 
 
-    def _get_associated_recommendation_and_reviews(self, recommendation: Recommendation, scholarly_article_id: str):
+    def _get_associated_recommendation_and_reviews(self, scholarly_article_id: str, nb_round: int) -> Optional[so.Recommendation]:
         if len(self._recommendations) == 0:
-            last_reviews: List[Union[so.Recommendation, so.CriticReview]] = []
-            last_reviews.extend(self._get_recommendation_reviews(recommendation, scholarly_article_id))
-            return last_reviews
-
+            return
+        
         next_recommendation = self._recommendations.pop(0)
 
         if not next_recommendation.validation_timestamp:
@@ -121,28 +127,29 @@ class SchemaOrg:
         associated_article.same_as = common_small_html.mkLinkDOI(next_recommendation.doi)
         associated_article.id = f"{associated_article.same_as}#{associated_article.version}"
 
-        reviews = self._get_recommendation_reviews(recommendation, scholarly_article_id)
+        is_based_on: List[Union[so.ScholarlyArticle, so.Comment, so.Recommendation]] = []
+        is_based_on.append(associated_article)
+        is_based_on.extend(self._get_recommendation_reviews(next_recommendation, scholarly_article_id))
+        
+        nested_recommendation = self._get_associated_recommendation_and_reviews(associated_article.id, len(self._recommendations))
+        if nested_recommendation:
+            is_based_on.append(nested_recommendation)
 
-        so_recommendation = so.Recommendation(
-            name="Recommendation",
-            date_created=next_recommendation.last_change.date(),
-            date_published=next_recommendation.validation_timestamp.date(),
-            review_body=self._clean_text(next_recommendation.recommendation_comments),
+
+        return so.Recommendation(
+            name=f"Recommendation round {nb_round}",
+            headline=f"Recommendation round {nb_round}",
+            date_created=next_recommendation.last_change.replace(tzinfo=timezone.utc),
+            date_published=next_recommendation.validation_timestamp.replace(tzinfo=timezone.utc),
+            article_body=self._clean_text(next_recommendation.recommendation_comments),
             author=self._get_author(next_recommendation.recommender_id),
             comment=self._get_author_reply(next_recommendation),
-            item_reviewed=associated_article,
             associated_media=self._get_recommendation_medias(next_recommendation),
-            associated_review=self._get_associated_recommendation_and_reviews(next_recommendation, associated_article.id),
+            is_based_on=is_based_on
         )
-        
-        elements: List[Union[so.Recommendation, so.CriticReview]] = []
-        elements.append(so_recommendation)
-        elements.extend(reviews)
-        return elements
-
 
     def _get_recommendation_reviews(self, recommendation: Recommendation, scholarly_article_id: str):
-        critic_reviews: List[so.CriticReview] = []
+        comments: List[so.Comment] = []
 
         reviews = Review.get_by_recommendation_id(
             recommendation.id,
@@ -166,18 +173,18 @@ class SchemaOrg:
                 media = so.MediaObject(content_url=Review.get_review_pdf_url(review),
                                     name="Review pdf file")
 
-            critic_reviews.append(
-                so.CriticReview(
+            comments.append(
+                so.Comment(
                     name=f"{author.name}'s review",
                     author=author,
-                    review_body=self._clean_text(review.review) if review.review else None,
-                    date_published=review.last_change.date(),
-                    associated_media=media,
-                    itemReviewed=so.Id(scholarly_article_id),
+                    text=self._clean_text(review.review) if review.review else None,
+                    date_published=review.last_change.replace(tzinfo=timezone.utc),
+                    shared_content=media,
+                    parent_item=so.Id(scholarly_article_id),
                 )
             )
 
-        return critic_reviews
+        return comments
 
 
     
@@ -301,8 +308,8 @@ class SchemaOrg:
             version=article.ms_version,
             abstract=all_abstracts,
             keywords=all_keywords,
-            date_created=article.upload_timestamp.date(),
-            date_published=article.validation_timestamp.date(),
+            date_created=article.upload_timestamp.replace(tzinfo=timezone.utc),
+            date_published=article.validation_timestamp.replace(tzinfo=timezone.utc),
             funder=article.funding,
             associated_media=self._get_article_medias(),
         )
