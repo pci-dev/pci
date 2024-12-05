@@ -68,13 +68,13 @@ class FullId:
 
 
 @dataclass
-class Reviewer:
+class NameParser:
     suggestor: Optional[FullId]
-    suggested: FullId
+    person: FullId
 
 
     @staticmethod
-    def parse(input: str) -> "Reviewer":
+    def parse(input: str) -> "NameParser":
         # Possibly a suggestor is input.
         try:
             suggestor, suggested = re.split(
@@ -88,13 +88,13 @@ class Reviewer:
         if suggestor is not None:
             suggestor = FullId.parse(suggestor)
         suggested = FullId.parse(suggested)
-        return Reviewer(suggestor, suggested)
+        return NameParser(suggestor, suggested)
 
 
     @staticmethod
     def validate(input: str) -> bool:
         try:
-            Reviewer.parse(input)
+            NameParser.parse(input)
             return True
         except ParseError:
             return False
@@ -103,7 +103,7 @@ class Reviewer:
     @staticmethod
     def error(input: str) -> Optional[str]:
         try:
-            Reviewer.parse(input)
+            NameParser.parse(input)
             return None
         except ParseError as e:
             return f"{e}"
@@ -118,32 +118,32 @@ def strip_accents(s: str):
 ########################################################################################
 # Successful parses.
 
-Reviewer.parse("Marc-Olivier Durisson")
-Reviewer.parse("Marc-Olivier Durisson suggested: Antonio Patate")
-Reviewer.parse("Antonio Patate antonio.patate@usys.ethz.ch")
-Reviewer.parse(
+NameParser.parse("Marc-Olivier Durisson")
+NameParser.parse("Marc-Olivier Durisson suggested: Antonio Patate")
+NameParser.parse("Antonio Patate antonio.patate@usys.ethz.ch")
+NameParser.parse(
     "Marc-Olivier Durisson suggested: " "Antonio Patate antonio.patate@usys.ethz.ch"
 )
-Reviewer.parse(
+NameParser.parse(
     "Marc-Olivier Durisson marc-olivier.durisson@bat.be suggested: Antonio Patate"
 )
-Reviewer.parse(
+NameParser.parse(
     "Marc-Olivier Dùrisson marc-olivier.durisson@bat.be suggested: "
     "Antonio Patate antonio.patate@usys.ethz.ch"
 )
-Reviewer.parse(
+NameParser.parse(
     "toto titi suggested: Jéan-Marc De La Brënche hello-world.Yaguö@test.cefe.cnrs.fr"
 )
-Reviewer.parse("toto titi suggested: Jéan-Marcy De La Brënche")
-Reviewer.parse("Caroline JOYAUX suggested: Pierre-Jean Boubib boubib@mnhn.fr")
-Reviewer.parse("thom pci john@doe.com suggested: John Doe john@doe.com")
-Reviewer.parse("thom pci suggested: John Doe john@doe.com")
-Reviewer.parse("Jéan-Marc De La Brënche hello-world.Yaguö@test.cefe.cnrs.fr")
-Reviewer.parse("Jéan-Marc De La Brënche")
-Reviewer.parse("toto titi suggested: toto tutu")
-Reviewer.parse("toto titi suggested: toto tutu@tef.fr")
-Reviewer.parse("toto titi suggested:  toto reviewer1pci+fake_810@gmail.com")
-Reviewer.parse("AOUE E O'connor tutu@tef.fr")
+NameParser.parse("toto titi suggested: Jéan-Marcy De La Brënche")
+NameParser.parse("Caroline JOYAUX suggested: Pierre-Jean Boubib boubib@mnhn.fr")
+NameParser.parse("thom pci john@doe.com suggested: John Doe john@doe.com")
+NameParser.parse("thom pci suggested: John Doe john@doe.com")
+NameParser.parse("Jéan-Marc De La Brënche hello-world.Yaguö@test.cefe.cnrs.fr")
+NameParser.parse("Jéan-Marc De La Brënche")
+NameParser.parse("toto titi suggested: toto tutu")
+NameParser.parse("toto titi suggested: toto tutu@tef.fr")
+NameParser.parse("toto titi suggested:  toto reviewer1pci+fake_810@gmail.com")
+NameParser.parse("AOUE E O'connor tutu@tef.fr")
 
 ########################################################################################
 # Failed parses.

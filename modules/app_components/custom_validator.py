@@ -5,7 +5,7 @@ from gluon import STRONG
 from gluon.html import A, P
 from pydal.validators import IS_HTTP_URL
 from pydal.validators import Validator
-from app_modules.suggested_reviewers_parser import Reviewer
+from app_modules.suggested_reviewers_parser import NameParser
 
 class CUSTOM_VALID_URL(Validator):
 
@@ -110,14 +110,14 @@ class VALID_LIST_NAMES_MAIL(Validator):
             people = value.split(',')
             for person in people:
                 try:
-                    reviewer = Reviewer.parse(person)
+                    reviewer = NameParser.parse(person)
                     self._check_constraints(reviewer)
                 except Exception as e:
                     return value, f"{self._error_message} -> {person}: {e}"
         else:
             for person in value:
                 try:
-                    reviewer = Reviewer.parse(person)
+                    reviewer = NameParser.parse(person)
                     self._check_constraints(reviewer)
                 except Exception as e:
                     if "suggested:" in person:
@@ -130,10 +130,10 @@ class VALID_LIST_NAMES_MAIL(Validator):
         return value, None
 
 
-    def _check_constraints(self, reviewer: Reviewer):
+    def _check_constraints(self, reviewer: NameParser):
         if self._without_email:
-            if reviewer.suggested.email is not None:
+            if reviewer.person.email is not None:
                 raise Exception("Email is forbidden")
         else:
-            if not self._optional_email and reviewer.suggested.email is None:
+            if not self._optional_email and reviewer.person.email is None:
                 raise Exception("Email is required")
