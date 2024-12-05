@@ -271,15 +271,18 @@ def get_article_infos_card(article: Article, printable: bool,
     )
     if article.data_doi and policy_2:
         article_data_doi = common_small_html.fetch_url(article.data_doi)
-        article_content.update([("dataDoi", UL(article_data_doi) if (article_data_doi) else SPAN(""))])
+        if len(article_data_doi) > 0:
+            article_content.update([("dataDoi", UL(article_data_doi) if (article_data_doi) else SPAN(""))])
 
     if article.scripts_doi and policy_2:
         article_script_doi = common_small_html.fetch_url(article.scripts_doi)
-        article_content.update([("scriptDoi", UL(article_script_doi) if (article_script_doi) else SPAN(""))])
+        if len(article_script_doi) > 0:
+            article_content.update([("scriptDoi", UL(article_script_doi) if (article_script_doi) else SPAN(""))])
 
     if article.codes_doi and policy_2:
         article_code_doi = common_small_html.fetch_url(article.codes_doi)
-        article_content.update([("codeDoi", UL(article_code_doi) if (article_code_doi) else SPAN(""))])
+        if len(article_code_doi) > 0:
+            article_content.update([("codeDoi", UL(article_code_doi) if (article_code_doi) else SPAN(""))])
 
     if article.suggest_reviewers and policy_1:
         suggested_by_author = common_tools.separate_suggestions(article.suggest_reviewers)[0]

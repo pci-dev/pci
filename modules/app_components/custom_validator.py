@@ -16,6 +16,12 @@ class CUSTOM_VALID_URL(Validator):
 
 
     def __call__(self, value: Optional[str], record_id: Optional[int] = None):
+        if value is not None:
+            value = value.strip()
+
+        if value == "https://" or value == "http://":
+            value = ""
+        
         if not value or len(value) == 0:
             return value, None
 
