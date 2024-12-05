@@ -1212,6 +1212,11 @@ def mkRecommenderandContributorList(records: List[Union[Recommendation, PressRev
 def fetch_url(data: List[str]):
     result: List[DIV] = []
     for doi in data:
+        doi = doi.strip()
+        
+        if doi.strip() == "https://":
+            continue
+
         url = mkDOI(doi)
         result.append(url)
     return result
