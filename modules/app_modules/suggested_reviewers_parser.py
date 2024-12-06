@@ -58,7 +58,7 @@ class FullId:
     def parse(input: str) -> "FullId":
         # Seek optional email at the end.
         if m := re.match(f"^(.*){SEP}({EMAIL})$", input):
-            name = m.group(1)
+            name = clean_name(m.group(1))
             email = clean_email(str(m.group(2)))
         else:
             name = input
@@ -148,9 +148,23 @@ def clean_email(email: str):
     return email
 
 
+def clean_name(name: str):
+    name = name.strip()
+
+    char_to_clean = [";", ":", ","]
+    while name[0] in char_to_clean or name[-1] in char_to_clean:
+        for c in char_to_clean:
+            name = name.strip().strip(c).strip()
+    
+    return name
+
+
 ########################################################################################
 # Successful parses.
 
+# print(NameParser.parse("Thomas Guy, thomas.Guy@toto.eu.fr").format())
+# print(NameParser.parse("Thomas Guy; thomas.Guy@toto.eu.fr").format())
+# print(NameParser.parse("Thomas' Guy ‘;    :     ([thomas.Guy@toto.eu.fr])    ").format())
 # print(NameParser.parse("Marc-Olivier‘ Durisson Niña df    [[(c.m@test.fr]*]  ").format())
 # print(NameParser.parse("Marc-Olivier‘ Durisson Niña \"df    (c.m@test.fr )  "))
 # print(NameParser.parse("Marc-Olivier Durisson suggested: Antonio Patate"))
