@@ -106,19 +106,26 @@ class VALID_LIST_NAMES_MAIL(Validator):
         if not value or len(value) == 0:
             return value, None
         
+        clean_value: List[str] = []
+        
         if isinstance(value, str):
             people = value.split(',')
             for person in people:
                 try:
                     reviewer = NameParser.parse(person)
                     self._check_constraints(reviewer)
+                    clean_value.append(reviewer.format())
                 except Exception as e:
                     return value, f"{self._error_message} -> {person}: {e}"
+                
+            return ", ".join(clean_value), None
+        
         else:
             for person in value:
                 try:
                     reviewer = NameParser.parse(person)
                     self._check_constraints(reviewer)
+                    clean_value.append(reviewer.format())
                 except Exception as e:
                     if "suggested:" in person:
                         error_message = self._error_message_suggested
@@ -126,9 +133,9 @@ class VALID_LIST_NAMES_MAIL(Validator):
                         error_message = self._error_message
                         
                     return value, f"{error_message} -> {person}: {e}"
-                
-        return value, None
 
+            return clean_value, None
+        
 
     def _check_constraints(self, reviewer: NameParser):
         if self._without_email:
