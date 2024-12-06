@@ -723,14 +723,19 @@ def fill_new_article():
     )
 
 
-def check_suggested_and_opposed_reviewers(form):
+def check_suggested_and_opposed_reviewers(form: ...):
     suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.suggest_reviewers)
     if suggested_reviewers_error:
         form.errors.suggest_reviewers = suggested_reviewers_error
 
-    opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.opposed_reviewers)
+    opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.competitors)
     if opposed_reviewers_reviewers_error:
-        form.errors.opposed_reviewers = opposed_reviewers_reviewers_error
+        form.errors.competitors = opposed_reviewers_reviewers_error
+
+    form.vars.suggest_reviewers = suggest_reviewers
+    form.vars.competitors = opposed_reviewers
+
+    return suggest_reviewers, opposed_reviewers
 
 
 def check_duplicate_submission(form):
@@ -1065,6 +1070,7 @@ def edit_my_article():
             if not prev_picture and form.vars.uploaded_picture == b"" and not_empty:
                 form.errors.uploaded_picture = not_empty.error_message
             app_forms.checklist_validation(form)
+            check_suggested_and_opposed_reviewers(form)
 
     if form.process(onvalidation=onvalidation).accepted: # type: ignore
         article = Article.get_by_id(articleId)
@@ -1074,6 +1080,10 @@ def edit_my_article():
         if prev_picture and form.vars.uploaded_picture:
             try: os.unlink(os.path.join(request.folder, "uploads", prev_picture))
             except: pass
+
+        suggested_reviewers_value, opposed_reviewers_reviewers_value = check_suggested_and_opposed_reviewers(form)
+        article.suggest_reviewers = [suggested_reviewers_value] if isinstance(suggested_reviewers_value, str) else suggested_reviewers_value
+        article.competitors = [opposed_reviewers_reviewers_value] if isinstance(opposed_reviewers_reviewers_value, str) else opposed_reviewers_reviewers_value
 
         response.flash = T("Article saved", lazy=False)
         if article.status == "Pre-submission":

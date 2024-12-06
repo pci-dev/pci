@@ -181,10 +181,12 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
         has_error: Optional[str] = None
 
         for i, value in enumerate(values):
-            _, error = VALID_LIST_NAMES_MAIL(is_list_string=True, optional_email=True)(value)
+            value, error = VALID_LIST_NAMES_MAIL(is_list_string=True, optional_email=True)([value])
             if error:
                 inputs[i].components[0].components[0].attributes['_style'] = 'border-color: red' # type: ignore
                 has_error = error
+            if value:
+                values[i] = str(value[0])
 
         if not has_error:
             current.response.flash = 'Ok'
