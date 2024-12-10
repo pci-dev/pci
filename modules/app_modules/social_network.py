@@ -23,7 +23,7 @@ class SocialNetwork(metaclass=ABCMeta):
             self._myconf = AppConfig(reload=True)
             self._db = current.db
 
-            self._tweethash = cast(str, self._myconf.take('social.tweethash'))
+            self._tweethash = cast(str, self._myconf.take('social.tweeter'))
             self._description = cast(str, self._myconf.take('app.description'))
 
 
