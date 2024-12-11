@@ -159,10 +159,9 @@ def index():
     try: grid: ... = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options, integer_fields)
     except: grid = original_grid
 
-    tweeterAcc = myconf.get("social.tweeter")
-    mastodonAcc = myconf.get("social.mastodon")
     lastRecommTitle = H3(
         T("Latest recommendations"),
+        follow_us(),
         A(
             SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
             _href=URL("about", "rss_info"),
@@ -198,6 +197,13 @@ def index():
             pciRRactivated=pciRRactivated,
             panel=None,
         )
+
+
+def follow_us():
+    tweeterAcc = myconf.get("social.tweeter")
+    mastodonAcc = myconf.get("social.mastodon")
+    return DIV(
+    )
 
 
 ######################################################################################################################################################################
