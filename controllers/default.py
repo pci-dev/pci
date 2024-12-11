@@ -196,13 +196,13 @@ def follow_us():
             _href=f"https://spore.social/{mastodonAcc}",
             _class="btn pci-twitter-btn",
             _style="float:right;",
-        ) if pciRRactivated else
+        ) if mastodonAcc else None,
         A(
             SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
             _href=f"https://twitter.com/{tweeterAcc}",
             _class="btn pci-twitter-btn",
             _style="float:right;",
-        ),
+        ) if tweeterAcc else None,
     )
 
 
