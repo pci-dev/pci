@@ -162,24 +162,6 @@ def index():
     lastRecommTitle = H3(
         T("Latest recommendations"),
         follow_us(),
-        A(
-            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
-            _href=URL("about", "rss_info"),
-            _class="btn pci-rss-btn",
-            _style="float:right;",
-        ),
-        A(
-            SPAN(IMG(_alt="mastodon", _src=URL(c="static", f="images/mastodon-logo.svg")),),
-            _href=f"https://spore.social/{mastodonAcc}",
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-        ) if pciRRactivated else
-        A(
-            SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
-            _href=f"https://twitter.com/{tweeterAcc}",
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-        ),
 
         _class="pci-pageTitleText",
         _style="margin-top: 15px; margin-bottom: 20px",
@@ -203,6 +185,24 @@ def follow_us():
     tweeterAcc = myconf.get("social.tweeter")
     mastodonAcc = myconf.get("social.mastodon")
     return DIV(
+        A(
+            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
+            _href=URL("about", "rss_info"),
+            _class="btn pci-rss-btn",
+            _style="float:right;",
+        ),
+        A(
+            SPAN(IMG(_alt="mastodon", _src=URL(c="static", f="images/mastodon-logo.svg")),),
+            _href=f"https://spore.social/{mastodonAcc}",
+            _class="btn pci-twitter-btn",
+            _style="float:right;",
+        ) if pciRRactivated else
+        A(
+            SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
+            _href=f"https://twitter.com/{tweeterAcc}",
+            _class="btn pci-twitter-btn",
+            _style="float:right;",
+        ),
     )
 
 
