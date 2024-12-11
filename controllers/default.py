@@ -214,7 +214,7 @@ def follow_us():
             _style="float:right;",
         ) if mastodonAcc else None,
         A(
-            SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
+            SPAN(IMG(_alt="twitter", _src="https://twitter.com/favicon.ico")),
             _href=f"https://twitter.com/{tweeterAcc}",
             _class="btn pci-twitter-btn",
             _style="float:right;",
