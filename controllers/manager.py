@@ -1403,8 +1403,9 @@ def edit_article():
             if opposed_reviewers_reviewers_error:
                 form.errors.competitors = opposed_reviewers_reviewers_error
 
-        form.vars.suggest_reviewers = suggested_reviewers_value
-        form.vars.competitors = opposed_reviewers_reviewers_value
+            form.vars.suggest_reviewers = suggested_reviewers_value
+            form.vars.competitors = opposed_reviewers_reviewers_value
+
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
         form.vars.codes_doi = clean_vars_doi_list(form.vars.codes_doi)
