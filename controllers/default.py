@@ -184,6 +184,8 @@ def index():
 def follow_us():
     tweeterAcc = myconf.get("social.tweeter")
     mastodonAcc = myconf.get("social.mastodon")
+    linkedinAcc = myconf.get("social.linkedin")
+    blueskyAcc = myconf.get("social.bluesky")
     return DIV(
         A(
             SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
@@ -191,6 +193,20 @@ def follow_us():
             _class="btn pci-rss-btn",
             _style="float:right;",
         ),
+        A(
+            SPAN(IMG(_alt="bluesky", _src="https://bsky.app/static/favicon-32x32.png")),
+            _href=f"https://bsky.app/profile/{blueskyAcc}",
+            _class="btn pci-twitter-btn",
+            _style="float:right;",
+            _target="blank",
+        ) if blueskyAcc else None,
+        A(
+            SPAN(IMG(_alt="linkedin", _src="https://www.linkedin.com/favicon.ico")),
+            _href=f"https://www.linkedin.com/company/{linkedinAcc}?trk=public_post_follow-view-profile",
+            _class="btn pci-twitter-btn",
+            _style="float:right;",
+            _target="blank",
+        ) if linkedinAcc else None,
         A(
             SPAN(IMG(_alt="mastodon", _src=URL(c="static", f="images/mastodon-logo.svg")),),
             _href=f"https://spore.social/{mastodonAcc}",
