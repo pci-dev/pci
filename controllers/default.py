@@ -186,6 +186,7 @@ def follow_us():
     mastodonAcc = myconf.get("social.mastodon")
     linkedinAcc = myconf.get("social.linkedin")
     blueskyAcc = myconf.get("social.bluesky")
+    facebookAcc = myconf.get("social.facebook")
     return DIV(
         A(
             SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
@@ -193,6 +194,13 @@ def follow_us():
             _class="btn pci-rss-btn",
             _style="float:right;",
         ),
+        A(
+            SPAN(IMG(_alt="facebook", _src="https://www.facebook.com/favicon.ico")),
+            _href=f"https://www.facebook.com/{facebookAcc}",
+            _class="btn pci-twitter-btn",
+            _style="float:right;",
+            _target="blank",
+        ) if facebookAcc else None,
         A(
             SPAN(IMG(_alt="bluesky", _src="https://bsky.app/static/favicon-32x32.png")),
             _href=f"https://bsky.app/profile/{blueskyAcc}",
@@ -214,7 +222,7 @@ def follow_us():
             _style="float:right;",
         ) if mastodonAcc else None,
         A(
-            SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
+            SPAN(IMG(_alt="twitter", _src="https://abs.twimg.com/favicons/twitter.3.ico")),
             _href=f"https://twitter.com/{tweeterAcc}",
             _class="btn pci-twitter-btn",
             _style="float:right;",
