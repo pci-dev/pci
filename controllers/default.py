@@ -232,7 +232,7 @@ def get_account(key):
 
 def social():
     return DIV(
-            STYLE(".pci-twitter-btn img { width: 3rem; margin: 0 .5em; }"),
+            STYLE(".pci-twitter-btn img { width: 1.5rem; margin: 0 .5em; }"),
             _follow_us(),
     )
 
