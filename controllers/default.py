@@ -161,7 +161,7 @@ def index():
 
     lastRecommTitle = H3(
         T("Latest recommendations"),
-        DIV(_follow_us(), _style="float: right; margin-top: -10px"),
+        #DIV(_follow_us(), _style="float: right; margin-top: -10px"),
 
         _class="pci-pageTitleText",
         _style="margin-top: 15px; margin-bottom: 20px",
