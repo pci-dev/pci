@@ -161,7 +161,7 @@ def index():
 
     lastRecommTitle = H3(
         T("Latest recommendations"),
-        follow_us(),
+        DIV(_follow_us(), _style="float: right; margin-top: -10px"),
 
         _class="pci-pageTitleText",
         _style="margin-top: 15px; margin-bottom: 20px",
@@ -181,53 +181,45 @@ def index():
         )
 
 
-def follow_us():
-    tweeterAcc = myconf.get("social.tweeter")
-    mastodonAcc = myconf.get("social.mastodon")
-    linkedinAcc = myconf.get("social.linkedin")
-    blueskyAcc = myconf.get("social.bluesky")
-    facebookAcc = myconf.get("social.facebook")
-    return DIV(
+def _follow_us():
+    channels = {
+        "tweeter": {
+            "icon": "https://twitter.com/favicon.ico",
+            "link": "https://twitter.com/{account}",
+        },
+        "mastodon": {
+            "icon": URL(c="static", f="images/mastodon-logo.svg"),
+            "link": "https://spore.social/{account}",
+        },
+        "linkedin": {
+            "icon": "https://www.linkedin.com/favicon.ico",
+            "link": "https://www.linkedin.com/company/{account}" +
+                    "?trk=public_post_follow-view-profile",
+        },
+        "bluesky": {
+            "icon": "https://bsky.app/static/favicon-32x32.png",
+            "link": "https://bsky.app/profile/{account}",
+        },
+        "facebook": {
+            "icon": "https://www.facebook.com/favicon.ico",
+            "link": "https://www.facebook.com/{account}"
+        },
+        "rss": {
+            "icon": URL(c="static", f="images/rss.png"),
+            "link": URL("about", "rss_info"),
+        },
+    }
+
+    return DIV([
         A(
-            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
-            _href=URL("about", "rss_info"),
-            _class="btn pci-rss-btn",
-            _style="float:right;",
-        ),
-        A(
-            SPAN(IMG(_alt="facebook", _src="https://www.facebook.com/favicon.ico")),
-            _href=f"https://www.facebook.com/{facebookAcc}",
+            IMG(_alt=key, _src=chan["icon"]),
+            _href=chan["link"].format(account=myconf.get(f"social.{key}")),
             _class="btn pci-twitter-btn",
-            _style="float:right;",
             _target="blank",
-        ) if facebookAcc else None,
-        A(
-            SPAN(IMG(_alt="bluesky", _src="https://bsky.app/static/favicon-32x32.png")),
-            _href=f"https://bsky.app/profile/{blueskyAcc}",
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-            _target="blank",
-        ) if blueskyAcc else None,
-        A(
-            SPAN(IMG(_alt="linkedin", _src="https://www.linkedin.com/favicon.ico")),
-            _href=f"https://www.linkedin.com/company/{linkedinAcc}?trk=public_post_follow-view-profile",
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-            _target="blank",
-        ) if linkedinAcc else None,
-        A(
-            SPAN(IMG(_alt="mastodon", _src=URL(c="static", f="images/mastodon-logo.svg")),),
-            _href=f"https://spore.social/{mastodonAcc}",
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-        ) if mastodonAcc else None,
-        A(
-            SPAN(IMG(_alt="twitter", _src="https://twitter.com/favicon.ico")),
-            _href=f"https://twitter.com/{tweeterAcc}",
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-        ) if tweeterAcc else None,
-    )
+        ) if myconf.get(f"social.{key}") or key == "rss" else None
+
+        for key, chan in channels.items()
+    ])
 
 
 ######################################################################################################################################################################
