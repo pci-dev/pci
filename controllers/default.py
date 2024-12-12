@@ -189,7 +189,7 @@ def _follow_us():
         },
         "mastodon": {
             "icon": URL(c="static", f="images/mastodon-logo.svg"),
-            "link": "https://spore.social/{account}",
+            "link": "https://{instance}/@{account}",
         },
         "linkedin": {
             "icon": "https://www.linkedin.com/favicon.ico",
@@ -213,13 +213,21 @@ def _follow_us():
     return DIV([
         A(
             IMG(_alt=key, _src=chan["icon"]),
-            _href=chan["link"].format(account=myconf.get(f"social.{key}")),
+            _href=chan["link"].format(**get_account(key)),
             _class="btn pci-twitter-btn",
             _target="blank",
-        ) if myconf.get(f"social.{key}") or key == "rss" else None
+        ) if get_account(key) else None
 
         for key, chan in channels.items()
     ])
+
+
+def get_account(key):
+    conf = myconf.get(f"social.{key}", "").split("@")
+    return dict(
+            account=conf[0],
+            instance=conf[-1],
+    ) if conf or key == "rss" else None
 
 
 def social():
