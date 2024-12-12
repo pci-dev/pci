@@ -222,6 +222,13 @@ def _follow_us():
     ])
 
 
+def social():
+    return DIV(
+            STYLE(".pci-twitter-btn img { width: 3rem; margin: 0 .5em; }"),
+            _follow_us(),
+    )
+
+
 ######################################################################################################################################################################
 def user():
     response.view = "default/myLayoutBot.html"
