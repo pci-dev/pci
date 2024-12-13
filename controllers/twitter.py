@@ -131,7 +131,13 @@ def get_before_send_information_message(twitter_client: Twitter):
 
 
 def get_twitter_icon():
-    return DIV(IMG(_src=URL(c='static', f='images/twitter-logo.png'), _alt='Twitter logo', _style='height: 50px; width: 50px; margin-right: 10px'), TAG('Twitter'))
+    return DIV(
+        IMG(_src='https://twitter.com/favicon.ico',
+            _alt='Twitter logo',
+            _style='height: 50px; width: 50px; margin-right: 10px',
+        ),
+        TAG('Twitter'),
+    )
 
 
 def add_account_names_at_end(twitter_client: Twitter, message: str):

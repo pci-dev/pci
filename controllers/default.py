@@ -159,28 +159,9 @@ def index():
     try: grid: ... = adjust_grid.adjust_grid_basic(original_grid, 'main_articles', remove_options, integer_fields)
     except: grid = original_grid
 
-    tweeterAcc = myconf.get("social.tweeter")
-    mastodonAcc = myconf.get("social.mastodon")
     lastRecommTitle = H3(
         T("Latest recommendations"),
-        A(
-            SPAN(IMG(_alt="rss", _src=URL(c="static", f="images/rss.png"), _style="margin-right:8px;"),),
-            _href=URL("about", "rss_info"),
-            _class="btn pci-rss-btn",
-            _style="float:right;",
-        ),
-        A(
-            SPAN(IMG(_alt="mastodon", _src=URL(c="static", f="images/mastodon-logo.svg")),),
-            _href=f"https://spore.social/{mastodonAcc}",
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-        ) if pciRRactivated else
-        A(
-            SPAN(IMG(_alt="twitter", _src=URL(c="static", f="images/twitter-logo.png")),),
-            _href=f"https://twitter.com/{tweeterAcc}",
-            _class="btn pci-twitter-btn",
-            _style="float:right;",
-        ),
+        #DIV(_follow_us(), _style="float: right; margin-top: -10px"),
 
         _class="pci-pageTitleText",
         _style="margin-top: 15px; margin-bottom: 20px",
@@ -198,6 +179,62 @@ def index():
             pciRRactivated=pciRRactivated,
             panel=None,
         )
+
+
+def _follow_us():
+    channels = {
+        "tweeter": {
+            "icon": "https://twitter.com/favicon.ico",
+            "link": "https://twitter.com/{account}",
+        },
+        "mastodon": {
+            "icon": URL(c="static", f="images/mastodon-logo.svg"),
+            "link": "https://{instance}/@{account}",
+        },
+        "linkedin": {
+            "icon": "https://www.linkedin.com/favicon.ico",
+            "link": "https://www.linkedin.com/company/{account}" +
+                    "?trk=public_post_follow-view-profile",
+        },
+        "bluesky": {
+            "icon": "https://bsky.app/static/favicon-32x32.png",
+            "link": "https://bsky.app/profile/{account}",
+        },
+        "facebook": {
+            "icon": "https://www.facebook.com/favicon.ico",
+            "link": "https://www.facebook.com/{account}"
+        },
+        "rss": {
+            "icon": URL(c="static", f="images/rss.png"),
+            "link": URL("about", "rss_info"),
+        },
+    }
+
+    return DIV([
+        A(
+            IMG(_alt=key, _src=chan["icon"]),
+            _href=chan["link"].format(**get_account(key)),
+            _class="btn pci-twitter-btn",
+            _target="blank",
+        ) if get_account(key) else None
+
+        for key, chan in channels.items()
+    ])
+
+
+def get_account(key):
+    conf = myconf.get(f"social.{key}", "").split("@")
+    return dict(
+            account=conf[0],
+            instance=conf[-1],
+    ) if conf or key == "rss" else None
+
+
+def social():
+    return DIV(
+            STYLE(".pci-twitter-btn img { width: 1.5rem; margin: 0 .5em; }"),
+            _follow_us(),
+    )
 
 
 ######################################################################################################################################################################
