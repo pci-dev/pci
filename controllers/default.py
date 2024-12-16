@@ -216,9 +216,8 @@ def _follow_us():
             _href=chan["link"].format(**get_account(key)),
             _class="btn pci-twitter-btn",
             _target="blank",
-        ) if get_account(key) else None
-
-        for key, chan in channels.items()
+        )
+        for key, chan in channels.items() if get_account(key)
     ])
 
 
