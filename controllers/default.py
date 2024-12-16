@@ -222,7 +222,10 @@ def _follow_us():
 
 
 def get_account(key):
-    conf = myconf.get(f"social.{key}", "").split("@")
+    conf = myconf.get(f"social.{key}")
+    if not conf: return
+
+    conf = conf.split("@")
     return dict(
             account=conf[0],
             instance=conf[-1],
