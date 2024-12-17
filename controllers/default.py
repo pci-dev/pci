@@ -229,7 +229,7 @@ def get_account(key):
     return dict(
             account=conf[0],
             instance=conf[-1],
-    ) if conf or key == "rss" else None
+    )
 
 
 def social():
