@@ -200,7 +200,7 @@ def _follow_us():
             "icon": "https://www.facebook.com/favicon.ico",
             "link": "https://www.facebook.com/{account}"
         },
-        "tweeter": {
+        "twitter": {
             "icon": "https://twitter.com/favicon.ico",
             "link": "https://twitter.com/{account}",
         },

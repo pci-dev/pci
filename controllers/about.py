@@ -45,7 +45,7 @@ def ethics():
     pageTitle = getTitle("#EthicsTitle")
     customText = getText("#EthicsInfo")
     message = ""
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     if auth.user_id:
         if db.auth_user[auth.user_id].ethical_code_approved:
             message = DIV(B(T("You have agreed to comply with this code of conduct"), _style="color:green;"), _style="text-align:center; margin:32px;")
@@ -114,7 +114,7 @@ def _rss_url():
 ## Keep for future use?
 def social():
     frames = []
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     mastodonAcc = myconf.get("social.mastodon")
     if tweeterAcc :
         frames.append(H2("Twitter"))
@@ -159,7 +159,7 @@ def social():
 
 ######################################################################################################################################################################
 def gtu():
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     response.view = "default/info.html"
     return dict(
         pageTitle=getTitle("#GtuTitle"),
@@ -173,7 +173,7 @@ def gtu():
 
 ######################################################################################################################################################################
 def about():
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     response.view = "default/info.html"
     return dict(
         pageTitle=getTitle("#AboutTitle"),
@@ -187,7 +187,7 @@ def about():
 
 ######################################################################################################################################################################
 def contact():
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     response.view = "default/info.html"
     return dict(
         pageTitle=getTitle("#ContactTitle"),
@@ -213,7 +213,7 @@ def buzz():
 
 ######################################################################################################################################################################
 def thanks_to_reviewers():
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     response.view = "default/info.html"
         
     years_reviews = _get_review_with_reviewer_by_year()
