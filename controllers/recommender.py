@@ -991,9 +991,6 @@ def reviews():
         session.flash = auth.not_authorized()
         redirect(URL(c=request.controller, f=" "))
     else:
-        myContents = T(
-            'If you want to give a reviewer who has completed his/her review an opportunity to modify the review, please check the reviewer below then click on the black button entitled "Re-open selected reviews"'
-        )
         db.t_reviews._id.readable = False
         db.t_reviews.recommendation_id.default = recommId
         db.t_reviews.recommendation_id.writable = False
@@ -1018,7 +1015,7 @@ def reviews():
             db.t_reviews.review_pdf.label = T("Review files")
 
         if len(request.args) == 0 or (len(request.args) == 1 and request.args[0] == "auth_user"):  # grid view
-            selectable = [(T("Re-open selected reviews"), lambda ids: [recommender_module.reopen_review(ids)], "button btn btn-info")]
+            selectable = None
             db.t_reviews.review.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
             db.t_reviews.emailing.readable = False
         else:  # form view
@@ -1074,7 +1071,6 @@ def reviews():
             titleIcon="eye-open",
             pageTitle=getTitle("#RecommenderArticleReviewsTitle"),
             # myBackButton=common_small_html.mkBackButton(),
-            content=myContents,
             grid=grid,
             myFinalScript=myScript,
             absoluteButtonScript=common_tools.absoluteButtonScript,
