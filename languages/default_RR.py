@@ -625,7 +625,6 @@
     "Reminder count": "Reminder count",
     "Reminder saved": "Reminder saved",
     'Remove preprint from the "In need of reviewers" list ': 'Remove report from the "In need of reviewers" list ',
-    "Re-open selected reviews": "Re-open selected reviews",
     "Reply": "Reply",
     "Reply...": "Reply...",
     "Reply:": "Reply:",

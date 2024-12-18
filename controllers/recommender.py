@@ -1018,7 +1018,7 @@ def reviews():
             db.t_reviews.review_pdf.label = T("Review files")
 
         if len(request.args) == 0 or (len(request.args) == 1 and request.args[0] == "auth_user"):  # grid view
-            selectable = [(T("Re-open selected reviews"), lambda ids: [recommender_module.reopen_review(ids)], "button btn btn-info")]
+            selectable = None
             db.t_reviews.review.represent = lambda text, row: DIV(WIKI(text or ""), _class="pci-div4wiki")
             db.t_reviews.emailing.readable = False
         else:  # form view
