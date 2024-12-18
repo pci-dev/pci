@@ -10,7 +10,7 @@ def index():
 
 def help_generic():
     response.view = "default/info.html"
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     return dict(
         pageTitle=getTitle("#GenericHelpTitle"),
         customText=getText("#GenericHelpInfo"),
@@ -24,7 +24,7 @@ def help_generic():
 ######################################################################################################################################################################
 def help_practical():
     response.view = "default/info.html"
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     return dict(
         pageTitle=getTitle("#PracticalHelpTitle"),
         customText=getText("#PracticalHelpInfo"),
@@ -35,7 +35,7 @@ def help_practical():
 ######################################################################################################################################################################
 def faq():
     response.view = "default/info.html"
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     return dict(
         pageTitle=getTitle("#FAQTitle"),
         customText=getText("#FAQInfo"),
@@ -49,7 +49,7 @@ def faq():
 ######################################################################################################################################################################
 def cite():
     response.view = "default/info.html"
-    tweeterAcc = myconf.get("social.tweeter")
+    tweeterAcc = myconf.get("social.twitter")
     return dict(
         pageTitle=getTitle("#CiteTitle"),
         customText=getText("#CiteInfo"),

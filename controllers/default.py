@@ -183,9 +183,9 @@ def index():
 
 def _follow_us():
     channels = {
-        "tweeter": {
-            "icon": "https://twitter.com/favicon.ico",
-            "link": "https://twitter.com/{account}",
+        "bluesky": {
+            "icon": "https://bsky.app/static/favicon-32x32.png",
+            "link": "https://bsky.app/profile/{account}",
         },
         "mastodon": {
             "icon": URL(c="static", f="images/mastodon-logo.svg"),
@@ -196,13 +196,13 @@ def _follow_us():
             "link": "https://www.linkedin.com/company/{account}" +
                     "?trk=public_post_follow-view-profile",
         },
-        "bluesky": {
-            "icon": "https://bsky.app/static/favicon-32x32.png",
-            "link": "https://bsky.app/profile/{account}",
-        },
         "facebook": {
             "icon": "https://www.facebook.com/favicon.ico",
             "link": "https://www.facebook.com/{account}"
+        },
+        "twitter": {
+            "icon": "https://twitter.com/favicon.ico",
+            "link": "https://twitter.com/{account}",
         },
         "rss": {
             "icon": URL(c="static", f="images/rss.png"),

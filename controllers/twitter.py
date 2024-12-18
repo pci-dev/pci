@@ -142,7 +142,7 @@ def get_twitter_icon():
 
 def add_account_names_at_end(twitter_client: Twitter, message: str):
     general_twitter_pseudo: str = current.T('@PeerCommunityIn')
-    specific_twitter_pseudo: Union[str, None] = config.take('social.tweeter')
+    specific_twitter_pseudo: Union[str, None] = config.take('social.twitter')
 
     if twitter_client.has_general_twitter_config():
         message += f' with {general_twitter_pseudo}'
