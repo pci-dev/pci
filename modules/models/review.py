@@ -365,3 +365,10 @@ class Review(Row):
                 oldest = (review, due_date)
         
         return oldest
+
+
+    @staticmethod
+    def get_review_pdf_url(review: 'Review'):
+        if review.review_pdf:
+            from app_modules.common_tools import URL
+            return URL("default", "download", args=review.review_pdf, scheme=True)
