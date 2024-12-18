@@ -602,8 +602,6 @@ def recommender_decline_invitation_form(article_id: int, user_id: int):
     default_subject = emailing_tools.replaceMailVars(str(mail_template["subject"]), mail_vars)
     default_message = emailing_tools.replaceMailVars(str(mail_template["content"]), mail_vars)
 
-    default_subject = emailing.patch_email_subject(default_subject, article_id)
-
     form = SQLFORM.factory( # type: ignore
         Field("message", type="text", default=default_message, required=True, label=''),
         Field("exit", type="string", default=current.T("Exit"), widget=widget_submit_button, label=""),
