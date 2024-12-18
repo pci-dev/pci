@@ -991,9 +991,6 @@ def reviews():
         session.flash = auth.not_authorized()
         redirect(URL(c=request.controller, f=" "))
     else:
-        myContents = T(
-            'If you want to give a reviewer who has completed his/her review an opportunity to modify the review, please check the reviewer below then click on the black button entitled "Re-open selected reviews"'
-        )
         db.t_reviews._id.readable = False
         db.t_reviews.recommendation_id.default = recommId
         db.t_reviews.recommendation_id.writable = False
@@ -1074,7 +1071,6 @@ def reviews():
             titleIcon="eye-open",
             pageTitle=getTitle("#RecommenderArticleReviewsTitle"),
             # myBackButton=common_small_html.mkBackButton(),
-            content=myContents,
             grid=grid,
             myFinalScript=myScript,
             absoluteButtonScript=common_tools.absoluteButtonScript,
