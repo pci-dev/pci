@@ -193,7 +193,7 @@ def _follow_us():
         },
         "linkedin": {
             "icon": "https://www.linkedin.com/favicon.ico",
-            "link": "https://www.linkedin.com/company/{account}" +
+            "link": "https://www.linkedin.com/{account}" +
                     "?trk=public_post_follow-view-profile",
         },
         "facebook": {
