@@ -69,6 +69,10 @@ def index():
         )}
         return ""
 
+    if request.args and request.args[0] == "view":
+        redirect(request.home)
+
+
     response.view = "default/index.html"
 
     recomms = db.get_last_recomms()
