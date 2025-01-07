@@ -69,7 +69,7 @@ def index():
         )}
         return ""
 
-    if request.args and request.args[0] == "view":
+    if request.args:
         redirect(request.home)
 
 
