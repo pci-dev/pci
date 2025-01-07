@@ -148,7 +148,7 @@ def get_mastodon_icon(mastodon_instance_name: str):
 
 def add_account_info_at_end(mastodon_client: Mastodon, message: str):
     general_mastodon_pseudo: str = f"{current.T('@PeerCommunityIn')} on {mastodon_client.get_instance_name()}"
-    specific_mastodon_pseudo: Union[str, None] = cast(str, config.take('social.mastodon'))
+    specific_mastodon_pseudo: Union[str, None] = cast(str, config.get('social.mastodon'))
 
     if mastodon_client.has_mastodon_general_config():
         message += f'\n\nGeneral account: {general_mastodon_pseudo}'
