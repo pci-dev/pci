@@ -72,9 +72,9 @@ cat << EOT
         where
                 review_state = 'Review completed'
                 and
-                acceptation_timestamp > '2021-01-01'
+                acceptation_timestamp > '2024-01-01'
                 and
-                acceptation_timestamp < '2022-01-01'
+                acceptation_timestamp < '2025-01-01'
                 and
                 anonymously = $anon
   ) order by id
@@ -116,7 +116,8 @@ cat << EOT
         select distinct recommender_id from t_recommendations
         where
                 recommendation_state = 'Recommended'
-                and validation_timestamp >= '2016-01-01'
+                and validation_timestamp >= '2024-01-01'
+                and validation_timestamp <  '2025-01-01'
   )
 
 EOT
@@ -141,6 +142,13 @@ cat << EOT
   from auth_user
   where id in (
         select distinct user_id from t_articles
+        where id in (
+        select distinct article_id from t_recommendations
+        where
+                recommendation_state = 'Recommended'
+                and validation_timestamp >= '2024-01-01'
+                and validation_timestamp <  '2025-01-01'
+        )
   ) order by id
 
 EOT
