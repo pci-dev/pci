@@ -15,8 +15,8 @@ main() {
             ;;
           reviewers    | reviewers2       \
         | recommenders | recommenders2    \
+        | authors      | authors2         \
         | new_recommenders                \
-        | authors                         \
         | users                           \
         )
             ;;
