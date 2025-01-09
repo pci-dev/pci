@@ -47,7 +47,7 @@ cat << EOT
 EOT
 }
 
-get_reviewers() {
+get_reviewers2() {
 cat << EOT
 
   select $FIELDS
@@ -59,7 +59,7 @@ cat << EOT
 EOT
 }
 
-get_reviewers2() {
+get_reviewers() {
 
 local anon=False
 
@@ -82,7 +82,7 @@ cat << EOT
 EOT
 }
 
-get_recommenders() {
+get_recommenders2() {
 cat << EOT
 
   select $FIELDS
@@ -107,7 +107,7 @@ cat << EOT
 EOT
 }
 
-get_recommenders2() {
+get_recommenders() {
 cat << EOT
 
   select $FIELDS
@@ -118,6 +118,18 @@ cat << EOT
                 recommendation_state = 'Recommended'
                 and validation_timestamp >= '2016-01-01'
   )
+
+EOT
+}
+
+get_authors2() {
+cat << EOT
+
+  select $FIELDS
+  from auth_user
+  where id in (
+        select distinct user_id from t_articles
+  ) order by id
 
 EOT
 }
