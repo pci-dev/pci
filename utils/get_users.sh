@@ -3,6 +3,9 @@
 CMD=${1}
 DB=${2:-pci_ecology}
 
+YEAR=${year:-$(date +%Y)}
+YEAR1=$((YEAR - 1))
+
 FIELDS="first_name, last_name, email, country, registration_datetime"
 
 PSQL="psql -h mydb1 -p 33648 -U peercom $DB"
@@ -72,9 +75,9 @@ cat << EOT
         where
                 review_state = 'Review completed'
                 and
-                acceptation_timestamp > '2024-01-01'
+		acceptation_timestamp > '$YEAR1-01-01'
                 and
-                acceptation_timestamp < '2025-01-01'
+                acceptation_timestamp < '$YEAR-01-01'
                 and
                 anonymously = $anon
   ) order by id
@@ -116,8 +119,8 @@ cat << EOT
         select distinct recommender_id from t_recommendations
         where
                 recommendation_state = 'Recommended'
-                and validation_timestamp >= '2024-01-01'
-                and validation_timestamp <  '2025-01-01'
+                and validation_timestamp >= '$YEAR1-01-01'
+                and validation_timestamp <  '$YEAR-01-01'
   )
 
 EOT
@@ -146,8 +149,8 @@ cat << EOT
         select distinct article_id from t_recommendations
         where
                 recommendation_state = 'Recommended'
-                and validation_timestamp >= '2024-01-01'
-                and validation_timestamp <  '2025-01-01'
+                and validation_timestamp >= '$YEAR1-01-01'
+                and validation_timestamp <  '$YEAR-01-01'
         )
   ) order by id
 
