@@ -6,6 +6,8 @@ DB=${2:-pci_ecology}
 YEAR=${year:-$(date +%Y)}
 YEAR1=$((YEAR - 1))
 
+ANON=${anon:-not null} # all reviews (anon or not)
+
 FIELDS="first_name, last_name, email, country, registration_datetime"
 
 PSQL="psql -h mydb1 -p 33648 -U peercom $DB"
@@ -64,8 +66,6 @@ EOT
 
 get_reviewers() {
 
-local anon=False
-
 cat << EOT
 
   select $FIELDS
@@ -79,7 +79,7 @@ cat << EOT
                 and
                 acceptation_timestamp < '$YEAR-01-01'
                 and
-                anonymously = $anon
+                anonymously is $ANON
   ) order by id
 
 EOT
