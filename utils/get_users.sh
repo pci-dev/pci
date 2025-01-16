@@ -13,11 +13,11 @@ main() {
             echo "usage: $(basename $0) [reviewers|recommenders|authors|users] [pci_xxx]"
             exit 0
             ;;
-          reviewers    | reviewers2       \
+          users                           \
+        | reviewers    | reviewers2       \
         | recommenders | recommenders2    \
         | authors      | authors2         \
         | new_recommenders                \
-        | users                           \
         )
             ;;
         *)
