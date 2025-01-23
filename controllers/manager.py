@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, List, Literal, Union, cast, Optional
 
 # import html2text
 from app_components.custom_validator import VALID_LIST_NAMES_MAIL
+from gluon import IS_EMAIL
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig # type: ignore
@@ -37,7 +38,7 @@ from app_modules.mastodon import Mastodon
 from app_modules.article_translator import ArticleTranslator
 
 from models.group import Group, Role
-from models.mail_queue import MailQueue
+from models.mail_queue import MailQueue, SendingStatus
 from models.review import Review
 
 from app_modules.common_small_html import md_to_html, represent_rdv_date
@@ -1855,10 +1856,24 @@ def article_emails():
     db.mail_queue.review_id.searchable = False
     db.mail_queue.recommendation_id.searchable = False
 
+    db.mail_queue.dest_mail_address.requires = IS_EMAIL()
+
     if len(request.args) > 2 and request.args[0] == "edit":
         db.mail_queue.mail_template_hashtag.readable = True
+        
+        mail = MailQueue.get_mail_by_id(request.args[2])
+        if mail:
+            dest_mail_address_writable = mail.sending_status == SendingStatus.PENDING.value
+            db.mail_queue.dest_mail_address.writable = dest_mail_address_writable
+
+            if dest_mail_address_writable and "dest_mail_address" in request.post_vars:
+                dest_mail_address = request.post_vars["dest_mail_address"]
+                _, error = IS_EMAIL()(dest_mail_address) # type: ignore
+                if not error:
+                    MailQueue.update_dest_mail_address(mail.id, dest_mail_address)
     else:
         db.mail_queue.mail_template_hashtag.readable = False
+        db.mail_queue.dest_mail_address.writable = False
 
     link_body: Callable[[Any], Union[A, Literal['']]] = lambda row: A(
                 (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
