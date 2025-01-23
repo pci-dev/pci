@@ -3,6 +3,11 @@
 CMD=${1}
 DB=${2:-pci_ecology}
 
+YEAR=${year:-$(date +%Y)}
+YEAR1=$((YEAR - 1))
+
+ANON=${anon:-not null} # all reviews (anon or not)
+
 FIELDS="first_name, last_name, email, country, registration_datetime"
 
 PSQL="psql -h mydb1 -p 33648 -U peercom $DB"
@@ -13,11 +18,11 @@ main() {
             echo "usage: $(basename $0) [reviewers|recommenders|authors|users] [pci_xxx]"
             exit 0
             ;;
-          reviewers    | reviewers2       \
+          users                           \
+        | reviewers    | reviewers2       \
         | recommenders | recommenders2    \
+        | authors      | authors2         \
         | new_recommenders                \
-        | authors                         \
-        | users                           \
         )
             ;;
         *)
@@ -47,7 +52,7 @@ cat << EOT
 EOT
 }
 
-get_reviewers() {
+get_reviewers2() {
 cat << EOT
 
   select $FIELDS
@@ -59,9 +64,7 @@ cat << EOT
 EOT
 }
 
-get_reviewers2() {
-
-local anon=False
+get_reviewers() {
 
 cat << EOT
 
@@ -72,17 +75,17 @@ cat << EOT
         where
                 review_state = 'Review completed'
                 and
-                acceptation_timestamp > '2021-01-01'
+		acceptation_timestamp > '$YEAR1-01-01'
                 and
-                acceptation_timestamp < '2022-01-01'
+                acceptation_timestamp < '$YEAR-01-01'
                 and
-                anonymously = $anon
+                anonymously is $ANON
   ) order by id
 
 EOT
 }
 
-get_recommenders() {
+get_recommenders2() {
 cat << EOT
 
   select $FIELDS
@@ -107,7 +110,7 @@ cat << EOT
 EOT
 }
 
-get_recommenders2() {
+get_recommenders() {
 cat << EOT
 
   select $FIELDS
@@ -116,8 +119,21 @@ cat << EOT
         select distinct recommender_id from t_recommendations
         where
                 recommendation_state = 'Recommended'
-                and validation_timestamp >= '2016-01-01'
+                and validation_timestamp >= '$YEAR1-01-01'
+                and validation_timestamp <  '$YEAR-01-01'
   )
+
+EOT
+}
+
+get_authors2() {
+cat << EOT
+
+  select $FIELDS
+  from auth_user
+  where id in (
+        select distinct user_id from t_articles
+  ) order by id
 
 EOT
 }
@@ -129,6 +145,13 @@ cat << EOT
   from auth_user
   where id in (
         select distinct user_id from t_articles
+        where id in (
+        select distinct article_id from t_recommendations
+        where
+                recommendation_state = 'Recommended'
+                and validation_timestamp >= '$YEAR1-01-01'
+                and validation_timestamp <  '$YEAR-01-01'
+        )
   ) order by id
 
 EOT
