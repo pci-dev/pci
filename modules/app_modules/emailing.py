@@ -3077,13 +3077,13 @@ def create_reminder_for_recommender_decision_over_due(reviewId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_soon_due(articleId):
+def create_reminder_for_recommender_revised_decision_soon_due(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
 
     if recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
@@ -3101,13 +3101,13 @@ def create_reminder_for_recommender_revised_decision_soon_due(articleId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_due(articleId):
+def create_reminder_for_recommender_revised_decision_due(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
 
     if recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
@@ -3125,13 +3125,13 @@ def create_reminder_for_recommender_revised_decision_due(articleId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_over_due(articleId):
+def create_reminder_for_recommender_revised_decision_over_due(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
 
     if recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
