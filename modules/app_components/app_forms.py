@@ -238,7 +238,7 @@ def cc_widget(field: ..., value: Optional[str]) -> ...:
 
 from app_modules import emailing_tools
 
-def update_mail_content_keep_editing_form(form):
+def update_mail_content_keep_editing_form(form: ...):
     db, request, response = current.db, current.request, current.response
     
     mail = db.mail_queue[request.vars.id]
