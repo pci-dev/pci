@@ -144,3 +144,8 @@ class MailQueue(Row):
                 (db.mail_queue.mail_template_hashtag == hastag_template)
             ).count()
         return int(mails)
+
+
+    @staticmethod
+    def update_dest_mail_address(mail_id: int, dest_mail_address: str):
+        current.db(current.db.mail_queue.id == mail_id).update(dest_mail_address=dest_mail_address)

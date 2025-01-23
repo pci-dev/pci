@@ -3,7 +3,7 @@
 import re
 import datetime
 import os
-from typing import Any, Dict, List, cast, Optional
+from typing import Any, Callable, Dict, List, Literal, Union, cast, Optional
 
 
 # sudo pip install tweepy
@@ -11,6 +11,7 @@ from typing import Any, Dict, List, cast, Optional
 
 # import html2text
 from app_components.custom_validator import VALID_LIST_NAMES_MAIL
+from gluon import IS_EMAIL
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig # type: ignore
@@ -37,6 +38,7 @@ from app_modules.mastodon import Mastodon
 from app_modules.article_translator import ArticleTranslator
 
 from models.group import Group, Role
+from models.mail_queue import MailQueue, SendingStatus
 from models.review import Review
 
 from app_modules.common_small_html import md_to_html, represent_rdv_date
@@ -1809,19 +1811,31 @@ def article_emails():
         session.flash = T("You cannot access this page because you are a co-author of this submission")
         redirect(request.env.http_referer or request.home)
 
-    db.mail_queue.sending_status.represent = lambda text, row: DIV(
-        SPAN(admin_module.makeMailStatusDiv(text)),
-        SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
-        _class="pci2-flex-column",
-        _style="margin: 5px 10px;",
+    def represent_sending_status(text: str, row: MailQueue):
+        return DIV(
+            SPAN(admin_module.makeMailStatusDiv(text)),
+            SPAN(I(T("Sending attempts : ")), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
+            _class="pci2-flex-column",
+            _style="margin: 5px 10px;",
     )
+
+    def represent_sending_date(text: str, row: MailQueue):
+        return datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
+
+    def represent_mail_content(text: str, row: MailQueue):
+        return XML(admin_module.sanitizeHtmlContent(text))
+    
+    def represent_mail_subject(text: str, row: MailQueue):
+        return DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-500")
+
+    db.mail_queue.sending_status.represent = represent_sending_status
 
     db.mail_queue.id.readable = False
     db.mail_queue.sending_attempts.readable = False
 
-    db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S")
-    db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
-    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-500")
+    db.mail_queue.sending_date.represent = represent_sending_date
+    db.mail_queue.mail_content.represent = represent_mail_content
+    db.mail_queue.mail_subject.represent = represent_mail_subject
     db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
     db.mail_queue.replyto_addresses.widget = app_forms.cc_widget
     db.mail_queue.bcc_mail_addresses.widget = app_forms.cc_widget
@@ -1842,12 +1856,26 @@ def article_emails():
     db.mail_queue.review_id.searchable = False
     db.mail_queue.recommendation_id.searchable = False
 
+    db.mail_queue.dest_mail_address.requires = IS_EMAIL()
+
     if len(request.args) > 2 and request.args[0] == "edit":
         db.mail_queue.mail_template_hashtag.readable = True
+        
+        mail = MailQueue.get_mail_by_id(request.args[2])
+        if mail:
+            dest_mail_address_writable = mail.sending_status == SendingStatus.PENDING.value
+            db.mail_queue.dest_mail_address.writable = dest_mail_address_writable
+
+            if dest_mail_address_writable and "dest_mail_address" in request.post_vars:
+                dest_mail_address = request.post_vars["dest_mail_address"]
+                _, error = IS_EMAIL()(dest_mail_address) # type: ignore
+                if not error:
+                    MailQueue.update_dest_mail_address(mail.id, dest_mail_address)
     else:
         db.mail_queue.mail_template_hashtag.readable = False
+        db.mail_queue.dest_mail_address.writable = False
 
-    link_body = lambda row: A(
+    link_body: Callable[[Any], Union[A, Literal['']]] = lambda row: A(
                 (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
                 _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
                 _class="btn btn-default",
@@ -1866,11 +1894,11 @@ def article_emails():
     if manager_coauthor: query = (db.mail_queue.article_id == articleId) & (db.mail_queue.mail_template_hashtag != '#RecommenderReviewerReviewCompleted')
     else: query = (db.mail_queue.article_id == articleId)
 
-    grid = SQLFORM.grid(
+    grid: ... = SQLFORM.grid( # type: ignore
         query,
         details=True,
-        editable=lambda row: (row.sending_status == "pending"),
-        deletable=lambda row: (row.sending_status == "pending"),
+        editable=lambda row: (row.sending_status == "pending"), # type: ignore
+        deletable=lambda row: (row.sending_status == "pending"), # type: ignore
         create=False,
         searchable=True,
         csv=False,
