@@ -338,70 +338,69 @@ def send_to_recommender_postprint_status_changed(articleId, newStatus):
 
 ######################################################################################################################################################################
 # Send email to the recommenders (if any)
-def send_to_recommender_status_changed(articleId, newStatus):
+def send_to_recommender_status_changed(articleId: int, newStatus: str):
     session, auth, db = current.session, current.auth, current.db
     
-    mail_vars = emailing_tools.getMailCommonVars()
-    reports = []
+    mail_vars: Dict[str, Any] = emailing_tools.getMailCommonVars()
+    reports: List[Dict[str, Union[bool, str]]] = []
 
     mail_vars["recomm_limit_days"] = myconf.get("config.recomm_limit_days", default=50)
 
     article = db.t_articles[articleId]
-    if article is not None:
+    recommendation = Article.get_last_recommendation(articleId)
+
+    if article is not None and recommendation is not None:
         mail_vars["linkTarget"] = URL(
             c="recommender", f="my_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(pressReviews=article.already_published)
         )
 
-        for recommender in db(db.t_recommendations.article_id == articleId).select(db.t_recommendations.recommender_id, distinct=True):
-            recommender_id = recommender.recommender_id
+        recommender_id = recommendation.recommender_id
 
-            if not recommender_id:
-                continue
+        mail_vars["destPerson"] = common_small_html.mkUser(recommender_id)
+        mail_vars["destAddress"] = db.auth_user[recommender_id]["email"]
+        mail_vars["articleAuthors"] = article.authors
+        mail_vars["articleTitle"] = md_to_html(article.title)
+        mail_vars["articleDoi"] = XML(common_small_html.mkSimpleDOI(article.doi))
+        mail_vars["tOldStatus"] = current.T(article.status)
+        mail_vars["tNewStatus"] = current.T(newStatus)
 
-            mail_vars["destPerson"] = common_small_html.mkUser(recommender_id)
-            mail_vars["destAddress"] = db.auth_user[recommender_id]["email"]
-            mail_vars["articleAuthors"] = article.authors
-            mail_vars["articleTitle"] = md_to_html(article.title)
-            mail_vars["articleDoi"] = XML(common_small_html.mkSimpleDOI(article.doi))
-            mail_vars["tOldStatus"] = current.T(article.status)
-            mail_vars["tNewStatus"] = current.T(newStatus)
+        myRecomm = db(
+            (db.t_recommendations.article_id == articleId) &
+            (db.t_recommendations.recommender_id == recommender_id)
+        ).select(orderby=db.t_recommendations.id).last()
 
-            myRecomm = db(
-                (db.t_recommendations.article_id == articleId) &
-                (db.t_recommendations.recommender_id == recommender_id)
-            ).select(orderby=db.t_recommendations.id).last()
+        authors_reply = None
+        if article.status == "Awaiting revision" and newStatus == "Under consideration":
+            mail_vars["linkTarget"] = URL(
+                c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id)
+            )
+            mail_vars["deadline"] = (datetime.date.today() + datetime.timedelta(weeks=1)).strftime(DEFAULT_DATE_FORMAT)
 
-            authors_reply = None
-            if article.status == "Awaiting revision" and newStatus == "Under consideration":
-                mail_vars["linkTarget"] = URL(
-                    c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id)
-                )
-                mail_vars["deadline"] = (datetime.date.today() + datetime.timedelta(weeks=1)).strftime(DEFAULT_DATE_FORMAT)
+            mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(myRecomm.id)
 
-                mail_vars["ccAddresses"] = emailing_vars.get_co_recommenders_mails(myRecomm.id)
+            hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderStatusChangedToUnderConsideration", article)
+            authors_reply = emailing_parts.getAuthorsReplyHTML(myRecomm.id)
 
-                hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderStatusChangedToUnderConsideration", article)
-                authors_reply = emailing_parts.getAuthorsReplyHTML(myRecomm.id)
+        elif newStatus == "Recommended":
+            mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
+            mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
+            mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
-            elif newStatus == "Recommended":
-                mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
-                mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
-                mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
+            hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderStatusChangedUnderToRecommended", article)
 
-                hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderStatusChangedUnderToRecommended", article)
+        elif newStatus == "Recommended-private":
+            mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
 
-            elif newStatus == "Recommended-private":
-                mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
+            hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderStatusChangedUnderToRecommendedPrivate", article)
 
-                hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderStatusChangedUnderToRecommendedPrivate", article)
+        else:
+            hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderArticleStatusChanged", article)
 
-            else:
-                hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderArticleStatusChanged", article)
+        # Fill define template with mail_vars :
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, myRecomm.id, None, articleId, authors_reply=authors_reply)
 
-            # Fill define template with mail_vars :
-            emailing_tools.insertMailInQueue(hashtag_template, mail_vars, myRecomm.id, None, articleId, authors_reply=authors_reply)
-
-            reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
+        dest_person_str = str(mail_vars["destPerson"].flatten()) # type: ignore
+        reports = emailing_tools.createMailReport(True, dest_person_str, reports)
 
     emailing_tools.getFlashMessage(reports)
 
