@@ -22,6 +22,7 @@ from app_modules.helper import *
 from gluon.contrib.markmin.markmin2latex import render, latex_escape
 
 from gluon.contrib.appconfig import AppConfig
+from models.mail_queue import MailQueue
 
 myconf = AppConfig(reload=True)
 
@@ -685,7 +686,7 @@ def mkRecommendersAffiliations(recomm):
     # reviewersStr = ''.join(reviewers)
     return reviewersStr
 
-def makeMailStatusDiv(text):
+def makeMailStatusDiv(text: str):
     if text == "sent":
         result = SPAN(text, _style="font-size:14px", _class="pci-mail-status success")
     elif text == "in queue":
@@ -698,7 +699,7 @@ def makeMailStatusDiv(text):
         result = text
     return result
 
-def sanitizeHtmlContent(text):
+def sanitizeHtmlContent(text: str):
     text = text.replace("\r","")
     text = text.replace("\n","")
     text = text.replace("<html style='font-size:12pt;'>", "")
@@ -708,8 +709,7 @@ def sanitizeHtmlContent(text):
 
 
 ######################################################################################################################################################################
-def mkEditResendButton(row, urlFunction=None, urlController=None):
-    db, auth = current.db, current.auth
+def mkEditResendButton(row: MailQueue, urlFunction: Optional[str] = None, urlController: Optional[str] = None):
     anchor = A(
         SPAN(current.T("Edit and Resend"), _class="buttontext btn btn-default pci-recommender"),
         _href=URL(c="admin_actions", f="edit_resend_auth", vars=dict(mailId=row["id"], articleId=row["article_id"], hashtag=row["mail_template_hashtag"], urlFunction=urlFunction, urlController=urlController), user_signature=True),
