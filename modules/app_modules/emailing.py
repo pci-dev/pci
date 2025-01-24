@@ -109,7 +109,7 @@ def send_test_mail(userId):
 
 ######################################################################################################################################################################
 # Send email to the requester (if any)
-def send_to_submitter(articleId: int, newStatus):
+def send_to_submitter(articleId: int, newStatus: str):
     session, auth, db, response = current.session, current.auth, current.db, current.response
     print("send_to_submitter")
     mail_vars = emailing_tools.getMailCommonVars()
@@ -126,7 +126,7 @@ def send_to_submitter(articleId: int, newStatus):
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["editTranslationLink"] = URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-        recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+        recomm = Article.get_last_recommendation(articleId)
         recomm_id = None
         if recomm:
             recomm_id = recomm.id
@@ -436,7 +436,7 @@ def send_to_recommender_decision_sent_back(form, articleId, lastRecomm, hashtag)
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given NO MORE available article
-def send_to_suggested_recommenders_not_needed_anymore(articleId):
+def send_to_suggested_recommenders_not_needed_anymore(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -444,7 +444,7 @@ def send_to_suggested_recommenders_not_needed_anymore(articleId):
 
     article = db.t_articles[articleId]
     if article:
-        recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+        recomm = Article.get_last_recommendation(articleId)
         recomm_id = None
         if recomm:
             recomm_id = recomm.id
@@ -482,7 +482,7 @@ def mkUnanonymizedAuthors(article):
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
-def send_to_suggested_recommenders(articleId):
+def send_to_suggested_recommenders(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -501,7 +501,7 @@ def send_to_suggested_recommenders(articleId):
             if article.anonymous_submission:
                 mail_vars["articleAuthors"] = mkUnanonymizedAuthors(article)
 
-        recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+        recomm = Article.get_last_recommendation(articleId)
         recomm_id = None
         if recomm:
             recomm_id = recomm.id
@@ -600,7 +600,7 @@ def send_to_suggested_recommender(articleId: int, suggRecommId: int):
             if article.anonymous_submission:
                 mail_vars["articleAuthors"] = mkUnanonymizedAuthors(article)
 
-        recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+        recomm = Article.get_last_recommendation(articleId)
         recomm_id = None
         if recomm:
             recomm_id = recomm.id
@@ -2254,12 +2254,12 @@ def create_reminder_for_submitter_revised_version_needed(articleId):
     session, auth, db = current.session, current.auth, current.db
     _create_reminder_for_submitter_revised_version(articleId, "#ReminderSubmitterRevisedVersionNeeded")
 
-def _create_reminder_for_submitter_revised_version(articleId, email_template):
+def _create_reminder_for_submitter_revised_version(articleId: int, email_template: str):
     db, auth = current.db, current.auth
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
 
     if article and recomm:
         mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
@@ -2283,7 +2283,7 @@ def get_original_submitter_awaiting_submission_email(article):
 
 
 ######################################################################################################################################################################
-def create_reminders_for_submitter_scheduled_submission(article):
+def create_reminders_for_submitter_scheduled_submission(article: Article):
     session, auth, db = current.session, current.auth, current.db
 
     articleId = article.id
@@ -2309,7 +2309,7 @@ def create_reminder_for_submitter_scheduled_submission_soon_due(articleId: int):
     article = db.t_articles[articleId]
 
     recommId = None
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
     if recomm:
         recommId = recomm.id
         mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id)
@@ -2332,7 +2332,7 @@ def create_reminder_for_submitter_scheduled_submission_soon_due(articleId: int):
         emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=sending_date_forced)
 
 ######################################################################################################################################################################
-def create_reminder_for_submitter_scheduled_submission_due(articleId):
+def create_reminder_for_submitter_scheduled_submission_due(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2341,7 +2341,7 @@ def create_reminder_for_submitter_scheduled_submission_due(articleId):
     article = db.t_articles[articleId]
 
     recommId = None
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
     if recomm:
         recommId = recomm.id
         mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id)
@@ -2370,7 +2370,7 @@ def create_reminder_for_submitter_scheduled_submission_over_due(articleId: int):
     article = db.t_articles[articleId]
 
     recommId = None
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
     if recomm:
         recommId = recomm.id
         mail_vars["recommenderPerson"] = common_small_html.mkUser(recomm.recommender_id)
@@ -2393,12 +2393,12 @@ def create_reminder_for_submitter_scheduled_submission_over_due(articleId: int):
         emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recommId, None, articleId, sending_date_forced=sending_date_forced)
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_validated_scheduled_submission(articleId):
+def create_reminder_for_recommender_validated_scheduled_submission(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
     if article:
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleAuthors"] = mkAuthors(article)
@@ -2418,12 +2418,12 @@ def create_reminder_for_recommender_validated_scheduled_submission(articleId):
         emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, articleId, sending_date_forced=(review_period - datetime.timedelta(days=1)))
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_validated_scheduled_submission_late(articleId):
+def create_reminder_for_recommender_validated_scheduled_submission_late(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
     if article:
         mail_vars["articleDoi"] = article.doi
         mail_vars["articleAuthors"] = mkAuthors(article)
@@ -2926,13 +2926,13 @@ def delete_reminder_for_reviewer(hashtag_template, reviewId):
     return nb_deleted
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_reviewers_needed(articleId):
+def create_reminder_for_recommender_reviewers_needed(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
     recommCount = db((db.t_recommendations.article_id == article.id)).count()
 
     if recomm and article and recommCount == 1:
@@ -3077,13 +3077,13 @@ def create_reminder_for_recommender_decision_over_due(reviewId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_soon_due(articleId):
+def create_reminder_for_recommender_revised_decision_soon_due(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
 
     if recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
@@ -3101,13 +3101,13 @@ def create_reminder_for_recommender_revised_decision_soon_due(articleId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_due(articleId):
+def create_reminder_for_recommender_revised_decision_due(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
 
     if recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
@@ -3125,13 +3125,13 @@ def create_reminder_for_recommender_revised_decision_due(articleId):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_recommender_revised_decision_over_due(articleId):
+def create_reminder_for_recommender_revised_decision_over_due(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
 
     if recomm and article:
         mail_vars["destPerson"] = common_small_html.mkUser(recomm.recommender_id)
@@ -3223,10 +3223,10 @@ def delete_reminder_for_recommender(hashtag_template: str, recommendationId: int
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_recommender_from_article_id(hashtag_template, articleId):
+def delete_reminder_for_recommender_from_article_id(hashtag_template: str, articleId: int):
     db = current.db
     article = db.t_articles[articleId]
-    recomm = db((db.t_recommendations.article_id == article.id)).select().last()
+    recomm = Article.get_last_recommendation(articleId)
 
     if recomm:
         recomm_mail = db.auth_user[recomm.recommender_id]["email"]
