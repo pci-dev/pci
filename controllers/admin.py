@@ -3,6 +3,7 @@
 import re
 import random
 import datetime
+from typing import Callable, Literal, Union
 
 from app_modules.helper import *
 
@@ -14,9 +15,11 @@ from app_modules import emailing_tools
 
 from app_components import app_forms
 
+from gluon import IS_EMAIL
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.http import redirect # type: ignore
 from gluon.sqlhtml import SQLFORM
+from models.mail_queue import MailQueue, SendingStatus
 from pydal.objects import Field
 from pydal.validators import IS_IN_DB
 
@@ -643,26 +646,37 @@ def mailing_queue():
     urlFunction = request.function
     urlController = request.controller
 
-    db.mail_queue.sending_status.represent = lambda text, row: DIV(
-        SPAN(admin_module.makeMailStatusDiv(text)),
-        SPAN(I(T("Sending attempts:")), XML("&nbsp;"), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
-        _class="pci2-flex-column",
-        _style="margin: 5px 10px;",
-    )
+    def represent_sending_status(text: str, row: MailQueue):
+        return DIV(
+            SPAN(admin_module.makeMailStatusDiv(text)),
+            SPAN(I(T("Sending attempts:")), XML("&nbsp;"), B(row.sending_attempts), _style="font-size: 12px; margin-top: 5px"),
+            _class="pci2-flex-column",
+            _style="margin: 5px 10px;",
+        )
+    
+    def represent_sending_date(text: str, row: MailQueue):
+        return datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S") if text else None
+    
+    def represent_mail_content(text: str, row: MailQueue):
+        return XML(admin_module.sanitizeHtmlContent(text))
+    
+    def represent_mail_subject(text: str, row: MailQueue):
+        return DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-500")
+
+    db.mail_queue.sending_status.represent = represent_sending_status
 
     db.mail_queue.id.readable = False
     db.mail_queue.sending_attempts.readable = False
 
-    db.mail_queue.sending_date.represent = lambda text, row: datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S") if text else None
-    db.mail_queue.mail_content.represent = lambda text, row: XML(admin_module.sanitizeHtmlContent(text))
-    db.mail_queue.mail_subject.represent = lambda text, row: DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-500")
+    db.mail_queue.sending_date.represent = represent_sending_date
+    db.mail_queue.mail_content.represent = represent_mail_content
+    db.mail_queue.mail_subject.represent = represent_mail_subject
     db.mail_queue.cc_mail_addresses.widget = app_forms.cc_widget
     db.mail_queue.replyto_addresses.widget = app_forms.cc_widget
     db.mail_queue.bcc_mail_addresses.widget = app_forms.cc_widget
 
     db.mail_queue.sending_status.writable = False
     db.mail_queue.sending_attempts.writable = False
-    db.mail_queue.dest_mail_address.writable = False
     db.mail_queue.user_id.writable = False
     db.mail_queue.mail_template_hashtag.writable = False
     db.mail_queue.reminder_count.writable = False
@@ -676,13 +690,30 @@ def mailing_queue():
     db.mail_queue.review_id.searchable = False
     db.mail_queue.recommendation_id.searchable = False
 
+    db.mail_queue.dest_mail_address.requires = IS_EMAIL()
+
     if len(request.args) > 2 and request.args[0] == "edit":
         db.mail_queue.mail_template_hashtag.readable = True
+
+        mail = MailQueue.get_mail_by_id(request.args[2])
+        if mail:
+            is_manager = bool(auth.has_membership(role=Role.MANAGER.value))
+            is_pending = mail.sending_status == SendingStatus.PENDING.value
+            dest_mail_address_writable = is_manager and is_pending
+            db.mail_queue.dest_mail_address.writable = dest_mail_address_writable
+
+            if dest_mail_address_writable and "dest_mail_address" in request.post_vars:
+                dest_mail_address = request.post_vars["dest_mail_address"]
+                _, error = IS_EMAIL()(dest_mail_address) # type: ignore
+                if not error:
+                    MailQueue.update_dest_mail_address(mail.id, dest_mail_address)
     else:
         db.mail_queue.mail_template_hashtag.readable = False
+        db.mail_queue.dest_mail_address.writable = False
+
     myScript = common_tools.get_script("replace_mail_content.js")
 
-    link_body=lambda row: A(
+    link_body: Callable[[Any], Union[A, Literal['']]] = lambda row: A(
         (T("Scheduled") if row.removed_from_queue == False else T("Unscheduled")),
         _href=URL(c="admin_actions", f="toggle_shedule_mail_from_queue", vars=dict(emailId=row.id)),
         _class="btn btn-default",
@@ -696,11 +727,11 @@ def mailing_queue():
         )
     ]
 
-    original_grid = SQLFORM.grid(
+    original_grid: ... = SQLFORM.grid( # type: ignore
         db.mail_queue,
         details=True,
-        editable=lambda row: (row.sending_status == "pending"),
-        deletable=lambda row: (row.sending_status != "sent"),
+        editable=lambda row: (row.sending_status == "pending"), # type: ignore
+        deletable=lambda row: (row.sending_status != "sent"), # type: ignore
         create=False,
         searchable=True,
         paginate=50,
@@ -743,7 +774,7 @@ def mailing_queue():
     )
 
 
-def mail_form_processing(form):
+def mail_form_processing(form: ...):
     app_forms.update_mail_content_keep_editing_form(form)
 
     if form.content_saved:
