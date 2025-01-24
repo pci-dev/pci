@@ -438,7 +438,7 @@ def insertMailInQueue(
     recommendation: Optional[Recommendation] = None,
     article_id: Optional[int] = None,
     review: Optional[Review] = None,
-    authors_reply: Optional[str] = None,
+    authors_reply: Optional[DIV] = None,
     sugg_recommender_buttons: Optional[DIV] = None,
     reviewer_invitation_buttons: Optional[DIV] = None,
     alternative_subject: Optional[str] = None, # for edit/resend mails
