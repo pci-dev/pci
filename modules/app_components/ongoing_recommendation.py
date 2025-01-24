@@ -1012,7 +1012,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
 
     hide_on_going_review = _get_hide_on_going_review_and_set_show_review_request(article, recommendation, review, am_I_co_recommender, review_vars, printable)
 
-    if auth.has_membership(role=Role.MANAGER.value) and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
+    if (auth.has_membership(role=Role.MANAGER.value) or auth.has_membership(role=Role.RECOMMENDER.value)) and review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value:
         review_vars.update([("showReviewExtraTimeButtons", True)])
 
     # reviewer's buttons in order to edit/complete pending review
