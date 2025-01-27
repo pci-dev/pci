@@ -4,7 +4,7 @@ CMD=${1}
 DB=${2:-pci_ecology}
 
 YEAR=${year:-$(date +%Y)}
-YEAR1=$((YEAR - 1))
+START=${start:-$((YEAR - 1))}
 
 ANON=${anon:-not null} # all reviews (anon or not)
 
