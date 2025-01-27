@@ -5,13 +5,15 @@ from gluon import current
 from models.article import Article, ArticleStatus
 from models.user import User
 import argparse
-
+from gluon.contrib.appconfig import AppConfig # type: ignore
 
 # To launch script:
 # python web2py.py -M -S {APP_NAME} -R applications/{APP_NAME}/utils/generate_all_pdf.py -A manager_mail
 
 
 def main():
+
+    config = AppConfig(reload=True)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("mail", help="PCI user email used to compile latex (must be manager)", type=str)
@@ -20,6 +22,7 @@ def main():
     login(args.mail)
 
     current.request.folder = f"{os.getcwd()}/{current.request.folder}"
+    current.request.env.http_host = config.take("alerts.host")
 
     articles = Article.get_by_status([ArticleStatus.RECOMMENDED])
 
