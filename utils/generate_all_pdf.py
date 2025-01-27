@@ -3,13 +3,22 @@ from app_modules import crossref
 from app_modules.clockss import send_to_clockss
 from gluon import current
 from models.article import Article, ArticleStatus
+from models.user import User
+import argparse
 
 
 # To launch script:
-# python web2py.py -M -S {APP_NAME} -R applications/pci/utils/generate_all_pdf.py
+# python web2py.py -M -S {APP_NAME} -R applications/{APP_NAME}/utils/generate_all_pdf.py -A manager_mail
 
 
 def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mail", help="PCI user email used to compile latex (must be manager)", type=str)
+    args = parser.parse_args()
+
+    login(args.mail)
+
     current.request.folder = f"{os.getcwd()}/{current.request.folder}"
 
     articles = Article.get_by_status([ArticleStatus.RECOMMENDED])
@@ -34,6 +43,12 @@ def main():
                 print(f"Error to send to clockss: {e}")
 
         current.db.commit()
+
+
+def login(mail: str):
+    user = User.get_by_email(mail)
+    if user:
+        current.auth.login_user(user)
 
 
 if __name__ == "__main__":
