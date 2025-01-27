@@ -75,7 +75,7 @@ cat << EOT
         where
                 review_state = 'Review completed'
                 and
-		acceptation_timestamp > '$YEAR1-01-01'
+                acceptation_timestamp >= '$START-01-01'
                 and
                 acceptation_timestamp < '$YEAR-01-01'
                 and
@@ -119,7 +119,7 @@ cat << EOT
         select distinct recommender_id from t_recommendations
         where
                 recommendation_state = 'Recommended'
-                and validation_timestamp >= '$YEAR1-01-01'
+                and validation_timestamp >= '$START-01-01'
                 and validation_timestamp <  '$YEAR-01-01'
   )
 
@@ -149,7 +149,7 @@ cat << EOT
         select distinct article_id from t_recommendations
         where
                 recommendation_state = 'Recommended'
-                and validation_timestamp >= '$YEAR1-01-01'
+                and validation_timestamp >= '$START-01-01'
                 and validation_timestamp <  '$YEAR-01-01'
         )
   ) order by id
