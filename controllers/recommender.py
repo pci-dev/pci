@@ -8,6 +8,7 @@ from dateutil.relativedelta import *
 from typing import cast, Optional, List
 from difflib import SequenceMatcher
 
+from gluon import IS_NOT_EMPTY, SQLFORM
 from gluon.http import redirect # type: ignore
 from lxml import html
 
@@ -2265,7 +2266,7 @@ def edit_recommendation():
 
         db.t_recommendations.recommendation_comments.requires = IS_NOT_EMPTY()
 
-        form = SQLFORM(db.t_recommendations, record=recomm, deletable=False, fields=fields, showid=False, buttons=buttons, upload=URL("default", "download"))
+        form: ... = SQLFORM(db.t_recommendations, record=recomm, deletable=False, fields=fields, showid=False, buttons=buttons, upload=URL("default", "download"))
 
         if scheduled_reject:
             customText = ""
@@ -2281,8 +2282,8 @@ def edit_recommendation():
             destPerson = common_small_html.mkUser(art.user_id)
             articleTitle = md_to_html(art.title)
 
-            default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
-            default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+            default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals()) # type: ignore
+            default_message = emailing_tools.replaceMailVars(mail_template["content"], locals()) # type: ignore
             default_subject = emailing.patch_email_subject(default_subject, art.id)
 
             form.vars.recommendation_title = recomm.recommendation_title or default_subject
