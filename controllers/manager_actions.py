@@ -69,7 +69,7 @@ def pre_submission_list():
         art.status = "Pre-submission"
         art.update_record()
         session.flash = T("Submission now in pre-submission list")
-    redirect(URL(c="manager", f="presubmissions", vars=dict(articleId=articleId), user_signature=True))
+    redirect(URL(c="manager", f="send_submitter_generic_mail", vars=dict(articleId=articleId)))
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
