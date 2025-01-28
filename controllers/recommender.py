@@ -8,6 +8,7 @@ from dateutil.relativedelta import *
 from typing import cast, Optional, List
 from difflib import SequenceMatcher
 
+from gluon import IS_NOT_EMPTY, SQLFORM
 from gluon.http import redirect # type: ignore
 from lxml import html
 
@@ -2160,9 +2161,17 @@ def contributions():
 def edit_recommendation():
     response.view = "default/myLayout.html"
 
-    recommId = request.vars["recommId"]
-    recomm = db.t_recommendations[recommId]
-    art = db.t_articles[recomm.article_id]
+    recommId = int(request.vars["recommId"])
+    recomm = Recommendation.get_by_id(recommId)
+    if not recomm:
+        session.flash = "Recommendation not found"
+        return redirect(request.env.http_referer)
+
+    art = Article.get_by_id(recomm.article_id)
+    if not art:
+        session.flash = "Article not found"
+        return redirect(request.env.http_referer)
+
     scheduled_reject = request.vars["scheduled_reject"]
     isStage1 = art.art_stage_1_id is None
     isPress = None
@@ -2173,10 +2182,10 @@ def edit_recommendation():
         publish_now = "IPA" in survey.q21
     if (recomm.recommender_id != auth.user_id) and not amICoRecommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
     elif art.status not in ("Under consideration", "Pre-recommended", "Pre-revision", "Pre-cancelled", "Pre-recommended-private", "Scheduled submission pending"):
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
     else:
         nbCoRecomm = db(db.t_press_reviews.recommendation_id == recommId).count()
         isPress = art.already_published
@@ -2188,7 +2197,7 @@ def edit_recommendation():
                     _name="recommender_opinion",
                     _type="radio",
                     _value="do_recommend_private",
-                    _checked=(recomm.recommendation_state == "Recommended"), 
+                    _checked=(recomm.recommendation_state_saved == "Recommended"), 
                     _disabled=True if publish_now else False,
                 ),
                 B(current.T("I recommend this preprint")),
@@ -2200,7 +2209,7 @@ def edit_recommendation():
         else:
             recommendPrivateDivPciRR = ""
         reject_radio = SPAN(
-                        INPUT(_id="opinion_reject", _name="recommender_opinion", _type="radio", _value="do_reject", _checked=(recomm.recommendation_state == "Rejected")),
+                        INPUT(_id="opinion_reject", _name="recommender_opinion", _type="radio", _value="do_reject", _checked=(recomm.recommendation_state_saved == "Rejected")),
                         B(current.T("I reject this preprint")),
                         _class="pci-radio pci-reject btn-warning",
                     )
@@ -2211,7 +2220,7 @@ def edit_recommendation():
                     (DIV(
                         SPAN(
                             INPUT(
-                                _id="opinion_recommend", _name="recommender_opinion", _type="radio", _value="do_recommend", _checked=(recomm.recommendation_state == "Recommended"), 
+                                _id="opinion_recommend", _name="recommender_opinion", _type="radio", _value="do_recommend", _checked=(recomm.recommendation_state_saved == "Recommended"), 
                                 _disabled=False if publish_now else True
                             ),
                             B(current.T("I recommend this preprint")),
@@ -2221,7 +2230,7 @@ def edit_recommendation():
                         _class="pci2-flex-column",
                     ),
                     SPAN(
-                        INPUT(_id="opinion_revise", _name="recommender_opinion", _type="radio", _value="do_revise", _checked=(recomm.recommendation_state == "Revision")),
+                        INPUT(_id="opinion_revise", _name="recommender_opinion", _type="radio", _value="do_revise", _checked=(recomm.recommendation_state_saved == "Revision")),
                         B(current.T("This preprint merits a revision")),
                         _class="pci-radio pci-review btn-default",
                     ),
@@ -2265,7 +2274,7 @@ def edit_recommendation():
 
         db.t_recommendations.recommendation_comments.requires = IS_NOT_EMPTY()
 
-        form = SQLFORM(db.t_recommendations, record=recomm, deletable=False, fields=fields, showid=False, buttons=buttons, upload=URL("default", "download"))
+        form: ... = SQLFORM(db.t_recommendations, record=recomm, deletable=False, fields=fields, showid=False, buttons=buttons, upload=URL("default", "download"))
 
         if scheduled_reject:
             customText = ""
@@ -2281,8 +2290,8 @@ def edit_recommendation():
             destPerson = common_small_html.mkUser(art.user_id)
             articleTitle = md_to_html(art.title)
 
-            default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
-            default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+            default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals()) # type: ignore
+            default_message = emailing_tools.replaceMailVars(mail_template["content"], locals()) # type: ignore
             default_subject = emailing.patch_email_subject(default_subject, art.id)
 
             form.vars.recommendation_title = recomm.recommendation_title or default_subject
@@ -2299,13 +2308,13 @@ def edit_recommendation():
         if form.process().accepted:
             if form.vars.save:
                 if form.vars.recommender_opinion == "do_recommend":
-                    recomm.recommendation_state = "Recommended"
+                    recomm.recommendation_state_saved = "Recommended"
                 elif form.vars.recommender_opinion == "do_recommend_private":
-                    recomm.recommendation_state = "Recommended"
+                    recomm.recommendation_state_saved = "Recommended"
                 elif form.vars.recommender_opinion == "do_revise":
-                    recomm.recommendation_state = "Revision"
+                    recomm.recommendation_state_saved = "Revision"
                 elif form.vars.recommender_opinion == "do_reject":
-                    recomm.recommendation_state = "Rejected"
+                    recomm.recommendation_state_saved = "Rejected"
                 # print form.vars.no_conflict_of_interest
                 if form.vars.no_conflict_of_interest:
                     recomm.no_conflict_of_interest = True
@@ -2320,12 +2329,12 @@ def edit_recommendation():
                     elif hasattr(request.vars, "recommender_file__delete") and request.vars.recommender_file__delete == "on":
                         recomm.recommender_file_data = None
                         recomm.recommender_file = None
-                recomm.update_record()
+                recomm.update_record() # type: ignore
                 session.flash = T("Recommendation saved", lazy=False)
                 if amICoRecommender:
-                    redirect(URL(c="recommender", f="my_co_recommendations"))
+                    return redirect(URL(c="recommender", f="my_co_recommendations"))
                 else:
-                    redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
+                    return redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
             elif form.vars.terminate:
                 if (recomm.recommender_id == auth.user_id) or auth.has_membership(role="manager") or amICoRecommender:
                     session.flash = T("Recommendation saved and completed", lazy=False)
@@ -2361,14 +2370,14 @@ def edit_recommendation():
                         art.status = "Pre-recommended"
                     if  scheduled_reject is None:
                         common_tools.cancel_decided_article_pending_reviews(recomm)
-                    recomm.update_record()
-                    art.update_record()
+                    recomm.update_record() # type: ignore
+                    art.update_record() # type: ignore
                     emailing.delete_reminder_for_managers(["#ManagersRecommenderAgreedAndNeedsToTakeAction", "#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction",
                                                             "#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], recomm.id)
                     if amICoRecommender:
-                        redirect(URL(c="recommender", f="my_co_recommendations"))
+                        return redirect(URL(c="recommender", f="my_co_recommendations"))
                     else:
-                        redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
+                        return redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=isPress)))
                 else:
                     session.flash = T("Unauthorized: You need to be recommender or manager", lazy=False)
         elif form.errors:

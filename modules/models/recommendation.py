@@ -49,6 +49,7 @@ class Recommendation(Row):
     recommender_file_data: _[bytes]
     author_last_change: _[datetime]
     validation_timestamp: _[datetime]
+    recommendation_state_saved: _[str]
 
 
     @staticmethod

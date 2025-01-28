@@ -125,7 +125,7 @@ def getPCiRRScheduledSubmissionsVars(article: Article):
     scheduledReviewDueDate = ""
     snapshotUrl = ""
 
-    report_survey = article.t_report_survey.select().last()
+    report_survey: ... = article.t_report_survey.select().last() # type: ignore
 
     if report_survey and report_survey.q10:
         submission_date = report_survey.q10 # article.scheduled_submission_date
