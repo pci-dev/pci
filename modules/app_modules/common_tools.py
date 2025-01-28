@@ -263,7 +263,7 @@ def generate_recommendation_doi(article_id: int):
 absoluteButtonScript = get_script("web2py_button_absolute.js")
 
 ####################################################################
-def cancel_decided_article_pending_reviews(recomm):
+def cancel_decided_article_pending_reviews(recomm: Recommendation):
     db = current.db
     reviews = db(db.t_reviews.recommendation_id == recomm.id).select()
     for review in reviews:
