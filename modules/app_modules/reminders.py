@@ -1,5 +1,5 @@
-from typing import List, Optional
-from gluon.contrib.appconfig import AppConfig
+from typing import Iterable, List, Optional, Union
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from models.review import Review, ReviewDuration
 import datetime
 
@@ -9,7 +9,7 @@ track_changes(True)
 
 def case_sensitive_config():
     from configparser import ConfigParser
-    ConfigParser.optionxform = str
+    ConfigParser.optionxform = str # type: ignore
 
 case_sensitive_config()
 myconf = AppConfig(reload=True)
@@ -97,6 +97,8 @@ _reminders = {
     "ManagersRecommenderReceivedAllReviewsNeedsToTakeAction": weekly(1, 15),
     "ManagersRecommenderReceivedRevisionNeedsToTakeAction": weekly(1, 15),
     "ManagersRecommenderNotEnoughReviewersNeedsToTakeAction": weekly(1, 15),
+
+    "ReminderRevisionsRequiredToYourSubmission": [2, 10],
 }
 
 if pciRRactivated:
@@ -158,12 +160,13 @@ def getReminderValues(review: Review):
 
 def get_reminders_from_config():
     for hashtag in _reminders.keys():
-        days = myconf.get("reminders." + hashtag)
+        days: Optional[Union[Iterable[int], int]] = myconf.get("reminders." + hashtag)
+        reminder_days: List[int] = []
         if not days:
             continue
-        if type(days) == int: days = [ days ]
-        if type(days) == map: days = [ int(x) for x in days ]
-        _reminders[hashtag] = days
+        if type(days) == int: reminder_days = [ days ]
+        if type(days) == map: reminder_days = [ int(x) for x in days ]
+        _reminders[hashtag] = reminder_days
 
 
 def getReminder(hashtag_template: str, review: Review):

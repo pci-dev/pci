@@ -10,8 +10,8 @@ from dateutil.relativedelta import *
 from gluon import current
 from gluon.storage import Storage
 from gluon.html import *
-from gluon.template import render
-from gluon.contrib.appconfig import AppConfig
+from gluon.template import render # type: ignore
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.validators import IS_EMAIL
 
 from gluon.custom_import import track_changes
@@ -27,6 +27,7 @@ from app_modules import common_small_html
 from app_modules import helper
 from app_modules import emailing_parts
 from app_modules.reminders import getReminder
+
 
 from app_modules.common_tools import URL
 

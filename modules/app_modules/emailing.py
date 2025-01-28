@@ -1986,7 +1986,7 @@ def send_reviewer_generic_mail(reviewer_email, recomm, form):
     emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
-def send_submitter_generic_mail(author_email: str, articleId: int, form: SQLFORM, mail_template: str):
+def send_submitter_generic_mail(author_email: str, articleId: int, form: Union[SQLFORM, Storage], mail_template: str):
     db, auth, session = current.db, current.auth, current.session
 
 
@@ -2014,7 +2014,7 @@ def send_submitter_generic_mail(author_email: str, articleId: int, form: SQLFORM
     reports = emailing_tools.createMailReport(True, author_email, reports=[])
     emailing_tools.getFlashMessage(reports)
 
-def mk_mail(subject, message, resend=False):
+def mk_mail(subject: str, message: str, resend: bool = False) -> str :
     mail_vars = emailing_tools.getMailCommonVars()
     applogo = URL("static", "images/small-background.png",
                     scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
@@ -2023,7 +2023,7 @@ def mk_mail(subject, message, resend=False):
     if not resend: mail_template = MAIL_HTML_LAYOUT
     else: mail_template = RESEND_MAIL_HTML_LAYOUT
 
-    return render(
+    return render( # type: ignore
         filename=mail_template,
         context=dict(
             applogo=applogo,
