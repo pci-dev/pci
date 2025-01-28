@@ -1,4 +1,5 @@
 import os
+from typing import List
 from app_modules import crossref
 from app_modules.clockss import send_to_clockss
 from gluon import current
@@ -26,6 +27,10 @@ def main():
 
     articles = Article.get_by_status([ArticleStatus.RECOMMENDED])
 
+    count_ok = 0
+    nok_crossref: List[int] = []
+    nok_clockss: List[int] = []
+
     for article in articles:
         recommendation = Article.get_last_recommendation(article.id)
 
@@ -37,15 +42,27 @@ def main():
 
         status = crossref.post_and_forget(recommendation, generated_xml)
         if status:
+            nok_crossref.append(article.id)
             print(f"Error to post to crossref: {status}")
             continue
         else:
             try:
                 send_to_clockss(article, recommendation)
             except Exception as e:
+                nok_clockss.append(article.id)
                 print(f"Error to send to clockss: {e}")
+                continue
 
         current.db.commit()
+        count_ok += 1
+
+    print("\n### RESULT ###\n")
+    print(f"Total of recommended articles: {len(articles)}")
+    if len(nok_crossref) > 0:
+        print(f"{len(nok_crossref)} article(s) failed for crossref: {nok_crossref}")
+    if len(nok_clockss) > 0:
+        print(f"{len(nok_clockss)} article(s) failed for clockss: {nok_clockss}")
+    print(f"Number of successes: {count_ok}")
 
 
 def login(mail: str):
