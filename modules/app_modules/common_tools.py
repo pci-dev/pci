@@ -8,6 +8,7 @@ import re
 import subprocess
 from typing import Any, Dict, List, Optional, Union, cast
 import unicodedata
+import html as html_python
 from zipfile import ZipFile
 import io
 from gluon import current
@@ -35,7 +36,7 @@ def URL(a: Optional[str] = None,
         r: Optional[str] = None,
         args: Optional[Any] = None,
         vars: Optional[Dict[str, Any]] = None,
-        anchor: Optional[str] ='',
+        anchor: str = '',
         extension: Optional[str] = None,
         env: Optional[str] = None,
         hmac_key: Optional[str] = None,
@@ -90,7 +91,7 @@ def get_script(scriptName: str):
 
 
 ######################################################################################################################################################################
-def getShortText(text, length):
+def getShortText(text: Optional[str], length: int):
     text = text or ""
     if len(text) > length:
         text = text[0:length] + "..."
@@ -437,3 +438,9 @@ def log(title: str, message: str):
     app = str(current.request.application)
 
     print(f"{now} {app}:{title} {message}")
+
+
+def remove_html_tag(html_text: str):
+    html_text = re.sub('<[^<]+?>', '', html_text)
+    html_text = html_python.unescape(html_text)
+    return html_text
