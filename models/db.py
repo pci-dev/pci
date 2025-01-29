@@ -737,6 +737,7 @@ def deltaStatus(s: ..., f: Article):
             # delete submitter reminder
             emailing.delete_reminder_for_submitter("#ReminderUserCompleteSubmissionCOAR", o["id"])
             emailing.delete_reminder_for_submitter("#ReminderUserCompleteSubmissionBiorxiv", o["id"])
+            emailing.delete_reminder_for_submitter("#ReminderRevisionsRequiredToYourSubmission", o["id"])
 
         elif o.status == "Pending" and f["status"] == "Pre-submission":
             # delete reminders
