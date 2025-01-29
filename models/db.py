@@ -885,6 +885,15 @@ db.define_table(
         label=T("Recommendation state"),
         requires=IS_EMPTY_OR(IS_IN_SET(("Ongoing", "Recommended", "Rejected", "Revision", "Awaiting revision"))),
     ),
+    Field(
+        "recommendation_state_saved",
+        type="string",
+        length=50,
+        label=T("Recommendation state"),
+        requires=IS_EMPTY_OR(IS_IN_SET(("Ongoing", "Recommended", "Rejected", "Revision", "Awaiting revision"))),
+        writable=False,
+        readable=False
+    ),
     Field("recommendation_timestamp", type="datetime", default=request.now, label=T("Recommendation start"), writable=False, requires=IS_NOT_EMPTY()),
     Field("validation_timestamp", type="datetime", label=T("Validation date")),
     Field("last_change", type="datetime", default=request.now, label=T("Last change"), writable=False),

@@ -3155,3 +3155,6 @@ ADD COLUMN IF NOT EXISTS current_step text;
 
 ALTER TABLE t_articles
 ADD COLUMN IF NOT EXISTS current_step_number smallint;
+
+--- 2025-01-28 updates/recommendation_state_saved.sql
+ALTER TABLE t_recommendations ADD COLUMN IF NOT exists recommendation_state_saved varchar(50);
