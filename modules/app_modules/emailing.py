@@ -407,6 +407,9 @@ def send_to_recommender_status_changed(articleId: int, newStatus: str):
 
 ######################################################################################################################################################################
 def send_to_recommender_decision_sent_back(form, articleId, lastRecomm, hashtag):
+    if common_tools.is_silent_mode():
+        return
+    
     session, auth, db = current.session, current.auth, current.db
 
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
@@ -1826,19 +1829,20 @@ def send_reviewer_invitation(reviewId: int,
     if not pciRRactivated and sender:
         sender_name = f'{sender.first_name} {sender.last_name}'
     ccAddresses = exempt_addresses(mail_vars["ccAddresses"], hashtag_template)
-    db.mail_queue.insert(
-        dest_mail_address=mail_vars["destAddress"],
-        cc_mail_addresses=ccAddresses,
-        replyto_addresses=mail_vars["replytoAddresses"],
-        mail_subject=subject,
-        mail_content=message,
-        user_id=auth.user_id,
-        recommendation_id=recommendation.id,
-        mail_template_hashtag=hashtag_template,
-        article_id=recommendation.article_id,
-        sender_name=sender_name,
-        review_id=reviewId
-    )
+    if not common_tools.is_silent_mode():
+        db.mail_queue.insert(
+            dest_mail_address=mail_vars["destAddress"],
+            cc_mail_addresses=ccAddresses,
+            replyto_addresses=mail_vars["replytoAddresses"],
+            mail_subject=subject,
+            mail_content=message,
+            user_id=auth.user_id,
+            recommendation_id=recommendation.id,
+            mail_template_hashtag=hashtag_template,
+            article_id=recommendation.article_id,
+            sender_name=sender_name,
+            review_id=reviewId
+        )
 
     if review.review_state is None:
         review.review_state = "Awaiting response"
@@ -1957,6 +1961,9 @@ def send_change_mail(user_id: int, dest_mail: str, recover_email_key: str):
 
 ######################################################################################################################################################################
 def send_reviewer_generic_mail(reviewer_email, recomm, form):
+    if common_tools.is_silent_mode():
+        return
+    
     session, auth, db = current.session, current.auth, current.db
 
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.cc)
@@ -1989,6 +1996,8 @@ def send_reviewer_generic_mail(reviewer_email, recomm, form):
 def send_submitter_generic_mail(author_email: str, articleId: int, form: Union[SQLFORM, Storage], mail_template: str):
     db, auth, session = current.db, current.auth, current.session
 
+    if common_tools.is_silent_mode():
+        return
 
     cc_addresses = emailing_tools.list_addresses(form.cc)
     replyto_addresses = emailing_tools.list_addresses(form.replyto)
