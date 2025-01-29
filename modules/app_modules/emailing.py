@@ -2023,6 +2023,22 @@ def send_submitter_generic_mail(author_email: str, articleId: int, form: Union[S
     reports = emailing_tools.createMailReport(True, author_email, reports=[])
     emailing_tools.getFlashMessage(reports)
 
+
+def send_submitter_generic_reminder(hashtag_template: str, subject: str, message: str, mail_vars: Dict[str, Any], article_id: int):
+    if article_id:
+        mail_subject = patch_email_subject(subject, article_id)
+    else:
+        mail_subject = subject
+
+    mail_content = mk_mail(subject, message)
+    
+    emailing_tools.insert_generic_reminder_mail_in_queue(hashtag_template,
+                                                         mail_subject,
+                                                         mail_content,
+                                                         mail_vars,
+                                                         article_id=article_id)
+
+
 def mk_mail(subject: str, message: str, resend: bool = False) -> str :
     mail_vars = emailing_tools.getMailCommonVars()
     applogo = URL("static", "images/small-background.png",
