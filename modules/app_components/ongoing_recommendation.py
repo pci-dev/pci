@@ -478,10 +478,9 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
                 or (roundNumber < totalRecomm and (((recomm.reply is not None) and (len(recomm.reply) > 0)) or (recomm.reply_pdf is not None))):
                 managerDecisionDoneClass = "step-done"
 
-            if recommStatus == "Revision" and managerDecisionDoneClass == "step-done":
+            managerDecisionDoneStepClass = "progress-last-step-div"
+            if managerDecisionDoneClass == "step-done" and (recommStatus == "Revision" or not recomm.validation_timestamp):
                 managerDecisionDoneStepClass = "progress-step-div"
-            else:
-                managerDecisionDoneStepClass = "progress-last-step-div"
 
             if validationDate:
                 authorsReplyClass = "step-done"
