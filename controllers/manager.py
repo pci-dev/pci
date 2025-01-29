@@ -2019,6 +2019,7 @@ def send_submitter_generic_mail():
         request.vars["replyto"] = replyTo
         try:
             emailing.send_submitter_generic_mail(author.email, art.id, request.vars, template)
+            emailing.send_submitter_generic_reminder("#ReminderRevisionsRequiredToYourSubmission", form.vars.subject, form.vars.message, mail_vars, art.id)
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e

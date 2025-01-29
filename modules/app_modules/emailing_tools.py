@@ -50,7 +50,10 @@ def email_subject_header(articleId):
     return "%s #%s" % (appName, articleId)
 
 def patch_email_subject(subject: str, articleId: int):
-    return subject.replace(appName, email_subject_header(articleId))
+    if f"#{articleId}" not in subject:
+        return subject.replace(appName, email_subject_header(articleId))
+    else:
+        return subject
 
 
 def mkAuthors(article: Article):
@@ -551,6 +554,59 @@ def insert_reminder_mail_in_queue(
             sender_name=sender_name
         )
 
+
+def insert_generic_reminder_mail_in_queue(
+    hashtag_template: str,
+    subject: str,
+    content: str,
+    mail_vars: Dict[str, Any],
+    recommendation_id: Optional[int] = None,
+    article_id: Optional[int] = None,
+    review_id: Optional[int] = None,
+    sending_date_forced: Optional[datetime] = None,
+    base_sending_date: Optional[datetime] = None,
+    sender_name: Optional[str] = None,
+):
+
+    db, auth = current.db, current.auth
+
+    if common_tools.is_silent_mode():
+        return
+
+    reminder = getReminder(hashtag_template, db.t_reviews[review_id])
+
+    ccAddresses = mail_vars.get("ccAddresses") or None
+    replytoAddresses = mail_vars.get("replytoAddresses") or None
+    if pciRRactivated and ccAddresses and "OverDue" not in hashtag_template:
+            ccAddresses = exempt_addresses(ccAddresses, hashtag_template)
+
+    sending_date: Optional[datetime] = None
+
+    if reminder:
+        elapsed_days = int(reminder["elapsed_days"][0])
+        sending_date = datetime.now() if not base_sending_date \
+                else base_sending_date - timedelta(days=7)
+        sending_date += timedelta(days=elapsed_days)
+
+    if sending_date_forced:
+        sending_date = sending_date_forced
+
+    if True:
+        db.mail_queue.insert(
+            sending_status="pending",
+            sending_date=sending_date,
+            dest_mail_address=mail_vars["destAddress"],
+            cc_mail_addresses=ccAddresses,
+            replyto_addresses=replytoAddresses,
+            mail_subject=subject,
+            mail_content=content,
+            user_id=auth.user_id,
+            recommendation_id=recommendation_id,
+            article_id=article_id,
+            mail_template_hashtag=hashtag_template,
+            review_id=review_id,
+            sender_name=sender_name
+        )
 
 ######################################################################################################################################################################
 def insert_newsletter_mail_in_queue(
