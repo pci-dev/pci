@@ -371,11 +371,14 @@ class Clockss:
                 reviewer_name += f", {review_date_str}"
 
             review_content = self._html_to_latex.convert(self._str(review['text']))
-            if review_content:
+            review_link = self._html_to_latex.convert(self._str(review['pdfLink']))
+
+            if review_content or review_link:
                 latex_lines.append(f"\\subsection*{{Reviewed by {reviewer_name}}}")
+            
+            if review_content:
                 latex_lines.append(review_content)
 
-            review_link = self._html_to_latex.convert(self._str(review['pdfLink']))
             if review_link:
                 latex_lines.append(f"\n{review_link}")
 
