@@ -87,6 +87,8 @@ _reminders = {
     "ReminderSubmitterRevisedVersionWarning": [7],
     "ReminderSubmitterRevisedVersionNeeded": [60, 90],
     "ReminderUserCompleteSubmission": [2, 10],
+    "ReminderUserCompleteSubmissionCOAR": [2, 7],
+    "ReminderUserCompleteSubmissionBiorxiv": [2, 7],
 
     "ReminderSuggestedRecommenderInvitation": [5, 9],
     "ReminderRecommender2ReviewsReceivedCouldMakeDecision": weekly(3, 15),
@@ -165,13 +167,7 @@ def get_reminders_from_config():
 
 
 def getReminder(hashtag_template: str, review: Review):
-    hash_temp = hashtag_template
-    hash_temp = hash_temp.replace("#", "")
-    hash_temp = hash_temp.replace("Stage1", "")
-    hash_temp = hash_temp.replace("Stage2", "")
-    hash_temp = hash_temp.replace("ScheduledSubmission", "")
-    hash_temp = hash_temp.replace("COAR", "")
-    hash_temp = hash_temp.replace("Biorxiv", "")
+    hash_temp = get_hashtag_corresponding_in_configured_reminders(hashtag_template)
 
     if hash_temp in _review_reminders:
         if review:
@@ -191,6 +187,23 @@ def getReminder(hashtag_template: str, review: Review):
         days = avoid_weekend_for_reminder(days)
 
     return dict(hashtag="#"+hash_temp, elapsed_days=days)
+
+
+def get_hashtag_corresponding_in_configured_reminders(hashtag_template: str):
+    hash_temp = hashtag_template
+    hash_temp = hash_temp.replace("#", "")
+
+    suffix = ["", "Stage1", "Stage2", "ScheduledSubmission", "COAR", "Biorxiv"]
+    for s in suffix:
+        hash_temp = hash_temp.replace(s, "")
+
+        if hash_temp in _review_reminders:
+            return hash_temp
+    
+        if hash_temp in _reminders:
+            return hash_temp
+        
+    return hash_temp
 
 
 # the reminders conf file is implicitly cached
