@@ -9,18 +9,25 @@ from app_modules import crossref
 from app_modules.hypothesis import Hypothesis
 from app_modules.article_translator import ArticleTranslator
 from app_modules.clockss import send_to_clockss
-from gluon.contrib.appconfig import AppConfig
-from gluon.http import redirect
+from gluon import HTTP
+from gluon.contrib.appconfig import AppConfig # type: ignore
+from gluon.http import redirect # type: ignore
 from gluon.storage import Storage
 from app_modules.common_tools import cancel_decided_article_pending_reviews
 from app_modules import emailing
 from models.article import Article, ArticleStatus
 from models.suggested_recommender import SuggestedRecommender
 from models.user import User
-from pydal import DAL
 
 myconf = AppConfig(reload=True)
-db = cast(DAL, db)
+
+db = current.db
+response = current.response
+request = current.request
+auth = current.auth
+session = current.session
+T = current.T
+
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 contact = myconf.take("contacts.managers")
@@ -62,7 +69,7 @@ def pre_submission_list():
         art.status = "Pre-submission"
         art.update_record()
         session.flash = T("Submission now in pre-submission list")
-    redirect(URL(c="manager", f="presubmissions", vars=dict(articleId=articleId), user_signature=True))
+    redirect(URL(c="manager", f="send_submitter_generic_mail", vars=dict(articleId=articleId)))
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
@@ -292,7 +299,7 @@ def set_not_considered():
     if article.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value, ArticleStatus.PRE_SUBMISSION.value):
         session.flash = T('Article set "Not considered"')
         article.status = ArticleStatus.NOT_CONSIDERED.value
-        article.update_record()
+        article.update_record() # type: ignore
         emailing.send_set_not_considered_mail(subject, message, article, author)
     return redirect(request.env.http_referer, client_side=True)
 
@@ -306,8 +313,8 @@ def get_not_considered_dialog():
         return redirect(request.env.http_referer, client_side=True)
 
     template = getMailTemplateHashtag("#SubmitterNotConsideredSubmission")
-    content = replace_mail_vars_set_not_considered_mail(article, template['subject'], template['content'])
-    submit_url = cast(str, URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=article_id), user_signature=True))
+    content: ... = replace_mail_vars_set_not_considered_mail(article, str(template['subject'] or ""), str(template['content'] or ""))
+    submit_url = URL(c="manager_actions", f="set_not_considered", vars=dict(articleId=article_id), user_signature=True)
     return custom_mail_dialog(article.id, content.subject, content.message, submit_url)
 
 ######################################################################################################################################################################

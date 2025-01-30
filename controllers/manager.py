@@ -11,7 +11,7 @@ from typing import Any, Callable, Dict, List, Literal, Union, cast, Optional
 
 # import html2text
 from app_components.custom_validator import VALID_LIST_NAMES_MAIL
-from gluon import IS_EMAIL
+from gluon import IS_EMAIL, Field
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.dal import Row
 from gluon.contrib.appconfig import AppConfig # type: ignore
@@ -1936,38 +1936,48 @@ def article_emails():
     )
 
 
-def mail_form_processing(form):
+def mail_form_processing(form: ...):
     app_forms.update_mail_content_keep_editing_form(form)
 
 @auth.requires(auth.has_membership(role="manager") or auth.has_membership(role="recommender"))
 def send_submitter_generic_mail():
     response.view = "default/myLayout.html"
 
-    def fail(message):
+    def fail(message: str):
         session.flash = T(message)
         referrer = request.env.http_referer
         redirect(referrer if referrer else URL("default", "index"))
 
-    articleId = request.vars["articleId"]
-    art = db.t_articles[articleId]
-    recomm = db.get_last_recomm(art)
-    if art is None:
-        fail("no article for review")
-    author = db.auth_user[art.user_id]
-    if author is None:
-        fail("no author for article")
+    articleId = int(request.vars["articleId"])
+    art = Article.get_by_id(articleId)
+    if not art:
+        return fail("no article for review")
+    
+    recomm = Article.get_last_recommendation(art.id)
+    author: Optional[User] = None
+    if art.user_id:
+        author = User.get_by_id(art.user_id)
+    
+    if not author:
+        return fail("no author for article")
+    
+    if not author.email:
+        return fail("author has not email")
 
     template = "#SubmitterGenericMail"
+    mail_vars = emailing_tools.getMailCommonVars()
+
     if "revise_scheduled_submission" in request.args:
         template = "#SubmitterScheduledSubmissionDeskRevisionsRequired" 
         sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
-        scheduledSubmissionLatestReviewStartDate = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
-        scheduledReviewDueDate = sched_sub_vars["scheduledReviewDueDate"]
-        recommenderName = common_small_html.mkUser(recomm.recommender_id)
+        mail_vars["scheduledSubmissionLatestReviewStartDate"] = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
+        mail_vars["scheduledReviewDueDate"] = sched_sub_vars["scheduledReviewDueDate"]
+        if recomm:
+            mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
 
-    description = myconf.take("app.description")
-    longname = myconf.take("app.longname")
-    appName = myconf.take("app.name")
+    mail_vars["description"] = myconf.take("app.description")
+    mail_vars["longname"] = myconf.take("app.longname")
+    mail_vars["appName"] = myconf.take("app.name")
     contact = myconf.take("contacts.managers")
 
     sender_email = db(db.auth_user.id == auth.user_id).select().last().email
@@ -1975,13 +1985,14 @@ def send_submitter_generic_mail():
     mail_template = emailing_tools.getMailTemplateHashtag(template)
 
     # template variables, along with all other locals()
-    destPerson = common_small_html.mkUser(art.user_id)
-    articleDoi = common_small_html.mkLinkDOI(art.doi)
-    articleTitle = md_to_html(art.title)
-    articleAuthors = emailing.mkAuthors(art)
+    mail_vars["destPerson"] = common_small_html.mkUser(art.user_id)
+    mail_vars["destAddress"] = author.email
+    mail_vars["articleDoi"] = common_small_html.mkLinkDOI(art.doi)
+    mail_vars["articleTitle"] = md_to_html(art.title)
+    mail_vars["articleAuthors"] = emailing.mkAuthors(art)
 
-    default_subject = emailing_tools.replaceMailVars(mail_template["subject"], locals())
-    default_message = emailing_tools.replaceMailVars(mail_template["content"], locals())
+    default_subject = emailing_tools.replaceMailVars(str(mail_template["subject"] or ""), mail_vars)
+    default_message = emailing_tools.replaceMailVars(str(mail_template["content"] or ""), mail_vars)
 
     default_subject = emailing.patch_email_subject(default_subject, articleId)
 
@@ -1991,9 +2002,9 @@ def send_submitter_generic_mail():
     replyTo = ", ".join([replyto.email, contact])
     default_cc = '%s, %s'%(sender_email, contact)
 
-    form = SQLFORM.factory(
+    form: ... = SQLFORM.factory( # type: ignore
         Field("author_email", label=T("Author email address"), type="string", length=250, requires=req_is_email, default=author.email, writable=False),
-        Field.CC(default_cc), 
+        Field.CC(default_cc),  # type: ignore
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
@@ -2004,15 +2015,16 @@ def send_submitter_generic_mail():
     if form.process().accepted:
         if pciRRactivated:
             art.request_submission_change = True
-            art.update_record()
+            art.update_record() # type: ignore
         request.vars["replyto"] = replyTo
         try:
             emailing.send_submitter_generic_mail(author.email, art.id, request.vars, template)
+            emailing.send_submitter_generic_reminder("#ReminderRevisionsRequiredToYourSubmission", form.vars.subject, form.vars.message, mail_vars, art.id)
         except Exception as e:
             session.flash = (session.flash or "") + T("Email failed.")
             raise e
         if "Revision" in template:
-            art.update_record(status="Scheduled submission revision")
+            art.update_record(status="Scheduled submission revision") # type: ignore
             redirect(URL(c="recommender", f="my_recommendations", vars=dict(pressReviews=False)))
         else:
             redirect(URL(c="manager", f="presubmissions"))

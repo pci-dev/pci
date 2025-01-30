@@ -407,6 +407,9 @@ def send_to_recommender_status_changed(articleId: int, newStatus: str):
 
 ######################################################################################################################################################################
 def send_to_recommender_decision_sent_back(form, articleId, lastRecomm, hashtag):
+    if common_tools.is_silent_mode():
+        return
+    
     session, auth, db = current.session, current.auth, current.db
 
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
@@ -1826,19 +1829,20 @@ def send_reviewer_invitation(reviewId: int,
     if not pciRRactivated and sender:
         sender_name = f'{sender.first_name} {sender.last_name}'
     ccAddresses = exempt_addresses(mail_vars["ccAddresses"], hashtag_template)
-    db.mail_queue.insert(
-        dest_mail_address=mail_vars["destAddress"],
-        cc_mail_addresses=ccAddresses,
-        replyto_addresses=mail_vars["replytoAddresses"],
-        mail_subject=subject,
-        mail_content=message,
-        user_id=auth.user_id,
-        recommendation_id=recommendation.id,
-        mail_template_hashtag=hashtag_template,
-        article_id=recommendation.article_id,
-        sender_name=sender_name,
-        review_id=reviewId
-    )
+    if not common_tools.is_silent_mode():
+        db.mail_queue.insert(
+            dest_mail_address=mail_vars["destAddress"],
+            cc_mail_addresses=ccAddresses,
+            replyto_addresses=mail_vars["replytoAddresses"],
+            mail_subject=subject,
+            mail_content=message,
+            user_id=auth.user_id,
+            recommendation_id=recommendation.id,
+            mail_template_hashtag=hashtag_template,
+            article_id=recommendation.article_id,
+            sender_name=sender_name,
+            review_id=reviewId
+        )
 
     if review.review_state is None:
         review.review_state = "Awaiting response"
@@ -1957,6 +1961,9 @@ def send_change_mail(user_id: int, dest_mail: str, recover_email_key: str):
 
 ######################################################################################################################################################################
 def send_reviewer_generic_mail(reviewer_email, recomm, form):
+    if common_tools.is_silent_mode():
+        return
+    
     session, auth, db = current.session, current.auth, current.db
 
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.cc)
@@ -1986,9 +1993,11 @@ def send_reviewer_generic_mail(reviewer_email, recomm, form):
     emailing_tools.getFlashMessage(reports)
 
 ######################################################################################################################################################################
-def send_submitter_generic_mail(author_email: str, articleId: int, form: SQLFORM, mail_template: str):
+def send_submitter_generic_mail(author_email: str, articleId: int, form: Union[SQLFORM, Storage], mail_template: str):
     db, auth, session = current.db, current.auth, current.session
 
+    if common_tools.is_silent_mode():
+        return
 
     cc_addresses = emailing_tools.list_addresses(form.cc)
     replyto_addresses = emailing_tools.list_addresses(form.replyto)
@@ -2014,7 +2023,23 @@ def send_submitter_generic_mail(author_email: str, articleId: int, form: SQLFORM
     reports = emailing_tools.createMailReport(True, author_email, reports=[])
     emailing_tools.getFlashMessage(reports)
 
-def mk_mail(subject, message, resend=False):
+
+def send_submitter_generic_reminder(hashtag_template: str, subject: str, message: str, mail_vars: Dict[str, Any], article_id: int):
+    if article_id:
+        mail_subject = patch_email_subject(subject, article_id)
+    else:
+        mail_subject = subject
+
+    mail_content = mk_mail(subject, message)
+    
+    emailing_tools.insert_generic_reminder_mail_in_queue(hashtag_template,
+                                                         mail_subject,
+                                                         mail_content,
+                                                         mail_vars,
+                                                         article_id=article_id)
+
+
+def mk_mail(subject: str, message: str, resend: bool = False) -> str :
     mail_vars = emailing_tools.getMailCommonVars()
     applogo = URL("static", "images/small-background.png",
                     scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
@@ -2023,7 +2048,7 @@ def mk_mail(subject, message, resend=False):
     if not resend: mail_template = MAIL_HTML_LAYOUT
     else: mail_template = RESEND_MAIL_HTML_LAYOUT
 
-    return render(
+    return render( # type: ignore
         filename=mail_template,
         context=dict(
             applogo=applogo,

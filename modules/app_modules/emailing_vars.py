@@ -1,37 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import os
-import time
-from re import sub, match
-
-from datetime import datetime, timedelta
-from typing import List
+from datetime import timedelta
+from typing import List, cast
 
 # from copy import deepcopy
 from dateutil.relativedelta import *
-import traceback
-from pprint import pprint
 
 from gluon import current
-from gluon.tools import Auth
 from gluon.html import *
-from gluon.template import render
-from gluon.contrib.markdown import WIKI
-from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Mail
+from gluon.contrib.appconfig import AppConfig # type: ignore
 
 from gluon.custom_import import track_changes
 from models.article import Article
+from models.report_survey import ReportSurvey
 
 track_changes(True)
-import socket
-
-from uuid import uuid4
-from contextlib import closing
-import shutil
 
 from app_modules import common_tools
-from app_modules import common_small_html
 from models.press_reviews import PressReview
 from models.user import User
 
@@ -125,7 +110,7 @@ def getPCiRRScheduledSubmissionsVars(article: Article):
     scheduledReviewDueDate = ""
     snapshotUrl = ""
 
-    report_survey: ... = article.t_report_survey.select().last() # type: ignore
+    report_survey = cast(ReportSurvey, article.t_report_survey.select().last()) # type: ignore
 
     if report_survey and report_survey.q10:
         submission_date = report_survey.q10 # article.scheduled_submission_date
