@@ -205,7 +205,7 @@ def _follow_us():
             "link": "https://www.facebook.com/{account}"
         },
         "twitter": {
-            "icon": "https://abs.twimg.com/favicons/twitter.3.ico",
+            "icon": "https://twitter.com/favicon.ico",
             "link": "https://twitter.com/{account}",
         },
         "rss": {
