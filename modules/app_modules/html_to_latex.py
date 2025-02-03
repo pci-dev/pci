@@ -65,12 +65,17 @@ def handle_paragraph(selector: ..., el: ...):
 def convert_LaTeX_special_chars(string: str):
         string = string \
             .replace("&#", "&@-HASH-") \
-            .replace("{", "\\{").replace("}", "\\}") \
+            .replace("{", "\\{") \
+            .replace("}", "\\}") \
             .replace("\\", "\\textbackslash{}") \
-            .replace("$", "\\$").replace("#", "\\#") \
-            .replace("%", "\\%").replace("~", "\\textasciitilde{}") \
-            .replace("_", "\\_").replace("^", "\\textasciicircum{}") \
-            .replace("@-HASH-", "#").replace("&", "\\&") \
+            .replace("$", "\\$") \
+            .replace("#", "\\#") \
+            .replace("%", "\\%") \
+            .replace("~", "\\textasciitilde{}") \
+            .replace("_", "\\_") \
+            .replace("^", "\\textasciicircum{}") \
+            .replace("@-HASH-", "#") \
+            .replace("&", "\\&") \
             .replace("‐", "-")
         return string
 
@@ -293,7 +298,11 @@ class HtmlToLatex:
         if 'math-tex' not in el.attrib.get('class', ''):
             string = convert_LaTeX_special_chars(string)
         else:
-            string = self._fix_math_annotation(string)
+            string_fixed = self._fix_math_annotation(string)
+            if string_fixed == string:
+                string = convert_LaTeX_special_chars(string)
+            else:
+                string = string_fixed
         
         s = list(string)
         for i, char in enumerate(s):
