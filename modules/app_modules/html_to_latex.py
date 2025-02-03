@@ -2,7 +2,7 @@
 
 from functools import partial
 from io import StringIO
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 import lxml.html
 from lxml.cssselect import CSSSelector
 import cssutils
@@ -14,7 +14,7 @@ replacements_head: Dict[str, Any] = {}
 replacements_tail: Dict[str, Any] = {}
 
 
-def s(start: str = '', end: str = '', ignoreStyle: bool = False, ignoreContent: bool = False):
+def s(start: str = '', end: str = '', ignoreStyle: bool = False, ignoreContent: bool = False) -> Dict[str, Union[str, bool]]:
     return {
         'start': start,
         'end': end,
@@ -235,16 +235,16 @@ class HtmlToLatex:
         result.append(''.join(heads))
 
         if not ignoreContent:
-            if el.text:
-                text: Any = self._inside_characters(el, el.text, leaveText, ignoreContent)
+            if el.text: # type: ignore
+                text: Any = self._inside_characters(el, el.text, leaveText, ignoreContent) # type: ignore
                 r = self.replacements_head.get(el, None)
                 if r:
                     text = re.sub(r[0], r[1], text)
                 result.append(text)
             for child in el:
                 result.append(self._element_to_latex(child, cascading_style, selectors))
-                if child.tail:
-                    text = self._modify_characters(child, child.tail)
+                if child.tail: # type: ignore
+                    text = self._modify_characters(child, child.tail) # type: ignore
                     r = self.replacements_tail.get(el, None)
                     if r:
                         text = re.sub(r[0], r[1], text)
