@@ -112,7 +112,7 @@ class Clockss:
         print(latex_content, file=open(latex_file_path, 'w', encoding='utf-8'))
 
         with self._change_working_dir(tmp_folder):
-            os.system(f'{self.LATEX_COMPILER_BIN} --output-directory={tmp_folder} -interaction=nonstopmode {latex_file_path}')
+            os.system(f'{self.LATEX_COMPILER_BIN} --output-directory={tmp_folder} -interaction=nonstopmode -halt-on-error {latex_file_path}')
         shutil.move(f"{tmp_folder}/{self._pdf_name}", pdf_dest_path)
         shutil.rmtree(tmp_folder)
 
