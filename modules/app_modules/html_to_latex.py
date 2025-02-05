@@ -267,6 +267,8 @@ class HtmlToLatex:
         if latex_code.count("\\href{") != 1 or latex_code.count("\\url{") > 0:
             return latex_code
         
+        latex_code = self._sanitize_url(latex_code)
+        
         regex = r"\\href{.*}{(.*)(?P<url>https?://?[\w-]+\.[^;:<>{}\[\]\"\'\s~]*[^.,;?!:<>{}\[\]()\"\'\s~\\])}+"
         pattern = re.compile(regex)
         match = pattern.search(latex_code)
@@ -281,7 +283,23 @@ class HtmlToLatex:
         new_url_label = f"\\url{{{url_label}}}"
 
         latex_code = re.sub(pattern, partial(self._replace_closure, 'url', new_url_label), latex_code)
-        return latex_code    
+        return latex_code
+
+
+    def _sanitize_url(self, latex_code: str):
+        regex = r"\\href{.*}{(.*)(?P<url>https?://?[\w-]+\.[^;:<>{}\[\]\"\']*[^.,;?!:<>{}\[\]()\"\'\\])}+"
+        match = re.search(regex, latex_code)
+
+        if not match:
+            return latex_code
+
+        url = str(match['url'])
+        if not url:
+            return latex_code
+        
+        url = url.replace('\n', '').replace('\\\\', '')
+        latex_code = re.sub(regex, partial(self._replace_closure, 'url', url), latex_code)
+        return latex_code
     
 
     def _replace_closure(self, subgroup: str, replacement: str, m: ...):
