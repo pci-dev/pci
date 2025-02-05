@@ -3,7 +3,7 @@ from typing import List
 from app_modules import crossref
 from app_modules.clockss import send_to_clockss
 from gluon import current
-from models.article import Article, ArticleStatus
+from models.article import Article, ArticleStage, ArticleStatus
 from models.user import User
 import argparse
 from gluon.contrib.appconfig import AppConfig # type: ignore
@@ -15,6 +15,7 @@ from gluon.contrib.appconfig import AppConfig # type: ignore
 def main():
 
     config = AppConfig(reload=True)
+    is_RR: bool = config.get("config.registered_reports", default=False)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("mail", help="PCI user email used to compile latex (must be manager)", type=str)
@@ -26,6 +27,8 @@ def main():
     current.request.env.http_host = config.take("alerts.host")
 
     articles = Article.get_by_status([ArticleStatus.RECOMMENDED])
+    if is_RR:
+        articles = list(filter(lambda a: a.report_stage == ArticleStage.STAGE_2.value, articles))
 
     count_ok = 0
     nok_crossref: List[int] = []
