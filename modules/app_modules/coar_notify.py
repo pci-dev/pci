@@ -322,16 +322,13 @@ def send_ack(self,
     return notification
 
 
-def update_article(article, coar_notification_id, coar_notification_closed):
+def update_article(article, **kwargs):
     db = current.db
 
     def run():
         current.session = Storage() # for deltaStatus trigger (on update)
-        article.update_record(
-            coar_notification_id = coar_notification_id,
-            coar_notification_closed = coar_notification_closed,
-        )
-        res = db.commit()
+        article.update_record(**kwargs)
+        db.commit()
 
     from threading import Thread
     Thread(target=run).start()
