@@ -11,6 +11,7 @@ import requests
 
 from gluon import current
 from gluon.html import URL
+from gluon.storage import Storage
 from gluon.contrib.appconfig import AppConfig
 from app_modules.common_small_html import mkLinkDOI
 
@@ -247,8 +248,11 @@ class COARNotifier:
         notification = \
         send_ack(self, "TentativeReject" if resubmit else "Reject", article)
 
-        current.article.coar_notification_id = notification["id"]
-        if not resubmit: current.article.coar_notification_closed = True
+        update_article(
+                article,
+                coar_notification_id = notification["id"],
+                coar_notification_closed = not resubmit,
+        )
 
 
     def record_notification(
@@ -316,6 +320,18 @@ def send_ack(self,
     self._send_notification(notification, target_inbox)
 
     return notification
+
+
+def update_article(article, **kwargs):
+    db = current.db
+
+    def run():
+        current.session = Storage() # for deltaStatus trigger (on update)
+        article.update_record(**kwargs)
+        db.commit()
+
+    from threading import Thread
+    Thread(target=run).start()
 
 
 def get_origin_request(article):
