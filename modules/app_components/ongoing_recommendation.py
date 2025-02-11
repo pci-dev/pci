@@ -1329,10 +1329,10 @@ def manager_action_button(action: str, text: str, info_text: str, art: Article, 
         A(
             SPAN(current.T(text),
                 _style="width: 100%; margin: 0",
-                _class="buttontext btn btn-"+str(style)+" pci-manager"),
+                _class="buttontext btn btn-"+str(style)+" pci-manager") if style else current.T(text),
             _href=common_tools.URL(c=base, f=action, vars=dict(articleId=art.id)),
             _title=current.T(info_text),
-            _style="display: inline-block",
+            _style="display: inline-block" if style else "",
             _id=action,
             _onclick=onclick
         ),
@@ -1352,13 +1352,13 @@ def set_not_considered_tiny_button(article_id: int):
     )
 
 
-def put_in_presubmission_button(art: Article) -> Optional[Any]:
+def put_in_presubmission_button(art: Article, without_style: bool = False) -> Optional[Any]:
     return manager_action_button(
             "pre_submission_list",
             "Put in Pre-submission list",
             "Click here to put this article in a pre-submission stage",
             art,
-            style="default",
+            style="" if without_style else "default",
     )[0] # type: ignore
 
 def set_to_not_considered(art: Article) -> Optional[Any]:
