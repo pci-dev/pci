@@ -648,6 +648,11 @@ def represent_link_column_manager_board(article: Article):
             validate_stage_button.components[0].attributes['_style'] = ''
             actions.append(validate_stage_button)
 
+    if article.status == ArticleStatus.PENDING.value:
+        put_in_pre_submission_button = ongoing_recommendation.put_in_presubmission_button(article, True)
+        if put_in_pre_submission_button:
+            actions.append(put_in_pre_submission_button)
+
     if (article.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value, ArticleStatus.PRE_SUBMISSION.value)):
         actions.append(ongoing_recommendation.not_considered_button(article, True))
 
