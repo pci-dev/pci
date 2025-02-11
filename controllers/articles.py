@@ -69,6 +69,9 @@ def rec():
         session.flash = T("Item not recommended yet")
         return redirect(request.home)
 
+    if handle_rec_signposting(finalRecomm):
+        return ""
+
     if finalRecomm.recommendation_title:
         response.title = finalRecomm.recommendation_title
         response.title = common_tools.getShortText(response.title, 64)
@@ -115,6 +118,39 @@ def rec():
         myBackButton=common_small_html.mkBackButton(),
         metas=[schema_org]
     )
+
+
+def handle_rec_signposting(recomm):
+    if request.env.request_method == 'HEAD':
+
+        response.headers = { "link": (
+            '<' + URL("articles", "metadata", scheme=True,
+                vars=dict(recommId=recomm.id)
+            ) + '>' +
+            '; rel="describedby" type="docmaps"'
+        )}
+        return True
+
+
+def metadata():
+    recommId = request.vars.recommId
+    response.headers.update({
+        "Content-type": "text/json",
+    })
+    import json
+    return json.dumps([
+  {
+    "type": "docmap",
+    "id": URL('articles', 'rec', scheme=True, vars=dict(recommId=recommId)),
+    "publisher": {
+      "name": "Inferred from Crossref",
+      "url": "https://github.com/docmaps-project/docmaps/"
+    },
+    "created": "2025-02-11T23:08:47.393Z",
+    "updated": "2025-02-11T23:08:47.393Z",
+  }
+]
+)
 
 
 ######################################################################################################################################################################
