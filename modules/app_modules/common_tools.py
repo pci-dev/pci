@@ -350,7 +350,7 @@ def get_next():
 
 ###################################################################
 
-def sget(dictionary: Dict[Any, Any], *keys: Any):
+def sget(dictionary: Dict[Any, Any], *keys: Any) -> Optional[Any]:
     return reduce(lambda d, key: d.get(key, None) if isinstance(d, dict) else None, keys, dictionary)
 
 ###################################################################
