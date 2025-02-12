@@ -124,14 +124,30 @@
 
     <div class="pci2-flex-row {{=managerDecisionDoneStepClass}} {{=managerDecisionDoneClass}}" data-step="{{=article_step.EVALUATION_AND_DECISION_UNDERWAY}}">
         <div class="pci2-flex-center progress-step-circle">
-            <i class="glyphicon glyphicon-ok" ></i>
+            {{if validationDate or managerDecisionDoneClass == "step-done":}}
+                {{if recommStatus == "Recommended":}}
+                    <i class="glyphicon glyphicon-ok"></i>
+                {{elif recommStatus == "Revision":}}
+                    <i class="glyphicon glyphicon-repeat"></i>
+                {{elif recommStatus == "Rejected":}}
+                    <i class="glyphicon glyphicon-remove"></i>
+                {{pass}}
+            {{else:}}
+                <i class="glyphicon glyphicon-hourglass"></i>
+            {{pass}}
         </div>
         <div class="step-description">
             <h3><b style="color: #333">Round {{=roundNumber}}: </b>
                 {{if validationDate:}}
-                    Decision validated by the Managing board
+                Decision validated by the Managing board
                 {{elif managerDecisionDoneClass == "step-done":}}
-                    Decision pending validation
+                    {{if recommStatus == "Recommended":}}
+                        Recommendation pending validation
+                    {{elif recommStatus == "Revision":}}
+                        Revision pending validation
+                    {{elif recommStatus == "Rejected":}}
+                        Rejection pending validation
+                    {{pass}}
                 {{else:}}
                     Evaluation and decision underway
                 {{pass}}
@@ -170,14 +186,30 @@
             {{pass}}">
 
     <div class="progress-step-circle pci2-flex-center">
-        <i class="glyphicon glyphicon-repeat"></i>
+        {{if validationDate or managerDecisionDoneClass == "step-done":}}
+            {{if recommStatus == "Recommended":}}
+                <i class="glyphicon glyphicon-ok"></i>
+            {{elif recommStatus == "Revision":}}
+                <i class="glyphicon glyphicon-repeat"></i>
+            {{elif recommStatus == "Rejected":}}
+                <i class="glyphicon glyphicon-remove"></i>
+            {{pass}}
+        {{else:}}
+            <i class="glyphicon glyphicon-hourglass"></i>
+        {{pass}}
     </div>
     <div class="step-description">
         <h3><b style="color: #333">Round {{=roundNumber}}: </b>
             {{if validationDate:}}
                 Decision validated by the Managing board
             {{elif managerDecisionDoneClass == "step-done":}}
-                Decision pending validation
+                {{if recommStatus == "Recommended":}}
+                    Recommendation pending validation
+                {{elif recommStatus == "Revision":}}
+                    Revision pending validation
+                {{elif recommStatus == "Rejected":}}
+                    Rejection pending validation
+                {{pass}}
             {{else:}}
                 Evaluation and decision underway
             {{pass}}
