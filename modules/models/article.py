@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from enum import Enum
 import re
 from typing import Any, List, NewType, Optional as _, Union, cast, TypedDict
+from app_modules.crossrefAPI import CrossrefAPI
 from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
@@ -574,6 +575,20 @@ class Article(Row):
         query = (db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == RecommendationState.RECOMMENDED.value)
         recommendation: _[Recommendation] = db(query).select(orderby=db.t_recommendations.id).last()
         return recommendation
+    
+
+    @staticmethod
+    def get_doi_published_article(article: 'Article'):
+        if article.doi_of_published_article:
+            return article.doi_of_published_article
+        
+        if not article.doi:
+            return
+        
+        doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
+        if doi_of_published_article:
+            current.db(current.db.t_articles.id == article.id).update(doi_of_published_article=doi_of_published_article)
+            return doi_of_published_article
 
 
 def is_scheduled_submission(article: Article) -> bool:
