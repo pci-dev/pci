@@ -7,7 +7,7 @@ from models.suggested_recommender import SuggestedRecommender
 locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
 
 from typing import cast
-from app_components.custom_validator import CUSTOM_VALID_URL, VALID_LIST_NAMES_MAIL, VALID_DOI
+from app_components.custom_validator import CUSTOM_VALID_URL, VALID_LIST_NAMES_MAIL, VALID_DOI, TEXT_CLEANER
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect # type: ignore
@@ -547,7 +547,7 @@ db.define_table(
     Field("uploaded_picture", type="upload", label=T("Picture"),
         length=100, # filename max len (ish, see Field.store in sqlhtml.py). Linux extfs has max filename len=255
         requires=RESIZE(500,500)),
-    RequiredField("abstract", type="text", length=2097152, label=T("Abstract")),
+    RequiredField("abstract", type="text", length=2097152, label=T("Abstract"), requires=TEXT_CLEANER()),
     Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
     RequiredField("data_doi", 
         type="list:string",
@@ -599,6 +599,7 @@ db.define_table(
         writable=False,
         readable=False,
         comment=T("You can indicate anything you want in the box, but be aware that all recommenders, invited reviewers and reviewers will be able to read the cover letter."),
+        requires=TEXT_CLEANER()
     ),
     Field(
         "suggest_reviewers",
@@ -877,7 +878,7 @@ db.define_table(
     Field("ms_version", type="string", length=1024, label=T("Manuscript version for the round"), default=""),
     Field("recommender_id", type="reference auth_user", ondelete="RESTRICT", label=T("Recommender")),
     Field("recommendation_title", type="string", length=1024, label=T("Recommendation title"), comment="use asterix (*) to get italics"),
-    Field("recommendation_comments", type="text", length=2097152, label=T("Recommendation"), default=""),
+    Field("recommendation_comments", type="text", length=2097152, label=T("Recommendation"), default="", requires=TEXT_CLEANER()),
     Field("recommendation_doi", type="string", length=512, label=T("Recommendation DOI"), represent=lambda text, row: common_small_html.mkDOI(text)),
     Field(
         "recommendation_state",
@@ -900,7 +901,7 @@ db.define_table(
     Field("last_change", type="datetime", default=request.now, label=T("Last change"), writable=False),
     Field("is_closed", type="boolean", label=T("Closed"), default=False),
     Field("no_conflict_of_interest", type="boolean", label=T("I/we declare that I/we have no conflict of interest with the authors or the content of the article")),
-    Field("reply", type="text", length=2097152, label=T("Author's Reply"), default=""),
+    Field("reply", type="text", length=2097152, label=T("Author's Reply"), default="", requires=TEXT_CLEANER()),
     Field(
         "reply_pdf",
         type="upload",
