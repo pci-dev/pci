@@ -444,3 +444,18 @@ def remove_html_tag(html_text: str):
     html_text = re.sub('<[^<]+?>', '', html_text)
     html_text = html_python.unescape(html_text)
     return html_text
+
+
+def doi_to_url(doi: str):
+        if not doi.startswith("http"):
+            doi = f"https://doi.org/{doi}"
+        return doi
+
+
+def url_to_doi_id(doi: str):
+    doi = doi.strip()
+    doi = doi.replace("https://", "") \
+            .replace("http://", "") \
+            .replace("doi.org/", "") \
+            .replace("dx.doi.org/", "")
+    return doi
