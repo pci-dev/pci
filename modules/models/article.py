@@ -3,7 +3,8 @@ from datetime import date, datetime, timedelta
 from enum import Enum
 import re
 from typing import Any, List, NewType, Optional as _, Union, cast, TypedDict
-from app_modules.crossrefAPI import CrossrefAPI
+from app_modules.crossref_api import CrossrefAPI
+from app_modules.datacite_api import DataciteAPI
 from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
@@ -586,6 +587,9 @@ class Article(Row):
             return
         
         doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
+        if not doi_of_published_article:
+            doi_of_published_article = DataciteAPI().get_published_article_doi(article.doi)
+
         if doi_of_published_article:
             current.db(current.db.t_articles.id == article.id).update(doi_of_published_article=doi_of_published_article)
             return doi_of_published_article
