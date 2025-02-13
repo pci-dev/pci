@@ -49,5 +49,9 @@ class CrossrefAPI:
 
     def _clean_doi(self, doi: str):
         doi = doi.strip()
-        doi = doi.replace("https://", "").replace("http://", "").replace("doi.org/", "")
+        doi = doi.replace("https://", "") \
+                .replace("http://", "") \
+                .replace("doi.org/", "") \
+                .replace("dx.doi.org/", "")
+
         return doi
