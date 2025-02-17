@@ -312,7 +312,7 @@ def get_article_infos_card(article: Article, printable: bool,
     if article.methods_require_specific_expertise and policy_1:
         article_content.update([("articleMethodsRequireSpecificExpertise", article.methods_require_specific_expertise)])
 
-    doi_of_published_article = Article.get_doi_published_article(article)
+    doi_of_published_article = article.doi_of_published_article
 
     if doi_of_published_article:
         button_text = "Now published in a journal"
