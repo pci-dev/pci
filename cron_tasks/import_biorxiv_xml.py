@@ -69,11 +69,6 @@ def main():
             fail(f"Unable to create or find user from document {xml_file}", xml_file)
             continue
 
-        dup_info = check_duplicate_submission(xml_jats_parser.article)
-        if dup_info:
-            fail(f"Duplicate submission: {dup_info} ({xml_file})", xml_file)
-            continue
-
         article = add_article_in_db(xml_jats_parser.article, user)
         if not article:
             fail(f"Unable to create article from document {xml_file}", xml_file)
