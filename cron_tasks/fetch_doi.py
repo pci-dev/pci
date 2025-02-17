@@ -1,8 +1,7 @@
-# emailing.send_message_to_recommender_and_reviewers(article.id)
-
 from time import sleep
 from gluon import current
 from models.article import Article
+from app_modules import emailing
 
 
 def main():
@@ -18,9 +17,12 @@ def main():
             
             if doi:
                 count += 1
+                emailing.send_message_to_recommender_and_reviewers(article.id)
                 print(f"Published article DOI found for article {article.id}: {doi}")
+
         except Exception as e:
             print(f"Error to check API for {article.id} with doi {article.doi}: {e}")
+            
         finally:
             sleep(0.1)
     
