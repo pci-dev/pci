@@ -69,11 +69,6 @@ def main():
             fail(f"Unable to create or find user from document {xml_file}", xml_file)
             continue
 
-        dup_info = check_duplicate_submission(xml_jats_parser.article)
-        if dup_info:
-            fail(f"Duplicate submission: {dup_info} ({xml_file})", xml_file)
-            continue
-
         article = add_article_in_db(xml_jats_parser.article, user)
         if not article:
             fail(f"Unable to create article from document {xml_file}", xml_file)
@@ -92,15 +87,6 @@ def fail(msg: str, xml_file: str):
 
 def info(msg: str):
     log("import_biorxiv_xml.py", msg)
-
-
-def check_duplicate_submission(article_data: XMLJATSArticleElement):
-    dup_info = Article.check_duplicate_submission(
-            article_data.doi,
-            article_data.title,
-    )
-    if dup_info:
-        return(f"an article with the same {dup_info} already exists")
 
 
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
