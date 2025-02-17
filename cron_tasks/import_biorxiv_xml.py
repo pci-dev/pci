@@ -89,15 +89,6 @@ def info(msg: str):
     log("import_biorxiv_xml.py", msg)
 
 
-def check_duplicate_submission(article_data: XMLJATSArticleElement):
-    dup_info = Article.check_duplicate_submission(
-            article_data.doi,
-            article_data.title,
-    )
-    if dup_info:
-        return(f"an article with the same {dup_info} already exists")
-
-
 def add_article_in_db(article_data: XMLJATSArticleElement, user: User):
     authors: List[str] = []
     for author in article_data.authors:
