@@ -602,7 +602,7 @@ class Article(Row):
     @staticmethod
     def get_all_articles_without_article_published_doi() -> List['Article']:
         db = current.db
-        query = db((db.t_articles.status == ArticleStatus.RECOMMENDED.value) & (db.t_articles.doi_of_published_article == None))
+        query = db((db.t_articles.status == ArticleStatus.RECOMMENDED.value) & ((db.t_articles.doi_of_published_article == None) | (db.t_articles.doi_of_published_article == "")))
         return query.select()
 
 
