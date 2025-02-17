@@ -5,6 +5,7 @@ import re
 from typing import Any, List, NewType, Optional as _, Union, cast, TypedDict
 from app_modules.crossref_api import CrossrefAPI
 from app_modules.datacite_api import DataciteAPI
+from app_modules.biorxiv_api import BiorxivAPI
 from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
@@ -579,20 +580,32 @@ class Article(Row):
     
 
     @staticmethod
-    def get_doi_published_article(article: 'Article'):
+    def get_or_set_doi_published_article(article: 'Article'):
         if article.doi_of_published_article:
             return article.doi_of_published_article
         
         if not article.doi:
             return
         
-        doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
+        doi_of_published_article = BiorxivAPI().get_published_article_doi(article.doi)
+        
+        if not doi_of_published_article:
+            doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
         if not doi_of_published_article:
             doi_of_published_article = DataciteAPI().get_published_article_doi(article.doi)
 
         if doi_of_published_article:
             current.db(current.db.t_articles.id == article.id).update(doi_of_published_article=doi_of_published_article)
             return doi_of_published_article
+        
+
+    @staticmethod
+    def get_all_articles_without_article_published_doi() -> List['Article']:
+        db = current.db
+        query = db((db.t_articles.status == ArticleStatus.RECOMMENDED.value) & (db.t_articles.doi_of_published_article == None))
+        return query.select()
+
+
 
 
 def is_scheduled_submission(article: Article) -> bool:
