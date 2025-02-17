@@ -13,11 +13,14 @@ def main():
     for article in articles:
         try:
             doi = Article.get_or_set_doi_published_article(article)
-            current.db.commit()
             
             if doi:
+                current.db.commit()
+                
                 count += 1
-                emailing.send_message_to_recommender_and_reviewers(article.id)
+                if 'pcjournal' in doi:
+                    emailing.send_message_to_recommender_and_reviewers(article.id)
+                    
                 print(f"Published article DOI found for article {article.id}: {doi}")
 
         except Exception as e:
