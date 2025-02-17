@@ -5,6 +5,7 @@ import re
 from typing import Any, List, NewType, Optional as _, Union, cast, TypedDict
 from app_modules.crossref_api import CrossrefAPI
 from app_modules.datacite_api import DataciteAPI
+from app_modules.biorxiv_api import BiorxivAPI
 from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
@@ -563,14 +564,17 @@ class Article(Row):
     
 
     @staticmethod
-    def get_doi_published_article(article: 'Article'):
+    def get_or_set_doi_published_article(article: 'Article'):
         if article.doi_of_published_article:
             return article.doi_of_published_article
         
         if not article.doi:
             return
         
-        doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
+        doi_of_published_article = BiorxivAPI().get_published_article_doi(article.doi)
+        
+        if not doi_of_published_article:
+            doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
         if not doi_of_published_article:
             doi_of_published_article = DataciteAPI().get_published_article_doi(article.doi)
 
