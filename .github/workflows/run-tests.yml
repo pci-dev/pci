@@ -7,7 +7,7 @@ on:
 jobs:
 
   test-basic:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v1
@@ -17,7 +17,7 @@ jobs:
       - run: make test.basic
 
   test-basic-rr:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v1
@@ -27,7 +27,7 @@ jobs:
       - run: make test.basic
 
   test-full:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v1
@@ -37,7 +37,7 @@ jobs:
       - run: make test.full
 
   test-full-rr:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v1
