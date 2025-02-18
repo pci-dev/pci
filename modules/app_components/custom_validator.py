@@ -150,3 +150,19 @@ class VALID_LIST_NAMES_MAIL(Validator):
         else:
             if not self._optional_email and reviewer.person.email is None:
                 raise Exception("Email is required")
+
+
+class TEXT_CLEANER:
+
+     def __call__(self, value: Optional[str], record_id: Optional[int] = None):
+        if not value:
+            return value, None
+        
+        value = value.replace("http://http://", "http://") \
+            .replace("https://https://", "https://") \
+            .replace("http://doi.org/http://doi.org", "http://doi.org") \
+            .replace("https://doi.org/https://doi.org", "https://doi.org") \
+            .replace("%20http://", " http://") \
+            .replace("%20https://", " https://")
+
+        return value, None
