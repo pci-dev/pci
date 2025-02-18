@@ -19,6 +19,7 @@ from app_modules.lang import Lang
 
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
+pciRRactivated: bool = myconf.get("config.registered_reports", default=False)
 
 StepNumber = NewType('StepNumber', int)
 
@@ -567,12 +568,12 @@ class Article(Row):
     def get_or_set_doi_published_article(article: 'Article'):
         if article.doi_of_published_article:
             return article.doi_of_published_article
-        
+
         if not article.doi:
             return
-        
+
         doi_of_published_article = BiorxivAPI().get_published_article_doi(article.doi)
-        
+
         if not doi_of_published_article:
             doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
         if not doi_of_published_article:
@@ -586,8 +587,18 @@ class Article(Row):
     @staticmethod
     def get_all_articles_without_article_published_doi() -> List['Article']:
         db = current.db
-        query = db((db.t_articles.status == ArticleStatus.RECOMMENDED.value) & ((db.t_articles.doi_of_published_article == None) | (db.t_articles.doi_of_published_article == "")))
-        return query.select()
+        query = (
+            (db.t_articles.status == ArticleStatus.RECOMMENDED.value)
+            & (   (db.t_articles.doi_of_published_article == None)
+                | (db.t_articles.doi_of_published_article == ""))
+        )
+        if pciRRactivated:
+            query = (
+                (db.t_articles.report_stage == ArticleStage.STAGE_2.value)
+                & query
+            )
+
+        return db(query).select()
 
 
 def is_scheduled_submission(article: Article) -> bool:
