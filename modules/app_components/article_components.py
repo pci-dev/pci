@@ -312,14 +312,16 @@ def get_article_infos_card(article: Article, printable: bool,
     if article.methods_require_specific_expertise and policy_1:
         article_content.update([("articleMethodsRequireSpecificExpertise", article.methods_require_specific_expertise)])
 
-    if article.doi_of_published_article:
+    doi_of_published_article = article.doi_of_published_article
+
+    if doi_of_published_article:
         button_text = "Now published in a journal"
-        if "10.24072/pcjournal" in article.doi_of_published_article:
+        if "10.24072/pcjournal" in doi_of_published_article:
             button_text = "Now published in Peer Community Journal"
             
         article_content.update([("publishedDoi",  A(
                 SPAN(current.T(button_text), _class="btn btn-success"),
-                _href=article.doi_of_published_article, _target="blank"))])
+                _href=doi_of_published_article, _target="blank"))])
     return XML(current.response.render("components/article_infos_card.html", article_content))
 
 
