@@ -568,12 +568,12 @@ class Article(Row):
     def get_or_set_doi_published_article(article: 'Article'):
         if article.doi_of_published_article:
             return article.doi_of_published_article
-        
+
         if not article.doi:
             return
-        
+
         doi_of_published_article = BiorxivAPI().get_published_article_doi(article.doi)
-        
+
         if not doi_of_published_article:
             doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
         if not doi_of_published_article:
