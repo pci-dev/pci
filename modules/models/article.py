@@ -19,6 +19,7 @@ from app_modules.lang import Lang
 
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
+pciRRactivated: bool = myconf.get("config.registered_reports", default=False)
 
 StepNumber = NewType('StepNumber', int)
 
@@ -586,7 +587,10 @@ class Article(Row):
     @staticmethod
     def get_all_articles_without_article_published_doi() -> List['Article']:
         db = current.db
-        query = db((db.t_articles.status == ArticleStatus.RECOMMENDED.value) & ((db.t_articles.doi_of_published_article == None) | (db.t_articles.doi_of_published_article == "")))
+        if pciRRactivated:
+            query = db((db.t_articles.report_stage == ArticleStage.STAGE_2.value) & (db.t_articles.status == ArticleStatus.RECOMMENDED.value) & ((db.t_articles.doi_of_published_article == None) | (db.t_articles.doi_of_published_article == "")))
+        else:
+            query = db((db.t_articles.status == ArticleStatus.RECOMMENDED.value) & ((db.t_articles.doi_of_published_article == None) | (db.t_articles.doi_of_published_article == "")))
         return query.select()
 
 
