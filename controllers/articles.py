@@ -24,42 +24,43 @@ def rec():
 
     if not articleId:
         session.flash = T("No parameter id (or articleId)")
-        redirect(request.home)
+        return redirect(request.home)
 
     # Remove "reviews" vars from url
     if "reviews" in request.vars:
-        redirect(URL(c="articles", f="rec", vars=dict(id=articleId)))
+        return redirect(URL(c="articles", f="rec", vars=dict(id=articleId)))
 
     if not str(articleId).isdigit():
         session.flash = T("Article id must be a digit")
-        redirect(request.home)
+        return redirect(request.home)
 
     art = db.t_articles[articleId]
 
     if art == None:
         session.flash = T("No such article: id=") + articleId
-        redirect(request.home)
+        return redirect(request.home)
 
     if art.status != "Recommended":
         session.flash = T("Access denied: item not recommended yet")
-        redirect(request.home)
+        return redirect(request.home)
 
     if as_pdf:
         pdfQ = db((db.t_pdf.recommendation_id == db.t_recommendations.id) & (db.t_recommendations.article_id == art.id)).select(db.t_pdf.id, db.t_pdf.pdf)
         if len(pdfQ) > 0:
-            redirect(URL("default", "download", args=pdfQ[0]["pdf"]))
+            return redirect(URL("default", "download", args=pdfQ[0]["pdf"]))
         else:
             session.flash = T("Unavailable")
-            redirect(redirect(request.env.http_referer))
+            return redirect(request.env.http_referer)
 
     # Set Page title
     finalRecomm = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if not finalRecomm:
         session.flash = T("Item not recommended yet")
-        redirect(request.home)
+        return redirect(request.home)
 
-    response.title = finalRecomm.recommendation_title
-    response.title = common_tools.getShortText(response.title, 64)
+    if finalRecomm.recommendation_title:
+        response.title = finalRecomm.recommendation_title
+        response.title = common_tools.getShortText(response.title, 64)
 
     nbRecomms = db((db.t_recommendations.article_id == art.id)).count()
     nbRevs = db((db.t_recommendations.article_id == art.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id)).count()
