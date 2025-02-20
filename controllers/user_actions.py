@@ -90,7 +90,12 @@ def suggest_all_selected():
     for recommender_id in recommender_ids.split(','):
         if recommender_id == '': continue
         recommender_names += str(common_small_html.mkUser(recommender_id).flatten()) + ', ' # type: ignore
-        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
+
+        try:
+            SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
+        except:
+            pass # ignore dup Key (article_id, suggested_recommender_id)
+
         exclude_list.append(str(recommender_id))
     for recommender_id in exclusion_ids.split(','):
         if recommender_id == '': continue
