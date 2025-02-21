@@ -441,14 +441,21 @@ def log(title: str, message: str):
 
 def doi_to_url(doi: str):
         if not doi.startswith("http"):
-            doi = f"https://doi.org/{doi}"
+            if "hal-" in doi:
+                doi = f"https://hal.science/{doi}"
+            else:
+                doi = f"https://doi.org/{doi}"
         return doi
 
 
 def url_to_doi_id(doi: str):
     doi = doi.strip()
+    doi = re.sub(r"https?://.*hal.*.[(fr)(science)]/", "", doi)
     doi = doi.replace("https://", "") \
             .replace("http://", "") \
             .replace("doi.org/", "") \
-            .replace("dx.doi.org/", "")
+            .replace("dx.doi.org/", "") \
+            .replace("www.biorxiv.org/", "") \
+            .replace("content/", "") \
+            .replace("arxiv.org/abs/", "10.48550/arXiv.")    
     return doi
