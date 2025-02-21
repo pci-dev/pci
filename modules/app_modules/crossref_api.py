@@ -1,7 +1,6 @@
-from datetime import date
 from time import sleep
 from app_modules.httpClient import HttpClient
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 class CrossrefAPI:
 
@@ -21,7 +20,7 @@ class CrossrefAPI:
             return response.json() # type: ignore
 
 
-    def get_published_article_doi(self, preprint_doi: str):
+    def get_published_article_doi_method_1(self, preprint_doi: str):
         from app_modules.common_tools import sget, doi_to_url
         
         work = self._get_work(preprint_doi)
@@ -44,47 +43,43 @@ class CrossrefAPI:
                 return doi_to_url(doi)
 
 
-    def get_published_article_doi_since(self, preprint_doi_url: List[str], start_date: date):
-        ''' Return dict where keys are preprint doi url and values journal doi url'''
+    def get_published_article_doi_method_2(self, preprint_doi: str):
+        from app_modules.common_tools import doi_to_url, sget, url_to_doi_id
 
-        from app_modules.common_tools import url_to_doi_id, doi_to_url
+        doi = url_to_doi_id(preprint_doi)
 
-        preprint_dois = [url_to_doi_id(d) for d in preprint_doi_url]
-        works = self._get_works_article_journal_newer_than(start_date)
+        items = self._get_items(doi)
 
-        journal_dois: Dict[str, str] = {}
+        relation_type_priority = ('doi', 'other')
 
-        for preprint_doi in preprint_dois:
-            for work in works:
-                journal_doi: Optional[str] = work.get('DOI')
-                if not journal_doi:
-                    continue
-                
-                references: Optional[List[Any]] = work.get('reference')
-                if not references:
-                    continue
+        for work in items:
+            journal_doi: Optional[str] = work.get('DOI')
+            if not journal_doi:
+                continue
+            
+            relations: Optional[List[Any]] = sget(work, 'relation', 'has-preprint')
+            if not relations:
+                continue
 
-                for reference in references:
-                    reference_doi: Optional[str] = reference.get('DOI')
-                    if not reference_doi:
+            for type in relation_type_priority:
+                for relation in relations:
+                    relation_doi: Optional[str] = relation.get('id')
+                    relation_type: Optional[str] = relation.get('id-type')
+                    if not relation_doi or not relation_type:
                         continue
-                    
-                    if preprint_doi in reference_doi:
-                        journal_dois[doi_to_url(preprint_doi)] = doi_to_url(journal_doi)
-                    
-        return journal_dois
+
+                    if relation_type.strip().lower() == type:
+                        if doi in relation_doi:
+                            return doi_to_url(journal_doi)
 
 
-    def _get_works_article_journal_newer_than(self, start_date: date):
+    def _get_items(self, doi: str):
         from app_modules.common_tools import sget
-
-        pub_date = start_date.isoformat()
 
         cursor_size = 1000
 
         cursor = "*"
-        url = f"{self.BASE_URL}/works?rows={cursor_size}&select=DOI,reference,type&filter=type:journal-article,from-update-date:{pub_date},relation.type:has-preprint"
-
+        url = f"{self.BASE_URL}/works?rows={cursor_size}&select=DOI,relation,type&filter=type:journal-article,relation.type:has-preprint,relation.object:{doi}"
         works: List[Any] = []
 
         while True:

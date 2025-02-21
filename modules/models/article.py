@@ -571,12 +571,11 @@ class Article(Row):
         if not article.doi:
             return
 
-        doi_of_published_article = BiorxivAPI().get_published_article_doi(article.doi)
-
-        if not doi_of_published_article:
-            doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
-        if not doi_of_published_article:
-            doi_of_published_article = DataciteAPI().get_published_article_doi(article.doi)
+        doi_of_published_article = \
+            BiorxivAPI().get_published_article_doi(article.doi) or \
+            CrossrefAPI().get_published_article_doi_method_1(article.doi) or \
+            CrossrefAPI().get_published_article_doi_method_2(article.doi) or \
+            DataciteAPI().get_published_article_doi(article.doi)
 
         if doi_of_published_article:
             current.db(current.db.t_articles.id == article.id).update(doi_of_published_article=doi_of_published_article)
