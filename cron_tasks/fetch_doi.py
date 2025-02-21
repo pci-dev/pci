@@ -1,4 +1,5 @@
 from time import sleep
+from typing import List
 from gluon import current
 from models.article import Article
 from app_modules import emailing
@@ -8,6 +9,11 @@ def main():
     articles = Article.get_all_articles_without_article_published_doi()
     print(f"Number of article without published article DOI: {len(articles)}")
 
+    count = process_request_all_api(articles)    
+    print(f"Fetch DOI from API finished: {count} published article DOI added")
+
+
+def process_request_all_api(articles: List[Article]):
     count = 0
 
     for article in articles:
@@ -29,9 +35,7 @@ def main():
         finally:
             sleep(0.1)
     
-    print(f"Fetch DOI finished: {count} published article DOI added")
-    
-
+    return count
 
 if __name__ == "__main__":
     main()

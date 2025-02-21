@@ -554,7 +554,6 @@ class Article(Row):
 
         same_title = same_title.select().first()
         same_url = same_url.select().first()
-        is_dup = same_title or same_url
 
         dup_info = (
                 "title" + (" and url" if same_url else "") if same_title else
@@ -572,17 +571,27 @@ class Article(Row):
         if not article.doi:
             return
 
-        doi_of_published_article = BiorxivAPI().get_published_article_doi(article.doi)
-
-        if not doi_of_published_article:
-            doi_of_published_article = CrossrefAPI().get_published_article_doi(article.doi)
-        if not doi_of_published_article:
-            doi_of_published_article = DataciteAPI().get_published_article_doi(article.doi)
+        doi_of_published_article = Article.request_api_get_published_article_doi(article.doi)
 
         if doi_of_published_article:
             current.db(current.db.t_articles.id == article.id).update(doi_of_published_article=doi_of_published_article)
             return doi_of_published_article
         
+
+    @staticmethod
+    def request_api_get_published_article_doi(doi: str) -> _[str]:
+        doi_of_published_article = BiorxivAPI().get_published_article_doi(doi) or \
+            CrossrefAPI().get_published_article_doi_method_1(doi) or \
+            CrossrefAPI().get_published_article_doi_method_2(doi) or \
+            DataciteAPI().get_published_article_doi(doi)
+        
+        if not doi_of_published_article:
+            doi_without_version = re.sub(r"v[0-9]+$", "", doi)
+            if doi != doi_without_version:
+                return Article.request_api_get_published_article_doi(doi_without_version)
+
+        return doi_of_published_article
+
 
     @staticmethod
     def get_all_articles_without_article_published_doi() -> List['Article']:
