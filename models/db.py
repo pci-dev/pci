@@ -1252,6 +1252,7 @@ def after_review_done(s: ..., current_review_values: Review):
             emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewInvitationRegisteredUser"], old_review.id)
             emailing.delete_reminder_for_reviewer(["#ReminderReviewerInvitationNewRoundRegisteredUser"], old_review.id)
             emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewInvitationNewUser"], old_review.id)
+            emailing.delete_reminder_for_reviewer(["#ReminderReviewInvitationRegisteredUserReturningReviewer"], old_review.id)
             
         if old_review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value and current_review["review_state"] == ReviewState.AWAITING_REVIEW.value:
             emailing.create_reminder_for_reviewer_review_soon_due(old_review["id"])
