@@ -234,7 +234,7 @@ def get_exclude_suggested_recommender(article_id: int) -> List[int]:
     
     suggested_recommenders_id: List[int] = []
 
-    suggested_recommenders = SuggestedRecommender.get_suggested_recommender_by_article(article_id)
+    suggested_recommenders = SuggestedRecommender.get_by_article(article_id)
 
     if suggested_recommenders and len(suggested_recommenders) > 0:
         for suggested_recommender in suggested_recommenders:

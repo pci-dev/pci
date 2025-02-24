@@ -1442,7 +1442,7 @@ def unsubscribe_checkbox():
 ####################################################################################
 
 def suggested_recommender_list(article_id: int):
-    suggested_recommenders = SuggestedRecommender.get_suggested_recommender_by_article(article_id)
+    suggested_recommenders = SuggestedRecommender.get_by_article(article_id)
     if not suggested_recommenders or len(suggested_recommenders) == 0:
         return
     
