@@ -312,8 +312,8 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
     declined_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id, declined=True)
 
     scheduled_reminder_suggested_recommender = \
-    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0 or \
-    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterNewSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0
+    len(MailQueue.get_by_article_and_template(art.id, "#ReminderSubmitterSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0 or \
+    len(MailQueue.get_by_article_and_template(art.id, "#ReminderSubmitterNewSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0
 
     recomms = Article.get_last_recommendations(art.id, db.t_recommendations.id)
     totalRecomm = len(recomms)
@@ -389,25 +389,25 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
 
             if roundNumber < 2:
                 there_are_review_reminder = \
-                len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderReviewersNeeded", [SendingStatus.PENDING])) > 0 or \
-                len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderNewReviewersNeeded", [SendingStatus.PENDING])) > 0
+                len(MailQueue.get_by_article_and_template(art.id, "#ReminderRecommenderReviewersNeeded", [SendingStatus.PENDING])) > 0 or \
+                len(MailQueue.get_by_article_and_template(art.id, "#ReminderRecommenderNewReviewersNeeded", [SendingStatus.PENDING])) > 0
 
-                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art,
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art.id,
                                                                                               ["#ReminderRecommenderDecisionOverDue"
                                                                                                "#ReminderRecommenderDecisionSoonDue",
                                                                                                "#ReminderRecommenderDecisionDue"],
                                                                                                [SendingStatus.PENDING])) > 0
             else:
-                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art,
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art.id,
                                                                                               ["#ReminderRecommenderRevisedDecisionOverDue",
                                                                                                "#ReminderRecommenderDecisionOverDue"
                                                                                                "#ReminderRecommenderDecisionSoonDue",
                                                                                                "#ReminderRecommenderDecisionDue"], [SendingStatus.PENDING])) > 0
 
                 there_are_review_reminder = \
-                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationNewUser", [SendingStatus.PENDING])) > 0 or \
-                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationRegisteredUser", [SendingStatus.PENDING])) > 0 or \
-                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerInvitationNewRoundRegisteredUser", [SendingStatus.PENDING])) > 0
+                    len(MailQueue.get_by_article_and_template(art.id, "#ReminderReviewerReviewInvitationNewUser", [SendingStatus.PENDING])) > 0 or \
+                    len(MailQueue.get_by_article_and_template(art.id, "#ReminderReviewerReviewInvitationRegisteredUser", [SendingStatus.PENDING])) > 0 or \
+                    len(MailQueue.get_by_article_and_template(art.id, "#ReminderReviewerInvitationNewRoundRegisteredUser", [SendingStatus.PENDING])) > 0
 
             reviews = Review.get_by_recommendation_id(recomm.id, db.t_reviews.id)
 

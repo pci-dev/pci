@@ -154,13 +154,13 @@ class Recommendation(Row):
 
         if round_number == 1:
             there_are_review_reminder = len(MailQueue.get_by_article_and_template(
-                    article,
+                    article.id,
                     ["#ReminderRecommenderReviewersNeeded","#ReminderRecommenderNewReviewersNeeded"],
                     [SendingStatus.PENDING])) > 0
         else:
             there_are_review_reminder = len(
                 MailQueue.get_by_article_and_template(
-                    article,
+                    article.id,
                     ["#ReminderReviewerReviewInvitationNewUser","#ReminderReviewerReviewInvitationRegisteredUser", "#ReminderReviewerInvitationNewRoundRegisteredUser"],
                     [SendingStatus.PENDING])) > 0
             

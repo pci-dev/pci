@@ -2301,7 +2301,7 @@ def _create_reminder_for_submitter_revised_version(articleId: int, email_templat
 
 def get_original_submitter_awaiting_submission_email(article):
     template = "#SubmitterAwaitingSubmissionCOAR"
-    emails = MailQueue.get_by_article_and_template(article, template)
+    emails = MailQueue.get_by_article_and_template(article.id, template)
     if emails:
         return MailQueue.get_mail_content(emails.first())
 
@@ -3348,7 +3348,7 @@ def create_reminder_user_complete_submission(article):
 
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["message"] = MailQueue.get_mail_content(
-            MailQueue.get_by_article_and_template(article, "#UserCompleteSubmissionCOAR").first())
+            MailQueue.get_by_article_and_template(article.id, "#UserCompleteSubmissionCOAR").first())
 
     hashtag_template = "#ReminderUserCompleteSubmissionCOAR"
 
@@ -3719,7 +3719,7 @@ def create_reminder_user_complete_submission_biorxiv(article: Article):
 
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["message"] = MailQueue.get_mail_content(
-            MailQueue.get_by_article_and_template(article, "#UserCompleteSubmissionBiorxiv").first())
+            MailQueue.get_by_article_and_template(article.id, "#UserCompleteSubmissionBiorxiv").first())
 
     hashtag_template = "#ReminderUserCompleteSubmissionBiorxiv"
 
@@ -3776,3 +3776,13 @@ def send_new_comment_alert(article_id: int):
     hashtag_template = "#CommentPosted"
 
     emailing_tools.insertMailInQueue(hashtag_template, mail_vars, article_id=article.id)
+
+
+##################################################################################################################################################################
+
+def send_mail_mananger_valid_suggested_recommender(article_id: int, suggested_recommender: SuggestedRecommender):
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    mail = MailQueue.get_by_article_and_template(article_id)
+
+    suggested_recommender = SuggestedRecommender.get_by_article(article_id, valid_unset=True)

@@ -2,7 +2,6 @@ from datetime import datetime
 from enum import Enum
 import re
 from typing import Any, List, Optional as _, Union, cast
-from models.article import Article
 from models.review import Review
 from pydal.objects import Row
 from gluon import current
@@ -66,7 +65,7 @@ class MailQueue(Row):
 
 
     @staticmethod
-    def get_by_article_and_template(article: Article,
+    def get_by_article_and_template(article_id: int,
                                     hastag_template: Union[str, List[str]],
                                     sending_status: List[SendingStatus] = [],
                                     order_by: _[Any] = None) -> List['MailQueue']:
@@ -79,12 +78,12 @@ class MailQueue(Row):
 
         if len(sending_status_values) == 0:
             query = db(
-                (db.mail_queue.article_id == article.id) &
+                (db.mail_queue.article_id == article_id) &
                 (db.mail_queue.mail_template_hashtag.belongs(hastag_template))
             )
         else:
             query = db(
-                (db.mail_queue.article_id == article.id) &
+                (db.mail_queue.article_id == article_id) &
                 (db.mail_queue.mail_template_hashtag.belongs(hastag_template)) &
                 (db.mail_queue.sending_status.belongs(sending_status_values))
             )
