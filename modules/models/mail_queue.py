@@ -4,8 +4,7 @@ import re
 from typing import Any, List, Optional as _, Union, cast
 from models.review import Review
 from pydal.objects import Row
-from gluon import current
-
+from gluon import DIV, TAG, current
 
 class SendingStatus(Enum):
     SENT = 'sent'
@@ -148,3 +147,15 @@ class MailQueue(Row):
     @staticmethod
     def update_dest_mail_address(mail_id: int, dest_mail_address: str):
         current.db(current.db.mail_queue.id == mail_id).update(dest_mail_address=dest_mail_address)
+
+
+    @staticmethod
+    def change_suggested_recommender_button(mail: 'MailQueue', sugg_recommender_buttons: DIV):
+        mail_content: ... = TAG(mail.mail_content)
+        try:
+            mail_content.element(_id="sugg_recommender_buttons")[0] = sugg_recommender_buttons
+        except:
+            return mail
+        mail.update_record(mail_content=mail_content) # type: ignore
+        return mail
+

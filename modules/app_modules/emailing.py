@@ -43,7 +43,7 @@ from app_modules import emailing_vars
 from app_modules import newsletter
 from app_modules import reminders
 from app_components import ongoing_recommendation
-from app_modules.common_small_html import md_to_html
+from app_modules.common_small_html import md_to_html, mkUser, mkUser_U
 from app_modules.emailing_vars import getPCiRRinvitationTexts
 from app_modules.emailing_vars import getPCiRRScheduledSubmissionsVars
 from app_modules.emailing_vars import getPCiRRstageVars
@@ -3780,9 +3780,54 @@ def send_new_comment_alert(article_id: int):
 
 ##################################################################################################################################################################
 
-def send_mail_mananger_valid_suggested_recommender(article_id: int, suggested_recommender: SuggestedRecommender):
+def send_mail_mananger_valid_suggested_recommender(article_id: int):
+    template = "#ValidSuggestedRecommender"
+    
     mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["destAddress"] = mail_vars["appContactMail"]
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
-    mail = MailQueue.get_by_article_and_template(article_id)
+    suggested_recommenders = SuggestedRecommender.get_by_article(article_id, True, False)
+    buttons: DIV = DIV()
+    button_style = "font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-right: 5px"
 
-    suggested_recommender = SuggestedRecommender.get_by_article(article_id, valid_unset=True)
+    for suggested_recommender in suggested_recommenders:
+        recommender = User.get_by_id(suggested_recommender.suggested_recommender_id)
+        if not recommender:
+            continue
+
+        button = DIV(
+                mkUser_U(recommender, True, orcid=True),
+                A(f"{recommender.email}", _href=f"mailto:{recommender.email}", _style="display: block"),
+                CENTER(
+                    A(SPAN(current.T("Valid"), _style=f"background: #93c54b; margin-right: 5px; {button_style}"),
+                    _href="",
+                    _style="text-decoration: none;",
+                    ),
+                    A(
+                        SPAN(current.T("Reject"), _style=f"background: #f47c3c; margin-left: 5px; {button_style}"),
+                        _href="",
+                        _style="text-decoration: none;",
+                    ),
+                _style="margin-top: 5px"),
+                _style="width: 100%; text-align: center; margin-bottom: 25px;",
+            )
+        
+        buttons.append(button) # type: ignore
+
+    pending_mails = MailQueue.get_by_article_and_template(article_id, template, [SendingStatus.PENDING])
+    if len(pending_mails) > 0:
+        for pending_mail in pending_mails:
+            MailQueue.change_suggested_recommender_button(pending_mail, buttons)
+    else:
+        sending_date = datetime.datetime.now() + datetime.timedelta(hours=1)
+        emailing_tools.insert_reminder_mail_in_queue(template,
+                                                    mail_vars,
+                                                    article_id=article_id,
+                                                    sugg_recommender_buttons=buttons,
+                                                    sending_date_forced=sending_date)
+
+
+
+
+

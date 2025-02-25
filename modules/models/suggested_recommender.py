@@ -29,9 +29,17 @@ class SuggestedRecommender(Row):
 
 
     @staticmethod
-    def get_suggested_recommender_by_article(article_id: int):
+    def get_by_article(article_id: int, recommender_validated_unset: bool = False, declined: _[bool] = None) -> List['SuggestedRecommender']:
         db = current.db
-        return cast(_[List[SuggestedRecommender]], db(db.t_suggested_recommenders.article_id == article_id).select())
+        query = (db.t_suggested_recommenders.article_id == article_id)
+
+        if recommender_validated_unset:
+            query = query & (db.t_suggested_recommenders.recommender_validated == None)
+
+        if declined: 
+            query = query & (db.t_suggested_recommenders.declined == declined)
+        
+        return db(query).select()
 
 
     @staticmethod
@@ -53,7 +61,7 @@ class SuggestedRecommender(Row):
     @staticmethod
     def decline(suggested_recommender: 'SuggestedRecommender'):
         suggested_recommender.declined = True
-        suggested_recommender.update_record()
+        suggested_recommender.update_record() # type: ignore
         current.db.commit()
 
 

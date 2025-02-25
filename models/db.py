@@ -1414,6 +1414,8 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
         emailing.send_to_suggested_recommender(article.id, suggested_recommender.suggested_recommender_id)
         emailing.create_reminder_for_suggested_recommender_invitation(article.id, suggested_recommender.suggested_recommender_id)
 
+    emailing.send_mail_mananger_valid_suggested_recommender(suggested_recommender.article_id)
+
     update_alert_and_current_step_article(article.id)
 
 def deleteSuggRecommender(s):
