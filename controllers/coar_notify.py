@@ -278,6 +278,13 @@ def get_signposting_metadata(doi):
         if metadata:
             return metadata
 
+    return dict(
+            title="",
+            authors="",
+            article_year="",
+            abstract="",
+            keywords="",
+    )
     fail(f"no supported sign-posting metadata found at doi={doi}")
 
 
