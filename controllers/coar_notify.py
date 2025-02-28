@@ -240,7 +240,7 @@ def check_duplicate_submission(doi, meta_data):
     awaiting_revision = db.t_articles.status == "Awaiting revision"
 
     doi_nover = re.sub('v[0-9]+/?$', '', doi.lower())
-    title_norm = meta_data["title"].lower()
+    title_norm = meta_data.get("title", "").lower()
 
     same_title = db((db.t_articles.title.lower() == title_norm) & awaiting_revision)
     same_url = db((db.t_articles.doi.lower().startswith(doi_nover)) & awaiting_revision)
