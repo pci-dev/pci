@@ -199,8 +199,8 @@ def create_prefilled_submission(req, user):
 
     doi = article_data["ietf:cite-as"]
     meta_data = get_signposting_metadata(doi)
+    meta_data.update(guess_version(doi))
     preprint_server = get_preprint_server(doi)
-    guess_version(doi, meta_data)
 
     if not meta_data.get("authors"):
         meta_data["authors"] = author_data["name"]
@@ -368,7 +368,7 @@ def grab_json_meta(c, *args):
         return ""
 
 
-def guess_version(doi, metadata):
+def guess_version(doi):
     try:
         r = requests.get(doi, timeout=(1,4), allow_redirects=True)
         m = (
@@ -379,7 +379,7 @@ def guess_version(doi, metadata):
     except:
         version = 1
 
-    metadata["ms_version"] = version
+    return { "ms_version": version }
 
 
 def get_link(doi, **kv):
