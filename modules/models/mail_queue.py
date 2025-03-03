@@ -153,7 +153,8 @@ class MailQueue(Row):
     def change_suggested_recommender_button(mail: 'MailQueue', sugg_recommender_buttons: DIV):
         mail_content: ... = TAG(mail.mail_content)
         try:
-            mail_content.element(_id="sugg_recommender_buttons")[0] = sugg_recommender_buttons
+            div = DIV(sugg_recommender_buttons, _id="sugg_recommender_buttons")
+            mail_content.element(_id="sugg_recommender_buttons", replace=div)
         except:
             return mail
         mail.update_record(mail_content=mail_content) # type: ignore
