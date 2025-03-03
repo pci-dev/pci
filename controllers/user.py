@@ -1832,11 +1832,14 @@ def add_suggested_recommender():
         for con in recommendersListSel:
             reviewersIds.append(con.auth_user.id)
             if con.t_suggested_recommenders.declined:
-                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(T("(declined)"))))
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Declined)")}')))
+            elif con.t_suggested_recommenders.recommender_validated is False:
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Cancel by manager)")}')))
             else:
                 recommendersList.append(
                     LI(
                         common_small_html.mkUser(con.auth_user.id),
+                        I(" (Awaiting validation by the manager)") if con.t_suggested_recommenders.recommender_validated is None else "",
                         A(
                             "Remove",
                             _class="btn btn-warning",
