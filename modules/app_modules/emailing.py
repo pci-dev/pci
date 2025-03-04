@@ -3791,6 +3791,7 @@ def send_mail_mananger_valid_suggested_recommender(article_id: int):
     suggested_recommenders = SuggestedRecommender.get_by_article(article_id, True, False)
     buttons: DIV = DIV()
     button_style = "font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-right: 5px"
+    next_url = URL("manager", "manage_suggested_recommenders")
 
     for suggested_recommender in suggested_recommenders:
         recommender = User.get_by_id(suggested_recommender.suggested_recommender_id)
@@ -3802,12 +3803,12 @@ def send_mail_mananger_valid_suggested_recommender(article_id: int):
                 A(f"{recommender.email}", _href=f"mailto:{recommender.email}", _style="display: block"),
                 CENTER(
                     A(SPAN(current.T("Valid"), _style=f"background: #93c54b; margin-right: 5px; {button_style}"),
-                    _href="",
+                    _href=URL("manager", "do_valid_suggested_recommender",vars=dict(sugg_recommender_id=suggested_recommender.id, _next=next_url), scheme=True),
                     _style="text-decoration: none;",
                     ),
                     A(
                         SPAN(current.T("Reject"), _style=f"background: #f47c3c; margin-left: 5px; {button_style}"),
-                        _href="",
+                        _href=URL("manager", "do_reject_suggested_recommender",vars=dict(sugg_recommender_id=suggested_recommender.id, _next=next_url), scheme=True),
                         _style="text-decoration: none;",
                     ),
                 _style="margin-top: 5px"),

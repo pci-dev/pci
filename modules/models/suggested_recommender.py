@@ -1,5 +1,6 @@
 import secrets
-from typing import List, Optional as _, cast
+from typing import Any, List, Optional as _, cast
+from models.article import Article, ArticleStatus
 from pydal.objects import Row
 from gluon import current
 
@@ -36,9 +37,36 @@ class SuggestedRecommender(Row):
         if recommender_validated_unset:
             query = query & (db.t_suggested_recommenders.recommender_validated == None)
 
-        if declined: 
+        if declined is not None: 
             query = query & (db.t_suggested_recommenders.declined == declined)
         
+        return db(query).select()
+    
+    @staticmethod
+    def get_all(recommender_validated_unset: bool = False, declined: _[bool] = None, article_status: List[ArticleStatus] = []) -> List['SuggestedRecommender']:
+        db = current.db
+        
+        query: _[Any] = None
+        
+        if recommender_validated_unset:
+            sub_query = (db.t_suggested_recommenders.recommender_validated == None)
+            if not query:
+                query = sub_query
+            else:
+                query = query & sub_query
+
+        if declined is not None:
+            sub_query = (db.t_suggested_recommenders.declined == declined)
+            if not query:
+                query = sub_query
+            else:
+                query = query & sub_query
+
+        if len(article_status) > 0:
+            articles = Article.get_by_status(article_status)
+            article_ids = [a.id for a in articles]
+            query = query & (db.t_suggested_recommenders.article_id.belongs(article_ids))
+
         return db(query).select()
 
 

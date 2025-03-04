@@ -3,7 +3,7 @@
 import re
 import datetime
 import os
-from typing import Any, Callable, Dict, List, Literal, Union, cast, Optional
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union, cast, Optional
 
 
 # sudo pip install tweepy
@@ -37,22 +37,24 @@ from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
 from app_modules.article_translator import ArticleTranslator
 
+from models import suggested_recommender
 from models.group import Group, Role
 from models.mail_queue import MailQueue, SendingStatus
 from models.review import Review
 
-from app_modules.common_small_html import md_to_html, represent_rdv_date
+from app_modules.common_small_html import md_to_html, mkUser_U, represent_rdv_date
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
 from gluon.http import HTTP, redirect # type: ignore
 
 from models.article import Article, ArticleStatus, clean_vars_doi, clean_vars_doi_list
+from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 from models.membership import Membership
 from app_components.article_components import fix_web2py_list_str_bug_article_form
 
-from app_modules.common_tools import URL
+from app_modules.common_tools import URL, get_next
 from pydal.validators import IS_IN_DB
 
 request = current.request
@@ -2286,3 +2288,106 @@ def email_for_recommender():
         pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
         customText=getText("#EmailForRegisteredReviewerInfo"),
     )
+
+
+@auth.requires(auth.has_membership(role="manager"))
+def manage_suggested_recommenders():
+    query = (db.t_suggested_recommenders.recommender_validated == None) \
+            & (db.t_suggested_recommenders.declined == False) \
+            & (db.t_articles.id == db.t_suggested_recommenders.article_id) \
+            & (db.auth_user.id == db.t_suggested_recommenders.suggested_recommender_id) \
+            & (db.t_articles.status == ArticleStatus.AWAITING_CONSIDERATION.value)
+    
+    infos_by_article: Dict[int, Tuple[Article, List[Tuple[User, SuggestedRecommender]]]] = dict()
+
+    elements = db(query).select()
+
+    for element in elements:
+        recommender: User = element['auth_user']
+        article: Article = element['t_articles']
+        sugg_recommender: SuggestedRecommender = element['t_suggested_recommenders']
+
+        if article.id in infos_by_article:
+            infos_by_article[article.id][1].append((recommender, sugg_recommender))
+        else:
+            infos_by_article[article.id] = (article, [(recommender, sugg_recommender)])
+    
+    html: ... = CENTER()
+    next_url = URL(args=request.args, vars=request.get_vars, scheme=True)
+
+    for article, sugg_recommenders in infos_by_article.values():
+        html.append(H3(B(f"Article {article.id}: "), f"{article.title}"))
+
+        list: ... = TBODY()
+        for recommender, sugg_recommender in sugg_recommenders:
+            li = TR(
+                TD(mkUser_U(recommender, True, orcid=True)),
+                TD(A(recommender.email, _href=f"mailto:{recommender.email}"), _style="padding-left: 10px; font-style: italic"),
+                TD(A("Valid", _class="btn btn-success", 
+                              _href=URL("manager", "do_valid_suggested_recommender",vars=dict(sugg_recommender_id=sugg_recommender.id, _next=next_url))),
+                              _style="padding-left: 10px;"),
+                TD(A("Reject", _class="btn btn-warning",
+                               _href=URL("manager", "do_reject_suggested_recommender", vars=dict(sugg_recommender_id=sugg_recommender.id, _next=next_url))),
+                               _style="padding-left: 10px"),
+            )
+
+            list.append(li)
+        html.append(TABLE(list))
+
+    if len(infos_by_article) == 0:
+        html.append(B("There are no suggested recommenders to manage."))
+
+    response.view = "default/myLayout.html"
+    return dict(
+        grid=html,
+        pageHelp=getHelp("#EmailForRegisterdReviewer"),
+        titleIcon="user",
+        pageTitle="Manage suggested recommenders",
+    )
+
+
+@auth.requires(auth.has_membership(role="manager"))
+def do_valid_suggested_recommender():
+    try:
+        next_url = get_next()
+        sugg_recommender_id = int(request.vars.sugg_recommender_id)
+    except:
+        return HTTP(400, "Error in args")
+
+    sugg_recommender = SuggestedRecommender.get_by_id(sugg_recommender_id)
+    if sugg_recommender:
+        sugg_recommender_name = User.get_name_by_id(sugg_recommender.suggested_recommender_id)
+        sugg_recommender.update_record(recommender_validated=False) # type: ignore
+    else:
+        return HTTP(404, session.flash)
+
+    session.flash = f"Suggested recommender {sugg_recommender_name} has been validated"
+
+    if next_url:
+        return redirect(next_url)
+    else:
+        return HTTP(200, session.flash)
+
+
+
+@auth.requires(auth.has_membership(role="manager"))
+def do_reject_suggested_recommender():
+    try:
+        next_url = get_next()
+        sugg_recommender_id = int(request.vars.sugg_recommender_id)
+    except:
+        return HTTP(400, "Error in args")
+
+    sugg_recommender = SuggestedRecommender.get_by_id(sugg_recommender_id)
+    if sugg_recommender:
+        sugg_recommender_name = User.get_name_by_id(sugg_recommender.suggested_recommender_id)
+        sugg_recommender.update_record(recommender_validated=False) # type: ignore
+    else:
+        return HTTP(404, session.flash)
+
+    session.flash = f"Suggested recommender {sugg_recommender_name} has been rejected"
+
+    if next_url:
+        return redirect(next_url)
+    else:
+        return HTTP(200, session.flash)
