@@ -2357,11 +2357,11 @@ def do_valid_suggested_recommender():
     sugg_recommender = SuggestedRecommender.get_by_id(sugg_recommender_id)
     if sugg_recommender:
         sugg_recommender_name = User.get_name_by_id(sugg_recommender.suggested_recommender_id)
-        sugg_recommender.update_record(recommender_validated=False) # type: ignore
+        sugg_recommender.update_record(recommender_validated=True) # type: ignore
     else:
         return HTTP(404, session.flash)
 
-    session.flash = f"Suggested recommender {sugg_recommender_name} has been validated"
+    session.flash = f'Suggested recommender "{sugg_recommender_name}" has been validated'
 
     if next_url:
         return redirect(next_url)
@@ -2385,7 +2385,7 @@ def do_reject_suggested_recommender():
     else:
         return HTTP(404, session.flash)
 
-    session.flash = f"Suggested recommender {sugg_recommender_name} has been rejected"
+    session.flash = f'Suggested recommender "{sugg_recommender_name}" has been rejected'
 
     if next_url:
         return redirect(next_url)

@@ -3459,13 +3459,16 @@ def alert_managers_recommender_action_needed(hashtag_template: str, recommId: in
         emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ########################################################
-def delete_reminder_for_managers(hashtag_template: List[str], recommId: int):
+def delete_reminder_for_managers(hashtag_template: List[str], recommendation_id: Optional[int] = None, article_id: Optional[int] = None):
     db = current.db
-    recomm = db.t_recommendations[recommId]
 
-    for hashtag in hashtag_template:
-        if  recomm:
-            db((db.mail_queue.mail_template_hashtag == hashtag) & (db.mail_queue.recommendation_id == recomm.id)).delete()
+    query = (db.mail_queue.mail_template_hashtag.belongs(hashtag_template))
+    if recommendation_id:
+        query = query & (db.mail_queue.recommendation_id == recommendation_id)
+    if article_id:
+        query = query & (db.mail_queue.article_id == article_id)
+
+    db(query).delete()
 
 def send_warning_to_submitters(article_id):
     db = current.db
@@ -3792,6 +3795,10 @@ def send_mail_mananger_valid_suggested_recommender(article_id: int):
     buttons: DIV = DIV()
     button_style = "font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-right: 5px"
     next_url = URL("manager", "manage_suggested_recommenders")
+
+    if len(suggested_recommenders) == 0:
+        delete_reminder_for_managers([template, template_reminder], article_id=article_id)
+        return
 
     for suggested_recommender in suggested_recommenders:
         recommender = User.get_by_id(suggested_recommender.suggested_recommender_id)

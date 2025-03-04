@@ -1399,6 +1399,25 @@ db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(
 db.t_suggested_recommenders._after_insert.append(lambda f, i: appendSuggRecommender(f, i))
 db.t_suggested_recommenders._before_delete.append(lambda s: deleteSuggRecommender(s))
 db.t_suggested_recommenders._before_update.append(lambda s, f: declineSuggRecommender(s, f))
+db.t_suggested_recommenders._after_update.append(lambda s, f: after_update_suggested_recommender(s, f))
+
+def after_update_suggested_recommender(s: ..., f: ...):
+    suggested_recommender: SuggestedRecommender = s.select().first()
+
+    article = Article.get_by_id(suggested_recommender.article_id)
+    if not article:
+        return
+    
+    if article.status == ArticleStatus.AWAITING_CONSIDERATION.value and suggested_recommender.recommender_validated:
+        # BUG : resend to all send to all
+        emailing.send_to_suggested_recommender(article.id, suggested_recommender.suggested_recommender_id)
+        emailing.create_reminder_for_suggested_recommender_invitation(article.id, suggested_recommender.suggested_recommender_id)
+        emailing.send_mail_mananger_valid_suggested_recommender(suggested_recommender.article_id)
+
+    if suggested_recommender.recommender_validated is False:
+        emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article.id, suggested_recommender.suggested_recommender_id)
+
+    update_alert_and_current_step_article(article.id)
 
 
 def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: int):
@@ -1409,11 +1428,6 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
     emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", article.id)
     # note: do NOT delete #ReminderSubmitterNewSuggestedRecommenderNeeded
 
-    if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
-        # BUG : resend to all send to all
-        emailing.send_to_suggested_recommender(article.id, suggested_recommender.suggested_recommender_id)
-        emailing.create_reminder_for_suggested_recommender_invitation(article.id, suggested_recommender.suggested_recommender_id)
-
     emailing.send_mail_mananger_valid_suggested_recommender(suggested_recommender.article_id)
 
     update_alert_and_current_step_article(article.id)
@@ -1422,6 +1436,8 @@ def deleteSuggRecommender(s):
     sugg_recomm = s.select().first()
     article = db.t_articles[sugg_recomm.article_id]
     emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article["id"], sugg_recomm["suggested_recommender_id"])
+
+    update_alert_and_current_step_article(article.id)
 
 
 def declineSuggRecommender(s, f):
