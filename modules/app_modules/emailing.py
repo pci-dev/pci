@@ -3786,15 +3786,23 @@ def send_new_comment_alert(article_id: int):
 def send_mail_mananger_valid_suggested_recommender(article_id: int):
     template = "#ValidSuggestedRecommender"
     template_reminder = "#ReminderValidSuggestedRecommender"
+
+    article = Article.get_by_id(article_id)
+    if not article:
+        return
     
+    next_url = URL("manager", "manage_suggested_recommenders", scheme=True)
+
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destAddress"] = mail_vars["appContactMail"]
     mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["submitterPerson"] = str(B(common_small_html.mkUser(article.user_id) if article.user_id else "?"))
+    mail_vars["linkTarget"] = str(A(next_url, _href=next_url))
+    mail_vars["articleTitle"] = str(B(md_to_html(article.title)))
 
     suggested_recommenders = SuggestedRecommender.get_by_article(article_id, True, False)
     buttons: DIV = DIV()
     button_style = "font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-right: 5px"
-    next_url = URL("manager", "manage_suggested_recommenders")
 
     if len(suggested_recommenders) == 0:
         delete_reminder_for_managers([template, template_reminder], article_id=article_id)

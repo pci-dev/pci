@@ -1415,6 +1415,7 @@ def after_update_suggested_recommender(s: ..., f: ...):
         emailing.send_mail_mananger_valid_suggested_recommender(suggested_recommender.article_id)
 
     if suggested_recommender.recommender_validated is False:
+        emailing.send_mail_mananger_valid_suggested_recommender(suggested_recommender.article_id)
         emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article.id, suggested_recommender.suggested_recommender_id)
 
     update_alert_and_current_step_article(article.id)
