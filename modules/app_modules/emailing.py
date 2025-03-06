@@ -463,6 +463,7 @@ def send_to_suggested_recommenders_not_needed_anymore(articleId: int):
             (db.t_suggested_recommenders.article_id == articleId)
             & (db.t_suggested_recommenders.suggested_recommender_id != auth.user_id)
             & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.recommender_validated == True)
             & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
         ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
         for sugg_recommender in suggested_recommenders:
@@ -509,7 +510,7 @@ def send_to_suggested_recommenders(articleId: int):
             recomm_id = recomm.id
 
         suggested_recommenders = db.executesql(
-            "SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND article_id=%s;",
+            "SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND sr.recommender_validated IS TRUE AND article_id=%s;",
             placeholders=[article.id],
             as_dict=True,
         )
@@ -2495,7 +2496,7 @@ def delete_reminder_for_submitter(hashtag_template: str, articleId: int):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_suggested_recommenders_invitation(articleId):
+def create_reminder_for_suggested_recommenders_invitation(articleId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -2508,6 +2509,7 @@ def create_reminder_for_suggested_recommenders_invitation(articleId):
         suggested_recommenders = db(
             (db.t_suggested_recommenders.article_id == articleId)
             & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.recommender_validated == True)
             & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
         ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
 
@@ -2560,13 +2562,14 @@ def create_reminder_for_suggested_recommender_invitation(articleId: int, suggRec
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_suggested_recommenders(hashtag_template, articleId):
+def delete_reminder_for_suggested_recommenders(hashtag_template: str, articleId: int):
     db = current.db
     article = db.t_articles[articleId]
     if article:
         suggested_recommenders = db(
             (db.t_suggested_recommenders.article_id == articleId)
             & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.recommender_validated == True)
             & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
         ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
 

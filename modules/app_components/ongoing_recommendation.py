@@ -217,6 +217,7 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
             (db.t_suggested_recommenders.article_id == art.id)
             & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
             & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.recommender_validated == True)
         ).count()
         if amISugg > 0:
             # suggested recommender's button for declining recommendation
@@ -242,6 +243,22 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
             btsAccDec.append(
                 B(current.T("You have declined the invitation to handle the evaluation process of this preprint.")),
             )
+        else:
+            i_am_declined = db(
+                (db.t_suggested_recommenders.article_id == art.id)
+                & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+                & (db.t_suggested_recommenders.recommender_validated == False)
+            ).count()
+
+            if i_am_declined:
+                buttonDivClass = " pci2-flex-column"
+                btsAccDec.append(
+                    BR(),
+                )
+                btsAccDec.append(
+                    B(current.T("You have been canceled by managers to handle the evaluation process of this preprint.")),
+                )
+        
 
         myButtons.append(DIV(btsAccDec, _class="pci2-flex-grow pci2-flex-center" + buttonDivClass, _style="margin:10px")) # type: ignore
 

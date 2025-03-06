@@ -94,10 +94,11 @@ class SuggestedRecommender(Row):
 
 
     @staticmethod
-    def add_suggested_recommender(recommender_id: int, article_id: int):
+    def add_suggested_recommender(recommender_id: int, article_id: int, recommender_validated: _[bool] = None):
         db = current.db
         quick_decline_key = secrets.token_urlsafe(64)
         db.t_suggested_recommenders.update_or_insert(
             suggested_recommender_id=recommender_id,
             article_id=article_id,
-            quick_decline_key=quick_decline_key)
+            quick_decline_key=quick_decline_key,
+            recommender_validated=recommender_validated)

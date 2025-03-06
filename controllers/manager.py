@@ -1032,7 +1032,7 @@ def manage_recommendations():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def search_recommenders():
-    whatNext = request.vars["whatNext"]
+    whatNext = request.vars["whatNext"] if request.vars["whatNext"] else URL(args=request.args, vars=request.get_vars, scheme=True)  
     previous = URL(args=request.args, vars=request.get_vars, host=True)
     articleId = request.vars["articleId"]
     if articleId is None:
@@ -1168,7 +1168,7 @@ def search_recommenders():
 @auth.requires(auth.has_membership(role="manager"))
 def suggested_recommenders():
     articleId = request.vars["articleId"]
-    whatNext = request.vars["whatNext"]
+
     if articleId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1185,24 +1185,45 @@ def suggested_recommenders():
 
     articleHeaderHtml = article_components.get_article_infos_card(art, **article_components.for_search)
 
+    def make_user_mail(text: str, row: SuggestedRecommender):
+        return common_small_html.mkUserWithMail(int(text))
+
     query = db.t_suggested_recommenders.article_id == articleId
     db.t_suggested_recommenders.article_id.readable = False
     db.t_suggested_recommenders.article_id.writable = False
     db.t_suggested_recommenders._id.readable = False
     db.t_suggested_recommenders.email_sent.readable = False
-    db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text, row: common_small_html.mkUserWithMail(text)
-    links = []
-    # if art.status == "Awaiting consideration":
-    links.append(
-        dict(
-            header="Emails history",
-            body=lambda row: A(
+    db.t_suggested_recommenders.recommender_validated.readable = True
+    db.t_suggested_recommenders.recommender_validated.label = "Validated"
+    db.t_suggested_recommenders.suggested_recommender_id.represent = make_user_mail
+    links: List[Dict[str, Any]] = []
+
+    def make_email_history_button(row: SuggestedRecommender):
+        return A(
                 T("View e-mails"),
                 _class="btn btn-info pci-manager",
                 _href=URL(c="manager", f="suggested_recommender_emails", vars=dict(suggRecommId=row.suggested_recommender_id, articleId=row.article_id)),
-            )
-            if not (row.declined)
-            else "",
+            ) if not (row.declined) else ""
+    
+    def make_valid_reject_sugg_recommender_button(row: SuggestedRecommender):
+        next_url = URL(args=request.args, vars=request.get_vars, scheme=True)
+
+        return DIV(
+                A("Valid", _class="btn btn-success", _href=URL("manager", "do_valid_suggested_recommender",vars=dict(sugg_recommender_id=row.id, _next=next_url))),
+                A("Reject", _class="btn btn-warning", _href=URL("manager", "do_reject_suggested_recommender", vars=dict(sugg_recommender_id=row.id, _next=next_url))),
+            ) if row.recommender_validated is None else ""
+    
+    links.append(
+        dict(
+            header="Emails history",
+            body=make_email_history_button
+        )
+    )
+
+    links.append(
+        dict(
+            header="Actions",
+            body=make_valid_reject_sugg_recommender_button
         )
     )
 
@@ -1210,7 +1231,7 @@ def suggested_recommenders():
         current.T("Add suggested recommender"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True)
     )
 
-    grid = SQLFORM.grid(
+    grid: ... = SQLFORM.grid( # type: ignore
         query,
         details=True,
         editable=True,
@@ -1228,6 +1249,7 @@ def suggested_recommenders():
             db.t_suggested_recommenders.declined,
             db.t_suggested_recommenders.email_sent,
             db.t_suggested_recommenders.emailing,
+            db.t_suggested_recommenders.recommender_validated,
         ],
         field_id=db.t_suggested_recommenders.id,
         links=links,
@@ -2312,11 +2334,11 @@ def manage_suggested_recommenders():
         else:
             infos_by_article[article.id] = (article, [(recommender, sugg_recommender)])
     
-    html: ... = CENTER()
+    html: ... = DIV()
     next_url = URL(args=request.args, vars=request.get_vars, scheme=True)
 
     for article, sugg_recommenders in infos_by_article.values():
-        html.append(H3(B(f"Article {article.id}: "), f"{article.title}"))
+        html.append(H3(B(f"Article {article.id}", _style="margin-right: 20px"), A(f"{article.title}", _href=URL(c="manager", f="suggested_recommenders", vars=dict(articleId=article.id)))))
 
         list: ... = TBODY()
         for recommender, sugg_recommender in sugg_recommenders:
@@ -2332,7 +2354,8 @@ def manage_suggested_recommenders():
             )
 
             list.append(li)
-        html.append(TABLE(list))
+        html.append(TABLE(list, _style="margin-bottom: 40px"))
+        html.append(HR())
 
     if len(infos_by_article) == 0:
         html.append(B("There are no suggested recommenders to manage."))

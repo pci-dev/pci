@@ -307,6 +307,7 @@ def article_details():
                     (db.t_suggested_recommenders.article_id == articleId)
                     & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
                     & (db.t_suggested_recommenders.declined == False)
+                    & (db.t_suggested_recommenders.recommender_validated == True)
                 )
             ).count()
             > 0
@@ -443,6 +444,7 @@ def my_awaiting_articles():
         & (db.t_articles._id == db.t_suggested_recommenders.article_id)
         & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
         & (db.t_suggested_recommenders.declined == False)
+        & (db.t_suggested_recommenders.recommender_validated == True)
     )
     db.t_articles.user_id.writable = False
     db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(
@@ -2821,7 +2823,8 @@ def verify_co_authorship():
 
     reviewer_query = (db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Awaiting response", "Review completed"))
     is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
-                            (db.t_suggested_recommenders.declined == False)).select(db.t_suggested_recommenders.suggested_recommender_id)
+                            (db.t_suggested_recommenders.declined == False) & \
+                                (db.t_suggested_recommenders.recommender_validated == True)).select(db.t_suggested_recommenders.suggested_recommender_id)
     has_recommender = db(db.v_article_recommender.recommendation_id == recommendation.id).select(db.v_article_recommender.recommender) if recommendation else None
     has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state)
     has_co_recommenders = db(db.t_press_reviews.recommendation_id == recommendation.id).select(db.t_press_reviews.contributor_id) if recommendation else None

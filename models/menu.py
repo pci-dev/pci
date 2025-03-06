@@ -301,6 +301,7 @@ def _RecommendationMenu():
         & (db.t_articles._id == db.t_suggested_recommenders.article_id)
         & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
         & (db.t_suggested_recommenders.declined == False)
+        & (db.t_suggested_recommenders.recommender_validated == True)
     ).count()
     txtPreprintsRecomPend = menu_entry_item(
         T("%s Request(s) to handle a preprint") % nPreprintsRecomPend, "glyphicon-envelope",

@@ -1278,38 +1278,6 @@ def edit_report_survey():
 @auth.requires_login()
 def suggested_recommenders():
     response.view = "default/myLayout.html"
-    write_auth = auth.has_membership("administrator") or auth.has_membership("developer")
-    query = db.t_suggested_recommenders.article_id == request.vars["articleId"]
-    db.t_suggested_recommenders._id.readable = False
-    grid = SQLFORM.grid(
-        query,
-        details=False,
-        editable=False,
-        deletable=write_auth,
-        create=False,
-        searchable=False,
-        maxtextlength=250,
-        paginate=100,
-        csv=csv,
-        exportclasses=expClass,
-        fields=[db.t_suggested_recommenders.suggested_recommender_id],
-    )
-    return dict(
-        myBackButton=common_small_html.mkBackButton(),
-        titleIcon="education",
-        pageTitle=getTitle("#SuggestedRecommendersTitle"),
-        customText=getText("#SuggestedRecommendersText"),
-        pageHelp=getHelp("#SuggestedRecommenders"),
-        grid=grid,
-    )
-
-
-######################################################################################################################################################################
-# Display suggested recommenders for a submitted article
-# Logged users only (submission)
-@auth.requires_login()
-def suggested_recommenders():
-    response.view = "default/myLayout.html"
     articleId = request.vars["articleId"]
 
     if articleId is None:
