@@ -184,6 +184,13 @@ class Manager_validates:
     select("a", contains="Pending validation").click()
     select.fails("tr", contains=article.title)
 
+ def validate_sugg_recommender(_):
+    select(".dropdown-toggle", contains="For managers").click()
+    select("a", f"Manage suggested recommenders").click()
+
+    select("a", "VALID").click()
+    select.notif('Suggested recommender "recommender dude" has been validated').wait_clickable()
+
  def logout_manager(_):
     logout(users.manager)
 
