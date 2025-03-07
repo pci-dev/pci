@@ -3786,7 +3786,7 @@ def send_new_comment_alert(article_id: int):
 
 ##################################################################################################################################################################
 
-def send_mail_mananger_valid_suggested_recommender(article_id: int):
+def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, resend: bool = True):
     template = "#ValidSuggestedRecommender"
     template_reminder = "#ReminderValidSuggestedRecommender"
 
@@ -3840,22 +3840,24 @@ def send_mail_mananger_valid_suggested_recommender(article_id: int):
         for pending_mail in pending_mails:
             MailQueue.change_suggested_recommender_button(pending_mail, buttons)
     else:
-        sending_date = datetime.datetime.now() + datetime.timedelta(hours=1)
-        emailing_tools.insert_reminder_mail_in_queue(template,
-                                                    mail_vars,
-                                                    article_id=article_id,
-                                                    sugg_recommender_buttons=buttons,
-                                                    sending_date_forced=sending_date)
+        if resend:
+            sending_date = datetime.datetime.now() + datetime.timedelta(hours=1)
+            emailing_tools.insert_reminder_mail_in_queue(template,
+                                                        mail_vars,
+                                                        article_id=article_id,
+                                                        sugg_recommender_buttons=buttons,
+                                                        sending_date_forced=sending_date)
         
     pending_mails_reminder = MailQueue.get_by_article_and_template(article_id, template_reminder, [SendingStatus.PENDING])
     if len(pending_mails_reminder) > 0:
         for pending_mail in pending_mails_reminder:
             MailQueue.change_suggested_recommender_button(pending_mail, buttons)
     else:
-        emailing_tools.insert_reminder_mail_in_queue(template_reminder,
-                                                     mail_vars,
-                                                     article_id=article_id,
-                                                     sugg_recommender_buttons=buttons)
+        if resend:
+            emailing_tools.insert_reminder_mail_in_queue(template_reminder,
+                                                        mail_vars,
+                                                        article_id=article_id,
+                                                        sugg_recommender_buttons=buttons)
 
 
 

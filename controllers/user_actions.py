@@ -12,6 +12,7 @@ from app_components import app_forms
 from app_modules import emailing
 from gluon.globals import Request
 from gluon.http import redirect # type: ignore
+from models.article import Article, ArticleStatus
 from models.group import Role
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
@@ -67,7 +68,9 @@ def suggest_article_to():
     recommender_id = int(request.vars["recommenderId"])
     exclude: Union[List[str], str] = request.vars["exclude"]
     my_vars = request.vars
-    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id)
+    article = Article.get_by_id(article_id)
+    recommender_validated = article is not None and article.status == ArticleStatus.PENDING.value
+    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, recommender_validated)
     exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
     exclude_list.append(str(recommender_id))
     my_vars["exclude"] = ",".join(exclude_list)

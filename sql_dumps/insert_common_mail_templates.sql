@@ -144,8 +144,6 @@ INSERT INTO public.mail_templates (hashtag,lang,subject,description,contents) VA
 
 --- 2025-03-05 updates/t_suggested_recommenders.sql
 
-alter table t_suggested_recommenders add column if not exists recommender_validated bool;
-
 INSERT INTO public.mail_templates (hashtag,lang,subject,description,contents) VALUES
 	 ('#ValidSuggestedRecommender','default','{{appName}}: New suggested recommenders pending validation','New suggested recommenders pending validation','<div>Dear members of the Managing Board,</div>
 <div><br>{{submitterPerson}} has suggested one or more other recommenders to handle their submitted preprint entitled {{articleTitle}}.</div>
