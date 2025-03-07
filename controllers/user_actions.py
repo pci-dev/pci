@@ -69,7 +69,7 @@ def suggest_article_to():
     exclude: Union[List[str], str] = request.vars["exclude"]
     my_vars = request.vars
     article = Article.get_by_id(article_id)
-    recommender_validated = article is not None and article.status == ArticleStatus.PENDING.value
+    recommender_validated = (article is not None and article.status == ArticleStatus.PENDING.value) or None
     SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, recommender_validated)
     exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
     exclude_list.append(str(recommender_id))

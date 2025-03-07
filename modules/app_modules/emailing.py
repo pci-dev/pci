@@ -51,7 +51,7 @@ from app_modules.emailing_tools import mkAuthors, replaceMailVars
 from app_modules.emailing_tools import getMailCommonVars
 from app_modules.emailing_tools import replace_mail_vars_set_not_considered_mail
 from app_modules.emailing_tools import exempt_addresses
-from models.article import Article
+from models.article import Article, ArticleStatus
 from models.review import Review, ReviewState
 from models.recommendation import Recommendation
 from models.user import User
@@ -3807,7 +3807,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
     buttons: DIV = DIV()
     button_style = "font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-right: 5px"
 
-    if len(suggested_recommenders) == 0:
+    if len(suggested_recommenders) == 0 or article.status != ArticleStatus.AWAITING_CONSIDERATION.value:
         delete_reminder_for_managers([template, template_reminder], article_id=article_id)
         return
 

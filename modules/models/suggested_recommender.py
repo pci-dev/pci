@@ -97,6 +97,12 @@ class SuggestedRecommender(Row):
     def add_suggested_recommender(recommender_id: int, article_id: int, recommender_validated: _[bool] = None):
         db = current.db
         quick_decline_key = secrets.token_urlsafe(64)
+
+        sugg_recommender = SuggestedRecommender.get_by_article_and_user_id(article_id, recommender_id)
+        if sugg_recommender:
+            sugg_recommender.delete() # type: ignore
+            db.commit()
+
         db.t_suggested_recommenders.update_or_insert(
             suggested_recommender_id=recommender_id,
             article_id=article_id,

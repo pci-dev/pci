@@ -1398,6 +1398,7 @@ db.t_suggested_recommenders.suggested_recommender_id.requires = IS_EMPTY_OR(
 
 db.t_suggested_recommenders._after_insert.append(lambda f, i: appendSuggRecommender(f, i))
 db.t_suggested_recommenders._before_delete.append(lambda s: deleteSuggRecommender(s))
+db.t_suggested_recommenders._after_delete.append(lambda s: after_delete_sugg_recommender(s))
 db.t_suggested_recommenders._before_update.append(lambda s, f: declineSuggRecommender(s, f))
 db.t_suggested_recommenders._after_update.append(lambda s, f: after_update_suggested_recommender(s, f))
 
@@ -1440,12 +1441,23 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
 
     update_alert_and_current_step_article(article.id)
 
-def deleteSuggRecommender(s):
-    sugg_recomm = s.select().first()
-    article = db.t_articles[sugg_recomm.article_id]
-    emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article["id"], sugg_recomm["suggested_recommender_id"])
+def deleteSuggRecommender(s: ...):
+    current.session.old_sugg_recommender = None
+    sugg_recommender: SuggestedRecommender = s.select().first()
+    session.old_sugg_recommender = sugg_recommender
 
-    update_alert_and_current_step_article(article.id)
+    emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", sugg_recommender.article_id, sugg_recommender.suggested_recommender_id)
+
+    update_alert_and_current_step_article(sugg_recommender.article_id)
+
+
+def after_delete_sugg_recommender(s: ...):    
+    old_sugg_recommender: SuggestedRecommender = current.session.old_sugg_recommender
+    if old_sugg_recommender is None:
+        return
+    
+    emailing.send_or_update_mail_manager_valid_suggested_recommender(old_sugg_recommender.article_id)
+
 
 
 def declineSuggRecommender(s, f):
