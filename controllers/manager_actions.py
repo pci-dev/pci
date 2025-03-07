@@ -43,7 +43,7 @@ def do_validate_article():
         return redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
-    sugg_recommender_ok = SuggestedRecommender.check_if_all_processed(articleId)
+    sugg_recommender_ok = True if pciRRactivated else SuggestedRecommender.check_if_all_processed(articleId)
     
     if art is None:
         session.flash = auth.not_authorized()

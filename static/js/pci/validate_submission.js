@@ -58,5 +58,5 @@ function suggRecommenderCheckbox() {
 }
 
 $(function(){
-  $('#sugg_recommender_ok_info').tooltip();
+  $('#sugg_recommender_ok_info')?.tooltip();
 });

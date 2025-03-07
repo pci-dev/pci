@@ -155,10 +155,18 @@ class Manager_validates:
       select(".pci-status", "SUBMISSION PENDING VALIDATION")
     else:
       select(".pci-status-mini", contains="Submission pending validation")
+   
+    select("a", "View / Edit".upper()).click()
+
+ def validate_suggested_recommender(_):
+    if not is_rr:
+      select("a", "Manage recommenders").click()
+      select("a", "VALID").click()
+      select("a", "Back").click()
 
  def validate_submission(_):
     #select("a", "View / Edit").first().click()  # select(css, text/contains=xxx) should return a list-ish
-    select("a", "View / Edit".upper()).click()
+    
     if not is_rr:
         select("#article_doi_correct").click()
         select("#data_ok").click()
@@ -185,13 +193,7 @@ class Manager_validates:
     select(".dropdown-toggle", contains="For managers").click()
     select("a", contains="Pending validation").click()
     select.fails("tr", contains=article.title)
-
- def validate_sugg_recommender(_):
-    select(".dropdown-toggle", contains="For managers").click()
-    select("a", f"Manage suggested recommenders").click()
-
-    select("a", "VALID").click()
-    select.notif('Suggested recommender "recommender dude" has been validated').wait_clickable()
+    
 
  def logout_manager(_):
     logout(users.manager)
