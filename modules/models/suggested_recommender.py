@@ -14,6 +14,7 @@ class SuggestedRecommender(Row):
     emailing: _[str]
     quick_decline_key: _[str]
     recommender_validated: _[bool]
+    validated_by_manager: _[bool]
 
 
     @staticmethod

@@ -1795,14 +1795,17 @@ def add_suggested_recommender():
     else:
         recommendersListSel = db((db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)).select()
         excluded_recommenders = db(db.t_excluded_recommenders.article_id == articleId).select()
-        recommendersList, excludedRecommenders = [], []
+        recommendersList: List[LI] = []
+        excludedRecommenders: List[LI] = []
         reviewersIds = [auth.user_id]
         for con in recommendersListSel:
             reviewersIds.append(con.auth_user.id)
             if con.t_suggested_recommenders.declined:
-                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Declined)")}')))
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Declined by the recommender)")}')))
             elif con.t_suggested_recommenders.recommender_validated is False:
-                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Cancel by manager)")}')))
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Cancel by the managing board)")}')))
+            elif con.t_suggested_recommenders.recommender_validated is True and con.t_suggested_recommenders.validated_by_manager:
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Validated by the managing board)")}')))
             else:
                 recommendersList.append(
                     LI(
@@ -1837,7 +1840,7 @@ def add_suggested_recommender():
                     )
                 )
         excludeList = ','.join(map(str,reviewersIds))
-        myContents = DIV()
+        myContents: ... = DIV()
         txtbtn = current.T("Suggest recommenders")
         if len(recommendersList) > 0:
             myContents.append(DIV(LABEL(T("Suggested recommenders:")), UL(recommendersList, _class="pci-li-spacy")))

@@ -3161,3 +3161,5 @@ ALTER TABLE t_recommendations ADD COLUMN IF NOT exists recommendation_state_save
 
 --- 2025-02-21 updates/t_suggested_recommenders.sql
 alter table t_suggested_recommenders add column if not exists recommender_validated bool;
+alter table t_suggested_recommenders add column if not exists validated_by_manager bool;
+

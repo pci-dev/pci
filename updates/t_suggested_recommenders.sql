@@ -1,4 +1,5 @@
 alter table t_suggested_recommenders add column if not exists recommender_validated bool;
+alter table t_suggested_recommenders add column if not exists validated_by_manager bool;
 
 INSERT INTO public.mail_templates (hashtag,lang,subject,description,contents) VALUES
 	 ('#ValidSuggestedRecommender','default','{{appName}}: New suggested recommenders pending validation','New suggested recommenders pending validation','<div>Dear members of the Managing Board,</div>
