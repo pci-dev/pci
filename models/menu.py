@@ -497,7 +497,7 @@ def _ManagerMenu():
     ]
 
     if not pciRRactivated:
-        sugg_recommender_to_validate = SuggestedRecommender.get_all(True, False, [ArticleStatus.AWAITING_CONSIDERATION])
+        sugg_recommender_to_validate = SuggestedRecommender.get_all(True, False, [ArticleStatus.AWAITING_CONSIDERATION, ArticleStatus.PENDING])
         if len(sugg_recommender_to_validate) > 0:
             txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
             managerMenu.append(menu_entry("Manage suggested recommenders", "glyphicon-user", URL("manager", "manage_suggested_recommenders", user_signature=True), _class="pci-manager pci-enhancedMenuItem"))

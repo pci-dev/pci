@@ -731,6 +731,8 @@ def deltaStatus(s: ..., f: Article):
             # emailing.create_reminder_for_submitter_cancel_submission(o["id"])
             emailing.create_reminder_for_suggested_recommenders_invitation(o["id"])
             emailing.send_to_managers(o["id"], f["status"])
+            if not pciRRactivated:
+                emailing.send_mails_for_all_suggested_recommenders(o)
 
         elif o.status == "Pre-submission" and f["status"] == "Pending":
             emailing.send_to_managers(o["id"], "Resubmission")
@@ -1411,9 +1413,9 @@ def after_update_suggested_recommender(s: ..., f: ...):
         return
     
     if suggested_recommender.recommender_validated:
-        # BUG : resend to all send to all
-        emailing.send_to_suggested_recommender(article.id, suggested_recommender.suggested_recommender_id)
-        emailing.create_reminder_for_suggested_recommender_invitation(article.id, suggested_recommender.suggested_recommender_id)
+        if article.status == ArticleStatus.AWAITING_CONSIDERATION.value or pciRRactivated:
+            emailing.send_to_suggested_recommender(article, suggested_recommender.suggested_recommender_id)
+            emailing.create_reminder_for_suggested_recommender_invitation(article, suggested_recommender.suggested_recommender_id)
         emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
 
     if suggested_recommender.recommender_validated is False:
@@ -1428,10 +1430,9 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
     if not article:
         return
     
-    if suggested_recommender.recommender_validated:
-        # BUG : resend to all send to all
-        emailing.send_to_suggested_recommender(article.id, suggested_recommender.suggested_recommender_id)
-        emailing.create_reminder_for_suggested_recommender_invitation(article.id, suggested_recommender.suggested_recommender_id)
+    if suggested_recommender.recommender_validated and (article.status == ArticleStatus.AWAITING_CONSIDERATION.value or pciRRactivated):
+        emailing.send_to_suggested_recommender(article, suggested_recommender.suggested_recommender_id)
+        emailing.create_reminder_for_suggested_recommender_invitation(article, suggested_recommender.suggested_recommender_id)
 
     emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", article.id)
     # note: do NOT delete #ReminderSubmitterNewSuggestedRecommenderNeeded
@@ -1461,16 +1462,19 @@ def after_delete_sugg_recommender(s: ...):
 
 
 
-def declineSuggRecommender(s, f):
-    o = s.select().first()
-    sugg_recomm = o['suggested_recommender_id']
-    article = o['article_id']
-    o['declined'] = o['declined'] if 'declined' in o.keys() else False
+def declineSuggRecommender(s: ..., f: ...):
+    sugg_recommender: SuggestedRecommender = s.select().first()
+    sugg_recommender_id = sugg_recommender.suggested_recommender_id
+    article_id = sugg_recommender.article_id
+    sugg_recommender.declined = sugg_recommender.declined if 'declined' in sugg_recommender.keys() else False
     f['declined'] = f['declined'] if 'declined' in f.keys() else False
-    if o['declined'] is False and f['declined'] is True:
-        emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article, sugg_recomm)
-    if o['declined'] is True and f['declined'] is False:
-        emailing.create_reminder_for_suggested_recommender_invitation(article, sugg_recomm)
+    if sugg_recommender.declined is False and f['declined'] is True:
+        emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article_id, sugg_recommender_id)
+    if sugg_recommender.declined is True and f['declined'] is False:
+        article = Article.get_by_id(sugg_recommender.article_id)
+        if article and (article.status == ArticleStatus.AWAITING_CONSIDERATION.value or pciRRactivated):
+            emailing.create_reminder_for_suggested_recommender_invitation(article, sugg_recommender_id)
+
 
 db.define_table(
     "t_excluded_recommenders",

@@ -261,7 +261,7 @@ def suggest_all_selected():
 
     for recommender_id in recommender_ids:
       try:
-        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
+        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id, True)
       except:
         pass # ignore dup Key (article_id, suggested_recommender_id)
     redirect(what_next)

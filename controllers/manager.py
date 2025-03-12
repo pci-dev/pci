@@ -2319,7 +2319,7 @@ def manage_suggested_recommenders():
             & (db.t_suggested_recommenders.declined == False) \
             & (db.t_articles.id == db.t_suggested_recommenders.article_id) \
             & (db.auth_user.id == db.t_suggested_recommenders.suggested_recommender_id) \
-            & (db.t_articles.status == ArticleStatus.AWAITING_CONSIDERATION.value)
+            & (db.t_articles.status.belongs([ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value]))
     
     infos_by_article: Dict[int, Tuple[Article, List[Tuple[User, SuggestedRecommender]]]] = dict()
 

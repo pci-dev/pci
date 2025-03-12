@@ -597,15 +597,14 @@ def build_sugg_recommender_buttons(link_target: str, article_id: int, suggested_
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
-def send_to_suggested_recommender(articleId: int, suggRecommId: int):
+def send_to_suggested_recommender(article: Article, suggRecommId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    article = db.t_articles[articleId]
     suggested_recommender = User.get_by_id(suggRecommId)
-    if article and suggested_recommender and suggested_recommender.email:
+    if suggested_recommender and suggested_recommender.email:
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
@@ -617,7 +616,7 @@ def send_to_suggested_recommender(articleId: int, suggRecommId: int):
             if article.anonymous_submission:
                 mail_vars["articleAuthors"] = mkUnanonymizedAuthors(article)
 
-        recomm = Article.get_last_recommendation(articleId)
+        recomm = Article.get_last_recommendation(article.id)
         recomm_id = None
         if recomm:
             recomm_id = recomm.id
@@ -638,13 +637,13 @@ def send_to_suggested_recommender(articleId: int, suggRecommId: int):
             mail_vars["addNote"] = ""
 
         hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderSuggestedArticle", article)
-        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId, suggRecommId)
+        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], article.id, suggRecommId)
 
-        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+        emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, None, article.id, sugg_recommender_buttons=sugg_recommender_buttons)
 
-        delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", articleId)
+        delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", article.id)
 
-        reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports)
+        reports = emailing_tools.createMailReport(True, "suggested recommender" + mail_vars["destPerson"].flatten(), reports) # type: ignore
 
     emailing_tools.getFlashMessage(reports)
 
@@ -2546,14 +2545,13 @@ def create_reminder_for_suggested_recommenders_invitation(articleId: int):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_suggested_recommender_invitation(articleId: int, suggRecommId: int):
+def create_reminder_for_suggested_recommender_invitation(article: Article, suggRecommId: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
-    article = db.t_articles[articleId]
     suggested_recommender = User.get_by_id(suggRecommId)
-    if article and suggested_recommender and suggested_recommender.email:
+    if suggested_recommender and suggested_recommender.email:
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
@@ -2571,8 +2569,17 @@ def create_reminder_for_suggested_recommender_invitation(articleId: int, suggRec
         )
         mail_vars["helpUrl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], articleId, suggRecommId)
-        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, articleId, sugg_recommender_buttons=sugg_recommender_buttons)
+        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], article.id, suggRecommId)
+        emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, article.id, sugg_recommender_buttons=sugg_recommender_buttons)
+
+
+def send_mails_for_all_suggested_recommenders(article: Article):
+    sugg_recommenders = SuggestedRecommender.get_by_article(article.id, False, False)
+
+    for sugg_recommender in sugg_recommenders:
+        if sugg_recommender.recommender_validated:
+            send_to_suggested_recommender(article, sugg_recommender.id)
+            create_reminder_for_suggested_recommender_invitation(article, sugg_recommender.id)
 
 
 ######################################################################################################################################################################

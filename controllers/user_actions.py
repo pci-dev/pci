@@ -72,10 +72,7 @@ def suggest_article_to():
     exclude: Union[List[str], str] = request.vars["exclude"]
     my_vars = request.vars
     article = Article.get_by_id(article_id)
-    if not pciRRactivated:
-        recommender_validated = (article is not None and article.status == ArticleStatus.PENDING.value) or None
-    else:
-        recommender_validated = True
+    recommender_validated = None if not pciRRactivated else True
     SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, recommender_validated)
     exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
     exclude_list.append(str(recommender_id))
@@ -96,12 +93,16 @@ def suggest_all_selected():
     recommender_names = ''
     exclude_names = ''
     exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
+    article = Article.get_by_id(article_id)
+
+    recommender_validated = None if not pciRRactivated else True
+
     for recommender_id in recommender_ids.split(','):
         if recommender_id == '': continue
         recommender_names += str(common_small_html.mkUser(recommender_id).flatten()) + ', ' # type: ignore
 
         try:
-            SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
+            SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id, recommender_validated)
         except:
             pass # ignore dup Key (article_id, suggested_recommender_id)
 
