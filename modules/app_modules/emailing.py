@@ -459,13 +459,22 @@ def send_to_suggested_recommenders_not_needed_anymore(articleId: int):
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         # TODO: removing auth.user_id is not the best solution... Should transmit recommender_id
-        suggested_recommenders = db(
-            (db.t_suggested_recommenders.article_id == articleId)
-            & (db.t_suggested_recommenders.suggested_recommender_id != auth.user_id)
-            & (db.t_suggested_recommenders.declined == False)
-            & (db.t_suggested_recommenders.recommender_validated == True)
-            & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
-        ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
+        if not pciRRactivated:
+            suggested_recommenders = db(
+                (db.t_suggested_recommenders.article_id == articleId)
+                & (db.t_suggested_recommenders.suggested_recommender_id != auth.user_id)
+                & (db.t_suggested_recommenders.declined == False)
+                & (db.t_suggested_recommenders.recommender_validated == True)
+                & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
+            ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
+        else:
+            suggested_recommenders = db(
+                (db.t_suggested_recommenders.article_id == articleId)
+                & (db.t_suggested_recommenders.suggested_recommender_id != auth.user_id)
+                & (db.t_suggested_recommenders.declined == False)
+                & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)
+            ).select(db.t_suggested_recommenders.ALL, db.auth_user.ALL)
+
         for sugg_recommender in suggested_recommenders:
             mail_vars["destPerson"] = common_small_html.mkUser(sugg_recommender["auth_user.id"])
             mail_vars["destAddress"] = db.auth_user[sugg_recommender["auth_user.id"]]["auth_user.email"]
@@ -508,6 +517,11 @@ def send_to_suggested_recommenders(articleId: int):
         recomm_id = None
         if recomm:
             recomm_id = recomm.id
+
+        if not pciRRactivated:
+            query = "SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND sr.recommender_validated IS TRUE AND article_id=%s;"
+        else:
+            query = "SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND article_id=%s;"
 
         suggested_recommenders = db.executesql(
             "SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND sr.recommender_validated IS TRUE AND article_id=%s;",

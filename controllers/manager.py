@@ -1220,12 +1220,13 @@ def suggested_recommenders():
         )
     )
 
-    links.append(
-        dict(
-            header="Actions",
-            body=make_valid_reject_sugg_recommender_button
+    if not pciRRactivated:
+        links.append(
+            dict(
+                header="Actions",
+                body=make_valid_reject_sugg_recommender_button
+            )
         )
-    )
 
     addSuggestedRecommendersButton = A(
         current.T("Add suggested recommender"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True)

@@ -1800,17 +1800,19 @@ def add_suggested_recommender():
         reviewersIds = [auth.user_id]
         for con in recommendersListSel:
             reviewersIds.append(con.auth_user.id)
-            if con.t_suggested_recommenders.declined:
+            if pciRRactivated and con.t_suggested_recommenders.declined:
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(T("(declined)"))))
+            elif not pciRRactivated and con.t_suggested_recommenders.declined:
                 recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Declined by the recommender)")}')))
-            elif con.t_suggested_recommenders.recommender_validated is False:
+            elif not pciRRactivated and con.t_suggested_recommenders.recommender_validated is False:
                 recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Cancel by the managing board)")}')))
-            elif con.t_suggested_recommenders.recommender_validated is True and con.t_suggested_recommenders.validated_by_manager:
+            elif not pciRRactivated and con.t_suggested_recommenders.recommender_validated is True and con.t_suggested_recommenders.validated_by_manager:
                 recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Validated by the managing board)")}')))
             else:
                 recommendersList.append(
                     LI(
                         common_small_html.mkUser(con.auth_user.id),
-                        I(" (Awaiting validation by the manager)") if con.t_suggested_recommenders.recommender_validated is None else "",
+                        I(" (Awaiting validation by the manager)") if (con.t_suggested_recommenders.recommender_validated is None and not pciRRactivated) else "",
                         A(
                             "Remove",
                             _class="btn btn-warning",

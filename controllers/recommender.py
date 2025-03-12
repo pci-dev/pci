@@ -300,18 +300,31 @@ def article_details():
         redirect(request.env.http_referer)
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
     else:
-        amIAllowed = (
-            db(
-                ((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == auth.user_id))
-                | (
-                    (db.t_suggested_recommenders.article_id == articleId)
-                    & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-                    & (db.t_suggested_recommenders.declined == False)
-                    & (db.t_suggested_recommenders.recommender_validated == True)
-                )
-            ).count()
-            > 0
-        )
+        if not pciRRactivated:
+            amIAllowed = (
+                db(
+                    ((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == auth.user_id))
+                    | (
+                        (db.t_suggested_recommenders.article_id == articleId)
+                        & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+                        & (db.t_suggested_recommenders.declined == False)
+                        & (db.t_suggested_recommenders.recommender_validated == True)
+                    )
+                ).count()
+                > 0
+            )
+        else:
+            amIAllowed = (
+                db(
+                    ((db.t_recommendations.article_id == articleId) & (db.t_recommendations.recommender_id == auth.user_id))
+                    | (
+                        (db.t_suggested_recommenders.article_id == articleId)
+                        & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+                        & (db.t_suggested_recommenders.declined == False)
+                    )
+                ).count()
+                > 0
+            )
         if (amIAllowed is False) and (art.status == "Awaiting consideration") and (auth.has_membership(role="recommender")):
             amIAllowed = True
 
@@ -439,13 +452,21 @@ def new_submission():
 def my_awaiting_articles():
     response.view = "default/myLayout.html"
 
-    query = (
-        (db.t_articles.status == "Awaiting consideration")
-        & (db.t_articles._id == db.t_suggested_recommenders.article_id)
-        & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-        & (db.t_suggested_recommenders.declined == False)
-        & (db.t_suggested_recommenders.recommender_validated == True)
-    )
+    if not pciRRactivated:
+        query = (
+            (db.t_articles.status == "Awaiting consideration")
+            & (db.t_articles._id == db.t_suggested_recommenders.article_id)
+            & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+            & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.recommender_validated == True)
+        )
+    else:
+        query = (
+            (db.t_articles.status == "Awaiting consideration")
+            & (db.t_articles._id == db.t_suggested_recommenders.article_id)
+            & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+            & (db.t_suggested_recommenders.declined == False)
+        )
     db.t_articles.user_id.writable = False
     db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(
             row.anonymous_submission,
@@ -2822,9 +2843,14 @@ def verify_co_authorship():
         return
 
     reviewer_query = (db.t_recommendations.article_id == article.id) & (db.t_reviews.recommendation_id == db.t_recommendations.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Awaiting response", "Review completed"))
-    is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
-                            (db.t_suggested_recommenders.declined == False) & \
-                                (db.t_suggested_recommenders.recommender_validated == True)).select(db.t_suggested_recommenders.suggested_recommender_id)
+    if not pciRRactivated:
+        is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
+                                (db.t_suggested_recommenders.declined == False) & \
+                                    (db.t_suggested_recommenders.recommender_validated == True)).select(db.t_suggested_recommenders.suggested_recommender_id)
+    else:
+        is_suggested = db((db.t_suggested_recommenders.article_id == article.id) & \
+                                (db.t_suggested_recommenders.declined == False)).select(db.t_suggested_recommenders.suggested_recommender_id)
+
     has_recommender = db(db.v_article_recommender.recommendation_id == recommendation.id).select(db.v_article_recommender.recommender) if recommendation else None
     has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state)
     has_co_recommenders = db(db.t_press_reviews.recommendation_id == recommendation.id).select(db.t_press_reviews.contributor_id) if recommendation else None

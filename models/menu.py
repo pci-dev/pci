@@ -296,13 +296,21 @@ def _RecommendationMenu():
 
     # recommendations
 
-    nPreprintsRecomPend = db(
-        (db.t_articles.status == "Awaiting consideration")
-        & (db.t_articles._id == db.t_suggested_recommenders.article_id)
-        & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-        & (db.t_suggested_recommenders.declined == False)
-        & (db.t_suggested_recommenders.recommender_validated == True)
-    ).count()
+    if not pciRRactivated:
+        nPreprintsRecomPend = db(
+            (db.t_articles.status == "Awaiting consideration")
+            & (db.t_articles._id == db.t_suggested_recommenders.article_id)
+            & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+            & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.recommender_validated == True)
+        ).count()
+    else:
+        nPreprintsRecomPend = db(
+            (db.t_articles.status == "Awaiting consideration")
+            & (db.t_articles._id == db.t_suggested_recommenders.article_id)
+            & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+            & (db.t_suggested_recommenders.declined == False)
+        ).count()
     txtPreprintsRecomPend = menu_entry_item(
         T("%s Request(s) to handle a preprint") % nPreprintsRecomPend, "glyphicon-envelope",
         _class="pci-recommender"
@@ -488,12 +496,13 @@ def _ManagerMenu():
         menu_entry("Comments", "glyphicon-comment", URL("manager", "manage_comments", user_signature=True), _class="pci-manager"),
     ]
 
-    sugg_recommender_to_validate = SuggestedRecommender.get_all(True, False, [ArticleStatus.AWAITING_CONSIDERATION])
-    if len(sugg_recommender_to_validate) > 0:
-        txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
-        managerMenu.append(menu_entry("Manage suggested recommenders", "glyphicon-user", URL("manager", "manage_suggested_recommenders", user_signature=True), _class="pci-manager pci-enhancedMenuItem"))
-    else:
-        managerMenu.append(menu_entry("Manage suggested recommenders", "glyphicon-user", URL("manager", "manage_suggested_recommenders", user_signature=True), _class="pci-manager"))
+    if not pciRRactivated:
+        sugg_recommender_to_validate = SuggestedRecommender.get_all(True, False, [ArticleStatus.AWAITING_CONSIDERATION])
+        if len(sugg_recommender_to_validate) > 0:
+            txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
+            managerMenu.append(menu_entry("Manage suggested recommenders", "glyphicon-user", URL("manager", "manage_suggested_recommenders", user_signature=True), _class="pci-manager pci-enhancedMenuItem"))
+        else:
+            managerMenu.append(menu_entry("Manage suggested recommenders", "glyphicon-user", URL("manager", "manage_suggested_recommenders", user_signature=True), _class="pci-manager"))
 
     if pciRRactivated: managerMenu += [
         menu_entry("Recommender Statistics", "glyphicon-stats", URL("manager", "recommender_statistics", user_signature=True), _class="pci-manager")
