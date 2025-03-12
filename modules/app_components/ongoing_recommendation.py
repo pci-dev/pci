@@ -1254,7 +1254,7 @@ def validate_stage_button(article: Article):
                     extra_button=[put_in_presubmission_button(article), set_to_not_considered(article)],
                 )
                 return SPAN(
-                    validation_checklist('do_validate_article') if not pciRRactivated else "",
+                    validation_checklist('do_validate_article', article) if not pciRRactivated else "",
                     button)
             elif article.status == ArticleStatus.PRE_SUBMISSION.value:
                 return manager_action_button(
@@ -1282,7 +1282,7 @@ def validate_stage_button(article: Article):
                     _style="margin-top:40px", 
                     _id="title-recomm-process", 
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
-                    validation_checklist('do_recommend_article') if not pciRRactivated else "",
+                    validation_checklist('do_recommend_article', article) if not pciRRactivated else "",
                     button)
             
             elif article.status == ArticleStatus.PRE_REVISION.value:
@@ -1299,7 +1299,7 @@ def validate_stage_button(article: Article):
                     _style="margin-top:40px", 
                     _id="title-recomm-process", 
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
-                    validation_checklist('do_revise_article') if not pciRRactivated else "",
+                    validation_checklist('do_revise_article', article) if not pciRRactivated else "",
                     button)
             elif article.status == ArticleStatus.PRE_REJECTED.value:
                 button = manager_action_button(
@@ -1315,7 +1315,7 @@ def validate_stage_button(article: Article):
                     _style="margin-top:40px", 
                     _id="title-recomm-process", 
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
-                    validation_checklist('do_reject_article') if not pciRRactivated else "",
+                    validation_checklist('do_reject_article', article) if not pciRRactivated else "",
                     button)
 
             return None
@@ -1425,8 +1425,8 @@ def validate_scheduled_submission_button(articleId: int, **extra_vars: ...):
             _class="pci-EditButtons-centered",
     )
 
-def validation_checklist(validation_type: str):
-    checkboxes: Dict[str, str] = {}
+def validation_checklist(validation_type: str, article: Article):
+    checkboxes: Dict[str, Union[str, List[Union[str, A]]]] = {}
 
     if validation_type == 'do_validate_article':
         checkboxes = {
@@ -1448,6 +1448,15 @@ def validation_checklist(validation_type: str):
             "no_plagiarism":
             "No plagiarism has been detected ",
         }
+
+        if not pciRRactivated:
+            sugg_recommender_button = manager_module.mkSuggestedRecommendersManagerButton(article, current.request.env.http_referer, True) or ""
+
+            checkboxes["co_authorship_ok"] = "Co-authorship between authors and suggested recommenders (and suggested reviewers) is ok"
+
+            checkboxes["sugg_recommender_ok"] = ["Recommenders suggested by the authors have been validated or cancelled and there is at least one suggested recommender left. ",
+                                                 sugg_recommender_button]
+
     elif validation_type == 'do_recommend_article':
         checkboxes = {
             "title_present":
@@ -1483,7 +1492,8 @@ def validation_checklist(validation_type: str):
             _type="checkbox",
             _id=name,
             requires=IS_NOT_EMPTY(),
-        ), LABEL(H5(label), _for=name), _id='chckbxs_mandatory')
+            _style="margin: 0px 10px 0px 0px"
+        ), LABEL(H5(label, _style="margin: 0"), _for=name), _id='chckbxs_mandatory', _style="display: flex; margin-bottom: 10px")
         for name, label in checkboxes.items()
     ]
     script = common_tools.get_script("validate_submission.js")

@@ -166,6 +166,8 @@ class Manager_validates:
         select("#scope_ok").click()
         select("#information_consistent").click()
         select("#no_plagiarism").click()
+        select("#co_authorship_ok").click()
+        select("#sugg_recommender_ok").click()
     select(".btn-success", "Validate this submission".upper()).click()
     select('#confirm-change-modal .btn-info', 'Yes'.upper()).click()
     select.notif("Request now available to recommenders").wait_clickable()
