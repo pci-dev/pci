@@ -1193,9 +1193,13 @@ def suggested_recommenders():
     db.t_suggested_recommenders.article_id.writable = False
     db.t_suggested_recommenders._id.readable = False
     db.t_suggested_recommenders.email_sent.readable = False
-    db.t_suggested_recommenders.recommender_validated.readable = True
-    db.t_suggested_recommenders.recommender_validated.label = "Validated"
     db.t_suggested_recommenders.suggested_recommender_id.represent = make_user_mail
+
+    if not pciRRactivated:
+        db.t_suggested_recommenders.recommender_validated.readable = True
+        db.t_suggested_recommenders.recommender_validated.label = "Validated"
+
+
     links: List[Dict[str, Any]] = []
 
     def make_email_history_button(row: SuggestedRecommender):
@@ -1251,11 +1255,14 @@ def suggested_recommenders():
             db.t_suggested_recommenders.email_sent,
             db.t_suggested_recommenders.emailing,
             db.t_suggested_recommenders.recommender_validated,
+            db.t_suggested_recommenders.recommender_validated,
         ],
         field_id=db.t_suggested_recommenders.id,
         links=links,
         _class="web2py_grid action-button-absolute",
     )
+
+    represent_rejected_column(grid)
 
     response.view = "default/myLayout.html"
     return dict(
@@ -1270,6 +1277,20 @@ def suggested_recommenders():
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
+
+def represent_rejected_column(grid: ...):
+    th = grid.elements('th a')
+    th[3].components[0] = "Rejected"
+
+    trs = grid.elements('tr')
+    for tr in trs:
+        checkbox = tr.components[3].components[0]
+        if isinstance(checkbox, INPUT):
+            value = cast(Optional[bool], checkbox.attributes['_checked']) # type: ignore
+            if value is None:
+                continue
+            else:
+                checkbox.attributes['_checked'] = not value # type: ignore
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or (auth.has_membership(role="recommender") and pciRRactivated))

@@ -1805,7 +1805,7 @@ def add_suggested_recommender():
             elif not pciRRactivated and con.t_suggested_recommenders.declined:
                 recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Declined by the recommender)")}')))
             elif not pciRRactivated and con.t_suggested_recommenders.recommender_validated is False:
-                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Cancel by the managing board)")}')))
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Cancelled by the managing board)")}')))
             elif not pciRRactivated and con.t_suggested_recommenders.recommender_validated is True:
                 recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Validated by the managing board)")}')))
             else:
