@@ -1232,8 +1232,12 @@ def suggested_recommenders():
             )
         )
 
-    addSuggestedRecommendersButton = A(
-        current.T("Add suggested recommender"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True)
+    request.vars['whatNext'] = ''
+    addSuggestedRecommendersButton = CENTER(A(
+        current.T("Add suggested recommender"),
+        _class="btn btn-default pci-manager",
+        _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True),
+        _style="position: relative; top: 60px")
     )
 
     grid: ... = SQLFORM.grid( # type: ignore
@@ -1262,7 +1266,8 @@ def suggested_recommenders():
         _class="web2py_grid action-button-absolute",
     )
 
-    represent_rejected_column(grid)
+    if not pciRRactivated:
+        represent_rejected_column(grid)
 
     response.view = "default/myLayout.html"
     return dict(

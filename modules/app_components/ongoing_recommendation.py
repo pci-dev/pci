@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from dateutil.relativedelta import *
 
 from gluon import current
@@ -1426,64 +1426,65 @@ def validate_scheduled_submission_button(articleId: int, **extra_vars: ...):
     )
 
 def validation_checklist(validation_type: str, article: Article):
-    checkboxes: Dict[str, Union[str, List[Union[str, A]]]] = {}
+    checkboxes: Dict[str, Tuple[Union[str, List[Union[str, A]]], bool]] = {}
 
     if validation_type == 'do_validate_article':
         checkboxes = {
             "article_doi_correct":
-            "DOI/URL of article is correct",
+            ("DOI/URL of article is correct", True),
 
             "data_ok":
-            "Link for data is ok",
+            ("Link for data is ok", True),
 
             "code_and_scripts_ok":
-            "Link for code and scripts is ok",
+            ("Link for code and scripts is ok", True),
 
             "scope_ok":
-            "Scope is ok",
+            ("Scope is ok", True),
 
             "information_consistent":
-            "The information about the data/scripts/codes on the submission page and in the manuscript are consistent",
+            ("The information about the data/scripts/codes on the submission page and in the manuscript are consistent", True),
 
             "no_plagiarism":
-            "No plagiarism has been detected ",
+            ("No plagiarism has been detected ", True),
         }
 
         if not pciRRactivated:
             sugg_recommender_button = manager_module.mkSuggestedRecommendersManagerButton(article, current.request.env.http_referer, True) or ""
 
-            checkboxes["co_authorship_ok"] = "Co-authorship between authors and suggested recommenders (and suggested reviewers) is ok"
+            checkboxes["co_authorship_ok"] = ("Co-authorship between authors and suggested recommenders (and suggested reviewers) is ok", True)
 
-            checkboxes["sugg_recommender_ok"] = ["Recommenders suggested by the authors have been validated or cancelled and there is at least one suggested recommender left. ",
-                                                 sugg_recommender_button]
+            checkboxes["sugg_recommender_ok"] = (["Recommenders suggested by the authors have been validated or cancelled and there is at least one suggested recommender left. ",
+                                                 sugg_recommender_button],
+                                                 SuggestedRecommender.check_if_all_processed(article.id))
 
     elif validation_type == 'do_recommend_article':
         checkboxes = {
             "title_present":
-            "The recommendation has a title",
+            ("The recommendation has a title", True),
 
             "recommendation_explains":
-            "The recommendation explains why the article is recommended",
+            ("The recommendation explains why the article is recommended", True),
 
             "recommendation_cites":
-            "The recommendation text cites at least the recommended preprint",
+            ("The recommendation text cites at least the recommended preprint", True),
 
             "year_ok":
-            "The year of the recommended version of the article (indicated on the 'Edit Article' page) is good. You can find this year by clicking the 'Edit article' tab above.",
+            ("The year of the recommended version of the article (indicated on the 'Edit Article' page) is good. You can find this year by clicking the 'Edit article' tab above.", True),
 
             "format_ok":
-            "The recommendation is correctly formatted (DOIs in references, links of URLs, title of the 'References' section, cf other published recommendations)",
+            ("The recommendation is correctly formatted (DOIs in references, links of URLs, title of the 'References' section, cf other published recommendations)", True),
         }
     elif validation_type in ['do_revise_article', 'do_reject_article']:
         checkboxes = {
             "reviews_ok":
-            "Reviews are not too short, are comprehensive and look fine in their tone",
+            ("Reviews are not too short, are comprehensive and look fine in their tone", True),
 
             "reviews_not_copied":
-            "Reviews have not been copied by the recommender in their editorial decision box",
+            ("Reviews have not been copied by the recommender in their editorial decision box", True),
 
             "decision_ok":
-            "The editorial decision looks fine on the tone and is overall in agreement with the reviews",
+            ("The editorial decision looks fine on the tone and is overall in agreement with the reviews", True),
         }
 
     fields = [
@@ -1492,9 +1493,10 @@ def validation_checklist(validation_type: str, article: Article):
             _type="checkbox",
             _id=name,
             requires=IS_NOT_EMPTY(),
+            _disabled=not data[1],
             _style="margin: 0px 10px 0px 0px"
-        ), LABEL(H5(label, _style="margin: 0"), _for=name), _id='chckbxs_mandatory', _style="display: flex; margin-bottom: 10px")
-        for name, label in checkboxes.items()
+        ), LABEL(H5(data[0], _style="margin: 0; line-height: 20px"), _for=name), _id='chckbxs_mandatory', _style="display: flex; margin-bottom: 10px")
+        for name, data in checkboxes.items()
     ]
     script = common_tools.get_script("validate_submission.js")
     return DIV(*fields, script, _id="validation_checklist")

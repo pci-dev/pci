@@ -524,7 +524,7 @@ def send_to_suggested_recommenders(articleId: int):
             query = "SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND article_id=%s;"
 
         suggested_recommenders = db.executesql(
-            "SELECT DISTINCT au.*, sr.id AS sr_id FROM t_suggested_recommenders AS sr JOIN auth_user AS au ON sr.suggested_recommender_id=au.id WHERE sr.email_sent IS FALSE AND sr.declined IS FALSE AND sr.recommender_validated IS TRUE AND article_id=%s;",
+            query,
             placeholders=[article.id],
             as_dict=True,
         )
@@ -597,13 +597,13 @@ def build_sugg_recommender_buttons(link_target: str, article_id: int, suggested_
 
 ######################################################################################################################################################################
 # Do send email to suggested recommenders for a given available article
-def send_to_suggested_recommender(article: Article, suggRecommId: int):
+def send_to_suggested_recommender(article: Article, recommender_id: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
-    suggested_recommender = User.get_by_id(suggRecommId)
+    suggested_recommender = User.get_by_id(recommender_id)
     if suggested_recommender and suggested_recommender.email:
 
         mail_vars["articleTitle"] = md_to_html(article.title)
@@ -621,7 +621,7 @@ def send_to_suggested_recommender(article: Article, suggRecommId: int):
         if recomm:
             recomm_id = recomm.id
 
-        mail_vars["destPerson"] = common_small_html.mkUser(suggRecommId)
+        mail_vars["destPerson"] = common_small_html.mkUser(recommender_id)
         mail_vars["destAddress"] = suggested_recommender.email
         mail_vars["linkTarget"] = URL(
             c="recommender", f="article_details", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"]
@@ -637,7 +637,7 @@ def send_to_suggested_recommender(article: Article, suggRecommId: int):
             mail_vars["addNote"] = ""
 
         hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderSuggestedArticle", article)
-        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], article.id, suggRecommId)
+        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], article.id, recommender_id)
 
         emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm_id, None, article.id, sugg_recommender_buttons=sugg_recommender_buttons)
 
@@ -2545,19 +2545,19 @@ def create_reminder_for_suggested_recommenders_invitation(articleId: int):
 
 
 ######################################################################################################################################################################
-def create_reminder_for_suggested_recommender_invitation(article: Article, suggRecommId: int):
+def create_reminder_for_suggested_recommender_invitation(article: Article, recommender_id: int):
     session, auth, db = current.session, current.auth, current.db
 
     mail_vars = emailing_tools.getMailCommonVars()
 
-    suggested_recommender = User.get_by_id(suggRecommId)
+    suggested_recommender = User.get_by_id(recommender_id)
     if suggested_recommender and suggested_recommender.email:
         if pciRRactivated:
             mail_vars.update(getPCiRRScheduledSubmissionsVars(article))
 
         hashtag_template = emailing_tools.get_correct_hashtag("#ReminderSuggestedRecommenderInvitation", article)
 
-        mail_vars["destPerson"] = common_small_html.mkUser(suggRecommId)
+        mail_vars["destPerson"] = common_small_html.mkUser(recommender_id)
         mail_vars["destAddress"] = suggested_recommender.email
 
         mail_vars["articleDoi"] = article.doi
@@ -2569,17 +2569,8 @@ def create_reminder_for_suggested_recommender_invitation(article: Article, suggR
         )
         mail_vars["helpUrl"] = URL(c="help", f="help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], article.id, suggRecommId)
+        sugg_recommender_buttons = build_sugg_recommender_buttons(mail_vars["linkTarget"], article.id, recommender_id)
         emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, article.id, sugg_recommender_buttons=sugg_recommender_buttons)
-
-
-def send_mails_for_all_suggested_recommenders(article: Article):
-    sugg_recommenders = SuggestedRecommender.get_by_article(article.id, False, False)
-
-    for sugg_recommender in sugg_recommenders:
-        if sugg_recommender.recommender_validated:
-            send_to_suggested_recommender(article, sugg_recommender.id)
-            create_reminder_for_suggested_recommender_invitation(article, sugg_recommender.id)
 
 
 ######################################################################################################################################################################
@@ -3857,12 +3848,14 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
         buttons.append(button) # type: ignore
 
     pending_mails = MailQueue.get_by_article_and_template(article_id, template, [SendingStatus.PENDING])
+    sending_date = datetime.datetime.now() + datetime.timedelta(hours=1)
+
     if len(pending_mails) > 0:
         for pending_mail in pending_mails:
             MailQueue.change_suggested_recommender_button(pending_mail, buttons)
+            pending_mail.update_record(sending_date=sending_date) # type: ignore
     else:
         if resend:
-            sending_date = datetime.datetime.now() + datetime.timedelta(hours=1)
             emailing_tools.insert_reminder_mail_in_queue(template,
                                                         mail_vars,
                                                         article_id=article_id,

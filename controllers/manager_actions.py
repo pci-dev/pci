@@ -40,12 +40,17 @@ contact = myconf.take("contacts.managers")
 def do_validate_article():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
+    sugg_recommender_ok = SuggestedRecommender.check_if_all_processed(articleId)
+    
     if art is None:
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
+    if not sugg_recommender_ok:
+        session.flash = "Suggested recommender waiting to be validated"
+        return redirect(request.env.http_referer)
     if art.status == "Pending":
         art.status = "Awaiting consideration"
         art.validation_timestamp = request.now

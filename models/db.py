@@ -731,8 +731,6 @@ def deltaStatus(s: ..., f: Article):
             # emailing.create_reminder_for_submitter_cancel_submission(o["id"])
             emailing.create_reminder_for_suggested_recommenders_invitation(o["id"])
             emailing.send_to_managers(o["id"], f["status"])
-            if not pciRRactivated:
-                emailing.send_mails_for_all_suggested_recommenders(o)
 
         elif o.status == "Pre-submission" and f["status"] == "Pending":
             emailing.send_to_managers(o["id"], "Resubmission")
