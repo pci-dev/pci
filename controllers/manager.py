@@ -2381,7 +2381,7 @@ def do_valid_suggested_recommender():
     sugg_recommender = SuggestedRecommender.get_by_id(sugg_recommender_id)
     if sugg_recommender:
         sugg_recommender_name = User.get_name_by_id(sugg_recommender.suggested_recommender_id)
-        sugg_recommender.update_record(recommender_validated=True, validated_by_manager=True) # type: ignore
+        sugg_recommender.update_record(recommender_validated=True) # type: ignore
     else:
         return HTTP(404, session.flash)
 

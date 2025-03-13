@@ -1386,7 +1386,6 @@ db.define_table(
     Field("emailing", type="text", length=2097152, label=T("Emails history"), readable=False, writable=False),
     Field("quick_decline_key", type="text", label=T("Quick decline key"), readable=False, writable=False),
     Field("recommender_validated", type="boolean", writable=False, readable=False),
-    Field("validated_by_manager", type="boolean", writable=False, readable=False),
     singular=T("Suggested recommender"),
     plural=T("Suggested recommenders"),
     migrate=False,
