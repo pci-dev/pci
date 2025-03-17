@@ -1145,6 +1145,16 @@ def search_recommenders():
     grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options, integer_fields)
     select_all_script = common_tools.get_script("select_all.js")
 
+    done_btn = DIV(
+        A(
+            SPAN(current.T("Done"), _class="buttontext btn btn-info"),
+            _class="button",
+            _href=URL(c="manager", f="manage_suggested_recommenders", user_signature=True)
+        ),
+        _style="text-align:center; margin-top:16px;",
+        _class="done-btn"
+    )
+
     response.view = "default/gab_list_layout.html"
     return dict(
         pageHelp=getHelp("#ManagerSearchRecommenders"),
@@ -1158,6 +1168,7 @@ def search_recommenders():
         selectAllBtn = select_all_btn,
         selectAllScript = select_all_script,
         absoluteButtonScript=common_tools.absoluteButtonScript,
+        myAcceptBtn=done_btn,
     )
 
 
