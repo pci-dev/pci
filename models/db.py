@@ -2,6 +2,7 @@
 
 import locale
 locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
+# keep the above setlocale first in load order - before any AppConfig load
 
 from gluon.sqlhtml import SQLFORM
 from models.suggested_recommender import SuggestedRecommender
