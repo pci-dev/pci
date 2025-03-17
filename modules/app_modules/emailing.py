@@ -3474,7 +3474,10 @@ def alert_managers_recommender_action_needed(hashtag_template: str, recommId: in
         emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
 ########################################################
-def delete_reminder_for_managers(hashtag_template: List[str], recommendation_id: Optional[int] = None, article_id: Optional[int] = None):
+def delete_reminder_for_managers(hashtag_template: List[str],
+                                 recommendation_id: Optional[int] = None,
+                                 article_id: Optional[int] = None,
+                                 sending_status: List[SendingStatus] = []):
     db = current.db
 
     query = (db.mail_queue.mail_template_hashtag.belongs(hashtag_template))
@@ -3482,8 +3485,12 @@ def delete_reminder_for_managers(hashtag_template: List[str], recommendation_id:
         query = query & (db.mail_queue.recommendation_id == recommendation_id)
     if article_id:
         query = query & (db.mail_queue.article_id == article_id)
+    if sending_status:
+        status = [s.value for s in sending_status]
+        query = query & (db.mail_queue.sending_status.belongs(status))
 
     db(query).delete()
+
 
 def send_warning_to_submitters(article_id):
     db = current.db
@@ -3806,7 +3813,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
     if not article:
         return
     
-    next_url = URL("manager", "manage_suggested_recommenders", scheme=True)
+    next_url = URL(c="manager", f="suggested_recommenders", vars=dict(articleId=article_id), scheme=True)
 
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destAddress"] = mail_vars["appContactMail"]
@@ -3820,7 +3827,9 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
     button_style = "font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-right: 5px"
 
     if len(suggested_recommenders) == 0 or article.status != ArticleStatus.AWAITING_CONSIDERATION.value:
-        delete_reminder_for_managers([template, template_reminder], article_id=article_id)
+        delete_reminder_for_managers([template, template_reminder],
+                                     article_id=article_id,
+                                     sending_status=[SendingStatus.PENDING])
         return
 
     for suggested_recommender in suggested_recommenders:
@@ -3861,17 +3870,25 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
                                                         article_id=article_id,
                                                         sugg_recommender_buttons=buttons,
                                                         sending_date_forced=sending_date)
+    
+    if len(pending_mails) > 0 or resend:
+        delete_reminder_for_managers([template_reminder], article_id=article_id, sending_status=[SendingStatus.PENDING])
         
     pending_mails_reminder = MailQueue.get_by_article_and_template(article_id, template_reminder, [SendingStatus.PENDING])
     if len(pending_mails_reminder) > 0:
         for pending_mail in pending_mails_reminder:
-            MailQueue.change_suggested_recommender_button(pending_mail, buttons, mail_vars)
+            mail = MailQueue.change_suggested_recommender_button(pending_mail, buttons, mail_vars)
+            mail.update_record(sending_date=mail.sending_date + datetime.timedelta(hours=1)) # type: ignore
     else:
         if resend:
-            emailing_tools.insert_reminder_mail_in_queue(template_reminder,
+            mail_id = emailing_tools.insert_reminder_mail_in_queue(template_reminder,
                                                         mail_vars,
                                                         article_id=article_id,
                                                         sugg_recommender_buttons=buttons)
+            if mail_id: 
+                mail = MailQueue.get_mail_by_id(mail_id)
+                if mail:
+                    mail.update_record(sending_date=mail.sending_date + datetime.timedelta(hours=1)) # type: ignore
 
 
 

@@ -1149,7 +1149,7 @@ def search_recommenders():
         A(
             SPAN(current.T("Done"), _class="buttontext btn btn-info"),
             _class="button",
-            _href=URL(c="manager", f="manage_suggested_recommenders", user_signature=True)
+            _href=URL(c="manager", f="suggested_recommenders", vars=dict(articleId=articleId), user_signature=True)
         ),
         _style="text-align:center; margin-top:16px;",
         _class="done-btn"

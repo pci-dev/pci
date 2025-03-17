@@ -505,7 +505,7 @@ def insert_reminder_mail_in_queue(
     reviewer_invitation_buttons: Optional[DIV] = None,
     sender_name: Optional[str] = None,
     sugg_recommender_buttons: Optional[DIV] = None
-):
+) -> Optional[int]:
 
     db, auth = current.db, current.auth
 
@@ -538,7 +538,7 @@ def insert_reminder_mail_in_queue(
         )
 
 
-        db.mail_queue.insert(
+        return db.mail_queue.insert(
             sending_status="pending",
             sending_date=sending_date,
             dest_mail_address=mail_vars["destAddress"],
