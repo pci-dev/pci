@@ -337,7 +337,7 @@ def update_article(article, **kwargs):
 def get_origin_request(article):
     db = current.db
     req = db(db.t_coar_notification.coar_id == article.coar_notification_id).select().first()
-    return json.loads(req.body) if req else None
+    return json.loads(req.body) if req and req.coar_id else None
 
 
 def get_target_inbox(article):
