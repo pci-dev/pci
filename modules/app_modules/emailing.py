@@ -3852,7 +3852,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
 
     if len(pending_mails) > 0:
         for pending_mail in pending_mails:
-            MailQueue.change_suggested_recommender_button(pending_mail, buttons)
+            MailQueue.change_suggested_recommender_button(pending_mail, buttons, mail_vars)
             pending_mail.update_record(sending_date=sending_date) # type: ignore
     else:
         if resend:
@@ -3865,7 +3865,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
     pending_mails_reminder = MailQueue.get_by_article_and_template(article_id, template_reminder, [SendingStatus.PENDING])
     if len(pending_mails_reminder) > 0:
         for pending_mail in pending_mails_reminder:
-            MailQueue.change_suggested_recommender_button(pending_mail, buttons)
+            MailQueue.change_suggested_recommender_button(pending_mail, buttons, mail_vars)
     else:
         if resend:
             emailing_tools.insert_reminder_mail_in_queue(template_reminder,

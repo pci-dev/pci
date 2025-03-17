@@ -1,10 +1,11 @@
 from datetime import datetime
 from enum import Enum
 import re
-from typing import Any, List, Optional as _, Union, cast
+from typing import Any, Dict, List, Optional as _, Union, cast
+from app_modules.emailing_tools import build_mail
 from models.review import Review
 from pydal.objects import Row
-from gluon import DIV, TAG, current
+from gluon import DIV, current
 
 class SendingStatus(Enum):
     SENT = 'sent'
@@ -150,13 +151,14 @@ class MailQueue(Row):
 
 
     @staticmethod
-    def change_suggested_recommender_button(mail: 'MailQueue', sugg_recommender_buttons: DIV):
-        mail_content: ... = TAG(mail.mail_content)
+    def change_suggested_recommender_button(mail: 'MailQueue', sugg_recommender_buttons: DIV, mail_vars: Dict[str, Any]):
         try:
-            div = DIV(sugg_recommender_buttons, _id="sugg_recommender_buttons")
-            mail_content.element(_id="sugg_recommender_buttons", replace=div)
+            mail_content = build_mail(mail.mail_template_hashtag, 
+                                      mail_vars, 
+                                      sugg_recommender_buttons=sugg_recommender_buttons, 
+                                      article_id=mail.article_id)['content']
+            mail.update_record(mail_content=mail_content) # type: ignore
         except:
             return mail
-        mail.update_record(mail_content=mail_content) # type: ignore
         return mail
 
