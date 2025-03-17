@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import locale
+locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
+# keep the above setlocale first in load order - before any AppConfig load
 
 from gluon.sqlhtml import SQLFORM
 from models.suggested_recommender import SuggestedRecommender
-locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
 
 from typing import cast
 from app_components.custom_validator import CUSTOM_VALID_URL, VALID_LIST_NAMES_MAIL, VALID_DOI, TEXT_CLEANER
