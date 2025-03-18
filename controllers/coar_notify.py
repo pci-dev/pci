@@ -199,8 +199,8 @@ def create_prefilled_submission(req, user):
 
     doi = article_data["ietf:cite-as"]
     meta_data = get_signposting_metadata(doi)
+    meta_data.update(guess_version(doi))
     preprint_server = get_preprint_server(doi)
-    guess_version(doi, meta_data)
 
     if not meta_data.get("authors"):
         meta_data["authors"] = author_data["name"]
@@ -240,7 +240,7 @@ def check_duplicate_submission(doi, meta_data):
     awaiting_revision = db.t_articles.status == "Awaiting revision"
 
     doi_nover = re.sub('v[0-9]+/?$', '', doi.lower())
-    title_norm = meta_data["title"].lower()
+    title_norm = meta_data.get("title", "").lower()
 
     same_title = db((db.t_articles.title.lower() == title_norm) & awaiting_revision)
     same_url = db((db.t_articles.doi.lower().startswith(doi_nover)) & awaiting_revision)
@@ -278,6 +278,13 @@ def get_signposting_metadata(doi):
         if metadata:
             return metadata
 
+    return dict(
+            title="",
+            authors="",
+            article_year="",
+            abstract="",
+            keywords="",
+    )
     fail(f"no supported sign-posting metadata found at doi={doi}")
 
 
@@ -361,7 +368,7 @@ def grab_json_meta(c, *args):
         return ""
 
 
-def guess_version(doi, metadata):
+def guess_version(doi):
     try:
         r = requests.get(doi, timeout=(1,4), allow_redirects=True)
         m = (
@@ -372,7 +379,7 @@ def guess_version(doi, metadata):
     except:
         version = 1
 
-    metadata["ms_version"] = version
+    return { "ms_version": version }
 
 
 def get_link(doi, **kv):
