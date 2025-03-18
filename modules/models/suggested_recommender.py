@@ -86,12 +86,14 @@ class SuggestedRecommender(Row):
 
 
     @staticmethod
-    def nb_suggested_recommender(article_id: int, declined: bool = False):
+    def nb_suggested_recommender(article_id: int, declined: bool = False, just_validated: bool = False):
         db = current.db
+        query = (db.t_suggested_recommenders.article_id == article_id)
         if declined:
-            return int(db((db.t_suggested_recommenders.article_id == article_id) & (db.t_suggested_recommenders.declined == True)).count())
-        else:
-            return int(db(db.t_suggested_recommenders.article_id == article_id).count())
+            query = query & (db.t_suggested_recommenders.declined == True)
+        if just_validated:
+            query = query & (db.t_suggested_recommenders.recommender_validated == True)
+        return int(db(query).count())
 
 
     @staticmethod

@@ -1205,10 +1205,8 @@ def suggested_recommenders():
     db.t_suggested_recommenders._id.readable = False
     db.t_suggested_recommenders.email_sent.readable = False
     db.t_suggested_recommenders.suggested_recommender_id.represent = make_user_mail
-
-    if not pciRRactivated:
-        db.t_suggested_recommenders.recommender_validated.readable = True
-        db.t_suggested_recommenders.recommender_validated.label = "Validated"
+    db.t_suggested_recommenders.recommender_validated.readable = True
+    db.t_suggested_recommenders.recommender_validated.label = "Validated"
 
 
     links: List[Dict[str, Any]] = []
@@ -1235,20 +1233,19 @@ def suggested_recommenders():
         )
     )
 
-    if not pciRRactivated:
-        links.append(
-            dict(
-                header="Actions",
-                body=make_valid_reject_sugg_recommender_button
-            )
+    links.append(
+        dict(
+            header="Actions",
+            body=make_valid_reject_sugg_recommender_button
         )
+    )
 
     request.vars['whatNext'] = ''
-    addSuggestedRecommendersButton = CENTER(A(
+    addSuggestedRecommendersButton = DIV(A(
         current.T("Add suggested recommender"),
         _class="btn btn-default pci-manager",
         _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True),
-        _style="position: relative; top: 60px")
+        _style="position: relative;")
     )
 
     grid: ... = SQLFORM.grid( # type: ignore
@@ -1277,8 +1274,7 @@ def suggested_recommenders():
         _class="web2py_grid action-button-absolute",
     )
 
-    if not pciRRactivated:
-        represent_rejected_column(grid)
+    represent_rejected_column(grid)
 
     response.view = "default/myLayout.html"
     return dict(
@@ -1295,6 +1291,9 @@ def suggested_recommenders():
 
 
 def represent_rejected_column(grid: ...):
+    if not current.request.url.endswith('suggested_recommenders'):
+        return
+    
     th = grid.elements('th a')
     th[3].components[0] = "Rejected"
 

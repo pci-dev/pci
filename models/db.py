@@ -1410,7 +1410,7 @@ def after_update_suggested_recommender(s: ..., f: ...):
         return
     
     if suggested_recommender.recommender_validated:
-        if article.status == ArticleStatus.AWAITING_CONSIDERATION.value or pciRRactivated:
+        if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
             emailing.send_to_suggested_recommender(article, suggested_recommender.suggested_recommender_id)
             emailing.create_reminder_for_suggested_recommender_invitation(article, suggested_recommender.suggested_recommender_id)
         emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
@@ -1427,7 +1427,7 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
     if not article:
         return
     
-    if suggested_recommender.recommender_validated and (article.status == ArticleStatus.AWAITING_CONSIDERATION.value or pciRRactivated):
+    if suggested_recommender.recommender_validated and article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
         emailing.send_to_suggested_recommender(article, suggested_recommender.suggested_recommender_id)
         emailing.create_reminder_for_suggested_recommender_invitation(article, suggested_recommender.suggested_recommender_id)
 
@@ -1437,8 +1437,8 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
     if suggested_recommender.recommender_validated is None:
         emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id)
         
-
     update_alert_and_current_step_article(article.id)
+
 
 def deleteSuggRecommender(s: ...):
     current.session.old_sugg_recommender = None
@@ -1447,8 +1447,6 @@ def deleteSuggRecommender(s: ...):
 
     emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", sugg_recommender.article_id, sugg_recommender.suggested_recommender_id)
 
-    update_alert_and_current_step_article(sugg_recommender.article_id)
-
 
 def after_delete_sugg_recommender(s: ...):    
     old_sugg_recommender: SuggestedRecommender = current.session.old_sugg_recommender
@@ -1456,6 +1454,8 @@ def after_delete_sugg_recommender(s: ...):
         return
     
     emailing.send_or_update_mail_manager_valid_suggested_recommender(old_sugg_recommender.article_id)
+
+    update_alert_and_current_step_article(old_sugg_recommender.article_id)
 
 
 
@@ -1469,7 +1469,7 @@ def declineSuggRecommender(s: ..., f: ...):
         emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article_id, sugg_recommender_id)
     if sugg_recommender.declined is True and f['declined'] is False:
         article = Article.get_by_id(sugg_recommender.article_id)
-        if article and (article.status == ArticleStatus.AWAITING_CONSIDERATION.value or pciRRactivated):
+        if article and article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
             emailing.create_reminder_for_suggested_recommender_invitation(article, sugg_recommender_id)
 
 

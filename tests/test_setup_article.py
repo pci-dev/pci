@@ -159,10 +159,9 @@ class Manager_validates:
     select("a", "View / Edit".upper()).click()
 
  def validate_suggested_recommender(_):
-    if not is_rr:
-      select("a", "Manage recommenders").click()
-      select("a", "VALID").click()
-      select("a", "Back").click()
+   select("a", "Manage recommenders").click()
+   select("a", "VALID").click()
+   select("a", "Back").click()
 
  def validate_submission(_):
     #select("a", "View / Edit").first().click()  # select(css, text/contains=xxx) should return a list-ish

@@ -213,19 +213,14 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
             ),
 
         ]
-        if not pciRRactivated:
-            amISugg = db(
-                (db.t_suggested_recommenders.article_id == art.id)
-                & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-                & (db.t_suggested_recommenders.declined == False)
-                & (db.t_suggested_recommenders.recommender_validated == True)
-            ).count()
-        else:
-            amISugg = db(
-                (db.t_suggested_recommenders.article_id == art.id)
-                & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-                & (db.t_suggested_recommenders.declined == False)
-            ).count()
+       
+        amISugg = db(
+            (db.t_suggested_recommenders.article_id == art.id)
+            & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+            & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.recommender_validated == True)
+        ).count()
+        
         if amISugg > 0:
             # suggested recommender's button for declining recommendation
             btsAccDec.append(
@@ -251,21 +246,20 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
                 B(current.T("You have declined the invitation to handle the evaluation process of this preprint.")),
             )
         else:
-            if not pciRRactivated:
-                i_am_declined = db(
-                    (db.t_suggested_recommenders.article_id == art.id)
-                    & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-                    & (db.t_suggested_recommenders.recommender_validated == False)
-                ).count()
+            i_am_declined = db(
+                (db.t_suggested_recommenders.article_id == art.id)
+                & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+                & (db.t_suggested_recommenders.recommender_validated == False)
+            ).count()
 
-                if i_am_declined:
-                    buttonDivClass = " pci2-flex-column"
-                    btsAccDec.append(
-                        BR(),
-                    )
-                    btsAccDec.append(
-                        B(current.T("You have been canceled by managers to handle the evaluation process of this preprint.")),
-                    )
+            if i_am_declined:
+                buttonDivClass = " pci2-flex-column"
+                btsAccDec.append(
+                    BR(),
+                )
+                btsAccDec.append(
+                    B(current.T("You have been canceled by managers to handle the evaluation process of this preprint.")),
+                )
         
 
         myButtons.append(DIV(btsAccDec, _class="pci2-flex-grow pci2-flex-center" + buttonDivClass, _style="margin:10px")) # type: ignore
@@ -333,7 +327,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
     uploadDate = art.upload_timestamp.strftime(date_format) if art.upload_timestamp else ''
     validation_article_date = art.validation_timestamp.strftime(date_format) if art.validation_timestamp else ""
 
-    invited_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id)
+    invited_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id, just_validated=True)
     declined_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id, declined=True)
 
     scheduled_reminder_suggested_recommender = \
@@ -1449,12 +1443,11 @@ def validation_checklist(validation_type: str, article: Article):
             ("No plagiarism has been detected ", True),
         }
 
-        if not pciRRactivated:
-            sugg_recommender_button = manager_module.mkSuggestedRecommendersManagerButton(article, current.request.env.http_referer, True) or ""
+        sugg_recommender_button = manager_module.mkSuggestedRecommendersManagerButton(article, current.request.env.http_referer, True) or ""
 
-            checkboxes["co_authorship_ok"] = ("Co-authorship between authors and suggested recommenders (and suggested reviewers) is ok", True)
+        checkboxes["co_authorship_ok"] = ("Co-authorship between authors and suggested recommenders (and suggested reviewers) is ok", True)
 
-            checkboxes["sugg_recommender_ok"] = (["Recommenders suggested by the authors have been validated or cancelled and there is at least one suggested recommender left. ",
+        checkboxes["sugg_recommender_ok"] = (["Suggested recommenders have been validated or cancelled, and at least one suggested recommender has been validated. ",
                                                  sugg_recommender_button],
                                                  SuggestedRecommender.check_if_all_processed(article.id))
 
