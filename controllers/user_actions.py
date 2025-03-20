@@ -12,6 +12,7 @@ from app_components import app_forms
 from app_modules import emailing
 from gluon.globals import Request
 from gluon.http import redirect # type: ignore
+from models.article import Article, ArticleStatus
 from models.group import Role
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
@@ -87,6 +88,7 @@ def suggest_all_selected():
     recommender_names = ''
     exclude_names = ''
     exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
+
     for recommender_id in recommender_ids.split(','):
         if recommender_id == '': continue
         recommender_names += str(common_small_html.mkUser(recommender_id).flatten()) + ', ' # type: ignore

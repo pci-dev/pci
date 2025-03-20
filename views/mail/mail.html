@@ -48,7 +48,9 @@
       
       {{if 'sugg_recommender_buttons' in globals() and sugg_recommender_buttons is not None:}}
         <hr style="border-top: 1px solid #dddddd; margin: 15px 0px;">
+        <div id="sugg_recommender_buttons">
         {{=sugg_recommender_buttons}}
+        </div>
       {{pass}}
 
       {{if 'reviewer_invitation_buttons' in globals() and reviewer_invitation_buttons is not None:}}

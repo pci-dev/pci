@@ -1,15 +1,24 @@
 # -*- coding: utf-8 -*-
 # this file is released under public domain and you can use without limitations
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple, Union
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.custom_import import track_changes
 from gluon.html import A, I, LI, SPAN
-from gluon import current
+from gluon import DIV, current
+from models.article import ArticleStatus
+from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 from app_modules import common_tools
 
 from app_modules.common_tools import URL, is_silent_mode
+
+request = current.request
+session = current.session
+db = current.db
+auth = current.auth
+response = current.response
+T = current.T
 
 myconf = AppConfig()
 postprint = bool(myconf.get("config.postprint", default=False))
@@ -277,7 +286,7 @@ def _RecommendationMenu():
     if ctr == "recommender":
         isActive = True
 
-    recommendationsMenu = []
+    recommendationsMenu: List[Union[Tuple[SPAN, bool, str], LI]] = []
     colorRequests = False
     nPostprintsOngoing = 0
     nPreprintsOngoing = 0
@@ -292,7 +301,9 @@ def _RecommendationMenu():
         & (db.t_articles._id == db.t_suggested_recommenders.article_id)
         & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
         & (db.t_suggested_recommenders.declined == False)
+        & (db.t_suggested_recommenders.recommender_validated == True)
     ).count()
+    
     txtPreprintsRecomPend = menu_entry_item(
         T("%s Request(s) to handle a preprint") % nPreprintsRecomPend, "glyphicon-envelope",
         _class="pci-recommender"
@@ -460,7 +471,7 @@ def _ManagerMenu():
         notificationCount += nbPreSubmitted
 
     notificationPin = DIV(notificationCount, _class="pci2-notif-pin") if notificationCount > 0 else ""
-    managerMenu = [
+    managerMenu: List[Union[Tuple[SPAN, bool, str], LI]] = [
         (txtPending, False, URL("manager", "pending_articles", user_signature=True)),
         (txtGoing, False, URL("manager", "ongoing_articles", user_signature=True)),
     ]
@@ -477,6 +488,13 @@ def _ManagerMenu():
         menu_entry("All articles", "glyphicon-book", URL("manager", "all_articles", user_signature=True), _class="pci-manager"),
         menu_entry("Comments", "glyphicon-comment", URL("manager", "manage_comments", user_signature=True), _class="pci-manager"),
     ]
+
+    sugg_recommender_to_validate = SuggestedRecommender.get_all(True, False, [ArticleStatus.AWAITING_CONSIDERATION, ArticleStatus.PENDING])
+    if len(sugg_recommender_to_validate) > 0:
+        txtMenu = SPAN(I(_class="glyphicon glyphicon-th-list"), T("For managers"), _class="pci-enhancedMenuItem")
+        managerMenu.append(menu_entry("Manage suggested recommenders", "glyphicon-user", URL("manager", "manage_suggested_recommenders", user_signature=True), _class="pci-manager pci-enhancedMenuItem"))
+    else:
+        managerMenu.append(menu_entry("Manage suggested recommenders", "glyphicon-user", URL("manager", "manage_suggested_recommenders", user_signature=True), _class="pci-manager"))
 
     if pciRRactivated: managerMenu += [
         menu_entry("Recommender Statistics", "glyphicon-stats", URL("manager", "recommender_statistics", user_signature=True), _class="pci-manager")

@@ -3,7 +3,7 @@
 import re
 import datetime
 import os
-from typing import Any, Callable, Dict, List, Literal, Union, cast, Optional
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union, cast, Optional
 
 
 # sudo pip install tweepy
@@ -37,22 +37,24 @@ from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
 from app_modules.article_translator import ArticleTranslator
 
+from models import suggested_recommender
 from models.group import Group, Role
 from models.mail_queue import MailQueue, SendingStatus
 from models.review import Review
 
-from app_modules.common_small_html import md_to_html, represent_rdv_date
+from app_modules.common_small_html import md_to_html, mkUser_U, represent_rdv_date
 
 from controller_modules import admin_module
 from gluon.sqlhtml import SQLFORM
 from gluon.http import HTTP, redirect # type: ignore
 
 from models.article import Article, ArticleStatus, clean_vars_doi, clean_vars_doi_list
+from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 from models.membership import Membership
 from app_components.article_components import fix_web2py_list_str_bug_article_form
 
-from app_modules.common_tools import URL
+from app_modules.common_tools import URL, get_next
 from pydal.validators import IS_IN_DB
 
 request = current.request
@@ -1030,7 +1032,7 @@ def manage_recommendations():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def search_recommenders():
-    whatNext = request.vars["whatNext"]
+    whatNext = request.vars["whatNext"] if request.vars["whatNext"] else URL(args=request.args, vars=request.get_vars, scheme=True)  
     previous = URL(args=request.args, vars=request.get_vars, host=True)
     articleId = request.vars["articleId"]
     if articleId is None:
@@ -1143,6 +1145,16 @@ def search_recommenders():
     grid = adjust_grid.adjust_grid_basic(original_grid, 'recommenders', remove_options, integer_fields)
     select_all_script = common_tools.get_script("select_all.js")
 
+    done_btn = DIV(
+        A(
+            SPAN(current.T("Done"), _class="buttontext btn btn-info"),
+            _class="button",
+            _href=URL(c="manager", f="suggested_recommenders", vars=dict(articleId=articleId), user_signature=True)
+        ),
+        _style="text-align:center; margin-top:16px;",
+        _class="done-btn"
+    )
+
     response.view = "default/gab_list_layout.html"
     return dict(
         pageHelp=getHelp("#ManagerSearchRecommenders"),
@@ -1156,6 +1168,7 @@ def search_recommenders():
         selectAllBtn = select_all_btn,
         selectAllScript = select_all_script,
         absoluteButtonScript=common_tools.absoluteButtonScript,
+        myAcceptBtn=done_btn,
     )
 
 
@@ -1166,7 +1179,7 @@ def search_recommenders():
 @auth.requires(auth.has_membership(role="manager"))
 def suggested_recommenders():
     articleId = request.vars["articleId"]
-    whatNext = request.vars["whatNext"]
+
     if articleId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
@@ -1183,32 +1196,59 @@ def suggested_recommenders():
 
     articleHeaderHtml = article_components.get_article_infos_card(art, **article_components.for_search)
 
+    def make_user_mail(text: str, row: SuggestedRecommender):
+        return common_small_html.mkUserWithMail(int(text))
+
     query = db.t_suggested_recommenders.article_id == articleId
     db.t_suggested_recommenders.article_id.readable = False
     db.t_suggested_recommenders.article_id.writable = False
     db.t_suggested_recommenders._id.readable = False
     db.t_suggested_recommenders.email_sent.readable = False
-    db.t_suggested_recommenders.suggested_recommender_id.represent = lambda text, row: common_small_html.mkUserWithMail(text)
-    links = []
-    # if art.status == "Awaiting consideration":
-    links.append(
-        dict(
-            header="Emails history",
-            body=lambda row: A(
+    db.t_suggested_recommenders.suggested_recommender_id.represent = make_user_mail
+    db.t_suggested_recommenders.recommender_validated.readable = True
+    db.t_suggested_recommenders.recommender_validated.label = "Validated"
+
+
+    links: List[Dict[str, Any]] = []
+
+    def make_email_history_button(row: SuggestedRecommender):
+        return A(
                 T("View e-mails"),
                 _class="btn btn-info pci-manager",
                 _href=URL(c="manager", f="suggested_recommender_emails", vars=dict(suggRecommId=row.suggested_recommender_id, articleId=row.article_id)),
-            )
-            if not (row.declined)
-            else "",
+            ) if not (row.declined) else ""
+    
+    def make_valid_reject_sugg_recommender_button(row: SuggestedRecommender):
+        next_url = URL(args=request.args, vars=request.get_vars, scheme=True)
+
+        return DIV(
+                A("Valid", _class="btn btn-success", _href=URL("manager", "do_valid_suggested_recommender",vars=dict(sugg_recommender_id=row.id, _next=next_url))),
+                A("Reject", _class="btn btn-warning", _href=URL("manager", "do_reject_suggested_recommender", vars=dict(sugg_recommender_id=row.id, _next=next_url))),
+            ) if row.recommender_validated is None else ""
+    
+    links.append(
+        dict(
+            header="Emails history",
+            body=make_email_history_button
         )
     )
 
-    addSuggestedRecommendersButton = A(
-        current.T("Add suggested recommender"), _class="btn btn-default pci-manager", _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True)
+    links.append(
+        dict(
+            header="Actions",
+            body=make_valid_reject_sugg_recommender_button
+        )
     )
 
-    grid = SQLFORM.grid(
+    request.vars['whatNext'] = ''
+    addSuggestedRecommendersButton = DIV(A(
+        current.T("Add suggested recommender"),
+        _class="btn btn-default pci-manager",
+        _href=URL(c="manager", f="search_recommenders", vars=request.vars, user_signature=True),
+        _style="position: relative;")
+    )
+
+    grid: ... = SQLFORM.grid( # type: ignore
         query,
         details=True,
         editable=True,
@@ -1226,11 +1266,15 @@ def suggested_recommenders():
             db.t_suggested_recommenders.declined,
             db.t_suggested_recommenders.email_sent,
             db.t_suggested_recommenders.emailing,
+            db.t_suggested_recommenders.recommender_validated,
+            db.t_suggested_recommenders.recommender_validated,
         ],
         field_id=db.t_suggested_recommenders.id,
         links=links,
         _class="web2py_grid action-button-absolute",
     )
+
+    represent_rejected_column(grid)
 
     response.view = "default/myLayout.html"
     return dict(
@@ -1245,6 +1289,23 @@ def suggested_recommenders():
         absoluteButtonScript=common_tools.absoluteButtonScript,
     )
 
+
+def represent_rejected_column(grid: ...):
+    if not current.request.url.endswith('suggested_recommenders'):
+        return
+    
+    th = grid.elements('th a')
+    th[3].components[0] = "Rejected"
+
+    trs = grid.elements('tr')
+    for tr in trs:
+        checkbox = tr.components[3].components[0]
+        if isinstance(checkbox, INPUT):
+            value = cast(Optional[bool], checkbox.attributes['_checked']) # type: ignore
+            if value is None:
+                continue
+            else:
+                checkbox.attributes['_checked'] = not value # type: ignore
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager") or (auth.has_membership(role="recommender") and pciRRactivated))
@@ -2286,3 +2347,107 @@ def email_for_recommender():
         pageTitle=getTitle("#EmailForRegisteredReviewerInfoTitle"),
         customText=getText("#EmailForRegisteredReviewerInfo"),
     )
+
+
+@auth.requires(auth.has_membership(role="manager"))
+def manage_suggested_recommenders():
+    query = (db.t_suggested_recommenders.recommender_validated == None) \
+            & (db.t_suggested_recommenders.declined == False) \
+            & (db.t_articles.id == db.t_suggested_recommenders.article_id) \
+            & (db.auth_user.id == db.t_suggested_recommenders.suggested_recommender_id) \
+            & (db.t_articles.status.belongs([ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value]))
+    
+    infos_by_article: Dict[int, Tuple[Article, List[Tuple[User, SuggestedRecommender]]]] = dict()
+
+    elements = db(query).select()
+
+    for element in elements:
+        recommender: User = element['auth_user']
+        article: Article = element['t_articles']
+        sugg_recommender: SuggestedRecommender = element['t_suggested_recommenders']
+
+        if article.id in infos_by_article:
+            infos_by_article[article.id][1].append((recommender, sugg_recommender))
+        else:
+            infos_by_article[article.id] = (article, [(recommender, sugg_recommender)])
+    
+    html: ... = DIV()
+    next_url = URL(args=request.args, vars=request.get_vars, scheme=True)
+
+    for article, sugg_recommenders in infos_by_article.values():
+        html.append(H3(B(f"Article {article.id}", _style="margin-right: 20px"), A(f"{article.title}", _href=URL(c="manager", f="suggested_recommenders", vars=dict(articleId=article.id)))))
+
+        list: ... = TBODY()
+        for recommender, sugg_recommender in sugg_recommenders:
+            li = TR(
+                TD(mkUser_U(recommender, True, orcid=True)),
+                TD(A(recommender.email, _href=f"mailto:{recommender.email}"), _style="padding-left: 10px; font-style: italic"),
+                TD(A("Valid", _class="btn btn-success", 
+                              _href=URL("manager", "do_valid_suggested_recommender",vars=dict(sugg_recommender_id=sugg_recommender.id, _next=next_url))),
+                              _style="padding-left: 10px;"),
+                TD(A("Reject", _class="btn btn-warning",
+                               _href=URL("manager", "do_reject_suggested_recommender", vars=dict(sugg_recommender_id=sugg_recommender.id, _next=next_url))),
+                               _style="padding-left: 10px"),
+            )
+
+            list.append(li)
+        html.append(TABLE(list, _style="margin-bottom: 40px"))
+        html.append(HR())
+
+    if len(infos_by_article) == 0:
+        html.append(B("There are no suggested recommenders to manage."))
+
+    response.view = "default/myLayout.html"
+    return dict(
+        grid=html,
+        pageHelp=getHelp("#EmailForRegisterdReviewer"),
+        titleIcon="user",
+        pageTitle="Manage suggested recommenders",
+    )
+
+
+@auth.requires(auth.has_membership(role="manager"))
+def do_valid_suggested_recommender():
+    try:
+        next_url = get_next()
+        sugg_recommender_id = int(request.vars.sugg_recommender_id)
+    except:
+        return HTTP(400, "Error in args")
+
+    sugg_recommender = SuggestedRecommender.get_by_id(sugg_recommender_id)
+    if sugg_recommender:
+        sugg_recommender_name = User.get_name_by_id(sugg_recommender.suggested_recommender_id)
+        sugg_recommender.update_record(recommender_validated=True) # type: ignore
+    else:
+        return HTTP(404, session.flash)
+
+    session.flash = f'Suggested recommender "{sugg_recommender_name}" has been validated'
+
+    if next_url:
+        return redirect(next_url)
+    else:
+        return HTTP(200, session.flash)
+
+
+
+@auth.requires(auth.has_membership(role="manager"))
+def do_reject_suggested_recommender():
+    try:
+        next_url = get_next()
+        sugg_recommender_id = int(request.vars.sugg_recommender_id)
+    except:
+        return HTTP(400, "Error in args")
+
+    sugg_recommender = SuggestedRecommender.get_by_id(sugg_recommender_id)
+    if sugg_recommender:
+        sugg_recommender_name = User.get_name_by_id(sugg_recommender.suggested_recommender_id)
+        sugg_recommender.update_record(recommender_validated=False) # type: ignore
+    else:
+        return HTTP(404, session.flash)
+
+    session.flash = f'Suggested recommender "{sugg_recommender_name}" has been rejected'
+
+    if next_url:
+        return redirect(next_url)
+    else:
+        return HTTP(200, session.flash)

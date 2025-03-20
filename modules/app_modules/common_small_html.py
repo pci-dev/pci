@@ -468,7 +468,7 @@ def mkViewEditRecommendationsRecommenderButton(row):
 ######################################################################################################################################################################
 # code for a "Back" button
 # go to the target instead, if any.
-def mkBackButton(text=current.T("Back"), target: Optional[str] = None):
+def mkBackButton(text: str = current.T("Back"), target: Optional[str] = None):
     if target:
         return A(I(_class="glyphicon glyphicon-chevron-left"), SPAN(text), _href=target, _class="pci2-flex-row pci2-align-items-center pci2-tool-link pci2-yellow-link")
     else:
@@ -1442,7 +1442,7 @@ def unsubscribe_checkbox():
 ####################################################################################
 
 def suggested_recommender_list(article_id: int):
-    suggested_recommenders = SuggestedRecommender.get_suggested_recommender_by_article(article_id)
+    suggested_recommenders = SuggestedRecommender.get_by_article(article_id)
     if not suggested_recommenders or len(suggested_recommenders) == 0:
         return
     

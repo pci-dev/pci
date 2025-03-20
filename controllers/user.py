@@ -1278,38 +1278,6 @@ def edit_report_survey():
 @auth.requires_login()
 def suggested_recommenders():
     response.view = "default/myLayout.html"
-    write_auth = auth.has_membership("administrator") or auth.has_membership("developer")
-    query = db.t_suggested_recommenders.article_id == request.vars["articleId"]
-    db.t_suggested_recommenders._id.readable = False
-    grid = SQLFORM.grid(
-        query,
-        details=False,
-        editable=False,
-        deletable=write_auth,
-        create=False,
-        searchable=False,
-        maxtextlength=250,
-        paginate=100,
-        csv=csv,
-        exportclasses=expClass,
-        fields=[db.t_suggested_recommenders.suggested_recommender_id],
-    )
-    return dict(
-        myBackButton=common_small_html.mkBackButton(),
-        titleIcon="education",
-        pageTitle=getTitle("#SuggestedRecommendersTitle"),
-        customText=getText("#SuggestedRecommendersText"),
-        pageHelp=getHelp("#SuggestedRecommenders"),
-        grid=grid,
-    )
-
-
-######################################################################################################################################################################
-# Display suggested recommenders for a submitted article
-# Logged users only (submission)
-@auth.requires_login()
-def suggested_recommenders():
-    response.view = "default/myLayout.html"
     articleId = request.vars["articleId"]
 
     if articleId is None:
@@ -1827,16 +1795,22 @@ def add_suggested_recommender():
     else:
         recommendersListSel = db((db.t_suggested_recommenders.article_id == articleId) & (db.t_suggested_recommenders.suggested_recommender_id == db.auth_user.id)).select()
         excluded_recommenders = db(db.t_excluded_recommenders.article_id == articleId).select()
-        recommendersList, excludedRecommenders = [], []
+        recommendersList: List[LI] = []
+        excludedRecommenders: List[LI] = []
         reviewersIds = [auth.user_id]
         for con in recommendersListSel:
             reviewersIds.append(con.auth_user.id)
             if con.t_suggested_recommenders.declined:
-                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(T("(declined)"))))
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Declined by the recommender)")}')))
+            elif con.t_suggested_recommenders.recommender_validated is False:
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Cancelled by the managing board)")}')))
+            elif con.t_suggested_recommenders.recommender_validated is True:
+                recommendersList.append(LI(common_small_html.mkUser(con.auth_user.id), I(f' {T("(Validated by the managing board)")}')))
             else:
                 recommendersList.append(
                     LI(
                         common_small_html.mkUser(con.auth_user.id),
+                        I(" (Awaiting validation by the manager)") if (con.t_suggested_recommenders.recommender_validated is None) else "",
                         A(
                             "Remove",
                             _class="btn btn-warning",
@@ -1866,7 +1840,7 @@ def add_suggested_recommender():
                     )
                 )
         excludeList = ','.join(map(str,reviewersIds))
-        myContents = DIV()
+        myContents: ... = DIV()
         txtbtn = current.T("Suggest recommenders")
         if len(recommendersList) > 0:
             myContents.append(DIV(LABEL(T("Suggested recommenders:")), UL(recommendersList, _class="pci-li-spacy")))

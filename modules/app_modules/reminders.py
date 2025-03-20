@@ -99,6 +99,7 @@ _reminders = {
     "ManagersRecommenderNotEnoughReviewersNeedsToTakeAction": weekly(1, 15),
 
     "ReminderRevisionsRequiredToYourSubmission": [2, 10],
+    "ReminderValidSuggestedRecommender": [2, 4, 6, 8, 10]
 }
 
 if pciRRactivated:

@@ -50,12 +50,6 @@
 </div>
 {{pass}}
 
-{{if 'addSuggestedRecommendersButton' in locals():}}
-<div>
-	{{=addSuggestedRecommendersButton}}
-</div>
-{{pass}}
-
 <!-- Recommendation title and authors -->
 {{if 'articleHeaderHtml' in locals():}}
 <div class="pci2-flex-column pci2-align-items-center">
@@ -66,6 +60,12 @@
 {{pass}}
 
 {{include 'components/edit_article_modal.html'}}
+
+{{if 'addSuggestedRecommendersButton' in locals():}}
+	<div>
+		{{=addSuggestedRecommendersButton}}
+	</div>
+{{pass}}
 
 <div>
 {{if 'form' in locals():}}

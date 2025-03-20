@@ -453,7 +453,7 @@ def insertMailInQueue(
     if common_tools.is_silent_mode():
         return
 
-    mail = buildMail(
+    mail = build_mail(
         hashtag_template,
         mail_vars,
         recommendation=recommendation,
@@ -505,7 +505,7 @@ def insert_reminder_mail_in_queue(
     reviewer_invitation_buttons: Optional[DIV] = None,
     sender_name: Optional[str] = None,
     sugg_recommender_buttons: Optional[DIV] = None
-):
+) -> Optional[int]:
 
     db, auth = current.db, current.auth
 
@@ -532,13 +532,13 @@ def insert_reminder_mail_in_queue(
 
     if True:
 
-        mail = buildMail(
+        mail = build_mail(
             hashtag_template, mail_vars, recommendation=recommendation, review=review, authors_reply=authors_reply, reviewer_invitation_buttons=reviewer_invitation_buttons,
             article_id=article_id, sugg_recommender_buttons=sugg_recommender_buttons
         )
 
 
-        db.mail_queue.insert(
+        return db.mail_queue.insert(
             sending_status="pending",
             sending_date=sending_date,
             dest_mail_address=mail_vars["destAddress"],
@@ -643,8 +643,16 @@ def insert_newsletter_mail_in_queue(
 
 
 ######################################################################################################################################################################
-def buildMail(hashtag_template, mail_vars, recommendation=None, review=None, authors_reply=None, sugg_recommender_buttons=None, reviewer_invitation_buttons=None,
-        article_id=None, alternative_subject=None, alternative_content=None,
+def build_mail(hashtag_template: str,
+              mail_vars: Dict[str, Any],
+              recommendation: Optional[Recommendation] = None,
+              review: Optional[Review] = None,
+              authors_reply: Optional[str] = None,
+              sugg_recommender_buttons: Optional[DIV] = None,
+              reviewer_invitation_buttons: Optional[DIV] = None,
+              article_id: Optional[int] = None,
+              alternative_subject: Optional[str] = None,
+              alternative_content: Optional[str] = None,
     ):
 
     mail_template = getMailTemplateHashtag(hashtag_template)
@@ -653,8 +661,8 @@ def buildMail(hashtag_template, mail_vars, recommendation=None, review=None, aut
         subject = alternative_subject
         content = alternative_content
     else:
-        subject = replaceMailVars(mail_template["subject"], mail_vars)
-        content = replaceMailVars(mail_template["content"], mail_vars)
+        subject = replaceMailVars(str(mail_template["subject"]), mail_vars)
+        content = replaceMailVars(str(mail_template["content"]), mail_vars)
 
     if article_id is None:
         subject_without_appname = subject.replace("%s: " % mail_vars["appName"] , "")
@@ -665,7 +673,7 @@ def buildMail(hashtag_template, mail_vars, recommendation=None, review=None, aut
 
     applogo = URL("static", "images/small-background.png", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
-    content_rendered = render(
+    content_rendered: ... = render(
         filename=MAIL_HTML_LAYOUT,
         context=dict(
             subject=subject_without_appname,

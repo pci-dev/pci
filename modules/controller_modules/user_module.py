@@ -21,7 +21,7 @@ def mk_suggested_recommenders_user_button(row: Any):
     suggested_recommender_txt: List[Any] = []
     # exclude = [str(auth.user_id)]
     exclude_list: List[int] = [auth.user_id]
-    suggested_recommenders = SuggestedRecommender.get_suggested_recommender_by_article(row["t_articles.id"])
+    suggested_recommenders = SuggestedRecommender.get_by_article(row["t_articles.id"])
     if suggested_recommenders:
         for suggested_recommender in suggested_recommenders:
             if not suggested_recommender.suggested_recommender_id:

@@ -37,3 +37,26 @@ function createLinkFromText() {
   plagiarism_label.append(a)
   plagiarism_label.append(' - plagiarism check is not needed for bioRxiv and medRxiv preprints')
 }
+
+suggRecommenderCheckbox();
+function suggRecommenderCheckbox() {
+  const input = document.querySelector('#sugg_recommender_ok');
+  if (input && input.disabled) {
+    
+    const info = document.createElement("i")
+    info.id = 'sugg_recommender_ok_info'
+    info.classList.add('glyphicon');
+    info.classList.add('glyphicon-question-sign');
+    info.style.margin = 'auto 10px 16px 5px';
+    info.style.color = '#3eaede';
+    info.style.fontSize = '17px';
+    info.setAttribute('data-toggle', 'tooltip');
+    info.title = 'To check this tick box, you must validate at least one suggested recommender and accept or reject all the recommenders suggested by the authors';
+
+    input.parentElement?.insertBefore(info, input.parentElement.childNodes[1]);
+  }
+}
+
+$(function(){
+  $('#sugg_recommender_ok_info')?.tooltip();
+});

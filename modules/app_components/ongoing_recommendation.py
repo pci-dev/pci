@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from dateutil.relativedelta import *
 
 from gluon import current
@@ -213,11 +213,14 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
             ),
 
         ]
+       
         amISugg = db(
             (db.t_suggested_recommenders.article_id == art.id)
             & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
             & (db.t_suggested_recommenders.declined == False)
+            & (db.t_suggested_recommenders.recommender_validated == True)
         ).count()
+        
         if amISugg > 0:
             # suggested recommender's button for declining recommendation
             btsAccDec.append(
@@ -242,6 +245,22 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
             btsAccDec.append(
                 B(current.T("You have declined the invitation to handle the evaluation process of this preprint.")),
             )
+        else:
+            i_am_declined = db(
+                (db.t_suggested_recommenders.article_id == art.id)
+                & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
+                & (db.t_suggested_recommenders.recommender_validated == False)
+            ).count()
+
+            if i_am_declined:
+                buttonDivClass = " pci2-flex-column"
+                btsAccDec.append(
+                    BR(),
+                )
+                btsAccDec.append(
+                    B(current.T("You have been canceled by managers to handle the evaluation process of this preprint.")),
+                )
+        
 
         myButtons.append(DIV(btsAccDec, _class="pci2-flex-grow pci2-flex-center" + buttonDivClass, _style="margin:10px")) # type: ignore
 
@@ -308,12 +327,12 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
     uploadDate = art.upload_timestamp.strftime(date_format) if art.upload_timestamp else ''
     validation_article_date = art.validation_timestamp.strftime(date_format) if art.validation_timestamp else ""
 
-    invited_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id)
+    invited_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id, just_validated=True)
     declined_suggested_recommender_count = SuggestedRecommender.nb_suggested_recommender(art.id, declined=True)
 
     scheduled_reminder_suggested_recommender = \
-    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0 or \
-    len(MailQueue.get_by_article_and_template(art, "#ReminderSubmitterNewSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0
+    len(MailQueue.get_by_article_and_template(art.id, "#ReminderSubmitterSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0 or \
+    len(MailQueue.get_by_article_and_template(art.id, "#ReminderSubmitterNewSuggestedRecommenderNeeded", [SendingStatus.PENDING])) > 0
 
     recomms = Article.get_last_recommendations(art.id, db.t_recommendations.id)
     totalRecomm = len(recomms)
@@ -389,25 +408,25 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
 
             if roundNumber < 2:
                 there_are_review_reminder = \
-                len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderReviewersNeeded", [SendingStatus.PENDING])) > 0 or \
-                len(MailQueue.get_by_article_and_template(art, "#ReminderRecommenderNewReviewersNeeded", [SendingStatus.PENDING])) > 0
+                len(MailQueue.get_by_article_and_template(art.id, "#ReminderRecommenderReviewersNeeded", [SendingStatus.PENDING])) > 0 or \
+                len(MailQueue.get_by_article_and_template(art.id, "#ReminderRecommenderNewReviewersNeeded", [SendingStatus.PENDING])) > 0
 
-                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art,
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art.id,
                                                                                               ["#ReminderRecommenderDecisionOverDue"
                                                                                                "#ReminderRecommenderDecisionSoonDue",
                                                                                                "#ReminderRecommenderDecisionDue"],
                                                                                                [SendingStatus.PENDING])) > 0
             else:
-                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art,
+                there_are_recommendation_reminder = len(MailQueue.get_by_article_and_template(art.id,
                                                                                               ["#ReminderRecommenderRevisedDecisionOverDue",
                                                                                                "#ReminderRecommenderDecisionOverDue"
                                                                                                "#ReminderRecommenderDecisionSoonDue",
                                                                                                "#ReminderRecommenderDecisionDue"], [SendingStatus.PENDING])) > 0
 
                 there_are_review_reminder = \
-                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationNewUser", [SendingStatus.PENDING])) > 0 or \
-                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerReviewInvitationRegisteredUser", [SendingStatus.PENDING])) > 0 or \
-                    len(MailQueue.get_by_article_and_template(art, "#ReminderReviewerInvitationNewRoundRegisteredUser", [SendingStatus.PENDING])) > 0
+                    len(MailQueue.get_by_article_and_template(art.id, "#ReminderReviewerReviewInvitationNewUser", [SendingStatus.PENDING])) > 0 or \
+                    len(MailQueue.get_by_article_and_template(art.id, "#ReminderReviewerReviewInvitationRegisteredUser", [SendingStatus.PENDING])) > 0 or \
+                    len(MailQueue.get_by_article_and_template(art.id, "#ReminderReviewerInvitationNewRoundRegisteredUser", [SendingStatus.PENDING])) > 0
 
             reviews = Review.get_by_recommendation_id(recomm.id, db.t_reviews.id)
 
@@ -1229,7 +1248,7 @@ def validate_stage_button(article: Article):
                     extra_button=[put_in_presubmission_button(article), set_to_not_considered(article)],
                 )
                 return SPAN(
-                    validation_checklist('do_validate_article') if not pciRRactivated else "",
+                    validation_checklist('do_validate_article', article) if not pciRRactivated else "",
                     button)
             elif article.status == ArticleStatus.PRE_SUBMISSION.value:
                 return manager_action_button(
@@ -1257,7 +1276,7 @@ def validate_stage_button(article: Article):
                     _style="margin-top:40px", 
                     _id="title-recomm-process", 
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
-                    validation_checklist('do_recommend_article') if not pciRRactivated else "",
+                    validation_checklist('do_recommend_article', article) if not pciRRactivated else "",
                     button)
             
             elif article.status == ArticleStatus.PRE_REVISION.value:
@@ -1274,7 +1293,7 @@ def validate_stage_button(article: Article):
                     _style="margin-top:40px", 
                     _id="title-recomm-process", 
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
-                    validation_checklist('do_revise_article') if not pciRRactivated else "",
+                    validation_checklist('do_revise_article', article) if not pciRRactivated else "",
                     button)
             elif article.status == ArticleStatus.PRE_REJECTED.value:
                 button = manager_action_button(
@@ -1290,7 +1309,7 @@ def validate_stage_button(article: Article):
                     _style="margin-top:40px", 
                     _id="title-recomm-process", 
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
-                    validation_checklist('do_reject_article') if not pciRRactivated else "",
+                    validation_checklist('do_reject_article', article) if not pciRRactivated else "",
                     button)
 
             return None
@@ -1400,56 +1419,65 @@ def validate_scheduled_submission_button(articleId: int, **extra_vars: ...):
             _class="pci-EditButtons-centered",
     )
 
-def validation_checklist(validation_type: str):
-    checkboxes: Dict[str, str] = {}
+def validation_checklist(validation_type: str, article: Article):
+    checkboxes: Dict[str, Tuple[Union[str, List[Union[str, A]]], bool]] = {}
 
     if validation_type == 'do_validate_article':
         checkboxes = {
             "article_doi_correct":
-            "DOI/URL of article is correct",
+            ("DOI/URL of article is correct", True),
 
             "data_ok":
-            "Link for data is ok",
+            ("Link for data is ok", True),
 
             "code_and_scripts_ok":
-            "Link for code and scripts is ok",
+            ("Link for code and scripts is ok", True),
 
             "scope_ok":
-            "Scope is ok",
+            ("Scope is ok", True),
 
             "information_consistent":
-            "The information about the data/scripts/codes on the submission page and in the manuscript are consistent",
+            ("The information about the data/scripts/codes on the submission page and in the manuscript are consistent", True),
 
             "no_plagiarism":
-            "No plagiarism has been detected ",
+            ("No plagiarism has been detected ", True),
         }
+
+        sugg_recommender_button = manager_module.mkSuggestedRecommendersManagerButton(article, current.request.env.http_referer, True) or ""
+
+        checkboxes["co_authorship_ok"] = ("Co-authorship between authors and suggested recommenders (and suggested reviewers) is ok", True)
+
+        checkboxes["sugg_recommender_ok"] = (["Suggested recommenders have been validated or cancelled, and at least one suggested recommender has been validated. ",
+                                                 sugg_recommender_button],
+                                                 SuggestedRecommender.check_if_all_processed(article.id))
+
     elif validation_type == 'do_recommend_article':
         checkboxes = {
             "title_present":
-            "The recommendation has a title",
+            ("The recommendation has a title", True),
 
             "recommendation_explains":
-            "The recommendation explains why the article is recommended",
+            ("The recommendation explains why the article is recommended", True),
 
             "recommendation_cites":
-            "The recommendation text cites at least the recommended preprint",
+            ("The recommendation text cites at least the recommended preprint", True),
 
             "year_ok":
-            "The year of the recommended version of the article (indicated on the 'Edit Article' page) is good. You can find this year by clicking the 'Edit article' tab above.",
+            ("The year of the recommended version of the article (indicated on the 'Edit Article' page) is good. You can find this year by clicking the 'Edit article' tab above.", True),
 
             "format_ok":
-            "The recommendation is correctly formatted (DOIs in references, links of URLs, title of the 'References' section, cf other published recommendations)",
+            ("The recommendation is correctly formatted (DOIs in references, links of URLs, title of the 'References' section, cf other published recommendations)", True),
         }
     elif validation_type in ['do_revise_article', 'do_reject_article']:
         checkboxes = {
             "reviews_ok":
-            "Reviews are not too short, are comprehensive and look fine in their tone",
+            ("Reviews are not too short, are comprehensive and look fine in their tone", True),
 
             "reviews_not_copied":
-            "Reviews have not been copied by the recommender in their editorial decision box",
+            ("Reviews have not been copied by the recommender in their editorial decision box", True),
 
             "decision_ok":
-            "The editorial decision looks fine on the tone and is overall in agreement with the reviews",
+            ("The editorial decision looks fine on the tone and is overall in agreement with the reviews", True),
         }
 
     fields = [
@@ -1458,8 +1486,10 @@ def validation_checklist(validation_type: str):
             _type="checkbox",
             _id=name,
             requires=IS_NOT_EMPTY(),
-        ), LABEL(H5(label), _for=name), _id='chckbxs_mandatory')
-        for name, label in checkboxes.items()
+            _disabled=not data[1],
+            _style="margin: 0px 10px 0px 0px"
+        ), LABEL(H5(data[0], _style="margin: 0; line-height: 20px"), _for=name), _id='chckbxs_mandatory', _style="display: flex; margin-bottom: 10px")
+        for name, data in checkboxes.items()
     ]
     script = common_tools.get_script("validate_submission.js")
     return DIV(*fields, script, _id="validation_checklist")
