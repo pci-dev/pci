@@ -62,22 +62,27 @@ def get_data(start_year: int, end_year: int):
     ).select(distinct=True)
 
     lines: List[Dict[str, str]] = []
+    pci_name: str = myconf.get("app.longname")
 
     for r in result:
         article: Article = r.t_articles
         recommendation: Recommendation = r.t_recommendations
         submitter: User = r.auth_user
 
+        article_ref: str = Article.get_article_reference(article, False).strip()
+        reco_date: str = recommendation.validation_timestamp.strftime("%Y-%m-%d") \
+                if recommendation.validation_timestamp else ""
+
         line: Dict[str, str] = {
-            Header.PCI_NAME.value: myconf.get("app.longname"),
-            Header.REF_ARTICLE.value: Article.get_article_reference(article, False).strip(),
+            Header.PCI_NAME.value: pci_name,
+            Header.REF_ARTICLE.value: article_ref,
             Header.SUBMITTER_NAME.value: User.get_name(submitter),
-            Header.RECOMMENDATION_DATE.value: recommendation.validation_timestamp.strftime("%Y-%m-%d") if recommendation.validation_timestamp else "",
+            Header.RECOMMENDATION_DATE.value: reco_date or "",
             Header.PUBLISHED_ARTICLE_DOI.value: article.doi_of_published_article or "",
             Header.SUBMITTER_MAIL.value: submitter.email or ""
         }
-
         lines.append(line)
+
     return lines
 
 
