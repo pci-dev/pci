@@ -383,7 +383,7 @@ def guess_version(doi):
 
 
 def get_link(doi, **kv):
-    r = retry(requests.head, doi)
+    r = retry(requests.get, doi)
 
     for h in r.headers["link"].split(','):
         h = [v.strip() for v in h.split(';')]
