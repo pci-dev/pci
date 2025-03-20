@@ -6,7 +6,6 @@ import ftplib
 import pathlib
 import re
 import shutil
-import string
 from typing import Any, Dict, List, Optional, Union, cast
 
 from app_components.ongoing_recommendation import get_recommendation_process_components
@@ -21,7 +20,7 @@ from models.recommendation import Recommendation
 from app_modules import crossref
 from app_modules import common_tools
 
-from gluon.html import A, SPAN, TAG
+from gluon.html import A, SPAN
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon import current
 
@@ -133,7 +132,7 @@ class Clockss:
         template_vars: Dict[str, Any] = {
             'ARTICLE_AUTHORS': TemplateVar(self._article.authors),
             'ARTICLE_TITLE': TemplateVar(self._get_formatted_article_title(), True),
-            'RECOMMENDATION_ABSTRACT': TemplateVar(self._remove_references_in_recommendation_decision(self._recommendation.recommendation_comments or '')),
+            'RECOMMENDATION_ABSTRACT': TemplateVar(Recommendation.recommendation_decision_without_references(self._recommendation.recommendation_comments or '')),
             'ARTICLE_YEAR': TemplateVar(self._article.article_year),
             'ARTICLE_VERSION': TemplateVar(self._article.ms_version),
             'ARTICLE_COVER_LETTER': TemplateVar(self._article.cover_letter),
@@ -391,7 +390,7 @@ class Clockss:
         recommendation_pdf_link = self._html_to_latex.convert(self._str(round['recommendationPdfLink']))
         recommender_decision = self._str(round['recommendationText'])
         if recommender_decision:
-            recommender_decision = self._remove_references_in_recommendation_decision(recommender_decision)
+            recommender_decision = Recommendation.recommendation_decision_without_references(recommender_decision)
         recommender_decision = self._html_to_latex.convert(recommender_decision)
 
         if recommender_decision or recommendation_pdf_link:
@@ -466,34 +465,6 @@ class Clockss:
             return ''
         else:
             return str(value)
-
-
-    def _remove_references_in_recommendation_decision(self, recommendation_decision: str):
-        recommendation_comments = recommendation_decision
-        recommendation_text: List[str] = []
-
-        lines = recommendation_comments.splitlines()
-        reference_start = False
-
-        for line in lines:
-            sub_lines = line.split('<br>&nbsp;<br>')
-            for sub_line in sub_lines:
-                try:
-                    line_text = str(TAG(sub_line).flatten().lower().strip()) # type: ignore
-                except:
-                    line_text = sub_line
-                line_text = line_text.translate(str.maketrans('', '', string.punctuation))
-
-                if line_text in ['reference', 'references']:
-                    reference_start = True
-                    break
-
-                recommendation_text.append(f"\n{sub_line}")
-            
-            if reference_start:
-                break
-
-        return '\n'.join(recommendation_text)
     
 
     def _replace_var_in_template(self, var_title: str, template_var: TemplateVar, template: str):

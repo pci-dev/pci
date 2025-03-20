@@ -14,3 +14,4 @@ requests-oauthlib
 deep_translator
 cssselect
 cssutils
+pyserde
