@@ -609,6 +609,21 @@ class Article(Row):
             )
 
         return db(query).select()
+    
+    @staticmethod
+    def create_new_recommendation_round(article: 'Article', recommender_id: int):
+        db = current.db
+
+        recommendation_id = db.t_recommendations.insert(article_id=article.id,
+                                                        recommender_id=recommender_id,
+                                                        doi=article.doi,
+                                                        recommendation_state=RecommendationState.ONGOING.value,
+                                                        no_conflict_of_interest=True,
+                                                        ms_version=article.ms_version)
+        db.commit()
+        article.status = ArticleStatus.UNDER_CONSIDERATION.value
+        article.update_record() # type: ignore
+        return recommendation_id
 
 
     @staticmethod
