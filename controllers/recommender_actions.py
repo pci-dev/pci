@@ -6,16 +6,22 @@ import datetime
 from app_modules.helper import *
 from app_modules import emailing
 from app_components import app_forms
-from gluon.http import HTTP, redirect
+from gluon.http import HTTP, redirect # type: ignore
 from gluon.sqlhtml import SQLFORM
-from models.article import Article, ArticleStatus, is_scheduled_submission
-from models.recommendation import RecommendationState
+from models.article import Article, ArticleStatus
 
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 
 from app_modules.common_tools import URL
+
+request = current.request
+session = current.session
+db = current.db
+auth = current.auth
+response = current.response
+T = current.T
 
 ######################################################################################################################################################################
 ## Actions
@@ -74,10 +80,10 @@ def do_accept_new_article_to_recommend():
     
     if "ethics_approved" in request.vars:
         current_user.ethical_code_approved = True
-        current_user.update_record()
+        current_user.update_record() # type: ignore
     if not (current_user.ethical_code_approved):
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
     if "no_conflict_of_interest" not in request.vars:
         raise HTTP(403, "403: " + T("Forbidden"))
     no_conflict = cast(Literal['yes', 'no'], request.vars["no_conflict_of_interest"])
@@ -90,42 +96,30 @@ def do_accept_new_article_to_recommend():
         raise HTTP(404, "404: " + T("Article not found"))
 
     if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
-        recommendation_id = db.t_recommendations.insert(article_id=article_id, recommender_id=current_user_id, doi=article.doi, recommendation_state=RecommendationState.ONGOING.value, no_conflict_of_interest=True, ms_version=article.ms_version)
-        db.commit()
-        article = Article.get_by_id(article_id)  # reload due to trigger!
-        if not article:
-            raise HTTP(404, "404: " + T("Article not found"))
-        article.status = ArticleStatus.UNDER_CONSIDERATION.value
-        article.update_record()
-        if is_scheduled_submission(article):
-            emailing.create_reminders_for_submitter_scheduled_submission(article)
-        redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
-    else:
-        if article.status == ArticleStatus.UNDER_CONSIDERATION.value:
-            last_recommendation = (
-                    db((db.t_recommendations.article_id == article_id) & (db.t_recommendations.is_closed == False))
-                    .select(db.t_recommendations.ALL, orderby=db.t_recommendations.id).last()
+    elif article.status == ArticleStatus.UNDER_CONSIDERATION.value:
+        last_recommendation = (
+                db((db.t_recommendations.article_id == article_id) & (db.t_recommendations.is_closed == False))
+                .select(db.t_recommendations.ALL, orderby=db.t_recommendations.id).last()
+        )
+        if last_recommendation is not None and last_recommendation.id is not None:
+            recommendation_id = last_recommendation.id
+            reviewers_list_selection = db((db.t_reviews.recommendation_id == recommendation_id) & (db.t_reviews.reviewer_id == db.auth_user.id)).select(
+                db.t_reviews.id, db.t_reviews.review_state, db.auth_user.id
             )
-            if last_recommendation is not None and last_recommendation.id is not None:
-                recommendation_id = last_recommendation.id
-                reviewers_list_selection = db((db.t_reviews.recommendation_id == recommendation_id) & (db.t_reviews.reviewer_id == db.auth_user.id)).select(
-                    db.t_reviews.id, db.t_reviews.review_state, db.auth_user.id
-                )
-                if len(reviewers_list_selection) == 0:
-                    redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
-                else:
-                    print("Bug (reviewersListSel) : " + reviewers_list_selection)
-                    session.flash = T("Article no more available", lazy=False)
-                    redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
+            if len(reviewers_list_selection) == 0:
+                return redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
             else:
-                print("Bug (lastRecomm) : " + last_recommendation)
+                print("Bug (reviewersListSel) : " + reviewers_list_selection)
                 session.flash = T("Article no more available", lazy=False)
-                redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
+                return redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
         else:
-            print("Bug (articleStatus) : " + article.status)
+            print("Bug (lastRecomm) : " + last_recommendation)
             session.flash = T("Article no more available", lazy=False)
-            redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
-
+            return redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
+    else:
+        print("Bug (articleStatus) : " + article.status)
+        session.flash = T("Article no more available", lazy=False)
+        return redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
 
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender"))
@@ -399,7 +393,7 @@ def del_reviewer_with_confirmation():
                 )
             )
 
-        form = FORM.confirm(T('Decline this review'), {'Back': rediectUrl})
+        form: ... = FORM.confirm(T('Decline this review'), {'Back': rediectUrl}) # type: ignore
         
         if form.accepted:
             if auth.has_membership(role="manager"):
@@ -450,7 +444,7 @@ def add_recommender_as_reviewer():
                 review.update_record(review_state="Awaiting review")
                 db.commit()
         else:  # create review
-            rid = db.t_reviews.validate_and_insert(
+            db.t_reviews.validate_and_insert(
                 recommendation_id=recommId, reviewer_id=recomm.recommender_id, no_conflict_of_interest=recomm.no_conflict_of_interest, review_state="Awaiting review"
             )
     redirect(request.env.http_referer)
@@ -499,7 +493,7 @@ def check_accept_decline_request():
     return rev, recomm
 
 
-def redirect_to_recommendations(recomm):
+def redirect_to_recommendations(recomm: Recommendation):
     controller = "manager" if auth.has_membership(role="manager") else "recommender"
 
     redirect(URL(c=controller, f="recommendations", vars=dict(articleId=recomm["article_id"])))
@@ -587,7 +581,6 @@ def delete_recommendation_file():
     recommId = request.vars["recommId"]
     recomm = db.t_recommendations[recommId]
     art = db.t_articles[recomm.article_id]
-    isPress = None
 
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
@@ -804,14 +797,14 @@ def change_review_due_date():
         redirect(URL('default','index'))
         return
     
-    default_value: str
+    default_value: datetime.datetime
     if review.due_date:
         default_value = review.due_date
     else:
         default_value = Review.get_due_date_from_review_duration(review)
-    default_value = default_value.strftime('%Y-%m-%d')
+    default_value_str = default_value.strftime('%Y-%m-%d')
     
-    form = FORM(CENTER(INPUT(_name="review_duration", type="date", _class="date", _value=default_value)),
+    form: ... = FORM(CENTER(INPUT(_name="review_duration", type="date", _class="date", _value=default_value_str)),
                 CENTER(INPUT(_type="submit", _value=T("Change due date"), _class="btn btn-success"),
                     A("Cancel", _class="btn btn-default", _href=request.env.http_referer), _style="margin-top: 10px;"))
     
@@ -851,7 +844,7 @@ def change_review_due_date():
     elif request.env.http_referer and 'change_review_due_date' not in request.env.http_referer:
             session.change_review_due_date_previous_page = request.env.http_referer
     
-    content = CENTER(H3(f'The current review deadline is {default_value}.'),
+    content = CENTER(H3(f'The current review deadline is {default_value_str}.'),
                      P('Please select the updated deadline or click Cancel.', _class="info-sub-text"),
                      _class="col-sm-12", _style="text-align: center; margin-bottom: 10px")
 
