@@ -187,7 +187,7 @@ def mkUserWithAffil_U(theUser: User, linked=False, fullURL=False):
 def mkUserWithMail(userId: Optional[int], linked: bool = False, reverse: bool = False, orcid: bool = False):
     db = current.db
     if userId is not None:
-        theUser: Optional[User] = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.orcid).last()
+        theUser: Optional[User] = db(db.auth_user.id == userId).select().last()
     else:
         theUser = None
 
