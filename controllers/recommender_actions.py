@@ -8,7 +8,7 @@ from app_modules import emailing
 from app_components import app_forms
 from gluon.http import HTTP, redirect # type: ignore
 from gluon.sqlhtml import SQLFORM
-from models.article import Article, ArticleStatus
+from models.article import Article, ArticleStatus, is_scheduled_submission
 
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender
@@ -73,6 +73,7 @@ def del_contributor():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="recommender"))
 def do_accept_new_article_to_recommend():
+    skip_checkbox = "skip_checkbox" in current.request.vars and str(current.request.vars["skip_checkbox"]).lower() == 'true' 
     current_user_id = int(auth.user_id)
     current_user = User.get_by_id(current_user_id)
     if not current_user:
@@ -84,11 +85,12 @@ def do_accept_new_article_to_recommend():
     if not (current_user.ethical_code_approved):
         session.flash = auth.not_authorized()
         return redirect(request.env.http_referer)
-    if "no_conflict_of_interest" not in request.vars:
-        raise HTTP(403, "403: " + T("Forbidden"))
-    no_conflict = cast(Literal['yes', 'no'], request.vars["no_conflict_of_interest"])
-    if no_conflict != "yes":
-        raise HTTP(403, "403: " + T("Forbidden"))
+    if not skip_checkbox:
+        if "no_conflict_of_interest" not in request.vars:
+            raise HTTP(403, "403: " + T("Forbidden"))
+        no_conflict = cast(Literal['yes', 'no'], request.vars["no_conflict_of_interest"])
+        if no_conflict != "yes":
+            raise HTTP(403, "403: " + T("Forbidden"))
 
     article_id = int(request.vars["articleId"])
     article = Article.get_by_id(article_id)
@@ -96,6 +98,15 @@ def do_accept_new_article_to_recommend():
         raise HTTP(404, "404: " + T("Article not found"))
 
     if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
+        sugg_recommender = SuggestedRecommender.get_by_article_and_user_id(article_id, current.auth.user_id)
+        if not sugg_recommender or not sugg_recommender.recommender_validated:
+            emailing.send_manager_alert_willing_to_recommend(article_id)
+            return redirect(URL(c="recommender", f="validation_request_new_article_to_recommend", vars=dict(article_id=article_id)))
+        else:
+            recommendation_id = Article.create_new_recommendation_round(article, current_user_id)
+            if is_scheduled_submission(article):
+                emailing.create_reminders_for_submitter_scheduled_submission(article)
+            return redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
     elif article.status == ArticleStatus.UNDER_CONSIDERATION.value:
         last_recommendation = (
                 db((db.t_recommendations.article_id == article_id) & (db.t_recommendations.is_closed == False))

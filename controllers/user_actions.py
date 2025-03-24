@@ -6,7 +6,6 @@ from app_modules.common_tools import get_next, get_review_id
 
 from app_modules.helper import *
 
-import common_tools
 from controller_modules import user_module
 from app_modules import common_small_html
 from app_components import app_forms
