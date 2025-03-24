@@ -148,7 +148,7 @@ class Recommendation(Row):
     
 
     @staticmethod
-    def get_decision_due_date(recommendation: 'Recommendation', article: 'Article', round_number: int):
+    def get_decision_due_date(recommendation: 'Recommendation', article: 'Article', round_number: int) -> _[datetime]:
         from models.review import Review, ReviewState
         from models.mail_queue import MailQueue, SendingStatus
 

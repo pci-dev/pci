@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from re import sub, match
 from datetime import datetime
 from app_components import ongoing_recommendation
@@ -1461,7 +1461,7 @@ def suggested_recommender_list(article_id: int):
 
 ####################################################################################
 
-def get_current_step_article(article: Article):
+def get_current_step_article(article: Article) -> Optional[Tuple[StepNumber, SPAN]]:
     timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(article, False, "%d\xa0%b")['content']
     if not isinstance(timeline, DIV):
         return 

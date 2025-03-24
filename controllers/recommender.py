@@ -8,7 +8,7 @@ from dateutil.relativedelta import *
 from typing import cast, Optional, List
 from difflib import SequenceMatcher
 
-from gluon import IS_NOT_EMPTY, SQLFORM
+from gluon import HTTP, IS_IN_DB, IS_NOT_EMPTY, SQLFORM
 from gluon.http import redirect # type: ignore
 from lxml import html
 
@@ -68,7 +68,7 @@ trgmLimit = myconf.get("config.trgm_limit") or 0.4
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
-Field.CC = db.Field.CC
+
 ######################################################################################################################################################################
 def index():
     return my_awaiting_articles()
@@ -76,8 +76,6 @@ def index():
 # Common function for articles needing attention
 @auth.requires(auth.has_membership(role="recommender"))
 def fields_awaiting_articles():
-    myVars = request.vars
-
     articles = db.t_articles
     full_text_search_fields = [
         'id',
@@ -87,24 +85,27 @@ def fields_awaiting_articles():
         'upload_timestamp',
     ]
 
-    def article_html(art_id):
-        return common_small_html.mkRepresentArticleLight(art_id)
+    def represent_article_id(article_id: int, article: Article):
+        return common_small_html.mkRepresentArticleLight(article_id)
+    
+    def represent_upload_timestamp(upload_timestamp: datetime.datetime, article: Article):
+        return common_small_html.mkLastChange(upload_timestamp)
 
     articles.id.readable = True
-    articles.id.represent = lambda text, row: article_html(row.id)
+    articles.id.represent = represent_article_id
     articles.thematics.label = "Thematics fields"
     articles.thematics.type = "string"
-    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero="")
 
     for a_field in articles.fields:
         if not a_field in full_text_search_fields:
             articles[a_field].readable = False
 
     articles.id.label = "Article"
-    articles.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
+    articles.upload_timestamp.represent = represent_upload_timestamp
 
-    links = []
-    links.append(dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(row)))
+    links: List[Dict[str, Any]] = []
+    links.append(dict(header=T(""), body=recommender_module.mkViewEditArticleRecommenderButton))
 
     excluded = db.t_excluded_recommenders
     excluded_articles = db(
@@ -114,7 +115,7 @@ def fields_awaiting_articles():
         (articles.status == "Awaiting consideration")
       & ~articles.id.belongs(excluded_articles)
     )
-    original_grid = SQLFORM.grid(
+    original_grid: ... = SQLFORM.grid( # type: ignore
         query,
         searchable=True,
         editable=False,
@@ -125,7 +126,7 @@ def fields_awaiting_articles():
         paginate=10,
         csv=csv,
         exportclasses=expClass,
-        buttons_placement=False,
+        buttons_placement="",
         fields=[
             articles.id,
             articles.thematics,
@@ -1450,7 +1451,7 @@ def send_review_cancellation():
 
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-        Field.CC(default=ccAddresses),
+        db.Field.CC(default=ccAddresses),
         Field(
             "reviewer_email",
             label=T("Reviewer email address"),
@@ -1556,7 +1557,7 @@ def send_reviewer_generic_mail():
 
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-        Field.CC(default=ccAddresses),
+        db.Field.CC(default=ccAddresses),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
@@ -1706,7 +1707,7 @@ def email_for_registered_reviewer():
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(article)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-        Field.CC(ccAddresses),
+        db.Field.CC(ccAddresses),
         Field(
             "reviewer_email",
             label=T("Reviewer e-mail address"),
@@ -1845,7 +1846,7 @@ def email_for_new_reviewer():
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(article)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-        Field.CC(default=ccAddresses),
+        db.Field.CC(default=ccAddresses),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, requires=IS_NOT_EMPTY()),
         Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, requires=IS_NOT_EMPTY()),
         Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250, requires=IS_NOT_EMPTY()),

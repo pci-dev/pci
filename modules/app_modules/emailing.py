@@ -2932,7 +2932,7 @@ def create_reminder_for_reviewer_scheduled_review_coming_soon(review: Review):
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_reviewer(hashtag_template, reviewId):
+def delete_reminder_for_reviewer(hashtag_template: List[str], reviewId: int):
     db = current.db
     review = db.t_reviews[reviewId]
     recomm = db.t_recommendations[review.recommendation_id]

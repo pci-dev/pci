@@ -633,12 +633,12 @@ def is_scheduled_submission(article: Article) -> bool:
     
     report_survey = cast(_['ReportSurvey'], article.t_report_survey.select().first()) # type: ignore
 
-    is_scheduled_submission: ... = scheduledSubmissionActivated and (
+    is_scheduled_submission = scheduledSubmissionActivated and (
         article.scheduled_submission_date is not None
         or article.status.startswith("Scheduled submission")
         or (
             report_survey is not None and report_survey.q10 is not None
-            and article.t_recommendations.count() == 1 # type: ignore
+            and int(article.t_recommendations.count()) == 1 # type: ignore
         )
     )
 
