@@ -68,26 +68,24 @@ class MailQueue(Row):
     def get_by_article_and_template(article_id: int,
                                     hastag_template: Union[str, List[str]],
                                     sending_status: List[SendingStatus] = [],
-                                    order_by: _[Any] = None) -> List['MailQueue']:
+                                    order_by: _[Any] = None,
+                                    user_id: _[int] = None) -> List['MailQueue']:
         db = current.db
         sending_status_values = [s.value for s in sending_status]
 
         if isinstance(hastag_template, str):
             hastag_template = [hastag_template]
 
+        query = (db.mail_queue.article_id == article_id) \
+                & (db.mail_queue.mail_template_hashtag.belongs(hastag_template))
 
-        if len(sending_status_values) == 0:
-            query = db(
-                (db.mail_queue.article_id == article_id) &
-                (db.mail_queue.mail_template_hashtag.belongs(hastag_template))
-            )
-        else:
-            query = db(
-                (db.mail_queue.article_id == article_id) &
-                (db.mail_queue.mail_template_hashtag.belongs(hastag_template)) &
-                (db.mail_queue.sending_status.belongs(sending_status_values))
-            )
+        if len(sending_status_values) > 0:
+           query = query & (db.mail_queue.sending_status.belongs(sending_status_values))
 
+        if user_id is not None:
+            query = query & (db.mail_queue.user_id == user_id)
+
+        query = db(query)
         if order_by:
             mails = query.select(orderby=order_by)
         else:

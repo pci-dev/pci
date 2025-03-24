@@ -23,9 +23,13 @@ class SuggestedRecommender(Row):
 
 
     @staticmethod
-    def get_by_article_and_user_id(article_id: int, user_id: int):
+    def get_by_article_and_user_id(article_id: int, user_id: int, declined: _[bool] = None) -> _['SuggestedRecommender']:
         db = current.db
-        suggested_recommender: _[SuggestedRecommender] = db((db.t_suggested_recommenders.article_id == article_id) & (db.t_suggested_recommenders.suggested_recommender_id == user_id)).select().first()
+        query = (db.t_suggested_recommenders.article_id == article_id) & (db.t_suggested_recommenders.suggested_recommender_id == user_id)
+        if declined is not None:
+            query = query & (db.t_suggested_recommenders.declined == declined)
+
+        suggested_recommender = db(query).select().first()
         return suggested_recommender
 
 

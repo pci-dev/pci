@@ -3884,6 +3884,35 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
                     mail.update_record(sending_date=mail.sending_date + datetime.timedelta(hours=1)) # type: ignore
 
 
+def send_manager_alert_willing_to_recommend(article_id: int):
+    if already_request_willing_to_recommend(article_id):
+        return
+    
+    mail_template = "#WillingRecommenderValidation"
+    recommender_id = int(current.auth.user_id)
+
+    article = Article.get_by_id(article_id)
+    if not article:
+        return
+
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["destAddress"] = mail_vars["appContactMail"]
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recommender_id, True, orcid=True)
+    mail_vars["linkTarget"] = URL(c="manager",
+                                  f="search_recommenders",
+                                  vars=dict(articleId=article_id,
+                                            search_type="advanced",
+                                            keywords=f'auth_user.email contains "{current.auth.user.email}"'),
+                                  scheme=True)
+
+    emailing_tools.insertMailInQueue(mail_template, mail_vars, article_id=article_id)
 
 
+def already_request_willing_to_recommend(article_id: int):
+    mail_template = "#WillingRecommenderValidation"
+    recommender_id = int(current.auth.user_id)
 
+    existing_mail = MailQueue.get_by_article_and_template(article_id, mail_template, user_id=recommender_id)
+    return len(existing_mail) > 0

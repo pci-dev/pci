@@ -37,6 +37,7 @@ from app_modules import emailing
 
 from models.group import Role
 from models.report_survey import ReportSurvey
+from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 from models.recommendation import Recommendation
 from models.article import Article
@@ -529,28 +530,67 @@ def accept_new_article_to_recommend():
     actionFormUrl = None
     appLongName = None
     hidenVarsForm = None
+    skip_checkbox = "skip_checkbox" in current.request.vars and str(current.request.vars["skip_checkbox"]).lower() == 'true' 
 
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     if articleId is None:
         raise HTTP(404, "404: " + T("Unavailable"))
+    sugg_recommender = SuggestedRecommender.get_by_article_and_user_id(articleId, current.auth.user_id)
     ethics_not_signed = not (db.auth_user[auth.user_id].ethical_code_approved)
     if ethics_not_signed:
-        redirect(URL(c="about", f="ethics"))
+        return redirect(URL(c="about", f="ethics"))
+    elif ((sugg_recommender and not sugg_recommender.recommender_validated) or (not sugg_recommender)) and emailing.already_request_willing_to_recommend(articleId):
+        return redirect(URL(c="recommender", f="validation_request_new_article_to_recommend", vars=dict(article_id=articleId)))
     else:
         appLongName = myconf.take("app.longname")
         hiddenVarsForm = dict(articleId=articleId, ethics_approved=True)
         actionFormUrl = URL("recommender_actions", "do_accept_new_article_to_recommend")
         longname = myconf.take("app.longname")
 
+        if skip_checkbox:
+            return redirect(URL("recommender_actions", "do_accept_new_article_to_recommend", vars=(dict(skip_checkbox=True, articleId=articleId))))
+
     pageTitle = getTitle("#AcceptPreprintInfoTitle")
     customText = getText("#AcceptPreprintInfoText")
 
     response.view = "controller/recommender/accept_new_article_to_recommend.html"
     return dict(
-        customText=customText, titleIcon="education", pageTitle=pageTitle, actionFormUrl=actionFormUrl, appLongName=appLongName, hiddenVarsForm=hiddenVarsForm, articleId=articleId, pciRRactivated=pciRRactivated
+        customText=customText,
+        titleIcon="education",
+        pageTitle=pageTitle,
+        actionFormUrl=actionFormUrl,
+        appLongName=appLongName,
+        hiddenVarsForm=hiddenVarsForm,
+        articleId=articleId,
+        pciRRactivated=pciRRactivated
+    )
+
+
+@auth.requires(auth.has_membership(role="recommender"))
+def validation_request_new_article_to_recommend():
+    article_id = request.vars.get("article_id")
+    if not article_id:
+        return HTTP(400, "Missing article_id parameter in url")
+    
+    article = Article.get_by_id(article_id)
+    if not article:
+        return HTTP(404, f"Article {article_id} not found")
+    
+    response.view = "default/info.html"
+        
+    html = CENTER(
+        B("Thanks for your willingness to handle the evaluation of this preprint."),
+        BR(),
+        BR(),
+        "If the managing board agrees, you’ll receive an email inviting you to act as the recommender for this preprint"
+    )
+
+    return dict(
+        pageTitle="Request to handle the evaluation of this preprint",
+        customText=html,
     )
 
 ######################################################################################################################################################################

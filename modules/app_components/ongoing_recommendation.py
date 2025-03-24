@@ -190,6 +190,8 @@ def get_recommendation_status_buttons(article: Article):
 
 ######################################################################################################################################################################
 def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bool = True):
+    from app_modules.emailing import already_request_willing_to_recommend
+
     db, auth = current.db, current.auth
 
     myContents = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
@@ -205,24 +207,42 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
         and not (quiet)
     ):
         # suggested or any recommender's button for recommendation consideration
-        btsAccDec: List[DIV] = [
-            A(
-                SPAN(current.T("Yes, I would like to handle the evaluation process"), _class="buttontext btn btn-success pci-recommender"),
-                _href=common_tools.URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), scheme=True),
-                _class="button",
-            ),
+        already_request_willing_to_recommend = already_request_willing_to_recommend(art.id)
+        sugg_recommender = SuggestedRecommender.get_by_article_and_user_id(art.id, current.auth.user_id)
+        valid_sugg_recommender = sugg_recommender and sugg_recommender.recommender_validated and not sugg_recommender.declined
+        declined_sugg_recommender = sugg_recommender and sugg_recommender.declined
 
-        ]
-       
-        amISugg = db(
-            (db.t_suggested_recommenders.article_id == art.id)
-            & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-            & (db.t_suggested_recommenders.declined == False)
-            & (db.t_suggested_recommenders.recommender_validated == True)
-        ).count()
+        btsAccDec: List[DIV] = []
+
+        if already_request_willing_to_recommend and not valid_sugg_recommender:
+            if already_request_willing_to_recommend and not sugg_recommender:
+                myButtons.append(P("You have already requested to handle the recommendation process")) # type: ignore
+            
+            btsAccDec.append(
+                    BUTTON(current.T("Yes, I would like to handle the evaluation process"),
+                    _class=f"buttontext btn btn-success pci-recommender",
+                    _disabled=True
+                ),
+            )
         
-        if amISugg > 0:
-            # suggested recommender's button for declining recommendation
+        if not already_request_willing_to_recommend and not valid_sugg_recommender:
+            btsAccDec.append(
+                A(
+                    SPAN(current.T("Yes, I would like to handle the evaluation process"),
+                        _class=f"buttontext btn btn-success pci-recommender"),
+                    _href=common_tools.URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id, skip_checkbox=True), scheme=True),
+                ),
+            )
+        
+        if valid_sugg_recommender:
+            btsAccDec.append(
+                A(
+                    SPAN(current.T("Confirm your request to handle the evaluation process"),
+                        _class=f"buttontext btn btn-success pci-recommender"),
+                    _href=common_tools.URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), scheme=True),
+                ),
+            )
+                   
             btsAccDec.append(
                 A(
                     SPAN(current.T("No, I would rather not"), _class="buttontext btn btn-warning pci-recommender"),
@@ -231,13 +251,8 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
                 ),
             )
 
-        haveDeclined = db(
-            (db.t_suggested_recommenders.article_id == art.id)
-            & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-            & (db.t_suggested_recommenders.declined == True)
-        ).count()
         buttonDivClass = ""
-        if haveDeclined > 0:
+        if declined_sugg_recommender:
             buttonDivClass = " pci2-flex-column"
             btsAccDec.append(
                 BR(),
@@ -246,11 +261,7 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
                 B(current.T("You have declined the invitation to handle the evaluation process of this preprint.")),
             )
         else:
-            i_am_declined = db(
-                (db.t_suggested_recommenders.article_id == art.id)
-                & (db.t_suggested_recommenders.suggested_recommender_id == auth.user_id)
-                & (db.t_suggested_recommenders.recommender_validated == False)
-            ).count()
+            i_am_declined = sugg_recommender and sugg_recommender.recommender_validated is False
 
             if i_am_declined:
                 buttonDivClass = " pci2-flex-column"
@@ -260,7 +271,6 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
                 btsAccDec.append(
                     B(current.T("You have been canceled by managers to handle the evaluation process of this preprint.")),
                 )
-        
 
         myButtons.append(DIV(btsAccDec, _class="pci2-flex-grow pci2-flex-center" + buttonDivClass, _style="margin:10px")) # type: ignore
 

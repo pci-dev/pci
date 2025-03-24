@@ -12,7 +12,7 @@ from pydal.objects import Row
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon import current
 
-from models.recommendation import Recommendation
+from models.recommendation import Recommendation, RecommendationState
 
 from app_modules.lang import Lang
 from app_modules.translator import TranslatedFieldDict
@@ -626,6 +626,22 @@ class Article(Row):
                                     & (db.auth_user.id == db.t_reviews.reviewer_id)).select(db.auth_user.email, distinct=True)]
 
         return (recommender, co_recommenders, reviewers)
+    
+    
+    @staticmethod
+    def create_new_recommendation_round(article: 'Article', recommender_id: int):
+        db = current.db
+
+        recommendation_id = db.t_recommendations.insert(article_id=article.id,
+                                                        recommender_id=recommender_id,
+                                                        doi=article.doi,
+                                                        recommendation_state=RecommendationState.ONGOING.value,
+                                                        no_conflict_of_interest=True,
+                                                        ms_version=article.ms_version)
+        db.commit()
+        article.status = ArticleStatus.UNDER_CONSIDERATION.value
+        article.update_record() # type: ignore
+        return recommendation_id
 
 
 def is_scheduled_submission(article: Article) -> bool:
