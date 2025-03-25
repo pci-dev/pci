@@ -1257,7 +1257,7 @@ def validate_stage_button(article: Article):
                     extra_button=[put_in_presubmission_button(article), set_to_not_considered(article)],
                 )
                 return SPAN(
-                    validation_checklist('do_validate_article', article) if not pciRRactivated else "",
+                    validation_checklist('do_validate_article', article),
                     button)
             elif article.status == ArticleStatus.PRE_SUBMISSION.value:
                 return manager_action_button(
@@ -1450,11 +1450,12 @@ def validation_checklist(validation_type: str, article: Article):
 
             "no_plagiarism":
             ("No plagiarism has been detected ", True),
-        }
+
+            "co_authorship_ok":
+            ("Co-authorship between authors and suggested recommenders (and suggested reviewers) is ok", True),
+        } if not pciRRactivated else {}
 
         sugg_recommender_button = manager_module.mkSuggestedRecommendersManagerButton(article, current.request.env.http_referer, True) or ""
-
-        checkboxes["co_authorship_ok"] = ("Co-authorship between authors and suggested recommenders (and suggested reviewers) is ok", True)
 
         checkboxes["sugg_recommender_ok"] = (["At least one suggested recommender has been validated.",
                                                  sugg_recommender_button],
