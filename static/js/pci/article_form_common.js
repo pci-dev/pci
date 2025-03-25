@@ -96,11 +96,6 @@ document.getElementById('clean-save-article-form-button')?.addEventListener('cli
     cleanFormSaved();
 });
 
-function getSaveFormUploadedPictureLabel() {
-    return `save-form-${window.location.pathname}-t_articles_uploaded_picture-${userId}`;
-}
-
-
 async function saveForm(e) {
     const values = {
         data_doi: Array(),
@@ -195,6 +190,8 @@ function loadFormSaved() {
 
     if (typeof savedPicture !== 'undefined' && savedPicture != null) {
         initSavedUploadedPictureField();
+        const uploadedPicture = document.getElementById('t_articles_uploaded_picture');
+        saveUploadedPictureInStorage(uploadedPicture.files[0], `t_articles_uploaded_picture-${userId}`, sessionStorage)
     }
 }
 loadFormSaved();
