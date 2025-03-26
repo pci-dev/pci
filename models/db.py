@@ -8,7 +8,7 @@ from gluon.sqlhtml import SQLFORM
 from models.suggested_recommender import SuggestedRecommender
 
 from typing import cast
-from app_components.custom_validator import CUSTOM_VALID_URL, VALID_LIST_NAMES_MAIL, VALID_DOI, TEXT_CLEANER
+from app_components.custom_validator import CUSTOM_VALID_URL, VALID_LIST_NAMES_MAIL, VALID_DOI, TEXT_CLEANER, VALID_TEMPLATE
 from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect # type: ignore
@@ -474,7 +474,7 @@ parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=Fal
 db.define_table(
     "help_texts",
     Field("id", type="id"),
-    Field("hashtag", type="string", length=128, label=T("Hashtag"), default="#"),
+    Field("hashtag", type="string", length=128, label=T("Hashtag"), default="#", requires=VALID_TEMPLATE()),
     Field("lang", type="string", length=10, label=T("Language"), default="default"),
     Field("contents", type="text", length=1048576, label=T("Contents")),
     sequence_name='public.help_texts_id_seq',
@@ -1542,7 +1542,7 @@ db.define_table(
 db.define_table(
     "mail_templates",
     Field("id", type="id"),
-    Field("hashtag", type="string", length=128, label=T("Hashtag"), default="#"),
+    Field("hashtag", type="string", length=128, label=T("Hashtag"), default="#", requires=VALID_TEMPLATE()),
     Field("lang", type="string", length=10, label=T("Language"), default="default"),
     Field("subject", type="string", length=256, label=T("Subject")),
     Field("contents", type="text", length=1048576, label=T("Contents")),
@@ -1568,7 +1568,7 @@ db.define_table(
     Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
     Field("article_id", type="reference t_articles", ondelete="CASCADE", label=T("Article")),
     Field("review_id", type="reference t_reviews", ondelete="CASCADE", label=T("Review")),
-    Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False),
+    Field("mail_template_hashtag", type="string", length=128, label=T("Template hashtag"), writable=False, requires=VALID_TEMPLATE()),
     Field("reminder_count", type="integer", label=T("Reminder count"), default=0),
     Field("sender_name", type="string", label=T("Sender name")),
     migrate=False,

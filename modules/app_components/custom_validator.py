@@ -166,3 +166,16 @@ class TEXT_CLEANER:
             .replace("%20https://", " https://")
 
         return value, None
+
+
+class VALID_TEMPLATE:
+
+    def __call__(self, value: Optional[str], record_id: Optional[int] = None):
+        if not value:
+            return value, None
+        
+        value = value.strip()
+        if not value.startswith('#'):
+            value = f"#{value}"
+        
+        return value, None
