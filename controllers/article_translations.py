@@ -3,31 +3,25 @@ import html
 import re
 from typing import List, Optional, cast
 from gluon import current
-from gluon.contrib.appconfig import AppConfig
-from gluon.globals import Response, Request, Session
-from gluon.html import A, BUTTON, DIV, FORM, HR, I, INPUT, LABEL, OPTION, P, SELECT, STRONG, TEXTAREA, URL, XML
-from gluon.http import redirect
-from gluon.tools import Auth
+from gluon.contrib.appconfig import AppConfig # type: ignore
+from gluon.html import A, BUTTON, DIV, FORM, HR, I, INPUT, LABEL, OPTION, P, SELECT, STRONG, TEXTAREA, XML
+from gluon.http import redirect # type: ignore
 from app_modules.lang import DEFAULT_LANG, Lang, LangItem
 from app_modules.article_translator import ArticleTranslator
-from models.article import Article, TranslatedFieldType, TranslatedFieldDict
+from models.article import Article, TranslatedFieldType
 from models.group import Role
-from pydal.base import DAL
 from app_modules import common_tools
 from app_modules import common_small_html
-from app_modules.translator import Translator
+from app_modules.translator import Translator, TranslatedFieldDict
+
+from app_modules.common_tools import URL
 
 
-db = cast(DAL, current.db)
-response = cast(Response, current.response)
-request = cast(Request, current.request)
-session = cast(Session, current.session)
-auth = cast(Auth, current.auth)
-config = AppConfig()
-
-scheme = config.take("alerts.scheme")
-host = config.take("alerts.host")
-port = config.take("alerts.port", cast=lambda v: common_tools.takePort(v))
+db = current.db
+response = current.response
+request = current.request
+session = current.session
+auth = current.auth
 
 
 @auth.requires_login()
@@ -325,25 +319,17 @@ def _generate_all_form(article: Article):
     
 
 def _generate_lang_selector_all_field(article: Article):
-    url_generate = cast(str,
-               URL(c="article_translations",
-                   f="add_or_edit_article_fields_translations",
-                   vars=dict(article_id=article.id, action=AddNewLanguageAction.GENERATE.value),
-                   user_signature=True,
-                   host=host,
-                   scheme=scheme,
-                   port=port)
-               )
+    url_generate = URL(c="article_translations",
+                        f="add_or_edit_article_fields_translations",
+                        vars=dict(article_id=article.id, action=AddNewLanguageAction.GENERATE.value),
+                        user_signature=True,
+                        scheme=True)
 
-    url_write = cast(str,
-               URL(c="article_translations",
-                   f="add_or_edit_article_fields_translations",
-                   vars=dict(article_id=article.id, action=AddNewLanguageAction.WRITE.value),
-                   user_signature=True,
-                   host=host,
-                   scheme=scheme,
-                   port=port)
-               )
+    url_write = URL(c="article_translations",
+                    f="add_or_edit_article_fields_translations",
+                    vars=dict(article_id=article.id, action=AddNewLanguageAction.WRITE.value),
+                    user_signature=True,
+                    scheme=True)
     
     return FORM(
         LABEL('Add translation - Choose a language', _class="control-label col-sm-3", _for="lang-selector", _style="font-size: 17px"),
@@ -367,25 +353,17 @@ def _generate_lang_selector_all_field(article: Article):
 
 
 def _generate_lang_selector(article: Article, translated_field: TranslatedFieldType, is_textarea: bool):
-    url_generate = cast(str,
-               URL(c="article_translations",
-                   f="add_or_edit_article_field_translation",
-                   vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.GENERATE.value),
-                   user_signature=True,
-                   host=host,
-                   scheme=scheme,
-                   port=port)
-               )
+    url_generate = URL(c="article_translations",
+                        f="add_or_edit_article_field_translation",
+                        vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.GENERATE.value),
+                        user_signature=True,
+                        scheme=True)
     
-    url_write = cast(str,
-               URL(c="article_translations",
-                   f="add_or_edit_article_field_translation",
-                   vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value),
-                   user_signature=True,
-                   host=host,
-                   scheme=scheme,
-                   port=port)
-               )
+    url_write = URL(c="article_translations",
+                        f="add_or_edit_article_field_translation",
+                        vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value),
+                        user_signature=True,
+                        scheme=True)
     
     if is_textarea:
         input = TEXTAREA(_id="new-translation", _class="form-control text", _name="new-translation")
@@ -450,25 +428,17 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
     inputs.append(LABEL(TranslatedFieldType.get_corresponding_english_field(TranslatedFieldType.KEYWORDS).capitalize(), _for=f"title-{lang.value.code}", _class="control-label"))
     inputs.append(INPUT(_id=f"keywords-{lang.value.code}", _value=keywords_content, _type='text', _class="string form-control", _name=f"keywords-{lang.value.code}", _initial=keywords_content))
 
-    save_url = cast(str,
-                        URL(c="article_translations",
-                            f="add_or_edit_article_fields_translations",
-                            vars=dict(article_id=article.id, action=AddNewLanguageAction.WRITE.value, lang=lang.value.code),
-                            user_signature=True,
-                            host=host,
-                            scheme=scheme,
-                            port=port)
-                    )
+    save_url = URL(c="article_translations",
+                        f="add_or_edit_article_fields_translations",
+                        vars=dict(article_id=article.id, action=AddNewLanguageAction.WRITE.value, lang=lang.value.code),
+                        user_signature=True,
+                        scheme=True)
     
-    delete_url = cast(str,
-                        URL(c="article_translations",
-                            f="delete_all_translation",
-                            vars=dict(article_id=article.id, lang=lang.value.code),
-                            user_signature=True,
-                            host=host,
-                            scheme=scheme,
-                            port=port)
-                    )
+    delete_url = URL(c="article_translations",
+                        f="delete_all_translation",
+                        vars=dict(article_id=article.id, lang=lang.value.code),
+                        user_signature=True,
+                        scheme=True)
     
     checkbox = DIV(
         INPUT(_type="checkbox", _id=f"checkboxpublic-{lang.value.code}", value=abstract['public']),
@@ -508,25 +478,17 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
     else:
         input = INPUT(_id=lang.value.code, _value=translation_value["content"], _type='text', _class="string form-control", _name=lang.value.code)
 
-    save_url = cast(str,
-                        URL(c="article_translations",
-                            f="add_or_edit_article_field_translation",
-                            vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value, lang=lang.value.code, is_textarea=str(is_textarea).lower()),
-                            user_signature=True,
-                            host=host,
-                            scheme=scheme,
-                            port=port)
-                    )
+    save_url = URL(c="article_translations",
+                    f="add_or_edit_article_field_translation",
+                    vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value, lang=lang.value.code, is_textarea=str(is_textarea).lower()),
+                    user_signature=True,
+                    scheme=True)
     
-    delete_url = cast(str,
-                        URL(c="article_translations",
-                            f="delete_translation",
-                            vars=dict(article_id=article.id, field=translated_field.value, lang=lang.value.code),
-                            user_signature=True,
-                            host=host,
-                            scheme=scheme,
-                            port=port)
-                    )
+    delete_url = URL(c="article_translations",
+                    f="delete_translation",
+                    vars=dict(article_id=article.id, field=translated_field.value, lang=lang.value.code),
+                    user_signature=True,
+                    scheme=True)
     
     checkbox = DIV(
         INPUT(_type="checkbox", _id=f"checkboxpublic-{lang.value.code}", value=translation_value['public']),

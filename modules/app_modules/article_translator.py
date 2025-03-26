@@ -1,14 +1,15 @@
 from time import sleep
-from typing import Optional, TypedDict, cast
+from typing import List, Optional, TypedDict, cast
 import uuid
 import subprocess
 from gluon import current
-from gluon.html import A, URL
+from gluon.html import A
 from gluon.sqlhtml import SQLFORM
 
 from models.article import Article, TranslatedFieldDict, TranslatedFieldType
 from app_modules.lang import Lang
 from app_modules.translator import Translator
+from app_modules.common_tools import URL
 
 class ArticleTranslationDict(TypedDict, total=False):
     abstract: str
@@ -164,7 +165,7 @@ class ArticleTranslator(Translator):
     def launch_article_translation_for_default_langs_process(article_id: int, force: bool = False, public: Optional[bool] = None):
         app_name = current.request.application
         
-        cmd = [
+        cmd: List[str] = [
             'python3',
             'web2py.py',
             '-M', 
@@ -192,18 +193,18 @@ class ArticleTranslator(Translator):
         style = "margin: 0px"
         button_class = "btn btn-default"
         
-        title_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True))
-        abstract_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True))
-        keywords_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True))
+        title_url = URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True)
+        abstract_url = URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True)
+        keywords_url = URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True)
 
-        title_row = article_form.element(_id="t_articles_title__row")
+        title_row: ... = article_form.element(_id="t_articles_title__row") # type: ignore
         if title_row:
             title_row.components[1].append(A("Edit title translations", _class=button_class, _style=style, _href=title_url))
         
-        abstract_row = article_form.element(_id="t_articles_abstract__row")
+        abstract_row: ... = article_form.element(_id="t_articles_abstract__row") # type: ignore
         if abstract_row:
             abstract_row.components[1].append(A("Edit abstract translations", _class=button_class, _style=style, _href=abstract_url))
 
-        keywords_row = article_form.element(_id="t_articles_keywords__row")
+        keywords_row: ... = article_form.element(_id="t_articles_keywords__row") # type: ignore
         if keywords_row:
             keywords_row.components[1].append(A("Edit keywords translations", _class=button_class, _style=style, _href=keywords_url))

@@ -1,10 +1,17 @@
 from abc import ABCMeta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 from attr import dataclass
 from deep_translator import GoogleTranslator
 from deep_translator.base import BaseTranslator
 
 from app_modules.lang import Lang
+
+@dataclass
+class TranslatedFieldDict(TypedDict):
+    lang: str
+    content: str
+    automated: bool
+    public: Optional[bool]
 
 @dataclass
 class TranslatorConfig:
@@ -47,11 +54,12 @@ class Translator:
         while i < len(self._translators) and data_translated == None:
             try:
                 engine = self._translators[i]
-                data_translated = engine.translate(text)
+                data_translated = engine.translate(text) # type: ignore
+                is_html_text = is_html(text)
 
-                if is_html(text) and not is_html(data_translated):
-                    raw_text = is_html(text).flatten()
-                    data_translated = engine.translate(raw_text)
+                if is_html_text and not is_html(data_translated):
+                    raw_text = str(is_html_text.flatten()) # type: ignore
+                    data_translated = engine.translate(raw_text) # type: ignore
             except Exception as e:
                 print(e)
                 continue
@@ -77,7 +85,7 @@ class Translator:
             
             try:
                 translator = engine_class(**config.params)
-                if translator.is_language_supported(lang.value.code) or translator.is_language_supported(lang.value.english_name.lower()):
+                if translator.is_language_supported(lang.value.code) or translator.is_language_supported(lang.value.english_name.lower()): # type: ignore
                     translators.append(translator)
             except:
                 pass
@@ -92,7 +100,7 @@ class Translator:
 
         for lang in Lang:
             for translator in translators:
-                if translator.is_language_supported(lang.value.code) or translator.is_language_supported(lang.value.english_name.lower()):
+                if translator.is_language_supported(lang.value.code) or translator.is_language_supported(lang.value.english_name.lower()): # type: ignore
                     supported_langs.append(lang)
                     break
         
