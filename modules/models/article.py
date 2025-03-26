@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from enum import Enum
 import re
-from typing import Any, List, NewType, Optional as _, Union, cast, TypedDict
+from typing import Any, List, NewType, Optional as _, Union, cast
 from app_modules.crossref_api import CrossrefAPI
 from app_modules.datacite_api import DataciteAPI
 from app_modules.biorxiv_api import BiorxivAPI
@@ -16,6 +15,7 @@ from gluon import current
 from models.recommendation import Recommendation
 
 from app_modules.lang import Lang
+from app_modules.translator import TranslatedFieldDict
 
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -60,14 +60,6 @@ class ArticleStatus(Enum):
     SCHEDULED_SUBMISSION_REVISION = 'Scheduled submission revision' # Scheduled submission awaiting revision
     PENDING_SURVEY = 'Pending-survey' # Pending-survey
     RECOMMENDED_PRIVATE = 'Recommended-private' # Recommended-private
-
-
-@dataclass
-class TranslatedFieldDict(TypedDict):
-    lang: str
-    content: str
-    automated: bool
-    public: _[bool]
 
 
 class TranslatedFieldType(Enum):
