@@ -213,6 +213,8 @@ def recommendations():
             isScheduledSubmission=isScheduledSubmission,
             scheduledSubmissionForm=scheduledSubmissionForm,
             scheduledSubmissionRemaningDays=scheduledSubmissionRemaningDays,
+            confirmationScript = common_small_html.confirmationDialog('Are you sure?'),
+            myFinalScript=common_tools.get_script("user_recommendations.js")
         )
 
 
