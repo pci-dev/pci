@@ -945,3 +945,18 @@ def mk_line(row, pci_name: str):
         Header.PUBLISHED_ARTICLE_DOI: article.doi_of_published_article or "",
         Header.SUBMITTER_MAIL: submitter.email or ""
     }
+
+
+def extract():
+    response.view = "default/info.html"
+    return dict(message=DIV([
+        UL(A(url, _href=url))
+
+        for url in [
+            URL("api", "all/recommendations"),
+            URL("admin", "extract_recommendations", vars={
+                    "start_year": datetime.datetime.today().year - 1,
+                    "end_year": datetime.datetime.today().year - 1,
+            }),
+        ]
+    ]))
