@@ -3162,3 +3162,6 @@ ALTER TABLE t_recommendations ADD COLUMN IF NOT exists recommendation_state_save
 --- 2025-02-21 updates/t_suggested_recommenders.sql
 alter table t_suggested_recommenders add column if not exists recommender_validated bool;
 
+--- 2025-03-26 updates/recommendation_translation.sql
+ALTER TABLE t_recommendations ADD COLUMN translated_recommendation_comments jsonb;
+ALTER TABLE t_recommendations ADD COLUMN translated_recommendation_title jsonb;

@@ -927,6 +927,8 @@ db.define_table(
         requires=upload_file_contraints(),
     ),
     Field("recommender_file_data", type="blob", readable=False),
+    Field("translated_recommendation_comments", type="json", length=5000000, readable=False, writable=False),
+    Field("translated_recommendation_title", type="json", length=5000000, readable=False, writable=False),
     format=lambda row: recommender_module.mkRecommendationFormat(row),
     singular=T("Recommendation"),
     plural=T("Recommendations"),

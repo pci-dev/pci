@@ -1,0 +1,2 @@
+ALTER TABLE t_recommendations ADD COLUMN translated_recommendation_comments jsonb;
+ALTER TABLE t_recommendations ADD COLUMN translated_recommendation_title jsonb;

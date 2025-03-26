@@ -6,11 +6,14 @@ import re
 import string
 from typing import List, Optional as _, cast
 from gluon.html import TAG
+from app_modules.lang import Lang
 from models.pdf import PDF
 from models.press_reviews import PressReview
 from models.user import User
 from pydal.objects import Row
 from gluon import current
+from app_modules.translator import TranslatedFieldDict
+
 
 if TYPE_CHECKING:
     from article import Article
@@ -22,6 +25,15 @@ class RecommendationState(Enum):
     ONGOING = 'Ongoing'
     RECOMMENDED = 'Recommended'
     REVISION = 'Revision'
+
+
+class TranslatedFieldType(Enum):
+    RECOMMENDATION_COMMENTS = 'translated_recommendation_comments'
+    RECOMMENDATION_TITLE = 'translated_recommendation_title'
+
+    @staticmethod
+    def get_corresponding_english_field(translated_field: 'TranslatedFieldType'):
+        return translated_field.name.lower()
 
 
 class Recommendation(Row):
@@ -50,6 +62,8 @@ class Recommendation(Row):
     author_last_change: _[datetime]
     validation_timestamp: _[datetime]
     recommendation_state_saved: _[str]
+    translated_recommendation_comments: _[List[TranslatedFieldDict]]
+    translated_recommendation_title: _[List[TranslatedFieldDict]]
 
 
     @staticmethod
@@ -189,6 +203,75 @@ class Recommendation(Row):
                 decision_due_date = last_review_date + timedelta(days=10)
 
         return decision_due_date
+    
+
+    @staticmethod
+    def add_or_update_translation(recommendation: 'Recommendation', field: TranslatedFieldType, new_translation: TranslatedFieldDict):
+        lang = Lang.get_lang_by_code(new_translation['lang'])
+        translations = getattr(recommendation, field.value)
+
+        if translations:
+            current_translation = Recommendation.get_translation(recommendation,  field, lang)
+            if current_translation:
+                if current_translation['automated'] or not new_translation['automated']:
+                    current_translation['content'] = new_translation['content']
+                    current_translation['automated'] = new_translation['automated']
+                if new_translation['public'] != None: 
+                    current_translation['public'] = new_translation['public']
+            else:
+                translations.append(new_translation)
+        else:
+            if new_translation['public'] == None:
+                new_translation['public'] = False
+            setattr(recommendation, field.value, [new_translation])
+
+        recommendation.update_record() # type: ignore
+
+
+    @staticmethod
+    def delete_translation(recommendation: 'Recommendation', field: TranslatedFieldType, lang: Lang):
+        translations: _[List[TranslatedFieldDict]] = getattr(recommendation, field.value)
+        if not translations:
+            return
+        
+        index_to_remove: _[int] = None
+        for i in range(0, len(translations)):
+            translation = translations[i]
+            if translation['lang'] == lang.value.code:
+                index_to_remove = i
+                break
+
+        if index_to_remove != None:
+            translations.pop(index_to_remove)
+            recommendation.update_record() # type: ignore
+        
+
+    @staticmethod
+    def get_translation(recommendation: 'Recommendation', field: TranslatedFieldType, lang: Lang):
+        translations: _[List[TranslatedFieldDict]] = getattr(recommendation, field.value)
+        if not translations:
+            return None
+        
+        for translation in translations:
+            if translation['lang'] == lang.value.code:
+                return translation
+            
+    
+    @staticmethod
+    def get_all_translations(recommendation: 'Recommendation', field: TranslatedFieldType):
+        return cast(_[List[TranslatedFieldDict]], getattr(recommendation, field.value))
+            
+
+    @staticmethod
+    def already_translated(recommendation: 'Recommendation', field: TranslatedFieldType, lang: Lang, manual: bool = False):
+        translation = Recommendation.get_translation(recommendation, field, lang)
+        if not translation:
+            return False
+        
+        if manual:
+            return not translation['automated']
+        
+        return True
 
 
 def _get_reference_line_text(line: str):
