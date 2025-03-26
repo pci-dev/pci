@@ -3,6 +3,7 @@
 import re
 import random
 import datetime
+from enum import Enum
 from typing import Callable, Literal, Union
 
 from app_modules.helper import *
@@ -20,6 +21,7 @@ from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.http import redirect # type: ignore
 from gluon.sqlhtml import SQLFORM
 from models.mail_queue import MailQueue, SendingStatus
+from models.recommendation import Recommendation, RecommendationState
 from pydal.objects import Field
 from pydal.validators import IS_IN_DB
 
@@ -878,3 +880,83 @@ def send_mail_for_newsletter_subscriber():
     return dict(form=form,
                 pageTitle=getTitle("#SendMailSubscribersTitle"),
                 customText=getText("#SendMailSubscribersText"))
+
+
+@auth.requires(auth.has_membership(role="administrator"))
+def extract_recommendations():
+
+    try:
+        start_year = int(request.vars.start_year)
+        end_year = int(request.vars.end_year)
+    except:
+        raise HTTP(400, "invalid parameter: {start|end}_year must be an integer")
+
+    response.headers["Content-Type"] = "text/tsv"
+
+    return "\n".join(["\t".join(row.values())
+
+        for row in (
+            [{h: h.value for h in Header}] +
+            get_data(start_year, end_year)
+        )
+    ]) + "\n"
+
+
+class Header(Enum):
+    PCI_NAME = "Nom de la PCI"
+    REF_ARTICLE = "Référence de l'article recommendé"
+    SUBMITTER_NAME = "Nom du submitter"
+    RECOMMENDATION_DATE = "Date de la recommendation"
+    PUBLISHED_ARTICLE_DOI = "DOI du published now in"
+    SUBMITTER_MAIL = "Mail du submitter"
+
+
+def get_data(start_year: int, end_year: int):
+    start_date = datetime.datetime(year=start_year, month=1, day=1)
+    end_date = datetime.datetime(year=end_year, month=12, day=31)
+
+    rows = db(
+          (db.t_articles.id == db.t_recommendations.article_id)
+        & (db.auth_user.id == db.t_articles.user_id)
+        & (db.t_recommendations.validation_timestamp >= start_date)
+        & (db.t_recommendations.validation_timestamp <= end_date)
+        & (db.t_recommendations.recommendation_state == RecommendationState.RECOMMENDED.value)
+    ).select(distinct=True)
+
+    pci_name: str = myconf.get("app.longname")
+
+    return [ mk_line(row, pci_name) for row in rows ]
+
+
+def mk_line(row, pci_name: str):
+    article: Article = row.t_articles
+    submitter: User = row.auth_user
+    recommendation: Recommendation = row.t_recommendations
+
+    article_ref: str = Article.get_article_reference(article, False).strip()
+    reco_date: str = recommendation.validation_timestamp.strftime("%Y-%m-%d") \
+            if recommendation.validation_timestamp else ""
+
+    return {
+        Header.PCI_NAME: pci_name,
+        Header.REF_ARTICLE: article_ref,
+        Header.SUBMITTER_NAME: User.get_name(submitter),
+        Header.RECOMMENDATION_DATE: reco_date or "",
+        Header.PUBLISHED_ARTICLE_DOI: article.doi_of_published_article or "",
+        Header.SUBMITTER_MAIL: submitter.email or ""
+    }
+
+
+def extract():
+    response.view = "default/info.html"
+    return dict(message=DIV([
+        UL(A(url, _href=url))
+
+        for url in [
+            URL("api", "all/recommendations"),
+            URL("admin", "extract_recommendations", vars={
+                    "start_year": datetime.datetime.today().year - 1,
+                    "end_year": datetime.datetime.today().year - 1,
+            }),
+        ]
+    ]))
