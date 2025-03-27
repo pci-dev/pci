@@ -1294,6 +1294,9 @@ def represent_rejected_column(grid: ...):
     if not current.request.url.endswith('suggested_recommenders'):
         return
     
+    if len(grid.rows) == 0:
+        return
+    
     th = grid.elements('th a')
     th[3].components[0] = "Rejected"
 
