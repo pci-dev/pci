@@ -1,4 +1,8 @@
 import json
+import datetime
+
+from app_modules.common_small_html import getRecommAndReviewAuthors
+
 
 def recommendation():
     recommId = request.vars.id
@@ -11,16 +15,31 @@ def recommendation():
         "Content-Type": "text/json",
     })
 
+    reco_date = datetime.datetime.strftime(recomm.validation_timestamp, "%Y-%m-%dT%H:%M:%S")
+    pci_description = db.cfg.description
+
+    article = db.t_articles[recomm.article_id]
+
+    actors = getRecommAndReviewAuthors(
+                recomm=recomm,
+                article=article,
+                with_reviewers=True,
+                this_recomm_only=False,
+                as_list=True,
+    )
+    article_publication_date = article.article_year
+    article_doi = article.doi
+
     return json.dumps([
   {
     "type": "docmap",
-    "id": "https://docmaps-project.github.io/ex/docmap_for/10.1101/2023.01.13.523754",
+    "id": URL("metadata", f"recommendation-{recomm.recommendation_doi}"),
     "publisher": {
-      "name": "Emily Esten",
+      "name": pci_description,
       "url": "https://github.com/docmaps-project/docmaps/tree/main/packages/ts-etl"
     },
-    "created": "2025-03-14T17:12:28.145Z",
-    "updated": "2025-03-14T17:12:28.145Z",
+    "created": reco_date,
+    "updated": reco_date,
     "first-step": "_:b0",
     "steps": {
             "_:b0": {
@@ -31,85 +50,17 @@ def recommendation():
               {
                 "actor": {
                   "type": "person",
-                  "name": "Rué, Olivier"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Coton, Monika"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Dugat-Bony, Eric"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Howell, Kate"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Irlinger, Françoise"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Legras, Jean-Luc"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Loux, Valentin"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Michel, Elisa"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Mounier, Jérôme"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Neuvéglise, Cécile"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Sicard, Delphine"
+                  "name": actor,
                 },
                 "role": "author"
               }
+
+              for actor in actors
             ],
             "outputs": [
               {
-                "published": "2023-01-13T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
+                "published": article_publication_date,
+                "doi": article_doi,
                 "type": "preprint"
               }
             ],
@@ -119,7 +70,7 @@ def recommendation():
         "assertions": [
           {
             "status": "catalogued",
-            "item": "10.1101/2023.01.13.523754"
+            "item": article_doi,
           }
         ],
         "next-step": "_:b1"
@@ -145,8 +96,8 @@ def recommendation():
             ],
             "inputs": [
               {
-                "published": "2023-01-13T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
+                "published": article_publication_date,
+                "doi": article_doi,
                 "type": "preprint"
               }
             ]
