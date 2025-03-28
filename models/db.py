@@ -13,7 +13,7 @@ from app_modules.coar_notify import COARNotifier
 from app_modules.images import RESIZE
 from gluon.http import HTTP, redirect # type: ignore
 from models.article import ArticleStatus
-from models.mail_queue import MailQueue
+from models.mail_queue import MailQueue, SendingStatus
 from models.recommendation import Recommendation
 from models.article import Article
 from models.user import User
@@ -765,6 +765,9 @@ def deltaStatus(s: ..., f: Article):
             emailing.delete_reminder_for_submitter("#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
             # emailing.delete_reminder_for_submitter("#ReminderSubmitterCancelSubmission", o["id"])
             emailing.delete_reminder_for_suggested_recommenders("#ReminderSuggestedRecommenderInvitation", o["id"])
+            emailing.delete_reminder_for_managers(["#ValidSuggestedRecommender", "#ReminderValidSuggestedRecommender"],
+                                                  article_id=o.id,
+                                                  sending_status=[SendingStatus.PENDING])
 
         elif o.status == "Awaiting revision" and f["status"] == "Under consideration":
             emailing.send_to_recommender_status_changed(o["id"], f["status"])
