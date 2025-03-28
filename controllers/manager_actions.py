@@ -244,10 +244,7 @@ def suggest_article_to():
     article_id = int(request.vars["articleId"])
     what_next = str(request.vars["whatNext"])
     recommender_id = int(request.vars["recommenderId"])
-    try:
-        SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, True)
-    except:
-        pass # ignore dup key
+    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, True)
     redirect(what_next)
 
 
