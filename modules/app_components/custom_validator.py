@@ -7,6 +7,8 @@ from pydal.validators import IS_HTTP_URL
 from pydal.validators import Validator
 from app_modules.suggested_reviewers_parser import NameParser
 
+from gluon import current
+
 class CUSTOM_VALID_URL(Validator):
 
     def __init__(self, allow_empty_netloc: bool = False):
@@ -48,7 +50,13 @@ class VALID_DOI(Validator):
     _preprint_server: Optional[str]
     error_message: P
 
-    def __init__(self, preprint_server: Optional[str]):
+    def __init__(self, preprint_server: Optional[str] = None):
+        if preprint_server is None:
+            try:
+                preprint_server = current.request.vars.preprint_server
+            except:
+                preprint_server = None
+                
         if preprint_server is None:
             self._preprint_server = None
         else:

@@ -531,8 +531,7 @@ db.define_table(
     RequiredField("article_year", type="integer", label=T("Year")),
     Field("article_source", type="string", length=1024, label=T("Source (journal, year, volume, pages)"), requires=IS_EMPTY_OR(IS_LENGTH(1024, 0))),
     RequiredField("doi", type="string", label=T("Most recent DOI (or URL)"), length=512, unique=False, default="https://", represent=lambda text, row: common_small_html.mkDOI(text),
-        requires=VALID_DOI(request.vars.preprint_server
-                            if request.get('vars') else None),
+        requires=VALID_DOI(),
         comment=SPAN(T("Note: for Stage 1 submissions, please make sure the link points exclusively to the manuscript file (and not to the broader project folder), and that any other links to supplementary materials, appendices, data, code, etc. are all within the manuscript file") if pciRRactivated else "")),
     RequiredField("preprint_server", type="string", length=512, requires=IS_LENGTH(512, 0), label=
         T("Name of the server or open archive where your report has been deposited (eg OSF, Zenodo, arXiv, bioRxiv, HAL...)")
