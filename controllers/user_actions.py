@@ -68,7 +68,10 @@ def suggest_article_to():
     recommender_id = int(request.vars["recommenderId"])
     exclude: Union[List[str], str] = request.vars["exclude"]
     my_vars = request.vars
-    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id)
+    try:
+        SuggestedRecommender.add_suggested_recommender(recommender_id, article_id)
+    except:
+        pass # ignore dup Key (article_id, suggested_recommender_id)
     exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
     exclude_list.append(str(recommender_id))
     my_vars["exclude"] = ",".join(exclude_list)
