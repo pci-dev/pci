@@ -68,10 +68,7 @@ def suggest_article_to():
     recommender_id = int(request.vars["recommenderId"])
     exclude: Union[List[str], str] = request.vars["exclude"]
     my_vars = request.vars
-    try:
-        SuggestedRecommender.add_suggested_recommender(recommender_id, article_id)
-    except:
-        pass # ignore dup Key (article_id, suggested_recommender_id)
+    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id)
     exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
     exclude_list.append(str(recommender_id))
     my_vars["exclude"] = ",".join(exclude_list)
@@ -95,11 +92,7 @@ def suggest_all_selected():
     for recommender_id in recommender_ids.split(','):
         if recommender_id == '': continue
         recommender_names += str(common_small_html.mkUser(recommender_id).flatten()) + ', ' # type: ignore
-
-        try:
-            SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
-        except:
-            pass # ignore dup Key (article_id, suggested_recommender_id)
+        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
 
         exclude_list.append(str(recommender_id))
     for recommender_id in exclusion_ids.split(','):
