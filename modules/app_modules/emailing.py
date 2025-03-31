@@ -3901,10 +3901,8 @@ def send_manager_alert_willing_to_recommend(article_id: int):
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recommender_id, True, orcid=True)
     mail_vars["linkTarget"] = URL(c="manager",
-                                  f="search_recommenders",
-                                  vars=dict(articleId=article_id,
-                                            search_type="advanced",
-                                            keywords=f'auth_user.email contains "{current.auth.user.email}"'),
+                                  f="suggested_recommenders",
+                                  vars=dict(articleId=article_id),
                                   scheme=True)
 
     emailing_tools.insertMailInQueue(mail_template, mail_vars, article_id=article_id)

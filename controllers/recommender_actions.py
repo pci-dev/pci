@@ -101,6 +101,7 @@ def do_accept_new_article_to_recommend():
         sugg_recommender = SuggestedRecommender.get_by_article_and_user_id(article_id, current.auth.user_id)
         if not sugg_recommender or not sugg_recommender.recommender_validated:
             emailing.send_manager_alert_willing_to_recommend(article_id)
+            SuggestedRecommender.add_suggested_recommender(current.auth.user_id, article_id)
             return redirect(URL(c="recommender", f="validation_request_new_article_to_recommend", vars=dict(article_id=article_id)))
         else:
             recommendation_id = Article.create_new_recommendation_round(article, current_user_id)
