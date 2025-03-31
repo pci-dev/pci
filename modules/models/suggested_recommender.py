@@ -120,8 +120,11 @@ class SuggestedRecommender(Row):
             sugg_recommender.delete() # type: ignore
             db.commit()
 
-        db.t_suggested_recommenders.update_or_insert(
+        try:
+          db.t_suggested_recommenders.update_or_insert(
             suggested_recommender_id=recommender_id,
             article_id=article_id,
             quick_decline_key=quick_decline_key,
             recommender_validated=recommender_validated)
+        except:
+            pass # ignore dup key errors (article_id, suggested_recommender_id)
