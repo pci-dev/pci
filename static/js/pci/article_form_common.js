@@ -98,29 +98,35 @@ document.getElementById('clean-save-article-form-button')?.addEventListener('cli
 
 async function saveForm(e) {
     const values = {
-        data_doi: [],
-        scripts_doi: [],
-        codes_doi: []
+        data_doi: Array(),
+        scripts_doi: Array(),
+        codes_doi: Array(),
+
+        suggest_reviewers: Array(),
+        competitors: Array()
     };
 
     const data_doi_ul = document.getElementById('t_articles_data_doi_grow_input');
     const scripts_doi_ul = document.getElementById('t_articles_scripts_doi_grow_input');
     const codes_doi_ul = document.getElementById('t_articles_codes_doi_grow_input');
 
-    const data_doi_inputs = data_doi_ul.getElementsByTagName('input');
-    for (const input of data_doi_inputs) {
-      values.data_doi.push(input.value)
-    }
+    const sugg_reviewers_ul = document.getElementById('t_articles_suggest_reviewers_grow_input');
+    const opp_reviewers_ul = document.getElementById('t_articles_competitors_grow_input');
 
-    const scripts_doi_inputs = scripts_doi_ul.getElementsByTagName('input');
-    for (const input of scripts_doi_inputs) {
-      values.scripts_doi.push(input.value)
-    }
+    const data_doi_inputs = data_doi_ul?.getElementsByTagName('input');
+    values.data_doi.push(...Array.from(data_doi_inputs || [], input => input.value));
 
-    const codes_doi_inputs = codes_doi_ul.getElementsByTagName('input');
-    for (const input of codes_doi_inputs) {
-      values.codes_doi.push(input.value)
-    }
+    const scripts_doi_inputs = scripts_doi_ul?.getElementsByTagName('input');
+    values.scripts_doi.push(...Array.from(scripts_doi_inputs || [], input => input.value));
+
+    const codes_doi_inputs = codes_doi_ul?.getElementsByTagName('input');
+    values.codes_doi.push(...Array.from(codes_doi_inputs || [], input => input.value));
+
+    const sugg_reviewers_inputs = sugg_reviewers_ul?.getElementsByTagName('input');
+    values.suggest_reviewers.push(...Array.from(sugg_reviewers_inputs || [], input => input.value));
+    
+    const opp_reviewers_inputs = opp_reviewers_ul?.getElementsByTagName('input');
+    values.competitors.push(...Array.from(opp_reviewers_inputs || [], input => input.value));
 
 
     const uploadedPicture = document.getElementById('t_articles_uploaded_picture')?.files[0];
@@ -155,51 +161,33 @@ function sendPostVar(key, value) {
     }
 }
 
+function addInnerHTMLInnerForListValue(formName) {
+    const inputId = `t_articles_${formName}`;
+    const ul_el = document.getElementById(`${inputId}_grow_input`);
+
+    const values = savedListStr[formName];
+
+    if (ul_el && values.length > 0) {
+        ul_el.innerHTML = '';
+
+        for (const value of values) {
+            ul_el.innerHTML += `
+            <li>
+                <div class="input-group" style="width: 100%">
+                    <input class="string form-control" id="${inputId}" name="${formName}" type="text" value="${value}">
+                </div>
+            </li>`;
+        }
+    }
+}
 
 function loadFormSaved() {
     if (typeof savedListStr !== 'undefined' && savedListStr != null) {
-        const data_doi_ul = document.getElementById('t_articles_data_doi_grow_input');
-        const scripts_doi_ul = document.getElementById('t_articles_scripts_doi_grow_input');
-        const codes_doi_ul = document.getElementById('t_articles_codes_doi_grow_input');
-
-        if (savedListStr.data_doi.length > 0) {
-            data_doi_ul.innerHTML = '';
-        }
-
-        if (savedListStr.scripts_doi.length > 0) {
-            scripts_doi_ul.innerHTML = '';
-        }
-
-        if (savedListStr.codes_doi.length > 0) {
-            codes_doi_ul.innerHTML = '';
-        }
-
-        for (const value of savedListStr.data_doi) {
-            data_doi_ul.innerHTML += `
-            <li>
-                <div class="input-group" style="width: 100%">
-                    <input class="string form-control" id="t_articles_data_doi" name="data_doi" type="text" value="${value}">
-                </div>
-            </li>`;
-        }
-
-        for (const value of savedListStr.scripts_doi) {
-            scripts_doi_ul.innerHTML += `
-            <li>
-                <div class="input-group" style="width: 100%">
-                    <input class="string form-control" id="t_articles_scripts_doi" name="scripts_doi" type="text" value="${value}">
-                </div>
-            </li>`;
-        }
-
-        for (const value of savedListStr.codes_doi) {
-            codes_doi_ul.innerHTML += `
-            <li>
-                <div class="input-group" style="width: 100%">
-                    <input class="string form-control" id="t_articles_codes_doi" name="codes_doi" type="text" value="${value}">
-                </div>
-            </li>`;
-        }
+        addInnerHTMLInnerForListValue('data_doi');
+        addInnerHTMLInnerForListValue('scripts_doi');
+        addInnerHTMLInnerForListValue('codes_doi');
+        addInnerHTMLInnerForListValue('suggest_reviewers');
+        addInnerHTMLInnerForListValue('competitors');
     }
 
     if (typeof savedPicture !== 'undefined' && savedPicture != null) {
