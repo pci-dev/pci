@@ -542,7 +542,7 @@ def accept_new_article_to_recommend():
     ethics_not_signed = not (db.auth_user[auth.user_id].ethical_code_approved)
     if ethics_not_signed:
         return redirect(URL(c="about", f="ethics"))
-    elif ((sugg_recommender and not sugg_recommender.recommender_validated) or (not sugg_recommender)) and emailing.already_request_willing_to_recommend(articleId):
+    elif ((sugg_recommender and not sugg_recommender.recommender_validated) or (not sugg_recommender)) and SuggestedRecommender.already_request_willing_to_recommend(articleId, current.auth.user_id):
         return redirect(URL(c="recommender", f="validation_request_new_article_to_recommend", vars=dict(article_id=articleId)))
     else:
         appLongName = myconf.take("app.longname")

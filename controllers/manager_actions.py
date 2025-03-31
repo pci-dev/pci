@@ -16,7 +16,7 @@ from gluon.storage import Storage
 from app_modules.common_tools import cancel_decided_article_pending_reviews
 from app_modules import emailing
 from models.article import Article, ArticleStatus
-from models.suggested_recommender import SuggestedRecommender
+from models.suggested_recommender import SuggestedRecommender, SuggestedBy
 from models.user import User
 
 myconf = AppConfig(reload=True)
@@ -244,7 +244,7 @@ def suggest_article_to():
     article_id = int(request.vars["articleId"])
     what_next = str(request.vars["whatNext"])
     recommender_id = int(request.vars["recommenderId"])
-    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, True)
+    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, SuggestedBy.MANAGERS,True)
     redirect(what_next)
 
 
@@ -265,7 +265,10 @@ def suggest_all_selected():
         redirect(previous)
 
     for recommender_id in recommender_ids:
-        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id, True)
+      try:
+        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id, SuggestedBy.MANAGERS, True)
+      except:
+        pass # ignore dup Key (article_id, suggested_recommender_id)
     redirect(what_next)
 
 

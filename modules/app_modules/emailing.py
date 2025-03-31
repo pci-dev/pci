@@ -3885,7 +3885,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
 
 
 def send_manager_alert_willing_to_recommend(article_id: int):
-    if already_request_willing_to_recommend(article_id):
+    if SuggestedRecommender.already_request_willing_to_recommend(article_id, current.auth.user_id):
         return
     
     mail_template = "#WillingRecommenderValidation"
@@ -3906,11 +3906,3 @@ def send_manager_alert_willing_to_recommend(article_id: int):
                                   scheme=True)
 
     emailing_tools.insertMailInQueue(mail_template, mail_vars, article_id=article_id)
-
-
-def already_request_willing_to_recommend(article_id: int):
-    mail_template = "#WillingRecommenderValidation"
-    recommender_id = int(current.auth.user_id)
-
-    existing_mail = MailQueue.get_by_article_and_template(article_id, mail_template, user_id=recommender_id)
-    return len(existing_mail) > 0
