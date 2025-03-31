@@ -21,7 +21,7 @@ from controller_modules import manager_module
 from models.article import is_scheduled_submission
 from models.group import Role
 from models.review import Review, ReviewState
-from models.suggested_recommender import SuggestedRecommender
+from models.suggested_recommender import SuggestedRecommender, SuggestedBy
 
 myconf = AppConfig(reload=True)
 
@@ -190,8 +190,6 @@ def get_recommendation_status_buttons(article: Article):
 
 ######################################################################################################################################################################
 def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bool = True):
-    from app_modules.emailing import already_request_willing_to_recommend
-
     db, auth = current.db, current.auth
 
     myContents = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
@@ -207,8 +205,8 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
         and not (quiet)
     ):
         # suggested or any recommender's button for recommendation consideration
-        already_request_willing_to_recommend = already_request_willing_to_recommend(art.id)
         sugg_recommender = SuggestedRecommender.get_by_article_and_user_id(art.id, current.auth.user_id)
+        already_request_willing_to_recommend = sugg_recommender and sugg_recommender.suggested_by == SuggestedBy.THEMSELVES.value
         valid_sugg_recommender = sugg_recommender and sugg_recommender.recommender_validated and not sugg_recommender.declined
         declined_sugg_recommender = sugg_recommender and sugg_recommender.declined
 

@@ -1198,6 +1198,9 @@ def suggested_recommenders():
 
     def make_user_mail(text: str, row: SuggestedRecommender):
         return common_small_html.mkUserWithMail(int(text))
+    
+    def represent_willing(value: Optional[str], row: SuggestedRecommender):
+        return STRONG(value) if value else ''
 
     query = db.t_suggested_recommenders.article_id == articleId
     db.t_suggested_recommenders.article_id.readable = False
@@ -1207,6 +1210,9 @@ def suggested_recommenders():
     db.t_suggested_recommenders.suggested_recommender_id.represent = make_user_mail
     db.t_suggested_recommenders.recommender_validated.readable = True
     db.t_suggested_recommenders.recommender_validated.label = "Validated"
+    db.t_suggested_recommenders.suggested_by.readable = True
+    db.t_suggested_recommenders.suggested_by.represent = represent_willing
+    
 
 
     links: List[Dict[str, Any]] = []
@@ -1263,6 +1269,7 @@ def suggested_recommenders():
             db.t_suggested_recommenders.id,
             db.t_suggested_recommenders.article_id,
             db.t_suggested_recommenders.suggested_recommender_id,
+            db.t_suggested_recommenders.suggested_by,
             db.t_suggested_recommenders.declined,
             db.t_suggested_recommenders.email_sent,
             db.t_suggested_recommenders.emailing,
@@ -1271,7 +1278,7 @@ def suggested_recommenders():
         ],
         field_id=db.t_suggested_recommenders.id,
         links=links,
-        _class="web2py_grid action-button-absolute",
+        _class="web2py_grid sugg_recommenders_grid",
     )
 
     represent_rejected_column(grid)
