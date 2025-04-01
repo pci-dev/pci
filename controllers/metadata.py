@@ -26,6 +26,7 @@ def recommendation():
         return {
             "published": publication_date(version),
             "doi": article_doi,
+            #"doi": version.doi,
             "type": typ,
         }
 
