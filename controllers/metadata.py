@@ -1,6 +1,9 @@
 import json
 import datetime
 
+from app_modules.common_small_html import mkUser
+from models.review import ReviewState
+
 
 def recommendation():
     recommId = request.vars.id
@@ -51,6 +54,20 @@ def recommendation():
 
           for author in article.authors.split(", ")
     ]
+
+    def reviewers(version):
+        reviews = db(
+                (db.t_reviews.recommendation_id == version.id)
+            &   (db.t_reviews.review_state == ReviewState.REVIEW_COMPLETED.value)
+        ).select()
+        return [
+
+            mkUser(review.reviewer_id).flatten()
+            if not review.anonymously else "Anonymous reviewer"
+
+            for review in reviews
+        ]
+
 
     return json.dumps([
   {
