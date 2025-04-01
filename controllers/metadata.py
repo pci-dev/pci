@@ -68,6 +68,7 @@ def recommendation():
             for review in reviews
         ]
 
+    recommender_name = mkUser(recomm.recommender_id).flatten()
 
     return json.dumps([
   {
@@ -81,6 +82,8 @@ def recommendation():
     "updated": publication_date(recomm),
     "first-step": "_:b0",
     "steps": {
+
+
             "_:b0": {
         "inputs": [],
         "actions": [
@@ -107,7 +110,7 @@ def recommendation():
               {
                 "actor": {
                   "type": "person",
-                  "name": "Strub, Caroline"
+                  "name": recommender_name,
                 },
                 "role": "author"
               }
@@ -186,7 +189,7 @@ def recommendation():
               {
                 "actor": {
                   "type": "person",
-                  "name": "Strub, Caroline"
+                  "name": recommender_name,
                 },
                 "role": "author"
               }
@@ -267,7 +270,7 @@ def recommendation():
               {
                 "actor": {
                   "type": "person",
-                  "name": "Strub, Caroline"
+                  "name": recommender_name,
                 },
                 "role": "author"
               }
