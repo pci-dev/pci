@@ -20,6 +20,13 @@ def recommendation():
     article_publication_date = article.article_year
     article_doi = article.doi
 
+    def article_as_docmaps(version, typ="preprint"):
+        return {
+            "published": publication_date(version),
+            "doi": article_doi,
+            "type": typ,
+        }
+
     def publication_date(version):
         return datetime.datetime.strftime(
                 version.validation_timestamp,
@@ -56,11 +63,7 @@ def recommendation():
           {
             "participants": authors,
             "outputs": [
-              {
-                "published": article_publication_date,
-                "doi": article_doi,
-                "type": "preprint"
-              }
+                article_as_docmaps(v1)
             ],
             "inputs": []
           }
@@ -93,11 +96,7 @@ def recommendation():
               }
             ],
             "inputs": [
-              {
-                "published": article_publication_date,
-                "doi": article_doi,
-                "type": "preprint"
-              }
+                article_as_docmaps(v0)
             ]
           },
           {
@@ -143,11 +142,7 @@ def recommendation():
               }
             ],
             "inputs": [
-              {
-                "published": "2023-01-13T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              }
+                article_as_docmaps(v0)
             ]
           },
         ],
@@ -163,21 +158,13 @@ def recommendation():
       },
             "_:b2": {
         "inputs": [
-              {
-                "published": "2023-01-13T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              },
+            article_as_docmaps(v1)
             ],
         "actions": [
           {
             "participants": authors,
             "outputs": [
-              {
-                "published": "2023-07-04T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              }
+                article_as_docmaps(v2)
             ],
             "inputs": []
           },
@@ -222,11 +209,7 @@ def recommendation():
               }
             ],
             "inputs": [
-              {
-                "published": "2023-07-04T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              }
+                article_as_docmaps(v2)
             ]
           },
           {
@@ -247,11 +230,7 @@ def recommendation():
               }
             ],
             "inputs": [
-              {
-                "published": "2023-01-13T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              }
+                article_as_docmaps(v2)
             ]
           },
           {
@@ -272,11 +251,7 @@ def recommendation():
               }
             ],
             "inputs": [
-              {
-                "published": "2023-01-13T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              }
+                article_as_docmaps(v2)
             ]
           },
         ],
@@ -292,11 +267,7 @@ def recommendation():
       },
             "_:b4": {
         "inputs": [
-              {
-                "published": "2023-07-04T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              },
+            article_as_docmaps(v2)
             ],
         "actions": [
           {
@@ -313,18 +284,10 @@ def recommendation():
           {
             "participants": authors,
             "outputs": [
-              {
-                "published": "2023-07-04T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              }
+                article_as_docmaps(v3)
             ],
             "inputs": [
-                            {
-                "published": "2023-08-08T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              }
+                article_as_docmaps(v2)
             ]
           },
         ],
@@ -357,11 +320,7 @@ def recommendation():
               }
             ],
             "inputs": [
-              {
-                "published": "2023-08-08T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "journal-article"
-              }
+                article_as_docmaps(v3, "journal-article")
             ]
           }
         ],
@@ -377,21 +336,13 @@ def recommendation():
       },
             "_:b6": {
         "inputs": [
-              {
-                "published": "2023-08-08T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              },
+                article_as_docmaps(v3)
             ],
         "actions": [
           {
             "participants": authors,
             "outputs": [
-              {
-                "published": "2023-10-05T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "journal-article"
-              }
+                article_as_docmaps(v3, "journal-article")
             ],
             "inputs": []
           }
