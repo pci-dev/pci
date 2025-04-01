@@ -31,7 +31,7 @@ def recommendation():
 
     def publication_date(version):
         return datetime.datetime.strftime(
-                version.validation_timestamp,
+                recomm.validation_timestamp,
                 "%Y-%m-%dT%H:%M:%S%Z",
         )
 
