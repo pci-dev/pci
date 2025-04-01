@@ -58,6 +58,8 @@ def recommendation():
 
     recommender_name = mkUser(recomm.recommender_id).flatten()
 
+    v0 = v1 = v2 = v3 = recomm
+
     def reviewers(version):
         reviews = db(
                 (db.t_reviews.recommendation_id == version.id)
