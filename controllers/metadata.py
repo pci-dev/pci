@@ -33,6 +33,13 @@ def recommendation():
                 "%Y-%m-%dT%H:%M:%S%Z",
         )
 
+    def recommendation_as_docmaps(version, typ):
+        return {
+            "published": publication_date(version),
+            "doi": recomm.recommendation_doi,
+            "type": typ,
+        }
+
     authors = [
             {
             "actor": {
@@ -89,11 +96,7 @@ def recommendation():
               }
             ],
             "outputs": [
-              {
-                "published": "2023-06-19T00:00:00.000Z",
-                "doi": "10.24072/pci.microbiol.100007",
-                "type": "editorial-decision"
-              }
+                recommendation_as_docmaps(v0, "editorial-decision")
             ],
             "inputs": [
                 article_as_docmaps(v0)
@@ -135,11 +138,7 @@ def recommendation():
               }
             ],
             "outputs": [
-              {
-                "published": "2023-06-18T00:00:00.000Z",
-                "doi": "10.24072/pci.microbiol.100007",
-                "type": "review"
-              }
+                recommendation_as_docmaps(v0, "review")
             ],
             "inputs": [
                 article_as_docmaps(v0)
@@ -171,11 +170,7 @@ def recommendation():
           {
             "participants": authors,
             "outputs": [
-              {
-                "published": "2023-07-04T00:00:00.000Z",
-                "doi": "10.24072/pci.microbiol.100007",
-                "type": "reply"
-              }
+                recommendation_as_docmaps(v0, "reply")
             ],
             "inputs": []
           }
@@ -202,11 +197,7 @@ def recommendation():
               }
             ],
             "outputs": [
-              {
-                "published": "2023-08-02T00:00:00.000Z",
-                "doi": "10.24072/pci.microbiol.100007",
-                "type": "editorial-decision"
-              }
+                recommendation_as_docmaps(v2, "editorial-decision")
             ],
             "inputs": [
                 article_as_docmaps(v2)
@@ -273,11 +264,7 @@ def recommendation():
           {
             "participants": authors,
             "outputs": [
-              {
-                "published": "2023-08-08T00:00:00.000Z",
-                "doi": "10.24072/pci.microbiol.100007",
-                "type": "reply"
-              }
+                recommendation_as_docmaps(v3, "reply")
             ],
             "inputs": []
           },
@@ -313,11 +300,7 @@ def recommendation():
               }
             ],
             "outputs": [
-              {
-                "published": "2023-08-29T00:00:00.000Z",
-                "doi": "10.24072/pci.microbiol.100007",
-                "type": "editorial-decision"
-              }
+                recommendation_as_docmaps(v3, "editorial-decision")
             ],
             "inputs": [
                 article_as_docmaps(v3, "journal-article")
