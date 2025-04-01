@@ -102,37 +102,13 @@ def recommendation():
                 article_as_docmaps(v0)
             ]
           },
+          ] + [
           {
             "participants": [
               {
                 "actor": {
                   "type": "person",
-                  "name": "Anonymous"
-                },
-                "role": "author"
-              }
-            ],
-            "outputs": [
-              {
-                "published": "2023-04-04T00:00:00.000Z",
-                "doi": "10.24072/pci.microbiol.100007",
-                "type": "review"
-              }
-            ],
-            "inputs": [
-              {
-                "published": "2023-01-13T00:00:00.000Z",
-                "doi": "10.1101/2023.01.13.523754",
-                "type": "preprint"
-              }
-            ]
-          },
-          {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Johannes Schweichhart"
+                  "name": reviewer,
                 },
                 "role": "author"
               }
@@ -143,7 +119,9 @@ def recommendation():
             "inputs": [
                 article_as_docmaps(v0)
             ]
-          },
+          }
+
+          for reviewer in reviewers(v0)
         ],
         "assertions": [
           {
@@ -203,48 +181,26 @@ def recommendation():
                 article_as_docmaps(v2)
             ]
           },
+          ] + [
           {
             "participants": [
               {
                 "actor": {
                   "type": "person",
-                  "name": "Anonymous"
+                  "name": reviewer,
                 },
                 "role": "author"
               }
             ],
             "outputs": [
-              {
-                "published": "2023-08-02T00:00:00.000Z",
-                "doi": "10.24072/pci.microbiol.100007",
-                "type": "review"
-              }
+                recommendation_as_docmaps(v1, "review")
             ],
             "inputs": [
-                article_as_docmaps(v2)
+                article_as_docmaps(v1)
             ]
-          },
-          {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Johannes Schweichhart"
-                },
-                "role": "author"
-              }
-            ],
-            "outputs": [
-              {
-                "published": "2023-08-01T00:00:00.000Z",
-                "doi": "10.24072/pci.microbiol.100007",
-                "type": "review"
-              }
-            ],
-            "inputs": [
-                article_as_docmaps(v2)
-            ]
-          },
+          }
+
+          for reviewer in reviewers(v1)
         ],
         "assertions": [
           {
