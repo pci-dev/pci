@@ -26,6 +26,18 @@ def recommendation():
                 "%Y-%m-%dT%H:%M:%S%Z",
         )
 
+    authors = [
+            {
+            "actor": {
+              "type": "person",
+              "name": author,
+            },
+            "role": "author"
+          }
+
+          for author in article.authors.split(", ")
+    ]
+
     return json.dumps([
   {
     "type": "docmap",
@@ -42,17 +54,7 @@ def recommendation():
         "inputs": [],
         "actions": [
           {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": actor,
-                },
-                "role": "author"
-              }
-
-              for actor in article.authors.split(", ")
-            ],
+            "participants": authors,
             "outputs": [
               {
                 "published": article_publication_date,
@@ -169,85 +171,7 @@ def recommendation():
             ],
         "actions": [
           {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Rué, Olivier"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Coton, Monika"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Dugat-Bony, Eric"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Howell, Kate"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Irlinger, Françoise"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Legras, Jean-Luc"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Loux, Valentin"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Michel, Elisa"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Mounier, Jérôme"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Neuvéglise, Cécile"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Sicard, Delphine"
-                },
-                "role": "author"
-              }
-            ],
+            "participants": authors,
             "outputs": [
               {
                 "published": "2023-07-04T00:00:00.000Z",
@@ -258,85 +182,7 @@ def recommendation():
             "inputs": []
           },
           {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Rué, Olivier"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Coton, Monika"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Dugat-Bony, Eric"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Howell, Kate"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Irlinger, Françoise"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Legras, Jean-Luc"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Loux, Valentin"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Michel, Elisa"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Mounier, Jérôme"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Neuvéglise, Cécile"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Sicard, Delphine"
-                },
-                "role": "author"
-              }
-            ],
+            "participants": authors,
             "outputs": [
               {
                 "published": "2023-07-04T00:00:00.000Z",
@@ -454,85 +300,7 @@ def recommendation():
             ],
         "actions": [
           {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Rué, Olivier"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Coton, Monika"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Dugat-Bony, Eric"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Howell, Kate"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Irlinger, Françoise"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Legras, Jean-Luc"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Loux, Valentin"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Michel, Elisa"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Mounier, Jérôme"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Neuvéglise, Cécile"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Sicard, Delphine"
-                },
-                "role": "author"
-              }
-            ],
+            "participants": authors,
             "outputs": [
               {
                 "published": "2023-08-08T00:00:00.000Z",
@@ -543,85 +311,7 @@ def recommendation():
             "inputs": []
           },
           {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Rué, Olivier"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Coton, Monika"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Dugat-Bony, Eric"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Howell, Kate"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Irlinger, Françoise"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Legras, Jean-Luc"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Loux, Valentin"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Michel, Elisa"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Mounier, Jérôme"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Neuvéglise, Cécile"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Sicard, Delphine"
-                },
-                "role": "author"
-              }
-            ],
+            "participants": authors,
             "outputs": [
               {
                 "published": "2023-07-04T00:00:00.000Z",
@@ -695,85 +385,7 @@ def recommendation():
             ],
         "actions": [
           {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Rué, Olivier"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Coton, Monika"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Dugat-Bony, Eric"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Howell, Kate"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Irlinger, Françoise"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Legras, Jean-Luc"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Loux, Valentin"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Michel, Elisa"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Mounier, Jérôme"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Neuvéglise, Cécile"
-                },
-                "role": "author"
-              },
-              {
-                "actor": {
-                  "type": "person",
-                  "name": "Sicard, Delphine"
-                },
-                "role": "author"
-              }
-            ],
+            "participants": authors,
             "outputs": [
               {
                 "published": "2023-10-05T00:00:00.000Z",
