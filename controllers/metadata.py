@@ -1,6 +1,8 @@
 import json
 import datetime
 
+from app_modules.common_small_html import mkUser
+
 
 def recommendation():
     recommId = request.vars.id
@@ -45,6 +47,9 @@ def recommendation():
           for author in article.authors.split(", ")
     ]
 
+    recommender_name = mkUser(recomm.recommender_id).flatten()
+
+
     return json.dumps([
   {
     "type": "docmap",
@@ -83,7 +88,7 @@ def recommendation():
               {
                 "actor": {
                   "type": "person",
-                  "name": "Strub, Caroline"
+                  "name": recommender_name,
                 },
                 "role": "author"
               }
@@ -196,7 +201,7 @@ def recommendation():
               {
                 "actor": {
                   "type": "person",
-                  "name": "Strub, Caroline"
+                  "name": recommender_name,
                 },
                 "role": "author"
               }
@@ -307,7 +312,7 @@ def recommendation():
               {
                 "actor": {
                   "type": "person",
-                  "name": "Strub, Caroline"
+                  "name": recommender_name,
                 },
                 "role": "author"
               }
