@@ -13,13 +13,18 @@ def recommendation():
         "Content-Type": "application/json",
     })
 
-    reco_date = datetime.datetime.strftime(recomm.validation_timestamp, "%Y-%m-%dT%H:%M:%S")
     pci_description = db.cfg.description
 
     article = db.t_articles[recomm.article_id]
 
     article_publication_date = article.article_year
     article_doi = article.doi
+
+    def publication_date(version):
+        return datetime.datetime.strftime(
+                version.validation_timestamp,
+                "%Y-%m-%dT%H:%M:%S%Z",
+        )
 
     return json.dumps([
   {
@@ -29,8 +34,8 @@ def recommendation():
       "name": pci_description,
       "url": "https://github.com/docmaps-project/docmaps/tree/main/packages/ts-etl"
     },
-    "created": reco_date,
-    "updated": reco_date,
+    "created": publication_date(recomm),
+    "updated": publication_date(recomm),
     "first-step": "_:b0",
     "steps": {
             "_:b0": {
