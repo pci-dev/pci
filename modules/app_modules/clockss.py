@@ -286,14 +286,13 @@ class Clockss:
 
 
     def _replace_img_in_template(self):
-        pci = str(myconf.take("app.name"))
-        pci = pci.replace(" ", "")
+        pci = str(current.db.cfg.host)
 
         img = f"logo_PDF_{pci}.jpg"
         if os.path.isfile(f"{self._get_templates_dir()}{img}"):
             return img
         else:
-            return "logo_PDF_PCIEvolBiol.jpg"
+            return "logo_PDF_evolbiol.jpg"
     
 
     def _replace_recommendation_process(self):
