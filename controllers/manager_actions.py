@@ -40,17 +40,12 @@ contact = myconf.take("contacts.managers")
 def do_validate_article():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
-        return redirect(request.env.http_referer)
+        redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
-    sugg_recommender_ok = True if pciRRactivated else SuggestedRecommender.check_if_all_processed(articleId)
-    
     if art is None:
         session.flash = auth.not_authorized()
-        return redirect(request.env.http_referer)
-    if not sugg_recommender_ok:
-        session.flash = "Suggested recommender waiting to be validated"
-        return redirect(request.env.http_referer)
+        redirect(request.env.http_referer)
     if art.status == "Pending":
         art.status = "Awaiting consideration"
         art.validation_timestamp = request.now
@@ -244,7 +239,7 @@ def suggest_article_to():
     article_id = int(request.vars["articleId"])
     what_next = str(request.vars["whatNext"])
     recommender_id = int(request.vars["recommenderId"])
-    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, True)
+    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id)
     redirect(what_next)
 
 
@@ -265,7 +260,7 @@ def suggest_all_selected():
         redirect(previous)
 
     for recommender_id in recommender_ids:
-        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id, True)
+        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
     redirect(what_next)
 
 
