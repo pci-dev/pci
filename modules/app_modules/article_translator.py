@@ -1,14 +1,14 @@
 from time import sleep
-from typing import Optional, TypedDict, cast
-import uuid
+from typing import List, Optional, TypedDict
 import subprocess
 from gluon import current
-from gluon.html import A, URL
+from gluon.html import A
 from gluon.sqlhtml import SQLFORM
 
 from models.article import Article, TranslatedFieldDict, TranslatedFieldType
 from app_modules.lang import Lang
 from app_modules.translator import Translator
+from app_modules.common_tools import URL
 
 class ArticleTranslationDict(TypedDict, total=False):
     abstract: str
@@ -64,50 +64,15 @@ class ArticleTranslator(Translator):
 
     def _translate_article_data(self, data_to_translate: ArticleTranslationDict) -> ArticleTranslationDict:
         data_translated = ArticleTranslationDict()
-        data_to_translate_hash = ArticleTranslationDict()
-        text = ''
-        text_translated = ''
 
         for key, value in data_to_translate.items():
-            hash = uuid.uuid4().hex
-            data_to_translate_hash[key] = hash
-
-            text += f"\n{hash}\n{str(value)}"
-
-        text_translated = self.translate(text)
-
-        keys = list(data_to_translate.keys())
-        for i, key in enumerate(keys):
-            hash = cast(str, data_to_translate_hash[key])
-            next_hash = None
-            if i + 1 < len(keys):
-                next_hash = cast(str, data_to_translate_hash[keys[i + 1]])
-
-            value = self._parse(text_translated, hash, next_hash)
-            if value:
-                data_translated[key] = value.strip()
+            text = str(value or "")
+            if text:
+                data_translated[key] = self.translate(text)
+            else:
+                data_translated[key] = text
 
         return data_translated
-    
-
-    def _parse(self, text: str, start_keyword: str, end_keyword: Optional[str]):
-        lines = text.split('\n')
-
-        start_index = -1
-        end_index = -1
-
-        for i, line in enumerate(lines):
-            if line.strip() == start_keyword:
-                start_index = i
-            if end_keyword and line.strip() == end_keyword:
-                end_index = i
-                break
-
-        if end_index == -1:
-            end_index = len(lines)
-
-        if start_index >= 0:
-            return '\n'.join(lines[start_index+1:end_index])
 
 
     def _save_translations(self, field: TranslatedFieldType, data_translated: ArticleTranslationDict):
@@ -164,7 +129,7 @@ class ArticleTranslator(Translator):
     def launch_article_translation_for_default_langs_process(article_id: int, force: bool = False, public: Optional[bool] = None):
         app_name = current.request.application
         
-        cmd = [
+        cmd: List[str] = [
             'python3',
             'web2py.py',
             '-M', 
@@ -192,18 +157,18 @@ class ArticleTranslator(Translator):
         style = "margin: 0px"
         button_class = "btn btn-default"
         
-        title_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True))
-        abstract_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True))
-        keywords_url = cast(str, URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True))
+        title_url = URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True)
+        abstract_url = URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True)
+        keywords_url = URL(c="article_translations", f="edit_all_article_translations", vars=dict(article_id=article.id),  user_signature=True)
 
-        title_row = article_form.element(_id="t_articles_title__row")
+        title_row: ... = article_form.element(_id="t_articles_title__row") # type: ignore
         if title_row:
             title_row.components[1].append(A("Edit title translations", _class=button_class, _style=style, _href=title_url))
         
-        abstract_row = article_form.element(_id="t_articles_abstract__row")
+        abstract_row: ... = article_form.element(_id="t_articles_abstract__row") # type: ignore
         if abstract_row:
             abstract_row.components[1].append(A("Edit abstract translations", _class=button_class, _style=style, _href=abstract_url))
 
-        keywords_row = article_form.element(_id="t_articles_keywords__row")
+        keywords_row: ... = article_form.element(_id="t_articles_keywords__row") # type: ignore
         if keywords_row:
             keywords_row.components[1].append(A("Edit keywords translations", _class=button_class, _style=style, _href=keywords_url))
