@@ -1,6 +1,5 @@
 from time import sleep
-from typing import List, Optional, TypedDict, cast
-import uuid
+from typing import List, Optional, TypedDict
 import subprocess
 from gluon import current
 from gluon.html import A
@@ -65,50 +64,15 @@ class ArticleTranslator(Translator):
 
     def _translate_article_data(self, data_to_translate: ArticleTranslationDict) -> ArticleTranslationDict:
         data_translated = ArticleTranslationDict()
-        data_to_translate_hash = ArticleTranslationDict()
-        text = ''
-        text_translated = ''
 
         for key, value in data_to_translate.items():
-            hash = uuid.uuid4().hex
-            data_to_translate_hash[key] = hash
-
-            text += f"\n{hash}\n{str(value)}"
-
-        text_translated = self.translate(text)
-
-        keys = list(data_to_translate.keys())
-        for i, key in enumerate(keys):
-            hash = cast(str, data_to_translate_hash[key])
-            next_hash = None
-            if i + 1 < len(keys):
-                next_hash = cast(str, data_to_translate_hash[keys[i + 1]])
-
-            value = self._parse(text_translated, hash, next_hash)
-            if value:
-                data_translated[key] = value.strip()
+            text = str(value or "")
+            if text:
+                data_translated[key] = self.translate(text)
+            else:
+                data_translated[key] = text
 
         return data_translated
-    
-
-    def _parse(self, text: str, start_keyword: str, end_keyword: Optional[str]):
-        lines = text.split('\n')
-
-        start_index = -1
-        end_index = -1
-
-        for i, line in enumerate(lines):
-            if line.strip() == start_keyword:
-                start_index = i
-            if end_keyword and line.strip() == end_keyword:
-                end_index = i
-                break
-
-        if end_index == -1:
-            end_index = len(lines)
-
-        if start_index >= 0:
-            return '\n'.join(lines[start_index+1:end_index])
 
 
     def _save_translations(self, field: TranslatedFieldType, data_translated: ArticleTranslationDict):
