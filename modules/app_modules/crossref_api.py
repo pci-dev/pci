@@ -101,7 +101,7 @@ class CrossrefAPI:
             if not cursor:
                 break
 
-            sleep(0.1)
+            sleep(0.25)
         
         return works
     

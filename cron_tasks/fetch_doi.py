@@ -33,7 +33,7 @@ def process_request_all_api(articles: List[Article]):
             print(f"Error to check API for {article.id} with doi {article.doi}: {e}")
             
         finally:
-            sleep(0.1)
+            sleep(0.25)
     
     return count
 
