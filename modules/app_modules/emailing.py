@@ -25,7 +25,7 @@ from gluon.storage import Storage
 import models.article
 
 from gluon.custom_import import track_changes
-from models.suggested_recommender import SuggestedRecommender
+from models.suggested_recommender import SuggestedRecommender, SuggestedBy
 
 track_changes(True)
 import socket
@@ -3815,7 +3815,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
     mail_vars["linkTarget"] = str(A(next_url, _href=next_url))
     mail_vars["articleTitle"] = str(B(md_to_html(article.title)))
 
-    suggested_recommenders = SuggestedRecommender.get_by_article(article_id, True, False)
+    suggested_recommenders = SuggestedRecommender.get_by_article(article_id, True, False, SuggestedBy.AUTHORS)
     buttons: DIV = DIV()
     button_style = "font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-right: 5px"
 
