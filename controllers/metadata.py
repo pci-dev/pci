@@ -34,13 +34,9 @@ def recommendation():
 
 
 def article_as_docmaps(version, typ="preprint"):
-
-    article_doi = version.article_id.doi
-
     return {
         "published": publication_date(version),
-        "doi": article_doi,
-        #"doi": version.doi,
+        "doi": version.doi,
         "type": typ,
     }
 
