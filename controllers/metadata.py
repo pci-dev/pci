@@ -36,8 +36,6 @@ def recommendation():
           for author in article.authors.split(", ")
     ]
 
-    recommender_name = mkUser(recomm.recommender_id).flatten()
-
     return json.dumps([{
     "type": "docmap",
     "id": URL("metadata", f"recommendation-{recomm.recommendation_doi}"),
@@ -97,6 +95,8 @@ def recommendation_as_docmaps(version, typ):
 def steps(recomm, authors):
 
     article_doi = recomm.article_id.doi
+
+    recommender_name = mkUser(recomm.recommender_id).flatten()
 
     v0 = v1 = v2 = v3 = recomm
 
