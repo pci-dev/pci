@@ -18,59 +18,7 @@ def recommendation():
 
     pci_description = db.cfg.description
 
-    article = db.t_articles[recomm.article_id]
-
-    article_publication_date = article.article_year
-    article_doi = article.doi
-
-    def article_as_docmaps(version, typ="preprint"):
-        return {
-            "published": publication_date(version),
-            "doi": article_doi,
-            "type": typ,
-        }
-
-    def publication_date(version):
-        return datetime.datetime.strftime(
-                version.validation_timestamp,
-                "%Y-%m-%dT%H:%M:%S%Z",
-        )
-
-    def recommendation_as_docmaps(version, typ):
-        return {
-            "published": publication_date(version),
-            "doi": recomm.recommendation_doi,
-            "type": typ,
-        }
-
-    authors = [
-            {
-            "actor": {
-              "type": "person",
-              "name": author,
-            },
-            "role": "author"
-          }
-
-          for author in article.authors.split(", ")
-    ]
-
-    def reviewers(version):
-        reviews = db(
-                (db.t_reviews.recommendation_id == version.id)
-            &   (db.t_reviews.review_state == ReviewState.REVIEW_COMPLETED.value)
-        ).select()
-        return [
-
-            mkUser(review.reviewer_id).flatten()
-            if not review.anonymously else "Anonymous reviewer"
-
-            for review in reviews
-        ]
-
-
-    return json.dumps([
-  {
+    return json.dumps([{
     "type": "docmap",
     "id": URL("metadata", f"recommendation-{recomm.recommendation_doi}", scheme=True),
     "publisher": {
@@ -80,15 +28,67 @@ def recommendation():
     "created": publication_date(recomm),
     "updated": publication_date(recomm),
     "first-step": "_:b0",
-    "steps": steps(recomm, authors),
+    "steps": steps(recomm),
     "@context": "https://w3id.org/docmaps/context.jsonld"
-  }
-]
-)
+  }])
 
-def steps(recomm, authors):
 
-    article_doi = recomm.article_id.doi
+def article_as_docmaps(version, typ="preprint"):
+    return {
+        "published": publication_date(version),
+        "doi": version.doi,
+        "type": typ,
+    }
+
+
+def publication_date(version):
+    return datetime.datetime.strftime(
+            version.validation_timestamp,
+            "%Y-%m-%dT%H:%M:%S%Z",
+    )
+
+
+def recommendation_as_docmaps(version, typ):
+    return {
+        "published": publication_date(version),
+        "doi": version.recommendation_doi,
+        "type": typ,
+    }
+
+
+def authors_as_docmaps(article):
+    return [
+        {
+            "actor": {
+              "type": "person",
+              "name": author,
+            },
+            "role": "author"
+        }
+
+        for author in article.authors.split(", ")
+    ]
+
+
+def reviewers(version):
+    reviews = db(
+            (db.t_reviews.recommendation_id == version.id)
+        &   (db.t_reviews.review_state == ReviewState.REVIEW_COMPLETED.value)
+    ).select()
+    return [
+
+        mkUser(review.reviewer_id).flatten()
+        if not review.anonymously else "Anonymous reviewer"
+
+        for review in reviews
+    ]
+
+
+def steps(recomm):
+    article = recomm.article_id
+
+    article_doi = article.doi
+    authors = authors_as_docmaps(article)
 
     recommender_name = mkUser(recomm.recommender_id).flatten()
 
