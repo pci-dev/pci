@@ -42,7 +42,10 @@ class SuggestedRecommender(Row):
 
 
     @staticmethod
-    def get_by_article(article_id: int, recommender_validated_unset: bool = False, declined: _[bool] = None) -> List['SuggestedRecommender']:
+    def get_by_article(article_id: int,
+                       recommender_validated_unset: bool = False,
+                       declined: _[bool] = None,
+                       suggested_by: _[SuggestedBy] = None) -> List['SuggestedRecommender']:
         db = current.db
         query = (db.t_suggested_recommenders.article_id == article_id)
 
@@ -51,6 +54,9 @@ class SuggestedRecommender(Row):
 
         if declined is not None: 
             query = query & (db.t_suggested_recommenders.declined == declined)
+
+        if suggested_by is not None:
+            query = query & (db.t_suggested_recommenders.suggested_by == suggested_by.value)
         
         return db(query).select()
     
