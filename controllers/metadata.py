@@ -58,8 +58,6 @@ def recommendation():
 
     recommender_name = mkUser(recomm.recommender_id).flatten()
 
-    v0 = v1 = v2 = v3 = recomm
-
     def reviewers(version):
         reviews = db(
                 (db.t_reviews.recommendation_id == version.id)
@@ -85,7 +83,19 @@ def recommendation():
     "created": publication_date(recomm),
     "updated": publication_date(recomm),
     "first-step": "_:b0",
-    "steps": {
+    "steps": steps(recomm, authors),
+    "@context": "https://w3id.org/docmaps/context.jsonld"
+  }
+]
+)
+
+def steps(recomm, authors):
+
+    article_doi = recomm.article_id.doi
+
+    v0 = v1 = v2 = v3 = recomm
+
+    b0 = {
             "_:b0": {
         "inputs": [],
         "actions": [
@@ -105,7 +115,13 @@ def recommendation():
         ],
         "next-step": "_:b1"
       },
-            "_:b1": {
+    }
+
+    rounds = ["1", "2", "3"]
+
+    reviewed = {
+            f"_:b{round_nb*2 + 1}": {
+
         "actions": [
           {
             "participants": [
@@ -152,10 +168,16 @@ def recommendation():
           }
         ],
         "inputs": [],
-        "previous-step": "_:b0",
-        "next-step": "_:b2"
-      },
-            "_:b2": {
+        "previous-step": f"_:b{round_nb*2}",
+        "next-step": f"_:b{round_nb*2 + 2}"
+      }
+
+      for round_nb, rnd in enumerate(rounds[:-1])
+    }
+
+    catalogued = {
+            f"_:b{round_nb*2 + 2}": {
+
         "inputs": [
             article_as_docmaps(v1)
             ],
@@ -181,91 +203,16 @@ def recommendation():
             "item": article_doi,
           }
         ],
-        "previous-step": "_:b1",
-        "next-step": "_:b3"
-      },
-            "_:b3": {
-        "actions": [
-          {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": recommender_name,
-                },
-                "role": "author"
-              }
-            ],
-            "outputs": [
-                recommendation_as_docmaps(v2, "editorial-decision")
-            ],
-            "inputs": [
-                article_as_docmaps(v2)
-            ]
-          },
-          ] + [
-          {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": reviewer,
-                },
-                "role": "author"
-              }
-            ],
-            "outputs": [
-                recommendation_as_docmaps(v1, "review")
-            ],
-            "inputs": [
-                article_as_docmaps(v1)
-            ]
-          }
+        "previous-step": f"_:b{round_nb*2 + 1}",
+        "next-step": f"_:b{round_nb*2 + 3}"
+        }
 
-          for reviewer in reviewers(v1)
-        ],
-        "assertions": [
-          {
-            "status": "reviewed",
-            "item": article_doi,
-          }
-        ],
-        "inputs": [],
-        "previous-step": "_:b2",
-        "next-step": "_:b4"
-      },
-            "_:b4": {
-        "inputs": [
-            article_as_docmaps(v2)
-            ],
-        "actions": [
-          {
-            "participants": authors,
-            "outputs": [
-                recommendation_as_docmaps(v3, "reply")
-            ],
-            "inputs": []
-          },
-          {
-            "participants": authors,
-            "outputs": [
-                article_as_docmaps(v3)
-            ],
-            "inputs": [
-                article_as_docmaps(v2)
-            ]
-          },
-        ],
-        "assertions": [
-          {
-            "status": "reviewed",
-            "item": article_doi,
-          }
-        ],
-        "previous-step": "_:b3",
-        "next-step": "_:b5"
-      },
+        for round_nb, rnd in enumerate(rounds[:-1])
+    }
+
+    final = {
             "_:b5": {
+
         "actions": [
           {
             "participants": [
@@ -295,7 +242,9 @@ def recommendation():
         "previous-step": "_:b4",
         "next-step": "_b6"
       },
+
             "_:b6": {
+
         "inputs": [
                 article_as_docmaps(v3)
             ],
@@ -316,8 +265,13 @@ def recommendation():
         ],
         "previous-step": "_:b5"
       },
-         },
-    "@context": "https://w3id.org/docmaps/context.jsonld"
-  }
-]
-)
+
+    }
+
+    ret = {}
+    ret.update(b0)
+    ret.update(reviewed)
+    ret.update(catalogued)
+    ret.update(final)
+
+    return ret
