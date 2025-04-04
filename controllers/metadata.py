@@ -201,7 +201,7 @@ def steps(article):
           {
             "participants": authors,
             "outputs": [
-                recommendation_as_docmaps(rnd, "reply")
+                recommendation_as_docmaps(rounds[round_nb + 1], "reply")
             ],
             "inputs": []
           }
@@ -216,7 +216,7 @@ def steps(article):
         "next-step": f"_:b{round_nb*2 + 3}"
         }
 
-        for round_nb, rnd in enumerate(rounds[1:-1])
+        for round_nb, rnd in enumerate(rounds[:-1])
     }
 
     final = {
