@@ -38,7 +38,7 @@ def recommendation():
     "created": publication_date(recomm),
     "updated": publication_date(recomm),
     "first-step": "_:b0",
-    "steps": steps(recomm),
+    "steps": steps(article),
     "@context": "https://w3id.org/docmaps/context.jsonld"
   }])
 
@@ -94,15 +94,16 @@ def reviewers(version):
     ]
 
 
-def steps(recomm):
-    article = recomm.article_id
-
-    article_doi = article.doi
+def steps(article):
     authors = authors_as_docmaps(article)
 
-    recommender_name = mkUser(recomm.recommender_id).flatten()
+    rounds = db(db.t_recommendations.article_id == article.id) \
+                .select(orderby=db.t_recommendations.validation_timestamp)
 
-    v0 = v1 = v2 = v3 = recomm
+    init_r = rounds[0]
+    last_r = rounds[-1]
+
+    recommender_name = mkUser(last_r.recommender_id).flatten()
 
     b0 = {
             "_:b0": {
@@ -111,7 +112,7 @@ def steps(recomm):
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(v1)
+                article_as_docmaps(init_r)
             ],
             "inputs": []
           }
@@ -119,14 +120,12 @@ def steps(recomm):
         "assertions": [
           {
             "status": "catalogued",
-            "item": article_doi,
+            "item": init_r.doi,
           }
         ],
         "next-step": "_:b1"
       },
     }
-
-    rounds = ["1", "2", "3"]
 
     reviewed = {
             f"_:b{round_nb*2 + 1}": {
@@ -143,10 +142,10 @@ def steps(recomm):
               }
             ],
             "outputs": [
-                recommendation_as_docmaps(v0, "editorial-decision")
+                recommendation_as_docmaps(rnd, "editorial-decision")
             ],
             "inputs": [
-                article_as_docmaps(v0)
+                article_as_docmaps(rnd)
             ]
           },
           ] + [
@@ -161,19 +160,19 @@ def steps(recomm):
               }
             ],
             "outputs": [
-                recommendation_as_docmaps(v0, "review")
+                recommendation_as_docmaps(rnd, "review")
             ],
             "inputs": [
-                article_as_docmaps(v0)
+                article_as_docmaps(rnd)
             ]
           }
 
-          for reviewer in reviewers(v0)
+          for reviewer in reviewers(rnd)
         ],
         "assertions": [
           {
             "status": "reviewed",
-            "item": article_doi,
+            "item": rnd.doi,
           }
         ],
         "inputs": [],
@@ -188,20 +187,20 @@ def steps(recomm):
             f"_:b{round_nb*2 + 2}": {
 
         "inputs": [
-            article_as_docmaps(v1)
+            article_as_docmaps(rnd)
             ],
         "actions": [
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(v2)
+                article_as_docmaps(rnd)
             ],
             "inputs": []
           },
           {
             "participants": authors,
             "outputs": [
-                recommendation_as_docmaps(v0, "reply")
+                recommendation_as_docmaps(rounds[round_nb + 1], "reply")
             ],
             "inputs": []
           }
@@ -209,7 +208,7 @@ def steps(recomm):
         "assertions": [
           {
             "status": "catalogued",
-            "item": article_doi,
+            "item": rnd.doi,
           }
         ],
         "previous-step": f"_:b{round_nb*2 + 1}",
@@ -234,17 +233,17 @@ def steps(recomm):
               }
             ],
             "outputs": [
-                recommendation_as_docmaps(v3, "editorial-decision")
+                recommendation_as_docmaps(last_r, "editorial-decision")
             ],
             "inputs": [
-                article_as_docmaps(v3, "journal-article")
+                article_as_docmaps(last_r, "journal-article")
             ]
           }
         ],
         "assertions": [
           {
             "status": "reviewed",
-            "item": article_doi,
+            "item": last_r.doi,
           }
         ],
         "inputs": [],
@@ -255,13 +254,13 @@ def steps(recomm):
             f"_:b{len(rounds)*2}": {
 
         "inputs": [
-                article_as_docmaps(v3)
+                article_as_docmaps(last_r)
             ],
         "actions": [
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(v3, "journal-article")
+                article_as_docmaps(last_r, "journal-article")
             ],
             "inputs": []
           }
