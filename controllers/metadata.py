@@ -220,7 +220,7 @@ def steps(article):
     }
 
     final = {
-            "_:b5": {
+            f"_:b{len(rounds)*2 - 1}": {
 
         "actions": [
           {
@@ -252,7 +252,7 @@ def steps(article):
         "next-step": "_b6"
       },
 
-            "_:b6": {
+            f"_:b{len(rounds)*2}": {
 
         "inputs": [
                 article_as_docmaps(last_r)
