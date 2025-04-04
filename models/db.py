@@ -5,7 +5,7 @@ locale.setlocale(locale.LC_CTYPE, (None, "UTF-8")) # let AppConfig read UTF-8
 # keep the above setlocale first in load order - before any AppConfig load
 
 from gluon.sqlhtml import SQLFORM
-from models.suggested_recommender import SuggestedRecommender
+from models.suggested_recommender import SuggestedRecommender, SuggestedBy
 
 from typing import cast
 from app_components.custom_validator import CUSTOM_VALID_URL, VALID_LIST_NAMES_MAIL, VALID_DOI, TEXT_CLEANER, VALID_TEMPLATE
@@ -1386,6 +1386,7 @@ db.define_table(
     Field("emailing", type="text", length=2097152, label=T("Emails history"), readable=False, writable=False),
     Field("quick_decline_key", type="text", label=T("Quick decline key"), readable=False, writable=False),
     Field("recommender_validated", type="boolean", writable=False, readable=False),
+    Field("suggested_by", type="text", length=50, writable=False, readable=False),
     singular=T("Suggested recommender"),
     plural=T("Suggested recommenders"),
     migrate=False,
@@ -1415,10 +1416,12 @@ def after_update_suggested_recommender(s: ..., f: ...):
         if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
             emailing.send_to_suggested_recommender(article, suggested_recommender.suggested_recommender_id)
             emailing.create_reminder_for_suggested_recommender_invitation(article, suggested_recommender.suggested_recommender_id)
-        emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
+        if suggested_recommender.suggested_by == SuggestedBy.AUTHORS.value:
+            emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
 
     if suggested_recommender.recommender_validated is False:
-        emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
+        if suggested_recommender.suggested_by == SuggestedBy.AUTHORS.value:
+            emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
         emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article.id, suggested_recommender.suggested_recommender_id)
 
     update_alert_and_current_step_article(article.id)
@@ -1436,7 +1439,7 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
     emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", article.id)
     # note: do NOT delete #ReminderSubmitterNewSuggestedRecommenderNeeded
 
-    if suggested_recommender.recommender_validated is None:
+    if suggested_recommender.recommender_validated is None and suggested_recommender.suggested_by == SuggestedBy.AUTHORS.value:
         emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id)
         
     update_alert_and_current_step_article(article.id)
@@ -1455,7 +1458,8 @@ def after_delete_sugg_recommender(s: ...):
     if old_sugg_recommender is None:
         return
     
-    emailing.send_or_update_mail_manager_valid_suggested_recommender(old_sugg_recommender.article_id)
+    if old_sugg_recommender.suggested_by == SuggestedBy.AUTHORS.value:
+        emailing.send_or_update_mail_manager_valid_suggested_recommender(old_sugg_recommender.article_id)
 
     update_alert_and_current_step_article(old_sugg_recommender.article_id)
 
