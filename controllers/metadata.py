@@ -101,9 +101,10 @@ def steps(article):
     rounds = db(db.t_recommendations.article_id == article.id) \
                 .select(orderby=db.t_recommendations.validation_timestamp)
 
-    recommender_name = mkUser(rounds[-1].recommender_id).flatten()
+    init_r = rounds[0]
+    last_r = rounds[-1]
 
-    v0 = v1 = v2 = v3 = recomm
+    recommender_name = mkUser(last_r.recommender_id).flatten()
 
     b0 = {
             "_:b0": {
@@ -112,7 +113,7 @@ def steps(article):
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(v1)
+                article_as_docmaps(init_r)
             ],
             "inputs": []
           }
@@ -120,14 +121,12 @@ def steps(article):
         "assertions": [
           {
             "status": "catalogued",
-            "item": article_doi,
+            "item": init_r.doi,
           }
         ],
         "next-step": "_:b1"
       },
     }
-
-    rounds = ["1", "2", "3"]
 
     reviewed = {
             f"_:b{round_nb*2 + 1}": {
@@ -144,10 +143,10 @@ def steps(article):
               }
             ],
             "outputs": [
-                recommendation_as_docmaps(v0, "editorial-decision")
+                recommendation_as_docmaps(rnd, "editorial-decision")
             ],
             "inputs": [
-                article_as_docmaps(v0)
+                article_as_docmaps(rnd)
             ]
           },
           ] + [
@@ -162,19 +161,19 @@ def steps(article):
               }
             ],
             "outputs": [
-                recommendation_as_docmaps(v0, "review")
+                recommendation_as_docmaps(rnd, "review")
             ],
             "inputs": [
-                article_as_docmaps(v0)
+                article_as_docmaps(rnd)
             ]
           }
 
-          for reviewer in reviewers(v0)
+          for reviewer in reviewers(rnd)
         ],
         "assertions": [
           {
             "status": "reviewed",
-            "item": article_doi,
+            "item": rnd.doi,
           }
         ],
         "inputs": [],
@@ -189,20 +188,20 @@ def steps(article):
             f"_:b{round_nb*2 + 2}": {
 
         "inputs": [
-            article_as_docmaps(v1)
+            article_as_docmaps(rnd)
             ],
         "actions": [
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(v2)
+                article_as_docmaps(rnd)
             ],
             "inputs": []
           },
           {
             "participants": authors,
             "outputs": [
-                recommendation_as_docmaps(v0, "reply")
+                recommendation_as_docmaps(rnd, "reply")
             ],
             "inputs": []
           }
@@ -210,14 +209,14 @@ def steps(article):
         "assertions": [
           {
             "status": "catalogued",
-            "item": article_doi,
+            "item": rnd.doi,
           }
         ],
         "previous-step": f"_:b{round_nb*2 + 1}",
         "next-step": f"_:b{round_nb*2 + 3}"
         }
 
-        for round_nb, rnd in enumerate(rounds[:-1])
+        for round_nb, rnd in enumerate(rounds[1:-1])
     }
 
     final = {
@@ -235,17 +234,17 @@ def steps(article):
               }
             ],
             "outputs": [
-                recommendation_as_docmaps(v3, "editorial-decision")
+                recommendation_as_docmaps(last_r, "editorial-decision")
             ],
             "inputs": [
-                article_as_docmaps(v3, "journal-article")
+                article_as_docmaps(last_r, "journal-article")
             ]
           }
         ],
         "assertions": [
           {
             "status": "reviewed",
-            "item": article_doi,
+            "item": last_r.doi,
           }
         ],
         "inputs": [],
@@ -256,13 +255,13 @@ def steps(article):
             "_:b6": {
 
         "inputs": [
-                article_as_docmaps(v3)
+                article_as_docmaps(last_r)
             ],
         "actions": [
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(v3, "journal-article")
+                article_as_docmaps(last_r, "journal-article")
             ],
             "inputs": []
           }
