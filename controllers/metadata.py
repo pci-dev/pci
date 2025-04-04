@@ -6,11 +6,21 @@ from models.review import ReviewState
 
 
 def recommendation():
-    recommId = request.vars.id
-    recomm = db.t_recommendations[recommId]
+    article_id = request.vars.article_id or request.vars.id
+
+    try:
+        article = db.t_articles[article_id]
+        assert article
+    except:
+        raise HTTP(400, f"no such article: {article_id}")
+
+    recomm = db(
+        (db.t_recommendations.article_id == article.id)
+        & (db.t_recommendations.recommendation_state == "Recommended")
+    ).select().first()
 
     if not recomm:
-        raise HTTP(400, f"no such recommendation: {recommId}")
+        raise HTTP(400, f"no recommendation for article: {article_id}")
 
     response.headers.update({
         "Content-Type": "application/json",
