@@ -274,7 +274,7 @@ def steps(article):
         "previous-step": "_:b5"
       },
 
-    }
+    } if "10.24072/pcjournal" in str(article.doi_of_published_article) else {}
 
     ret = {}
     ret.update(b0)
