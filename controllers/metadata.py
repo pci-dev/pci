@@ -38,7 +38,7 @@ def recommendation():
     "created": publication_date(recomm),
     "updated": publication_date(recomm),
     "first-step": "_:b0",
-    "steps": steps(recomm),
+    "steps": steps(article),
     "@context": "https://w3id.org/docmaps/context.jsonld"
   }])
 
@@ -94,13 +94,14 @@ def reviewers(version):
     ]
 
 
-def steps(recomm):
-    article = recomm.article_id
-
+def steps(article):
     article_doi = article.doi
     authors = authors_as_docmaps(article)
 
-    recommender_name = mkUser(recomm.recommender_id).flatten()
+    rounds = db(db.t_recommendations.article_id == article.id) \
+                .select(orderby=db.t_recommendations.validation_timestamp)
+
+    recommender_name = mkUser(rounds[-1].recommender_id).flatten()
 
     v0 = v1 = v2 = v3 = recomm
 
