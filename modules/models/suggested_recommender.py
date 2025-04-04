@@ -39,6 +39,13 @@ class SuggestedRecommender(Row):
 
         suggested_recommender = db(query).select().first()
         return suggested_recommender
+    
+
+    @staticmethod
+    def delete_sugg_recommender(sugg_recommender_id: int):
+        db = current.db
+        db(db.t_suggested_recommenders.id == sugg_recommender_id).delete()
+        current.db.commit()
 
 
     @staticmethod
@@ -138,8 +145,7 @@ class SuggestedRecommender(Row):
 
         sugg_recommender = SuggestedRecommender.get_by_article_and_user_id(article_id, recommender_id)
         if sugg_recommender:
-            sugg_recommender.delete() # type: ignore
-            db.commit()
+            SuggestedRecommender.delete_sugg_recommender(sugg_recommender.id)
 
         try:
           db.t_suggested_recommenders.update_or_insert(
