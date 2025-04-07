@@ -105,6 +105,8 @@ def steps(article):
 
     recommender_name = mkUser(last_r.recommender_id).flatten()
 
+    init_r.recommendation_timestamp = article.validation_timestamp
+
     b0 = {
             "_:b0": {
         "inputs": [],
@@ -193,7 +195,7 @@ def steps(article):
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(rnd)
+                article_as_docmaps(rounds[round_nb + 1])
             ],
             "inputs": []
           },
