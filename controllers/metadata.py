@@ -180,7 +180,7 @@ def steps(article):
         "next-step": f"_:b{round_nb*2 + 2}"
       }
 
-      for round_nb, rnd in enumerate(rounds[:-1])
+      for round_nb, rnd in enumerate(rounds)
     }
 
     catalogued = {
@@ -219,38 +219,6 @@ def steps(article):
     }
 
     final = {
-            f"_:b{len(rounds)*2 - 1}": {
-
-        "actions": [
-          {
-            "participants": [
-              {
-                "actor": {
-                  "type": "person",
-                  "name": recommender_name,
-                },
-                "role": "author"
-              }
-            ],
-            "outputs": [
-                recommendation_as_docmaps(last_r, "editorial-decision")
-            ],
-            "inputs": [
-                article_as_docmaps(last_r, "journal-article")
-            ]
-          }
-        ],
-        "assertions": [
-          {
-            "status": "reviewed",
-            "item": last_r.doi,
-          }
-        ],
-        "inputs": [],
-        "previous-step": "_:b4",
-        "next-step": "_b6"
-      },
-
             f"_:b{len(rounds)*2}": {
 
         "inputs": [
