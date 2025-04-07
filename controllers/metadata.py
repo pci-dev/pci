@@ -4,6 +4,8 @@ import datetime
 from app_modules.common_small_html import mkUser
 from models.review import ReviewState
 
+from gluon.storage import Storage
+
 
 def recommendation():
     article_id = request.vars.article_id or request.vars.id
@@ -80,16 +82,20 @@ def authors_as_docmaps(article):
     ]
 
 
-def reviewers(version):
+def reviews(version):
     reviews = db(
             (db.t_reviews.recommendation_id == version.id)
         &   (db.t_reviews.review_state == ReviewState.REVIEW_COMPLETED.value)
     ).select()
     return [
-
-        mkUser(review.reviewer_id).flatten()
-        if not review.anonymously else "Anonymous reviewer"
-
+        Storage(
+            reviewer=mkUser(review.reviewer_id).flatten()
+                        if not review.anonymously else "Anonymous reviewer",
+            proxy=Storage(
+                validation_timestamp=review.last_change,
+                recommendation_doi=version.recommendation_doi,
+            )
+        )
         for review in reviews
     ]
 
@@ -156,20 +162,20 @@ def steps(article):
               {
                 "actor": {
                   "type": "person",
-                  "name": reviewer,
+                  "name": review.reviewer,
                 },
                 "role": "author"
               }
             ],
             "outputs": [
-                recommendation_as_docmaps(rnd, "review")
+                recommendation_as_docmaps(review.proxy, "review")
             ],
             "inputs": [
                 article_as_docmaps(rnd)
             ]
           }
 
-          for reviewer in reviewers(rnd)
+          for review in reviews(rnd)
         ],
         "assertions": [
           {
