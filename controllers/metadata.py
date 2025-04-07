@@ -218,6 +218,10 @@ def steps(article):
         for round_nb, rnd in enumerate(rounds[:-1])
     }
 
+    class published_proxy:
+        recommendation_timestamp = last_r.validation_timestamp
+        doi = article.doi_of_published_article
+
     final = {
             f"_:b{len(rounds)*2}": {
 
@@ -228,7 +232,7 @@ def steps(article):
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(last_r, "journal-article")
+                article_as_docmaps(published_proxy, "journal-article")
             ],
             "inputs": []
           }
@@ -236,10 +240,10 @@ def steps(article):
         "assertions": [
           {
             "status": "published",
-            "item": "10.24072/pcjournal.321"
+            "item": published_proxy.doi
           }
         ],
-        "previous-step": "_:b5"
+        "previous-step": f"_:b{len(rounds)*2 -1}"
       },
 
     } if "10.24072/pcjournal" in str(article.doi_of_published_article) else {}
