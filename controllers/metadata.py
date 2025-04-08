@@ -61,8 +61,10 @@ def publication_date(timestamp):
 
 
 def recommendation_as_docmaps(version, typ):
+    timestamp = version.validation_timestamp if typ != "reply" \
+            else version.recommendation_timestamp
     return {
-        "published": publication_date(version.validation_timestamp),
+        "published": publication_date(timestamp),
         "doi": version.recommendation_doi,
         "type": typ,
     }
