@@ -37,8 +37,8 @@ def recommendation():
       "name": pci_description,
       "url": "https://github.com/docmaps-project/docmaps/tree/main/packages/ts-etl"
     },
-    "created": publication_date(recomm),
-    "updated": publication_date(recomm),
+    "created": publication_date(recomm.validation_timestamp),
+    "updated": publication_date(recomm.validation_timestamp),
     "first-step": "_:b0",
     "steps": steps(article),
     "@context": "https://w3id.org/docmaps/context.jsonld"
@@ -47,22 +47,22 @@ def recommendation():
 
 def article_as_docmaps(version, typ="preprint"):
     return {
-        "published": publication_date(version),
+        "published": publication_date(version.recommendation_timestamp),
         "doi": version.doi,
         "type": typ,
     }
 
 
-def publication_date(version):
+def publication_date(timestamp):
     return datetime.datetime.strftime(
-            version.validation_timestamp,
+            timestamp,
             "%Y-%m-%dT%H:%M:%S%Z",
     )
 
 
 def recommendation_as_docmaps(version, typ):
     return {
-        "published": publication_date(version),
+        "published": publication_date(version.validation_timestamp),
         "doi": version.recommendation_doi,
         "type": typ,
     }
