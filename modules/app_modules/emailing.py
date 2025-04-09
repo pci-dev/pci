@@ -3747,12 +3747,16 @@ def send_message_to_recommender_and_reviewers(article_id: int):
     hashtag_template = "#ArticlePublishedPCJ"
 
     if article:
-        recommenders_mails = emailing_tools.get_recommenders_and_reviewers_mails(article_id)
+        recommenders_mails = Article.get_recommenders_and_reviewers_mails(article_id)
+        if not recommenders_mails:
+            return
+        
         mail_vars["destAddress"] = recommenders_mails[0]
         mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
         mail_vars["articleDoi"] = common_small_html.mkLinkDOI(article.doi)
         mail_vars["published_doi"] = common_small_html.mkLinkDOI(article.doi_of_published_article)
-        mail_vars["ccAddresses"] = recommenders_mails[1:]
+        mail_vars["ccAddresses"] = recommenders_mails[1]
+        mail_vars["bccAddresses"] = recommenders_mails[2]
 
         emailing_tools.insertMailInQueue(hashtag_template, mail_vars, None, None, article.id)
 

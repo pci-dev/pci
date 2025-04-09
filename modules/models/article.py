@@ -600,6 +600,32 @@ class Article(Row):
             )
 
         return db(query).select()
+    
+
+    @staticmethod
+    def get_recommenders_and_reviewers_mails(article_id: int):
+        from models.review import ReviewState
+        
+        db = current.db
+
+        last_recommendation = Article.get_last_recommendation(article_id)
+        if not last_recommendation:
+            return
+
+        recommender: str = (db((db.t_recommendations.article_id == article_id)
+                            & (db.auth_user.id == db.t_recommendations.recommender_id)).select(db.auth_user.email, distinct=True))[0].email
+
+        co_recommenders: List[str] = [u.email for u in \
+                                          db((db.t_press_reviews.recommendation_id == last_recommendation.id)
+                                          & (db.auth_user.id == db.t_press_reviews.contributor_id)).select(db.auth_user.email, distinct=True)]
+
+        reviewers: List[str] = [u.email for u in \
+                                    db((db.t_recommendations.article_id == article_id)
+                                    & (db.t_reviews.recommendation_id == db.t_recommendations.id)
+                                    & (db.t_reviews.review_state == ReviewState.REVIEW_COMPLETED.value)
+                                    & (db.auth_user.id == db.t_reviews.reviewer_id)).select(db.auth_user.email, distinct=True)]
+
+        return (recommender, co_recommenders, reviewers)
 
 
 def is_scheduled_submission(article: Article) -> bool:
