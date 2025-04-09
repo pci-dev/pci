@@ -6,7 +6,7 @@ from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.custom_import import track_changes
 from gluon.html import A, I, LI, SPAN
 from gluon import DIV, current
-from models.article import ArticleStatus
+from models.article import Article, ArticleStatus
 from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 from app_modules import common_tools
@@ -351,7 +351,7 @@ def _RecommendationMenu():
     else:
         classPostprintsOngoing = ""
 
-    nPreprintsRequireRecomm = db((db.t_articles.status == "Awaiting consideration")).count()
+    nPreprintsRequireRecomm =  len(Article.get_articles_need_recommender_for_user(auth.user_id))
     if nPreprintsRequireRecomm > 0:
         classPreprintsRequireRecomm = "pci-enhancedMenuItem"
     else:

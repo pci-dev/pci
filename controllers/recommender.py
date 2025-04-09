@@ -77,7 +77,7 @@ def index():
 # Common function for articles needing attention
 @auth.requires(auth.has_membership(role="recommender"))
 def fields_awaiting_articles():
-    articles = db.t_articles
+    t_articles = db.t_articles
     full_text_search_fields = [
         'id',
         'title',
@@ -92,18 +92,18 @@ def fields_awaiting_articles():
     def represent_upload_timestamp(upload_timestamp: datetime.datetime, article: Article):
         return common_small_html.mkLastChange(upload_timestamp)
 
-    articles.id.readable = True
-    articles.id.represent = represent_article_id
-    articles.thematics.label = "Thematics fields"
-    articles.thematics.type = "string"
-    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero="")
+    t_articles.id.readable = True
+    t_articles.id.represent = represent_article_id
+    t_articles.thematics.label = "Thematics fields"
+    t_articles.thematics.type = "string"
+    t_articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero="")
 
-    for a_field in articles.fields:
+    for a_field in t_articles.fields:
         if not a_field in full_text_search_fields:
-            articles[a_field].readable = False
+            t_articles[a_field].readable = False
 
-    articles.id.label = "Article"
-    articles.upload_timestamp.represent = represent_upload_timestamp
+    t_articles.id.label = "Article"
+    t_articles.upload_timestamp.represent = represent_upload_timestamp
 
     links: List[Dict[str, Any]] = []
     links.append(dict(header=T(""), body=recommender_module.mkViewEditArticleRecommenderButton))
@@ -112,9 +112,14 @@ def fields_awaiting_articles():
     excluded_articles = db(
         excluded.excluded_recommender_id == auth.user_id
     )._select(excluded.article_id)
+
+    articles = Article.get_articles_need_recommender_for_user(current.auth.user_id)
+    articles_id = [a.id for a in articles]
+
     query = (
-        (articles.status == "Awaiting consideration")
-      & ~articles.id.belongs(excluded_articles)
+        (t_articles.status == "Awaiting consideration")
+        & t_articles.id.belongs(articles_id)
+        & ~t_articles.id.belongs(excluded_articles)
     )
     original_grid: ... = SQLFORM.grid( # type: ignore
         query,
@@ -129,12 +134,12 @@ def fields_awaiting_articles():
         exportclasses=expClass,
         buttons_placement="",
         fields=[
-            articles.id,
-            articles.thematics,
-            articles.upload_timestamp,
+            t_articles.id,
+            t_articles.thematics,
+            t_articles.upload_timestamp,
         ],
         links=links,
-        orderby=articles.id,
+        orderby=t_articles.id,
         _class="web2py_grid action-button-absolute",
     )
 
