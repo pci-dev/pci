@@ -19,6 +19,7 @@ from app_modules.common_small_html import md_to_html
 from app_components import article_components
 from app_modules import emailing
 from app_modules.common_tools import URL
+from app_modules.schema_org import SchemaOrg, SchemaOrgException
 
 myconf = AppConfig(reload=True)
 
@@ -157,10 +158,15 @@ def getArticleAndFinalRecommendation(art: Article,
 
     # Get METADATA (see next function)
     recommMetadata = getRecommendationMetadata(art, finalRecomm, pdfUrl, Recommendation.get_doi_id(finalRecomm))
-    dublin_core = _dublinc_core_meta_tag(art)
+
+    try:
+        schema_org = SchemaOrg(art).to_script_tag()
+    except SchemaOrgException as e:
+        schema_org = SCRIPT(f"{e}", _type="application/ld+json")
+        
 
     headerHtml = XML(current.response.render("components/last_recommendation.html", headerContent))
-    return dict(headerHtml=headerHtml, recommMetadata=recommMetadata, dublin_core=dublin_core)
+    return dict(headerHtml=headerHtml, recommMetadata=recommMetadata, schema_org=schema_org)
 
 
 ######################################################################################################################################################################
@@ -212,30 +218,9 @@ def getRecommendationMetadata(art: Article, lastRecomm: Recommendation, pdfLink:
     return myMeta
 
 
-def _dublinc_core_meta_tag(article: Article):
-    dublin_core: List[META] = []
-
-    if article.translated_title:
-        for translated_title in article.translated_title:
-            if translated_title['public']:
-                dublin_core.append(META(_name="DC.Title", _content=translated_title['content'], _lang=translated_title['lang']))
-
-    if article.translated_abstract:
-        for translated_abstract in article.translated_abstract:
-            if translated_abstract['public']:
-                dublin_core.append(META(_name="DC.Description", _content=translated_abstract['content'], _lang=translated_abstract['lang']))
-            
-    if article.translated_keywords:
-        for translated_keywords in article.translated_keywords:
-            if translated_keywords['public']:
-                dublin_core.append(META(_name="DC.Subject", _content=translated_keywords['content'], _lang=translated_keywords['lang']))
-
-    return dublin_core
-
-
 ######################################################################################################################################################################
-def getPublicReviewRoundsHtml(articleId):
-    db, auth = current.db, current.auth
+def getPublicReviewRoundsHtml(articleId: int):
+    db= current.db
 
     recomms = db((db.t_recommendations.article_id == articleId)).select(orderby=~db.t_recommendations.id)
 
