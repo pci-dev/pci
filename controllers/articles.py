@@ -110,11 +110,11 @@ def rec():
 
 
 def handle_rec_signposting(recomm):
-    if request.env.request_method == 'HEAD':
+    if request.method == 'HEAD':
 
         response.headers = { "link": (
             '<' + URL("metadata", "recommendation", scheme=True,
-                vars=dict(id=recomm.id)
+                vars=dict(article_id=recomm.article_id.id)
             ) + '>' +
             '; rel="describedby" type="docmaps"'
         )}
