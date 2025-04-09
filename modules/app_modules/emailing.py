@@ -25,7 +25,7 @@ from gluon.storage import Storage
 import models.article
 
 from gluon.custom_import import track_changes
-from models.suggested_recommender import SuggestedRecommender
+from models.suggested_recommender import SuggestedRecommender, SuggestedBy
 
 track_changes(True)
 import socket
@@ -2932,7 +2932,7 @@ def create_reminder_for_reviewer_scheduled_review_coming_soon(review: Review):
 
 
 ######################################################################################################################################################################
-def delete_reminder_for_reviewer(hashtag_template, reviewId):
+def delete_reminder_for_reviewer(hashtag_template: List[str], reviewId: int):
     db = current.db
     review = db.t_reviews[reviewId]
     recomm = db.t_recommendations[review.recommendation_id]
@@ -3815,7 +3815,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
     mail_vars["linkTarget"] = str(A(next_url, _href=next_url))
     mail_vars["articleTitle"] = str(B(md_to_html(article.title)))
 
-    suggested_recommenders = SuggestedRecommender.get_by_article(article_id, True, False)
+    suggested_recommenders = SuggestedRecommender.get_by_article(article_id, True, False, SuggestedBy.AUTHORS)
     buttons: DIV = DIV()
     button_style = "font-size: 14px; font-weight:bold; color: white; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-right: 5px"
 
@@ -3884,6 +3884,25 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
                     mail.update_record(sending_date=mail.sending_date + datetime.timedelta(hours=1)) # type: ignore
 
 
+def send_manager_alert_willing_to_recommend(article_id: int):
+    if SuggestedRecommender.already_request_willing_to_recommend(article_id, current.auth.user_id):
+        return
+    
+    mail_template = "#WillingRecommenderValidation"
+    recommender_id = int(current.auth.user_id)
 
+    article = Article.get_by_id(article_id)
+    if not article:
+        return
 
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["destAddress"] = mail_vars["appContactMail"]
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recommender_id, True, orcid=True)
+    mail_vars["linkTarget"] = URL(c="manager",
+                                  f="suggested_recommenders",
+                                  vars=dict(articleId=article_id),
+                                  scheme=True)
 
+    emailing_tools.insertMailInQueue(mail_template, mail_vars, article_id=article_id)

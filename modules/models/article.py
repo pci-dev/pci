@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from enum import Enum
 import re
-from typing import Any, List, NewType, Optional as _, Union, cast
+from typing import Any, List, NewType, Optional as _, Union, cast, TYPE_CHECKING
 from app_modules.crossref_api import CrossrefAPI
 from app_modules.datacite_api import DataciteAPI
 from app_modules.biorxiv_api import BiorxivAPI
@@ -12,10 +12,13 @@ from pydal.objects import Row
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon import current
 
-from models.recommendation import Recommendation
+from models.recommendation import Recommendation, RecommendationState
 
 from app_modules.lang import Lang
 from app_modules.translator import TranslatedFieldDict
+
+if TYPE_CHECKING:
+    from models.suggested_recommender import SuggestedRecommender
 
 myconf = AppConfig(reload=True)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -626,6 +629,51 @@ class Article(Row):
                                     & (db.auth_user.id == db.t_reviews.reviewer_id)).select(db.auth_user.email, distinct=True)]
 
         return (recommender, co_recommenders, reviewers)
+    
+    
+    @staticmethod
+    def create_new_recommendation_round(article: 'Article', recommender_id: int):
+        db = current.db
+
+        recommendation_id = db.t_recommendations.insert(article_id=article.id,
+                                                        recommender_id=recommender_id,
+                                                        doi=article.doi,
+                                                        recommendation_state=RecommendationState.ONGOING.value,
+                                                        no_conflict_of_interest=True,
+                                                        ms_version=article.ms_version)
+        db.commit()
+        article.status = ArticleStatus.UNDER_CONSIDERATION.value
+        article.update_record() # type: ignore
+        return recommendation_id
+    
+
+    @staticmethod
+    def get_articles_need_recommender_for_user(user_id: int) -> List['Article']:
+        db = current.db
+        
+        result = db(db.t_articles.status == ArticleStatus.AWAITING_CONSIDERATION.value) \
+            .select(db.t_articles.ALL,
+                    db.t_suggested_recommenders.ALL,
+                    left=db.t_suggested_recommenders.on(
+                        (db.t_articles.id == db.t_suggested_recommenders.article_id) \
+                      & (db.t_suggested_recommenders.suggested_recommender_id == user_id)))
+        
+        articles: List[Article] = []
+
+        for r in result:
+            article: Article = r.t_articles
+            sugg_recommender: _['SuggestedRecommender'] = None if r.t_suggested_recommenders.id is None else r.t_suggested_recommenders
+
+            if not sugg_recommender:
+                articles.append(article)
+                continue
+
+            if sugg_recommender.recommender_validated is False or sugg_recommender.declined is True:
+                continue
+
+            articles.append(article)
+
+        return articles
 
 
 def is_scheduled_submission(article: Article) -> bool:
@@ -633,12 +681,12 @@ def is_scheduled_submission(article: Article) -> bool:
     
     report_survey = cast(_['ReportSurvey'], article.t_report_survey.select().first()) # type: ignore
 
-    is_scheduled_submission: ... = scheduledSubmissionActivated and (
+    is_scheduled_submission = scheduledSubmissionActivated and (
         article.scheduled_submission_date is not None
         or article.status.startswith("Scheduled submission")
         or (
             report_survey is not None and report_survey.q10 is not None
-            and article.t_recommendations.count() == 1 # type: ignore
+            and int(article.t_recommendations.count()) == 1 # type: ignore
         )
     )
 

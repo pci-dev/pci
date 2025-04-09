@@ -2,7 +2,7 @@
 
 import datetime
 from typing import List, Optional, Union, cast
-from app_modules.common_tools import get_next, get_reset_password_key, get_review_id
+from app_modules.common_tools import get_next, get_review_id
 
 from app_modules.helper import *
 
@@ -10,18 +10,21 @@ from controller_modules import user_module
 from app_modules import common_small_html
 from app_components import app_forms
 from app_modules import emailing
-from gluon.globals import Request
+from gluon import HTTP
 from gluon.http import redirect # type: ignore
-from models.article import Article, ArticleStatus
 from models.group import Role
 from models.review import Review, ReviewState
-from models.suggested_recommender import SuggestedRecommender
+from models.suggested_recommender import SuggestedRecommender, SuggestedBy
 from models.user import User
-from pydal import DAL
 
 from app_modules.common_tools import URL
 
-db = cast(DAL, db)
+request = current.request
+session = current.session
+db = current.db
+auth = current.auth
+response = current.response
+T = current.T
 
 ######################################################################################################################################################################
 @auth.requires_login()
@@ -68,7 +71,7 @@ def suggest_article_to():
     recommender_id = int(request.vars["recommenderId"])
     exclude: Union[List[str], str] = request.vars["exclude"]
     my_vars = request.vars
-    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id)
+    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, SuggestedBy.AUTHORS)
     exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
     exclude_list.append(str(recommender_id))
     my_vars["exclude"] = ",".join(exclude_list)
@@ -92,8 +95,7 @@ def suggest_all_selected():
     for recommender_id in recommender_ids.split(','):
         if recommender_id == '': continue
         recommender_names += str(common_small_html.mkUser(recommender_id).flatten()) + ', ' # type: ignore
-        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id)
-
+        SuggestedRecommender.add_suggested_recommender(int(recommender_id), article_id, SuggestedBy.AUTHORS)
         exclude_list.append(str(recommender_id))
     for recommender_id in exclusion_ids.split(','):
         if recommender_id == '': continue

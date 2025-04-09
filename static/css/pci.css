@@ -1465,3 +1465,16 @@ body.impersonate.silent-mode {
 .manage-article th:last-child {
   text-align: center;
 }
+
+.sugg_recommenders_grid td {
+  text-align: center;
+}
+
+.sugg_recommenders_grid td:first-child {
+  text-align: left;
+}
+
+.sugg_recommenders_grid td:last-child {
+  display: flex;
+  flex-direction: column;
+}

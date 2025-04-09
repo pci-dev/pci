@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from re import sub, match
 from datetime import datetime
 from app_components import ongoing_recommendation
@@ -187,7 +187,7 @@ def mkUserWithAffil_U(theUser: User, linked=False, fullURL=False):
 def mkUserWithMail(userId: Optional[int], linked: bool = False, reverse: bool = False, orcid: bool = False):
     db = current.db
     if userId is not None:
-        theUser: Optional[User] = db(db.auth_user.id == userId).select(db.auth_user.id, db.auth_user.first_name, db.auth_user.last_name, db.auth_user.email, db.auth_user.orcid).last()
+        theUser: Optional[User] = db(db.auth_user.id == userId).select().last()
     else:
         theUser = None
 
@@ -1461,7 +1461,7 @@ def suggested_recommender_list(article_id: int):
 
 ####################################################################################
 
-def get_current_step_article(article: Article):
+def get_current_step_article(article: Article) -> Optional[Tuple[StepNumber, SPAN]]:
     timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(article, False, "%d\xa0%b")['content']
     if not isinstance(timeline, DIV):
         return 

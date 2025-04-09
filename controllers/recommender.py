@@ -8,7 +8,7 @@ from dateutil.relativedelta import *
 from typing import cast, Optional, List
 from difflib import SequenceMatcher
 
-from gluon import IS_NOT_EMPTY, SQLFORM
+from gluon import HTTP, IS_IN_DB, IS_NOT_EMPTY, SQLFORM
 from gluon.http import redirect # type: ignore
 from lxml import html
 
@@ -37,6 +37,7 @@ from app_modules import emailing
 
 from models.group import Role
 from models.report_survey import ReportSurvey
+from models.suggested_recommender import SuggestedRecommender
 from models.user import User
 from models.recommendation import Recommendation
 from models.article import Article
@@ -68,7 +69,7 @@ trgmLimit = myconf.get("config.trgm_limit") or 0.4
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
-Field.CC = db.Field.CC
+
 ######################################################################################################################################################################
 def index():
     return my_awaiting_articles()
@@ -76,9 +77,7 @@ def index():
 # Common function for articles needing attention
 @auth.requires(auth.has_membership(role="recommender"))
 def fields_awaiting_articles():
-    myVars = request.vars
-
-    articles = db.t_articles
+    t_articles = db.t_articles
     full_text_search_fields = [
         'id',
         'title',
@@ -87,34 +86,42 @@ def fields_awaiting_articles():
         'upload_timestamp',
     ]
 
-    def article_html(art_id):
-        return common_small_html.mkRepresentArticleLight(art_id)
+    def represent_article_id(article_id: int, article: Article):
+        return common_small_html.mkRepresentArticleLight(article_id)
+    
+    def represent_upload_timestamp(upload_timestamp: datetime.datetime, article: Article):
+        return common_small_html.mkLastChange(upload_timestamp)
 
-    articles.id.readable = True
-    articles.id.represent = lambda text, row: article_html(row.id)
-    articles.thematics.label = "Thematics fields"
-    articles.thematics.type = "string"
-    articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero=None)
+    t_articles.id.readable = True
+    t_articles.id.represent = represent_article_id
+    t_articles.thematics.label = "Thematics fields"
+    t_articles.thematics.type = "string"
+    t_articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword, zero="")
 
-    for a_field in articles.fields:
+    for a_field in t_articles.fields:
         if not a_field in full_text_search_fields:
-            articles[a_field].readable = False
+            t_articles[a_field].readable = False
 
-    articles.id.label = "Article"
-    articles.upload_timestamp.represent = lambda t, row: common_small_html.mkLastChange(t)
+    t_articles.id.label = "Article"
+    t_articles.upload_timestamp.represent = represent_upload_timestamp
 
-    links = []
-    links.append(dict(header=T(""), body=lambda row: recommender_module.mkViewEditArticleRecommenderButton(row)))
+    links: List[Dict[str, Any]] = []
+    links.append(dict(header=T(""), body=recommender_module.mkViewEditArticleRecommenderButton))
 
     excluded = db.t_excluded_recommenders
     excluded_articles = db(
         excluded.excluded_recommender_id == auth.user_id
     )._select(excluded.article_id)
+
+    articles = Article.get_articles_need_recommender_for_user(current.auth.user_id)
+    articles_id = [a.id for a in articles]
+
     query = (
-        (articles.status == "Awaiting consideration")
-      & ~articles.id.belongs(excluded_articles)
+        (t_articles.status == "Awaiting consideration")
+        & t_articles.id.belongs(articles_id)
+        & ~t_articles.id.belongs(excluded_articles)
     )
-    original_grid = SQLFORM.grid(
+    original_grid: ... = SQLFORM.grid( # type: ignore
         query,
         searchable=True,
         editable=False,
@@ -125,14 +132,14 @@ def fields_awaiting_articles():
         paginate=10,
         csv=csv,
         exportclasses=expClass,
-        buttons_placement=False,
+        buttons_placement="",
         fields=[
-            articles.id,
-            articles.thematics,
-            articles.upload_timestamp,
+            t_articles.id,
+            t_articles.thematics,
+            t_articles.upload_timestamp,
         ],
         links=links,
-        orderby=articles.id,
+        orderby=t_articles.id,
         _class="web2py_grid action-button-absolute",
     )
 
@@ -528,28 +535,67 @@ def accept_new_article_to_recommend():
     actionFormUrl = None
     appLongName = None
     hidenVarsForm = None
+    skip_checkbox = "skip_checkbox" in current.request.vars and str(current.request.vars["skip_checkbox"]).lower() == 'true' 
 
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
     if articleId is None:
         raise HTTP(404, "404: " + T("Unavailable"))
+    sugg_recommender = SuggestedRecommender.get_by_article_and_user_id(articleId, current.auth.user_id)
     ethics_not_signed = not (db.auth_user[auth.user_id].ethical_code_approved)
     if ethics_not_signed:
-        redirect(URL(c="about", f="ethics"))
+        return redirect(URL(c="about", f="ethics"))
+    elif ((sugg_recommender and not sugg_recommender.recommender_validated) or (not sugg_recommender)) and SuggestedRecommender.already_request_willing_to_recommend(articleId, current.auth.user_id):
+        return redirect(URL(c="recommender", f="validation_request_new_article_to_recommend", vars=dict(article_id=articleId)))
     else:
         appLongName = myconf.take("app.longname")
         hiddenVarsForm = dict(articleId=articleId, ethics_approved=True)
         actionFormUrl = URL("recommender_actions", "do_accept_new_article_to_recommend")
         longname = myconf.take("app.longname")
 
+        if skip_checkbox:
+            return redirect(URL("recommender_actions", "do_accept_new_article_to_recommend", vars=(dict(skip_checkbox=True, articleId=articleId))))
+
     pageTitle = getTitle("#AcceptPreprintInfoTitle")
     customText = getText("#AcceptPreprintInfoText")
 
     response.view = "controller/recommender/accept_new_article_to_recommend.html"
     return dict(
-        customText=customText, titleIcon="education", pageTitle=pageTitle, actionFormUrl=actionFormUrl, appLongName=appLongName, hiddenVarsForm=hiddenVarsForm, articleId=articleId, pciRRactivated=pciRRactivated
+        customText=customText,
+        titleIcon="education",
+        pageTitle=pageTitle,
+        actionFormUrl=actionFormUrl,
+        appLongName=appLongName,
+        hiddenVarsForm=hiddenVarsForm,
+        articleId=articleId,
+        pciRRactivated=pciRRactivated
+    )
+
+
+@auth.requires(auth.has_membership(role="recommender"))
+def validation_request_new_article_to_recommend():
+    article_id = request.vars.get("article_id")
+    if not article_id:
+        return HTTP(400, "Missing article_id parameter in url")
+    
+    article = Article.get_by_id(article_id)
+    if not article:
+        return HTTP(404, f"Article {article_id} not found")
+    
+    response.view = "default/info.html"
+        
+    html = CENTER(
+        B("Thanks for your willingness to handle the evaluation of this preprint."),
+        BR(),
+        BR(),
+        "If the managing board agrees, you’ll receive an email inviting you to act as the recommender for this preprint"
+    )
+
+    return dict(
+        pageTitle="Request to handle the evaluation of this preprint",
+        customText=html,
     )
 
 ######################################################################################################################################################################
@@ -1450,7 +1496,7 @@ def send_review_cancellation():
 
     form = SQLFORM.factory(
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-        Field.CC(default=ccAddresses),
+        db.Field.CC(default=ccAddresses),
         Field(
             "reviewer_email",
             label=T("Reviewer email address"),
@@ -1556,7 +1602,7 @@ def send_reviewer_generic_mail():
 
     form = SQLFORM.factory(
         Field("reviewer_email", label=T("Reviewer email address"), type="string", length=250, requires=req_is_email, default=reviewer.email, writable=False),
-        Field.CC(default=ccAddresses),
+        db.Field.CC(default=ccAddresses),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyTo, writable=False),
         Field("subject", label=T("Subject"), type="string", length=250, default=default_subject, required=True),
         Field("message", label=T("Message"), type="text", default=default_message, required=True),
@@ -1706,7 +1752,7 @@ def email_for_registered_reviewer():
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(article)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-        Field.CC(ccAddresses),
+        db.Field.CC(ccAddresses),
         Field(
             "reviewer_email",
             label=T("Reviewer e-mail address"),
@@ -1845,7 +1891,7 @@ def email_for_new_reviewer():
     form = SQLFORM.factory(
         Field("review_duration", type="string", label=T("Review duration"), **get_review_duration_options(article)),
         Field("replyto", label=T("Reply-to"), type="string", length=250, default=replyto_address, writable=False),
-        Field.CC(default=ccAddresses),
+        db.Field.CC(default=ccAddresses),
         Field("reviewer_first_name", label=T("Reviewer first name"), type="string", length=250, requires=IS_NOT_EMPTY()),
         Field("reviewer_last_name", label=T("Reviewer last name"), type="string", length=250, requires=IS_NOT_EMPTY()),
         Field("reviewer_email", label=T("Reviewer e-mail address"), type="string", length=250, requires=IS_NOT_EMPTY()),
