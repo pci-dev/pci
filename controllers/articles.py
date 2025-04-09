@@ -58,6 +58,9 @@ def rec():
         session.flash = T("Item not recommended yet")
         return redirect(request.home)
 
+    if handle_rec_signposting(finalRecomm):
+        return ""
+
     if finalRecomm.recommendation_title:
         response.title = finalRecomm.recommendation_title
         response.title = common_tools.getShortText(response.title, 64)
@@ -104,6 +107,18 @@ def rec():
         myBackButton=common_small_html.mkBackButton(),
         dublinCore=dublin_core
     )
+
+
+def handle_rec_signposting(recomm):
+    if request.method == 'HEAD':
+
+        response.headers = { "link": (
+            '<' + URL("metadata", "recommendation", scheme=True,
+                vars=dict(article_id=recomm.article_id.id)
+            ) + '>' +
+            '; rel="describedby" type="docmaps"'
+        )}
+        return True
 
 
 ######################################################################################################################################################################

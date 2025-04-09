@@ -1022,6 +1022,7 @@ def getRecommAndReviewAuthors(
                     elif ir < nr:
                         whoDidIt.append(", ")
             if nr > 0:
+              if not as_list:
                 if nw + na > 0:
                     whoDidIt.append(current.T(" based on reviews by "))
                 elif nw + na == 1:
