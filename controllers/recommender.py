@@ -587,14 +587,14 @@ def validation_request_new_article_to_recommend():
     response.view = "default/info.html"
         
     html = CENTER(
-        B("Thanks for your willingness to handle the evaluation of this preprint."),
+        B(T("Thanks for your willingness to handle the evaluation of this preprint.")),
         BR(),
         BR(),
-        "If the managing board agrees, you’ll receive an email inviting you to act as the recommender for this preprint"
+        T("If the managing board agrees, you’ll receive an email inviting you to act as the recommender for this preprint")
     )
 
     return dict(
-        pageTitle="Request to handle the evaluation of this preprint",
+        pageTitle=T("Request to handle the evaluation of this preprint"),
         customText=html,
     )
 
