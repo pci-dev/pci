@@ -32,7 +32,7 @@ def recommendation():
 
     return json.dumps([{
     "type": "docmap",
-    "id": URL("metadata", f"recommendation-{recomm.recommendation_doi}", scheme=True),
+    "id": URL("metadata", f"recommendation?article_id={article.id}", scheme=True),
     "publisher": {
       "name": pci_description,
       "url": "https://github.com/docmaps-project/docmaps/tree/main/packages/ts-etl"
