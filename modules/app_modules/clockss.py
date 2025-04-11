@@ -286,13 +286,7 @@ class Clockss:
 
 
     def _replace_img_in_template(self):
-        pci = str(current.db.cfg.host)
-
-        img = f"logo_PDF_{pci}.jpg"
-        if os.path.isfile(f"{self._get_templates_dir()}{img}"):
-            return img
-        else:
-            return "logo_PDF_evolbiol.jpg"
+        return f"{current.request.folder}/static/images/background.png"
     
 
     def _replace_recommendation_process(self):
