@@ -35,7 +35,7 @@ def recommendation():
     "id": URL("metadata", f"recommendation?article_id={article.id}", scheme=True),
     "publisher": {
       "name": pci_description,
-      "url": "https://github.com/docmaps-project/docmaps/tree/main/packages/ts-etl"
+      "url": URL("about", "|", scheme=True).replace("|", ""),
     },
     "created": publication_date(recomm.validation_timestamp),
     "updated": publication_date(recomm.validation_timestamp),
