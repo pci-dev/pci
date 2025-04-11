@@ -1,5 +1,6 @@
 import json
 import datetime
+import requests
 
 from app_modules.common_small_html import mkUser
 from models.review import ReviewState
@@ -32,10 +33,10 @@ def recommendation():
 
     return json.dumps([{
     "type": "docmap",
-    "id": URL("metadata", f"recommendation-{recomm.recommendation_doi}", scheme=True),
+    "id": URL("metadata", f"recommendation?article_id={article.id}", scheme=True),
     "publisher": {
       "name": pci_description,
-      "url": "https://github.com/docmaps-project/docmaps/tree/main/packages/ts-etl"
+      "url": URL("about", "|", scheme=True).replace("|", ""),
     },
     "created": publication_date(recomm.validation_timestamp),
     "updated": publication_date(recomm.validation_timestamp),
@@ -100,6 +101,16 @@ def reviews(version):
         )
         for review in reviews
     ]
+
+
+def get_crossref_publication_date(article):
+    try:
+        doi = article.doi_of_published_article.replace("https://doi.org/", "")
+        xref = requests.get(f"https://api.crossref.org/works/{doi}").json()
+        published = xref["message"]["published"]["date-parts"][0]
+        return datetime.datetime(*published)
+    except:
+        return article.last_status_change
 
 
 def steps(article):
@@ -229,7 +240,7 @@ def steps(article):
     }
 
     class published_proxy:
-        recommendation_timestamp = last_r.validation_timestamp
+        recommendation_timestamp = get_crossref_publication_date(article)
         doi = article.doi_of_published_article
 
     final = {
