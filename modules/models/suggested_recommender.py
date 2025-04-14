@@ -69,17 +69,20 @@ class SuggestedRecommender(Row):
     
 
     @staticmethod
-    def check_if_all_processed(article_id: int):
-        sugg_recommenders = SuggestedRecommender.get_by_article(article_id, declined=False)
-        count_validated = 0
+    def get_validated(article_id: int) -> List['SuggestedRecommender']:
+        db = current.db
 
-        for sugg_recommender in sugg_recommenders:
-            if sugg_recommender.recommender_validated is None:
-                return False
-            if sugg_recommender.recommender_validated is True:
-                count_validated += 1
+        query = (db.t_suggested_recommenders.article_id == article_id) \
+              & (db.t_suggested_recommenders.declined == False) \
+              & (db.t_suggested_recommenders.recommender_validated == True)
+        
+        return db(query).select()
+      
 
-        return count_validated > 0
+    @staticmethod
+    def least_one_validated(article_id: int):
+        sugg_recommender_validated = SuggestedRecommender.get_validated(article_id)
+        return len(sugg_recommender_validated) > 0
     
     
     @staticmethod

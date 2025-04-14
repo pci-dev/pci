@@ -51,7 +51,7 @@ function suggRecommenderCheckbox() {
     info.style.color = '#3eaede';
     info.style.fontSize = '17px';
     info.setAttribute('data-toggle', 'tooltip');
-    info.title = 'To check this tick box, you must validate at least one suggested recommender and accept or reject all the recommenders suggested by the authors';
+    info.title = 'To check this tick box, you must validate at least one of the recommenders suggested by the authors, or suggest at least one other recommender not included in their suggestions';
 
     input.parentElement?.insertBefore(info, input.parentElement.childNodes[1]);
   }
