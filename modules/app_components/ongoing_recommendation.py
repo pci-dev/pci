@@ -1455,9 +1455,9 @@ def validation_checklist(validation_type: str, article: Article):
 
         checkboxes["co_authorship_ok"] = ("Co-authorship between authors and suggested recommenders (and suggested reviewers) is ok", True)
 
-        checkboxes["sugg_recommender_ok"] = (["Suggested recommenders have been validated or cancelled, and at least one suggested recommender has been validated. ",
+        checkboxes["sugg_recommender_ok"] = (["At least one suggested recommender has been validated.",
                                                  sugg_recommender_button],
-                                                 SuggestedRecommender.check_if_all_processed(article.id))
+                                                 SuggestedRecommender.least_one_validated(article.id))
 
     elif validation_type == 'do_recommend_article':
         checkboxes = {
