@@ -26,7 +26,7 @@ def recommendation():
         raise HTTP(400, f"no recommendation for article: {article_id}")
 
     response.headers.update({
-        "Content-Type": "application/json",
+        "Content-Type": "application/ld+json",
     })
 
     pci_description = db.cfg.description
