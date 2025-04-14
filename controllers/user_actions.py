@@ -26,6 +26,8 @@ auth = current.auth
 response = current.response
 T = current.T
 
+config = AppConfig()
+
 ######################################################################################################################################################################
 @auth.requires_login()
 def validate_ethics():
@@ -71,11 +73,17 @@ def suggest_article_to():
     recommender_id = int(request.vars["recommenderId"])
     exclude: Union[List[str], str] = request.vars["exclude"]
     my_vars = request.vars
-    SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, SuggestedBy.AUTHORS)
-    exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
-    exclude_list.append(str(recommender_id))
-    my_vars["exclude"] = ",".join(exclude_list)
-    current.session.flash = current.T('Suggested recommender "%s" added.') % common_small_html.mkUser(recommender_id).flatten() # type: ignore
+
+    nb_author_sugg = SuggestedRecommender.get_by_article(article_id, suggested_by=SuggestedBy.AUTHORS)
+    if len(nb_author_sugg) >= 25:
+        manager_mail = str(config.take("contacts.managers"))
+        current.session.flash = f"You have reached the limit of 25 recommenders that you can typically suggest. If you wish to suggest more recommenders, please contact the managing board at {manager_mail}"
+    else:    
+        SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, SuggestedBy.AUTHORS)
+        exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
+        exclude_list.append(str(recommender_id))
+        my_vars["exclude"] = ",".join(exclude_list)
+        current.session.flash = current.T('Suggested recommender "%s" added.') % common_small_html.mkUser(recommender_id).flatten() # type: ignore
     redirect(URL(c="user", f="search_recommenders", vars=my_vars, user_signature=True))
 
 ######################################################################################################################################################################
