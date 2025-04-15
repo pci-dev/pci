@@ -41,7 +41,7 @@ def main():
             print(f"Article {article.id}: No recommendation found")
             continue
 
-        generated_xml = crossref.crossref_xml(recommendation)
+        generated_xml = crossref.crossref_article_xml(recommendation)
 
         status = crossref.post_and_forget(recommendation, generated_xml)
         if status:
