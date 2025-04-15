@@ -185,13 +185,14 @@ def crossref_xml(recomm: Recommendation):
     batch_id = f"pci={pci.host}:rec={recomm.id}"
 
     return f"""<?xml version="1.0" encoding="UTF-8"?>
-    <doi_batch
-        xmlns="{crossref.base}/{crossref.version}"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="
-            {crossref.base}/{crossref.version}
-            {crossref.xsd}"
-        version="{crossref.version}">
+<doi_batch
+    xmlns="{crossref.base}/{crossref.version}"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        {crossref.base}/{crossref.version}
+        {crossref.xsd}"
+    version="{crossref.version}">
+    
     <head>
         <doi_batch_id>{he(batch_id)}</doi_batch_id>
         <timestamp>{timestamp}</timestamp>
@@ -201,111 +202,112 @@ def crossref_xml(recomm: Recommendation):
         </depositor>
         <registrant>Peer Community In</registrant>
     </head>
+    
     <body>
-    <journal>
+        <journal>
 
-    <journal_metadata language="en">
-        <full_title>{he(pci.long_name)}</full_title>
-        <abbrev_title>{he(pci.short_name)}</abbrev_title>
-        """ + (f"""
-        <issn media_type='electronic'>{pci.issn}</issn>
-        """ if pci.issn else "") + f"""
-        <doi_data>
-            <doi>{he(pci.doi)}</doi>
-            <resource>{he(pci.url)}/</resource>
-        </doi_data>
-    </journal_metadata>
+            <journal_metadata language="en">
+                <full_title>{he(pci.long_name)}</full_title>
+                <abbrev_title>{he(pci.short_name)}</abbrev_title>
+                """ + (f"""
+                <issn media_type='electronic'>{pci.issn}</issn>
+                """ if pci.issn else "") + f"""
+                <doi_data>
+                    <doi>{he(pci.doi)}</doi>
+                    <resource>{he(pci.url)}/</resource>
+                </doi_data>
+            </journal_metadata>
 
-    <journal_issue>
-        <publication_date media_type='online'>
-            <month>{recomm_date.month}</month>
-            <day>{recomm_date.day}</day>
-            <year>{recomm_date.year}</year>
-        </publication_date>
-    </journal_issue>
+            <journal_issue>
+                <publication_date media_type='online'>
+                    <month>{recomm_date.month}</month>
+                    <day>{recomm_date.day}</day>
+                    <year>{recomm_date.year}</year>
+                </publication_date>
+            </journal_issue>
 
-    <journal_article publication_type='full_text'>
+            <journal_article publication_type='full_text'>
 
-    <titles>
-        <title>
-            {he(recomm_title)}
-        </title>
-    </titles>
+            <titles>
+                <title>
+                    {he(recomm_title)}
+                </title>
+            </titles>
 
-    <contributors>
-        <person_name sequence='first' contributor_role='author'>
-            <given_name>{he(recommender.first_name)}</given_name>
-            <surname>{he(recommender.last_name)}</surname>
-            <affiliation>{he(recommender.affiliation)}</affiliation>
-        </person_name>
-        """ + "\n".join([f"""
-        <person_name sequence='additional' contributor_role='author'>
-            <given_name>{he(co_recommender.first_name)}</given_name>
-            <surname>{he(co_recommender.last_name)}</surname>
-            <affiliation>{he(co_recommender.affiliation)}</affiliation>
-        </person_name>
-        """ for co_recommender in co_recommenders ]) + f"""
-    </contributors>
+            <contributors>
+                <person_name sequence='first' contributor_role='author'>
+                    <given_name>{he(recommender.first_name)}</given_name>
+                    <surname>{he(recommender.last_name)}</surname>
+                    <affiliation>{he(recommender.affiliation)}</affiliation>
+                </person_name>
+                """ + "\n".join([f"""
+                <person_name sequence='additional' contributor_role='author'>
+                    <given_name>{he(co_recommender.first_name)}</given_name>
+                    <surname>{he(co_recommender.last_name)}</surname>
+                    <affiliation>{he(co_recommender.affiliation)}</affiliation>
+                </person_name>
+                """ for co_recommender in co_recommenders ]) + f"""
+            </contributors>
 
-    <publication_date media_type='online'>
-        <month>{recomm_date.month}</month>
-        <day>{recomm_date.day}</day>
-        <year>{recomm_date.year}</year>
-    </publication_date>
+            <publication_date media_type='online'>
+                <month>{recomm_date.month}</month>
+                <day>{recomm_date.day}</day>
+                <year>{recomm_date.year}</year>
+            </publication_date>
 
-    <publisher_item>
-        <item_number item_number_type="article_number">{he(item_number)}</item_number>
-    </publisher_item>
+            <publisher_item>
+                <item_number item_number_type="article_number">{he(item_number)}</item_number>
+            </publisher_item>
 
-    <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
-        <free_to_read/>
-        <license_ref applies_to="vor" start_date="{recomm_date.isoformat()}">
-            https://creativecommons.org/licenses/by/4.0/
-        </license_ref>
-    </program>
+            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
+                <free_to_read/>
+                <license_ref applies_to="vor" start_date="{recomm_date.isoformat()}">
+                    https://creativecommons.org/licenses/by/4.0/
+                </license_ref>
+            </program>
 
-    <program xmlns="http://www.crossref.org/relations.xsd">
-    <related_item>
-        <description>
-            {he(recomm_description_text)}
-        </description>
-        <inter_work_relation
-            relationship-type="isReviewOf"
-            identifier-type="{interwork_type}">
-            {he(interwork_ref)}
-        </inter_work_relation>
-    </related_item>
-    </program>
+            <program xmlns="http://www.crossref.org/relations.xsd">
+                <related_item>
+                    <description>
+                        {he(recomm_description_text)}
+                    </description>
+                    <inter_work_relation
+                        relationship-type="isReviewOf"
+                        identifier-type="{interwork_type}">
+                        {he(interwork_ref)}
+                    </inter_work_relation>
+                </related_item>
+            </program>
 
-    <doi_data>
-        <doi>{he(recomm_doi)}</doi>
-        <resource>
-            {he(recomm_url)}
-        </resource>
+            <doi_data>
+                <doi>{he(recomm_doi)}</doi>
+                <resource>
+                    {he(recomm_url)}
+                </resource>
 
-        <collection property="crawler-based">
-        <item crawler="iParadigms">
-        <resource>
-            {he(recomm_url)}
-        </resource>
-        </item>
-        </collection>
+                <collection property="crawler-based">
+                    <item crawler="iParadigms">
+                        <resource>
+                            {he(recomm_url)}
+                        </resource>
+                    </item>
+                </collection>
 
-        <collection property="text-mining">
-        <item>
-        <resource content_version="vor">
-            {he(recomm_url)}
-        </resource>
-        </item>
-        </collection>
-    </doi_data>
+                <collection property="text-mining">
+                    <item>
+                        <resource content_version="vor">
+                            {he(recomm_url)}
+                        </resource>
+                    </item>
+                </collection>
+            </doi_data>
 
-    <citation_list>
-        {recomm_citations}
-    </citation_list>
+            <citation_list>
+                {recomm_citations}
+            </citation_list>
 
-    </journal_article>
-    </journal>
+            </journal_article>
+        </journal>
     </body>
-    </doi_batch>
+</doi_batch>
     """
