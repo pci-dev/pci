@@ -32,7 +32,7 @@ def post_form():
     if not recomm.recommendation_title:
         return error("recommendation: no title (not recommended)")
 
-    generated_xml = crossref.crossref_xml(recomm)
+    generated_xml = crossref.crossref_article_xml(recomm)
 
     form: ... = SQLFORM.factory( # type: ignore
         Field("xml", label=T("Crossref XML"), type="text", default=generated_xml),

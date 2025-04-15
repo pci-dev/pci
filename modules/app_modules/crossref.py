@@ -5,7 +5,8 @@ from app_modules.httpClient import HttpClient
 from gluon.html import DIV, XML
 from models.article import Article
 from models.press_reviews import PressReview
-from models.recommendation import Recommendation
+from models.recommendation import Recommendation, RecommendationState
+from models.review import Review, ReviewState
 from models.user import User
 import re
 
@@ -40,7 +41,7 @@ def post_and_forget(recomm: Recommendation, xml: Optional[str] = None):
     filename = get_filename(recomm)
     try:
         assert crossref.login, "crossref.login not set"
-        resp = post(filename, xml or crossref_xml(recomm))
+        resp = post(filename, xml or crossref_article_xml(recomm))
         resp.raise_for_status()
     except Exception as e:
         return f"error: {e}"
@@ -139,17 +140,17 @@ def he(non_html_str: Optional[Any]):
 
     if non_html_str is None:
         return ""
-    
+
     if isinstance(non_html_str, DIV) or isinstance(non_html_str, XML):
         non_html_str = str(non_html_str.flatten()) # type: ignore
     elif not isinstance(non_html_str, str):
         non_html_str = str(non_html_str)
-    
+
     non_html_str = re.sub(r'\*(.*?)\*', r'\1', non_html_str)
     return html.escape(non_html_str)
 
 
-def crossref_xml(recomm: Recommendation):
+def crossref_article_xml(recomm: Recommendation):
     article = Article.get_by_id(recomm.article_id)
     if not article:
         return "Article not found!"
@@ -159,7 +160,7 @@ def crossref_xml(recomm: Recommendation):
     recomm_date = recomm.validation_timestamp.date() if recomm.validation_timestamp else None
     if not recomm_date:
         return "Missing recommendation validation timestamp!"
-    
+
     recomm_title = recomm.recommendation_title
     recomm_description_text = Article.get_article_reference(article)
     recomm_citations = "\n        ".join(get_citation_list(recomm))
@@ -167,7 +168,7 @@ def crossref_xml(recomm: Recommendation):
     recommender = User.get_by_id(recomm.recommender_id)
     if not recommender:
         return "Recommender not found!"
-    
+
     co_recommenders: List[User] = []
     for row in PressReview.get_by_recommendation(recomm.id):
         if row.contributor_id:
@@ -192,7 +193,7 @@ def crossref_xml(recomm: Recommendation):
         {crossref.base}/{crossref.version}
         {crossref.xsd}"
     version="{crossref.version}">
-    
+
     <head>
         <doi_batch_id>{he(batch_id)}</doi_batch_id>
         <timestamp>{timestamp}</timestamp>
@@ -202,7 +203,7 @@ def crossref_xml(recomm: Recommendation):
         </depositor>
         <registrant>Peer Community In</registrant>
     </head>
-    
+
     <body>
         <journal>
 
@@ -309,5 +310,116 @@ def crossref_xml(recomm: Recommendation):
             </journal_article>
         </journal>
     </body>
+</doi_batch>
+    """
+
+def crossref_recommendations_xml(article: Article):
+
+    recommendations = Recommendation.get_by_article_id(article.id, order_by=~db.t_recommendations.id)
+    all_reviews = Review.get_by_article_id_and_state(article.id,
+                                                     ReviewState.REVIEW_COMPLETED,
+                                                     order_by=db.t_reviews.acceptation_timestamp)
+
+    for recommendation in recommendations:
+        reviews = filter(lambda r: r.recommendation_id == recommendation.id, all_reviews)
+        round = Recommendation.get_current_round_number(recommendation)
+
+        for i, review in enumerate(reviews):
+            crossref_review_xml(article, recommendation, review, round, i)
+
+
+def get_review_doi(recommendation: Recommendation, no_review_round: int, round: int):
+    recommendation_doi = get_recommendation_doi(recommendation)
+    return f"{recommendation_doi}.rev{round}{no_review_round}"
+
+
+def crossref_review_xml(article: Article, recommendation: Recommendation, review: Review, round: int, no_review_round: int):
+    if not review.acceptation_timestamp:
+        return "Missing acceptation timestamp for the review"
+
+    if not review.last_change:
+        return "Missing last_change for the review"
+
+    batch_id = f"pci={pci.host}:rec={recommendation.id}:rev={review.id}"
+
+    timestamp = review.last_change.strftime("%Y%m%d%H%M%S%f")[:-3]
+    review_date = review.acceptation_timestamp.date()
+    interwork_type, interwork_ref = get_identifier(article.doi)
+
+    review_doi = get_review_doi(recommendation, no_review_round, round)
+    review_url = f"{pci.url}/articles/rec?id={article.id}#review-{review.id}"
+
+    if review.anonymously:
+        contributor_tag = "<anonymous/>"
+    else:
+        reviewer = User.get_by_id(review.reviewer_id)
+        if not reviewer:
+            return "Reviewer not found!"
+
+        reviewer_first_name = reviewer.first_name if reviewer.first_name else "?"
+        reviewer_last_name = reviewer.last_name if reviewer.last_name else "?"
+
+        contributor_tag = f"""
+<person_name contributor_role="reviewer" sequence="first">
+    <given_name>{he(reviewer_first_name)}</given_name>
+    <surname>{he(reviewer_last_name)}</surname>
+</person_name>
+        """
+
+    if recommendation.recommendation_state == RecommendationState.RECOMMENDED.value:
+        status = "accept"
+    else:
+        status = "major-revision"
+
+
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<doi_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="
+        {crossref.base}/{crossref.version}
+        {crossref.xsd}"
+    version="{crossref.version}">
+  	<head>
+     	<doi_batch_id>{he(batch_id)}</doi_batch_id>
+     	<timestamp>{timestamp}</timestamp>
+     	<depositor>
+            <depositor_name>peercom</depositor_name>
+            <email_address>{he(pci.email)}</email_address>
+     	</depositor>
+     	<registrant>Peer Community In</registrant>
+  	</head>
+  	<body>
+     	<peer_review stage="pre-publication" revision-round="{round}" type="referee-report" recommendation="{status}">
+         	<contributors>
+                {contributor_tag}
+         	</contributors>
+         	<titles>
+            	<title>Review of: {he(article.title)}</title>
+         	</titles>
+         	<review_date>
+            	<month>{review_date.month}</month>
+            	<day>{review_date.day}</day>
+            	<year>{review_date.year}</year>
+         	</review_date>
+
+         	<competing_interest_statement>The reviewer declared that they have no conflict of interest (as defined in the code of conduct of PCI) with the authors or with the content of the article</competing_interest_statement>
+
+            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
+                <free_to_read/>
+                <license_ref applies_to="vor" start_date="{review_date.isoformat()}">
+                    https://creativecommons.org/licenses/by/4.0/
+                </license_ref>
+            </program>
+
+         	<program xmlns="http://www.crossref.org/relations.xsd">
+            	<related_item>
+                    <inter_work_relation relationship-type="isReviewOf" identifier-type="{interwork_type}">{he(interwork_ref)}</inter_work_relation>
+            	</related_item>
+         	</program>
+         	<doi_data>
+            	<doi>{he(review_doi)}</doi>
+            	<resource>{he(review_url)}</resource>
+         	</doi_data>
+     	</peer_review>
+   	</body>
 </doi_batch>
     """
