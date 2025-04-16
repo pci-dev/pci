@@ -314,18 +314,22 @@ def crossref_article_xml(recomm: Recommendation):
     """
 
 def crossref_recommendations_xml(article: Article):
-
     recommendations = Recommendation.get_by_article_id(article.id, order_by=~db.t_recommendations.id)
     all_reviews = Review.get_by_article_id_and_state(article.id,
                                                      ReviewState.REVIEW_COMPLETED,
                                                      order_by=db.t_reviews.acceptation_timestamp)
 
+    all_xml: List[str] = []
+
     for recommendation in recommendations:
         reviews = filter(lambda r: r.recommendation_id == recommendation.id, all_reviews)
         round = Recommendation.get_current_round_number(recommendation)
 
+        all_xml.append(crossref_author_reply_xml(article, recommendation, round))
+        all_xml.append(crossref_decision_xml(article, recommendation, round))
+
         for i, review in enumerate(reviews):
-            crossref_review_xml(article, recommendation, review, round, i)
+            all_xml.append(crossref_review_xml(article, recommendation, review, round, i))
 
 
 def get_review_doi(recommendation: Recommendation, no_review_round: int, round: int):
@@ -401,7 +405,7 @@ def crossref_review_xml(article: Article, recommendation: Recommendation, review
             	<year>{review_date.year}</year>
          	</review_date>
 
-         	<competing_interest_statement>The reviewer declared that they have no conflict of interest (as defined in the code of conduct of PCI) with the authors or with the content of the article</competing_interest_statement>
+         	<competing_interest_statement>The reviewer declared that they have no conflict of interest (as defined in the code of conduct of PCI) with the authors or with the content of the article.</competing_interest_statement>
 
             <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
                 <free_to_read/>
@@ -418,6 +422,186 @@ def crossref_review_xml(article: Article, recommendation: Recommendation, review
          	<doi_data>
             	<doi>{he(review_doi)}</doi>
             	<resource>{he(review_url)}</resource>
+         	</doi_data>
+     	</peer_review>
+   	</body>
+</doi_batch>
+    """
+
+
+def get_author_reply_doi(recommendation: Recommendation, round: int):
+    recommendation_doi = get_recommendation_doi(recommendation)
+    return f"{recommendation_doi}.ar{round}"
+
+
+def crossref_author_reply_xml(article: Article, recommendation: Recommendation, round: int):
+    if not recommendation.validation_timestamp:
+        return "Missing validation timestamp for the recommendation"
+
+    if not recommendation.last_change:
+        return "Missing last_change for the recommendation"
+
+    if not article.user_id:
+        return "Missing author for the article"
+
+    author = User.get_by_id(article.user_id)
+    if not author:
+        return f"Missing user with id {article.user_id}"
+
+    batch_id = f"pci={pci.host}:rec={recommendation.id}:ar={recommendation.id}"
+
+    timestamp = recommendation.last_change.strftime("%Y%m%d%H%M%S%f")[:-3]
+    recommendation_date = recommendation.validation_timestamp.date()
+    interwork_type, interwork_ref = get_identifier(article.doi)
+
+    author_reply_doi = get_author_reply_doi(recommendation, round)
+    author_reply_url = f"{pci.url}/articles/rec?id={article.id}#ar-{recommendation.id}"
+
+    if recommendation.recommendation_state == RecommendationState.RECOMMENDED.value:
+        status = "accept"
+    else:
+        status = "major-revision"
+
+
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<doi_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="
+        {crossref.base}/{crossref.version}
+        {crossref.xsd}"
+    version="{crossref.version}">
+  	<head>
+     	<doi_batch_id>{he(batch_id)}</doi_batch_id>
+     	<timestamp>{timestamp}</timestamp>
+     	<depositor>
+            <depositor_name>peercom</depositor_name>
+            <email_address>{he(pci.email)}</email_address>
+     	</depositor>
+     	<registrant>Peer Community In</registrant>
+  	</head>
+  	<body>
+     	<peer_review stage="pre-publication" revision-round="{round}" type="author-comment" recommendation="{status}">
+         	<contributors>
+                <person_name contributor_role="author" sequence="first">
+                    <given_name>{he(author.first_name)}</given_name>
+                    <surname>{he(author.last_name)}</surname>
+                </person_name>
+         	</contributors>
+         	<titles>
+            	<title>Author response of: {he(article.title)}</title>
+         	</titles>
+         	<review_date>
+            	<month>{recommendation_date.month}</month>
+            	<day>{recommendation_date.day}</day>
+            	<year>{recommendation_date.year}</year>
+         	</review_date>
+
+         	<competing_interest_statement>The authors declared that they comply with the PCI rule of having no financial conflicts of interest in relation to the content of the article.</competing_interest_statement>
+
+            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
+                <free_to_read/>
+                <license_ref applies_to="vor" start_date="{recommendation_date.isoformat()}">
+                    https://creativecommons.org/licenses/by/4.0/
+                </license_ref>
+            </program>
+
+         	<program xmlns="http://www.crossref.org/relations.xsd">
+            	<related_item>
+                    <inter_work_relation relationship-type="isReviewOf" identifier-type="{interwork_type}">{he(interwork_ref)}</inter_work_relation>
+            	</related_item>
+         	</program>
+         	<doi_data>
+            	<doi>{he(author_reply_doi)}</doi>
+            	<resource>{he(author_reply_url)}</resource>
+         	</doi_data>
+     	</peer_review>
+   	</body>
+</doi_batch>
+    """
+
+def get_decision_doi(recommendation: Recommendation, round: int):
+    recommendation_doi = get_recommendation_doi(recommendation)
+    return f"{recommendation_doi}.d{round}"
+
+def crossref_decision_xml(article: Article, recommendation: Recommendation, round: int):
+    if not recommendation.validation_timestamp:
+        return "Missing validation timestamp for the recommendation"
+
+    if not recommendation.last_change:
+        return "Missing last_change for the recommendation"
+
+    if not recommendation.recommender_id:
+        return "Missing recommender for the recommendation"
+
+    recommender = User.get_by_id(recommendation.recommender_id)
+    if not recommender:
+        return f"Missing user with id {recommendation.recommender_id}"
+
+    batch_id = f"pci={pci.host}:rec={recommendation.id}:d={recommendation.id}"
+
+    timestamp = recommendation.last_change.strftime("%Y%m%d%H%M%S%f")[:-3]
+    recommendation_date = recommendation.validation_timestamp.date()
+    interwork_type, interwork_ref = get_identifier(article.doi)
+
+    decision_doi = get_decision_doi(recommendation, round)
+    decision_url = f"{pci.url}/articles/rec?id={article.id}#d-{recommendation.id}"
+
+    if recommendation.recommendation_state == RecommendationState.RECOMMENDED.value:
+        status = "accept"
+        title = f"Editorial decision of: {he(article.title)}"
+    else:
+        status = "major-revision"
+        title = f"Recommendation of: {he(article.title)}"
+
+
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<doi_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="
+        {crossref.base}/{crossref.version}
+        {crossref.xsd}"
+    version="{crossref.version}">
+  	<head>
+     	<doi_batch_id>{he(batch_id)}</doi_batch_id>
+     	<timestamp>{timestamp}</timestamp>
+     	<depositor>
+            <depositor_name>peercom</depositor_name>
+            <email_address>{he(pci.email)}</email_address>
+     	</depositor>
+     	<registrant>Peer Community In</registrant>
+  	</head>
+  	<body>
+     	<peer_review stage="pre-publication" revision-round="{round}" type="editor-report" recommendation="{status}">
+         	<contributors>
+                <person_name contributor_role="editor" sequence="first">
+                    <given_name>{he(recommender.first_name)}</given_name>
+                    <surname>{he(recommender.last_name)}</surname>
+                </person_name>
+         	</contributors>
+         	<titles>
+            	<title>{title}</title>
+         	</titles>
+         	<review_date>
+            	<month>{recommendation_date.month}</month>
+            	<day>{recommendation_date.day}</day>
+            	<year>{recommendation_date.year}</year>
+         	</review_date>
+
+         	<competing_interest_statement>The recommender in charge of the evaluation of the article declared that they have no conflict of interest (as defined in the code of conduct of PCI) with the authors or with the content of the article.</competing_interest_statement>
+
+            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
+                <free_to_read/>
+                <license_ref applies_to="vor" start_date="{recommendation_date.isoformat()}">
+                    https://creativecommons.org/licenses/by/4.0/
+                </license_ref>
+            </program>
+
+         	<program xmlns="http://www.crossref.org/relations.xsd">
+            	<related_item>
+                    <inter_work_relation relationship-type="isReviewOf" identifier-type="{interwork_type}">{he(interwork_ref)}</inter_work_relation>
+            	</related_item>
+         	</program>
+         	<doi_data>
+            	<doi>{he(decision_doi)}</doi>
+            	<resource>{he(decision_url)}</resource>
          	</doi_data>
      	</peer_review>
    	</body>
