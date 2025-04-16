@@ -981,11 +981,10 @@ def stream_pdf():
         # erase metadata
         os.system('exiftool -overwrite_original -all:all="" ' + file_to_download)
 
-    except Exception as e:
-        print("ERROR : metadata NOT erased")
-        print(e)
+        return response.stream(file_to_download)
 
-    return response.stream(file_to_download)
+    except Exception as e:
+        raise HTTP(404, f"ERROR streaming PDF: {e}")
 
 
 def call():
