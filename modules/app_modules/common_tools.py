@@ -75,7 +75,6 @@ def URL(a: Optional[str] = None,
 
 ######################################################################################################################################################################
 def takePort(p: Optional[str]):
-    # print('port="%s"' % p)
     if p is None:
         return False
     elif match("^[0-9]+$", p):
@@ -118,10 +117,7 @@ def getDefaultDateFormat():
 
 ######################################################################################################################################################################
 def pci_redirect(url):
-    print("sURL:")
-    print(surl)
     scr = html.HTML(html.HEAD(html.XML('<meta http-equiv="Cache-control" content="no-cache">'), html.SCRIPT('document.location.href="%s"' % surl, _type="text/javascript")))
-    print(scr)
     raise HTTP(200, scr)
 
 
