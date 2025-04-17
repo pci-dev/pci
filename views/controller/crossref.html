@@ -1,0 +1,85 @@
+{{extend 'layout.html'}}
+<script>window.onload = function () { if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show(); }</script>
+
+<style>
+    .xml_textarea {
+        font-family: monospace;
+        cursor: default;
+        width: 100%;
+        border-radius: 5px;
+        border: solid 1px #cccccc;
+        height: 400px;
+    }
+
+    .tab {
+        padding-bottom: 10px;
+    }
+
+    .round-separator {
+        margin-bottom: 0px;
+    }
+
+    .textarea_review {
+        margin-bottom: 5px;
+    }
+</style>
+
+<form enctype="multipart/form-data" method="post">
+
+    <pre name="status">{{=crossref_status}}</pre>
+
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active"><a data-toggle="tab" href="#article">Article</a></li>
+        <li role="presentation"><a data-toggle="tab" href="#decisions">Decisions</a></li>
+        <li role="presentation"><a data-toggle="tab" href="#author-reply">Author replies</a></li>
+        <li role="presentation"><a data-toggle="tab" href="#reviews">Reviews</a></li>
+    </ul>
+
+    <div class="tab-content" style="padding-top: 20px;">
+        <div id="article" class="tab-pane fade in active">
+            <textarea class="xml_textarea" name="article_xml;{{=recommendation_xml.article[1]}}" {{if disable_form:}}disabled="true"{{pass}}>
+                {{=recommendation_xml.article[0]}}
+            </textarea>
+            <hr />
+        </div>
+        <div id="decisions" class="tab-pane fade">
+            {{for decision in recommendation_xml.decisions:}}
+            {{if decision[1]:}}
+            <h4>Round {{=decision[0]}}</h4>
+            <textarea class="xml_textarea" name="decision_xml_{{=decision[0]}};{{=decision[2]}}" {{if disable_form:}}disabled="true"{{pass}}">
+                {{=decision[1]}}
+            </textarea>
+            <hr class="round-separator" />
+            {{pass}}
+            {{pass}}
+        </div>
+        <div id="author-reply" class="tab-pane fade">
+            {{for author_reply in recommendation_xml.author_replies:}}
+            {{if author_reply[1]:}}
+            <h4>Round {{=author_reply[0]}}</h4>
+            <textarea class="xml_textarea" name="author_reply_{{=author_reply[0]}};{{=author_reply[2]}}" {{if disable_form:}}disabled="true"{{pass}}>
+                {{=author_reply[1]}}
+            </textarea>
+            <hr class="round-separator" />
+            {{pass}}
+            {{pass}}
+        </div>
+        <div id="reviews" class="tab-pane fade">
+            {{for round, reviews in recommendation_xml.reviews.items():}}
+            {{if reviews:}}
+            <h4>Round {{=round}}</h4>
+            {{for i, review in enumerate(reviews):}}
+            <textarea class="xml_textarea textarea_review" name="review_{{=i}}_{{=round}};{{=review[0]}}" {{if disable_form:}}disabled="true"{{pass}}>
+                {{=review[1]}}
+            </textarea>
+            {{pass}}
+            <hr class="round-separator" />
+            {{pass}}
+            {{pass}}
+        </div>
+    </div>
+    <div style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+        <button type="submit" class="btn btn-info">Send to Crossref & Clockss</button>
+        <button onclick="window.location.replace('{{=back_url}}'); return false;">Back</button>
+    </div>
+</form>

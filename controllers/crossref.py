@@ -1,7 +1,8 @@
 from app_modules import crossref
 from app_modules.clockss import send_to_clockss
 from app_modules.common_tools import URL
-from gluon import PRE, SQLFORM, Field, current
+from gluon import PRE, current
+from models.article import Article
 from models.recommendation import Recommendation
 
 auth = current.auth
@@ -19,67 +20,62 @@ def index():
 
 
 @auth.requires(is_admin)
-
 def post_form():
-    article_id = request.vars.article_id
+    try:
+        article_id = int(request.vars.article_id)
+    except:
+        return error("article_id: no such parameter")
 
-    article = db.t_articles[article_id]
-    recomm = db.get_last_recomm(article)
+    article = Article.get_by_id(article_id)
+    if not article:
+        return error("article: no such article")
 
-    if not article_id:   return error("article_id: no such parameter")
-    if not article:      return error("article: no such article")
-    if not recomm :      return error("article: no recommendation yet")
-    if not recomm.recommendation_title:
+    recommendation = Article.get_last_recommendation(article_id)
+    if not recommendation :
+        return error("article: no recommendation yet")
+
+    if not recommendation.recommendation_title:
         return error("recommendation: no title (not recommended)")
 
-    generated_xml = crossref.crossref_article_xml(recomm)
+    crossref_status = get_crossref_status(recommendation)
+    disable_form = False
 
-    form: ... = SQLFORM.factory( # type: ignore
-        Field("xml", label=T("Crossref XML"), type="text", default=generated_xml),
-    )
-    form.element(_type="submit")["_value"] = T("Send to Crossref & Clockss")
-    form.element(_name="xml").attributes.update(dict(
-        _style="""
-            font-family:monospace;
-            cursor:default;
-            /*min-height: inherit;*/
-        """,
-        _rows=20,
-    ))
-    form.insert(0, PRE(get_crossref_status(recomm), _name="status"))
+    batch_id = crossref.get_filename_article(recommendation)
 
-    if form.process(keepvalues=True).accepted:
-        status = crossref.post_and_forget(recomm, form.vars.xml)
+    if f"article_xml;{batch_id}" in request.vars:
+        recommendation_xml = crossref.CrossrefXML.from_request(request)
+        status = crossref.post_and_forget(article, recommendation_xml)
+
         if not status:
             try:
-                send_to_clockss(article, recomm)
+                send_to_clockss(article, recommendation)
             except Exception as e:
                 response.flash = f"{e}"
 
-        form.element(_name="status", replace=PRE(status or "request sent"))
-
-        form.element(_name="xml")["_disabled"] = 1
-        url = URL("manager", f"recommendations?articleId={recomm.article_id}")
-        form.element(_type="submit").attributes.update(dict(
-            _value="Back",
-            _onclick= f'window.location.replace("{url}"); return false;'))
+        crossref_status = status or "request sent"
+        disable_form = True
+    else:
+        recommendation_xml = crossref.crossref_recommendations_xml(article)
 
 
-    response.view = "default/myLayout.html"
+    response.view = "controller/crossref.html"
     return dict(
-        form=form,
+        crossref_status=crossref_status,
+        back_url=URL("manager", f"recommendations?articleId={recommendation.article_id}"),
+        disable_form=disable_form,
+        recommendation_xml=recommendation_xml,
         titleIcon="envelope",
         pageTitle="Crossref post form",
     )
 
 
-@auth.requires(is_admin)
 
+@auth.requires(is_admin)
 def get_status():
     recomm_id = request.vars.recomm_id
 
     try:
-        recomm = db.t_recommendations[recomm_id]
+        recomm = Recommendation.get_by_id(recomm_id)
         assert recomm
     except:
         return f"error: no such recomm_id={recomm_id}"

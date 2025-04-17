@@ -44,7 +44,7 @@ def do_validate_article():
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
     sugg_recommender_ok = True if pciRRactivated else SuggestedRecommender.least_one_validated(articleId)
-    
+
     if art is None:
         session.flash = auth.not_authorized()
         return redirect(request.env.http_referer)
@@ -122,7 +122,7 @@ def do_recommend_article():
                 session.flash = T("Stage 1 report recommendation process is not finished yet")
                 redirect(redir_url)
 
-    # stage 1 recommended privately 
+    # stage 1 recommended privately
     if art.status == "Pre-recommended-private":
         art.status = "Recommended-private"
         recomm.validation_timestamp = request.now
@@ -140,14 +140,14 @@ def do_recommend_article():
 
     if not pciRRactivated:
         Hypothesis(art).post_annotation()
-    
-    status = crossref.post_and_forget(recomm)
+
+    status = crossref.post_and_forget(art)
     if not status:
         try:
             send_to_clockss(art, recomm)
         except Exception as e:
             response.flash = f"{e}"
-    
+
     redirect(redir_url)
 
 
@@ -226,7 +226,7 @@ def do_validate_scheduled_submission():
             art.is_scheduled = False
         else:
             art.status = "Awaiting consideration"
-        
+
         art.update_record()
         session.flash = T("Submission validated")
 
@@ -294,7 +294,7 @@ def set_not_considered():
     if not article:
         session.flash = auth.not_authorized()
         return redirect(request.env.http_referer, client_side=True)
-    
+
     if not article.user_id:
         session.flash = T('No author for this article')
         return redirect(request.env.http_referer, client_side=True)
@@ -332,7 +332,7 @@ def delete_recommendation_file():
     if not ("recommId" in request.vars):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    
+
     recomm = db.t_recommendations[request.vars.recommId]
 
     if recomm is None:
@@ -360,7 +360,7 @@ def delete_recommendation_file():
             redirect(request.env.http_referer)
 
     session.flash = T("File successfully deleted")
-    
+
     redirect(request.env.http_referer)
 
 
@@ -395,7 +395,7 @@ def do_send_back_decision():
     articleId = request.vars["articleId"]
     art = db.t_articles[articleId]
     lastRecomm = get_last_recomm(articleId)
-    
+
     if art is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
