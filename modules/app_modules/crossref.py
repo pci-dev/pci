@@ -1,6 +1,7 @@
+from dataclasses import dataclass
 import html
 from app_modules.common_tools import extract_doi
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 from app_modules.httpClient import HttpClient
 from gluon.html import DIV, XML
 from models.article import Article
@@ -12,8 +13,21 @@ import re
 
 from gluon import current
 
-
 db = current.db
+
+@dataclass
+class CrossrefXML:
+    article: Tuple[str, Optional[str]]
+    decisions: List[Tuple[int, str, Optional[str]]]
+    author_replies: List[Tuple[int, str, Optional[str]]]
+    reviews: List[Tuple[int, List[Tuple[str, Optional[str]]]]]
+
+    def __init__(self):
+        self.article = ("", None)
+        self.decisions = []
+        self.author_replies = []
+        self.reviews = []
+
 
 class pci:
     host = str(db.cfg.host or "")
@@ -23,6 +37,7 @@ class pci:
     long_name = str(db.conf.get("app.description") or "")
     short_name = str(db.conf.get("app.longname") or "")
     email = str(db.conf.get("contacts.contact") or "")
+
 
 class crossref:
     version = "4.3.7"
@@ -37,12 +52,32 @@ QUEUED = '<doi_batch_diagnostic status="queued">'
 FAILED = '<record_diagnostic status="Failure">'
 
 
-def post_and_forget(recomm: Recommendation, xml: Optional[str] = None):
-    filename = get_filename(recomm)
+def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None):
+    if not xml:
+        xml = crossref_recommendations_xml(article)
+
     try:
         assert crossref.login, "crossref.login not set"
-        resp = post(filename, xml or crossref_article_xml(recomm))
+        assert xml.article[1]
+        resp = post( xml.article[0], xml.article[1])
         resp.raise_for_status()
+
+        for author_reply in xml.author_replies:
+            assert author_reply[2]
+            resp = post(author_reply[1], author_reply[2])
+            resp.raise_for_status()
+
+        for decision in xml.decisions:
+            assert decision[2]
+            resp = post(decision[1], decision[2])
+            resp.raise_for_status()
+
+        for reviews in xml.reviews:
+            for review in reviews[1]:
+                assert review[1]
+                resp = post(review[0], review[1])
+                resp.raise_for_status()
+
     except Exception as e:
         return f"error: {e}"
 
@@ -54,10 +89,6 @@ def get_status(recomm: Recommendation):
         return req.text
     except Exception as e:
         return f"error: {e.__class__.__name__}"
-
-
-def get_filename(recomm: Recommendation):
-    return f"pci={pci.host}:rec={recomm.id}"
 
 
 def mk_affiliation(user: User):
@@ -83,7 +114,7 @@ def mk_affiliation(user: User):
     return affiliation
 
 
-def post(filename: str, crossref_xml: str):
+def post(crossref_xml: str,filename: str):
     return HttpClient().post(
         f"{crossref.api_url}/deposit",
         params=dict(
@@ -101,10 +132,14 @@ def _get_status(recomm: Recommendation):
         params=dict(
             usr=crossref.login,
             pwd=crossref.passwd,
-            file_name=get_filename(recomm),
+            file_name=get_filename_article(recomm),
             type="result",
         )
     )
+
+
+def get_filename_article(recomm: Recommendation):
+    return f"pci={pci.host}:rec={recomm.id}"
 
 
 def get_identifier(doi_str: Optional[str]):
@@ -153,13 +188,13 @@ def he(non_html_str: Optional[Any]):
 def crossref_article_xml(recomm: Recommendation):
     article = Article.get_by_id(recomm.article_id)
     if not article:
-        return "Article not found!"
+        return "Article not found!", None
 
     recomm_url = f"{pci.url}/articles/rec?id={article.id}"
     recomm_doi = get_recommendation_doi(recomm)
     recomm_date = recomm.validation_timestamp.date() if recomm.validation_timestamp else None
     if not recomm_date:
-        return "Missing recommendation validation timestamp!"
+        return "Missing recommendation validation timestamp!", None
 
     recomm_title = recomm.recommendation_title
     recomm_description_text = Article.get_article_reference(article)
@@ -167,7 +202,7 @@ def crossref_article_xml(recomm: Recommendation):
 
     recommender = User.get_by_id(recomm.recommender_id)
     if not recommender:
-        return "Recommender not found!"
+        return "Recommender not found!", None
 
     co_recommenders: List[User] = []
     for row in PressReview.get_by_recommendation(recomm.id):
@@ -311,25 +346,34 @@ def crossref_article_xml(recomm: Recommendation):
         </journal>
     </body>
 </doi_batch>
-    """
+    """, batch_id
 
 def crossref_recommendations_xml(article: Article):
-    recommendations = Recommendation.get_by_article_id(article.id, order_by=~db.t_recommendations.id)
+    recommendations = Article.get_last_recommendations(article.id, order_by=~current.db.t_recommendations.id)
     all_reviews = Review.get_by_article_id_and_state(article.id,
                                                      ReviewState.REVIEW_COMPLETED,
-                                                     order_by=db.t_reviews.acceptation_timestamp)
+                                                     order_by=current.db.t_reviews.acceptation_timestamp)
 
-    all_xml: List[str] = []
+    xml = CrossrefXML()
+    xml.article = crossref_article_xml(recommendations[-1])
 
     for recommendation in recommendations:
         reviews = filter(lambda r: r.recommendation_id == recommendation.id, all_reviews)
         round = Recommendation.get_current_round_number(recommendation)
 
-        all_xml.append(crossref_author_reply_xml(article, recommendation, round))
-        all_xml.append(crossref_decision_xml(article, recommendation, round))
+        xml_author_reply, filename = crossref_author_reply_xml(article, recommendation, round)
+        xml.author_replies.append((round, xml_author_reply, filename))
 
+        xml_decision, filename = crossref_decision_xml(article, recommendation, round)
+        xml.decisions.append((round, xml_decision, filename))
+
+        round_reviews: List[Tuple[str, Optional[str]]] = []
         for i, review in enumerate(reviews):
-            all_xml.append(crossref_review_xml(article, recommendation, review, round, i))
+            round_reviews.append(crossref_review_xml(article, recommendation, review, round, i))
+
+        xml.reviews.append((round, round_reviews))
+
+    return xml
 
 
 def get_review_doi(recommendation: Recommendation, no_review_round: int, round: int):
@@ -339,10 +383,10 @@ def get_review_doi(recommendation: Recommendation, no_review_round: int, round: 
 
 def crossref_review_xml(article: Article, recommendation: Recommendation, review: Review, round: int, no_review_round: int):
     if not review.acceptation_timestamp:
-        return "Missing acceptation timestamp for the review"
+        return "Missing acceptation timestamp for the review", None
 
     if not review.last_change:
-        return "Missing last_change for the review"
+        return "Missing last_change for the review", None
 
     batch_id = f"pci={pci.host}:rec={recommendation.id}:rev={review.id}"
 
@@ -358,7 +402,7 @@ def crossref_review_xml(article: Article, recommendation: Recommendation, review
     else:
         reviewer = User.get_by_id(review.reviewer_id)
         if not reviewer:
-            return "Reviewer not found!"
+            return "Reviewer not found!", None
 
         reviewer_first_name = reviewer.first_name if reviewer.first_name else "?"
         reviewer_last_name = reviewer.last_name if reviewer.last_name else "?"
@@ -426,7 +470,7 @@ def crossref_review_xml(article: Article, recommendation: Recommendation, review
      	</peer_review>
    	</body>
 </doi_batch>
-    """
+    """, batch_id
 
 
 def get_author_reply_doi(recommendation: Recommendation, round: int):
@@ -436,17 +480,17 @@ def get_author_reply_doi(recommendation: Recommendation, round: int):
 
 def crossref_author_reply_xml(article: Article, recommendation: Recommendation, round: int):
     if not recommendation.validation_timestamp:
-        return "Missing validation timestamp for the recommendation"
+        return "Missing validation timestamp for the recommendation", None
 
     if not recommendation.last_change:
-        return "Missing last_change for the recommendation"
+        return "Missing last_change for the recommendation", None
 
     if not article.user_id:
-        return "Missing author for the article"
+        return "Missing author for the article", None
 
     author = User.get_by_id(article.user_id)
     if not author:
-        return f"Missing user with id {article.user_id}"
+        return f"Missing user with id {article.user_id}", None
 
     batch_id = f"pci={pci.host}:rec={recommendation.id}:ar={recommendation.id}"
 
@@ -516,7 +560,7 @@ def crossref_author_reply_xml(article: Article, recommendation: Recommendation, 
      	</peer_review>
    	</body>
 </doi_batch>
-    """
+    """, batch_id
 
 def get_decision_doi(recommendation: Recommendation, round: int):
     recommendation_doi = get_recommendation_doi(recommendation)
@@ -524,17 +568,17 @@ def get_decision_doi(recommendation: Recommendation, round: int):
 
 def crossref_decision_xml(article: Article, recommendation: Recommendation, round: int):
     if not recommendation.validation_timestamp:
-        return "Missing validation timestamp for the recommendation"
+        return "Missing validation timestamp for the recommendation", None
 
     if not recommendation.last_change:
-        return "Missing last_change for the recommendation"
+        return "Missing last_change for the recommendation", None
 
     if not recommendation.recommender_id:
-        return "Missing recommender for the recommendation"
+        return "Missing recommender for the recommendation", None
 
     recommender = User.get_by_id(recommendation.recommender_id)
     if not recommender:
-        return f"Missing user with id {recommendation.recommender_id}"
+        return f"Missing user with id {recommendation.recommender_id}", None
 
     batch_id = f"pci={pci.host}:rec={recommendation.id}:d={recommendation.id}"
 
@@ -606,4 +650,4 @@ def crossref_decision_xml(article: Article, recommendation: Recommendation, roun
      	</peer_review>
    	</body>
 </doi_batch>
-    """
+    """, batch_id
