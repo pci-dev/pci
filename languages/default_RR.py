@@ -981,4 +981,7 @@
     " In case all raw codes are included in the preprint, indicate the DOI or URL of the preprint.": "",
     "Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box.": "Reviews related to your decision will be automatically included in the email to authors after the managing board validates your decision. There's no need to copy/paste them into this box.",
     "First deposit the new version of your preprint on the preprint server": "First deposit the new version of your preprint on the preprint server",
-}
+    "Thanks for your willingness to handle the evaluation of this preprint.": "Thanks for your willingness to handle the evaluation of this report.",
+    "If the managing board agrees, you’ll receive an email inviting you to act as the recommender for this preprint": "If the managing board agrees, you’ll receive an email inviting you to act as the recommender for this report",
+    "Request to handle the evaluation of this preprint": "Request to handle the evaluation of this report"
+} # type: ignore
