@@ -792,7 +792,6 @@ def recommendations():
 
     art = Article.get_by_id(articleId)
     if art is None:
-        print("Missing article %s" % articleId)
         session.flash = auth.not_authorized()
         return redirect(request.env.http_referer)
     # NOTE: security hole possible by changing manually articleId value: Enforced checkings below.
@@ -810,8 +809,6 @@ def recommendations():
 
     amIAllowed = authCount > 0
     if not (amIAllowed):
-        print("Not allowed: userId=%s, articleId=%s" % (auth.user_id, articleId))
-        # print(db._lastsql)
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
     else:
