@@ -121,15 +121,12 @@ def do_accept_new_article_to_recommend():
             if len(reviewers_list_selection) == 0:
                 return redirect(URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation_id)))
             else:
-                print("Bug (reviewersListSel) : " + reviewers_list_selection)
                 session.flash = T("Article no more available", lazy=False)
                 return redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
         else:
-            print("Bug (lastRecomm) : " + last_recommendation)
             session.flash = T("Article no more available", lazy=False)
             return redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
     else:
-        print("Bug (articleStatus) : " + article.status)
         session.flash = T("Article no more available", lazy=False)
         return redirect(URL(c="recommender", f="recommendations", vars=dict(articleId=article_id)))
 
@@ -611,7 +608,6 @@ def delete_recommendation_file():
         session.flash = T("Unavailable")
         redirect(request.env.http_referer)
     else:
-        print(request.vars.fileType)
         if request.vars.fileType == "reply_pdf":
             recomm.reply_pdf = None
             recomm.reply_pdf_data = None

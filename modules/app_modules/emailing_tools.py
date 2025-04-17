@@ -359,7 +359,6 @@ def insertNewTemplateInDB(newHashTag, baseHashtag, myLanguage):
     item = db(query).select().first()
 
     if item:
-        print("new template created :" + newHashTag)
         db.mail_templates.insert(
             hashtag=newHashTag, subject=item.subject + " - scheduled submission", contents=item.contents, description=item.description + " (for scheduled submission)"
         )
@@ -395,7 +394,6 @@ def getFlashMessage(reports: List[Dict[str, Union[bool, str]]]):
         messages.append(str(report["message"]))
         pass
 
-    print("\n".join(messages))
     if session.flash is None:
         session.flash = "; ".join(messages)
     else:
