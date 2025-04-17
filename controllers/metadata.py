@@ -276,3 +276,10 @@ def steps(article):
     ret.update(final)
 
     return ret
+
+
+def override_outputs_dates(timestamp, items):
+    for it in items:
+      for item in it.values():
+        for action in item["actions"]:
+            action["outputs"][0]["published"] = publication_date(timestamp)
