@@ -240,7 +240,6 @@ def recommenders_map():
 
     shpfilename = shapereader.natural_earth("110m", "cultural", "admin_0_countries")
     df = geopandas.read_file(shpfilename)
-    # print(df['ADMIN'])
 
     for p in pays:
         countryName = p["auth_user.country"]
@@ -248,7 +247,7 @@ def recommenders_map():
         if poly:
             ax.add_geometries(poly, crs=ccrs.PlateCarree(), facecolor=(0.9, 0.5, 0.5), edgecolor="none")
         else:
-            print("WARNING *** Missing geometry for: %s" % countryName)
+            pass #("WARNING *** Missing geometry for: %s" % countryName)
 
     directory = os.path.join(request.folder, "static", "images")
     # if not os.path.exists(directory): os.makedirs(directory)
