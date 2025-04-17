@@ -1441,7 +1441,11 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
 
     if suggested_recommender.recommender_validated is None and suggested_recommender.suggested_by == SuggestedBy.AUTHORS.value:
         emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id)
-        
+
+    nb_author_sugg = SuggestedRecommender.get_by_article(article.id, suggested_by=SuggestedBy.AUTHORS)
+    if nb_author_sugg >= 25:
+        emailing.delete_reminder_for_submitter("#ReminderSubmitterNewSuggestedRecommenderNeeded", article.id)
+
     update_alert_and_current_step_article(article.id)
 
 
