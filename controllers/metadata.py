@@ -269,6 +269,10 @@ def steps(article):
 
     } if "10.24072/pcjournal" in str(article.doi_of_published_article) else {}
 
+    override_outputs_dates(
+            last_r.validation_timestamp,
+            [reviewed, catalogued])
+
     ret = {}
     ret.update(b0)
     ret.update(reviewed)
