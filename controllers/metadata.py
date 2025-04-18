@@ -286,4 +286,7 @@ def override_outputs_dates(timestamp, items):
     for it in items:
       for item in it.values():
         for action in item["actions"]:
-            action["outputs"][0]["published"] = publication_date(timestamp)
+          for output in action["outputs"]:
+              if output["type"] == "preprint":
+                  continue
+              output["published"] = publication_date(timestamp)
