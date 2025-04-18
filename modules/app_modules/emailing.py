@@ -86,7 +86,7 @@ get_review_days = Review.get_review_days_from_due_date
 # TEST MAIL (or "How to properly create an emailing function")
 def send_test_mail(userId):
     db = current.db
-    print("send_test_mail")
+
     # Get common variables :
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
@@ -111,7 +111,7 @@ def send_test_mail(userId):
 # Send email to the requester (if any)
 def send_to_submitter(articleId: int, newStatus: str):
     session, auth, db, response = current.session, current.auth, current.db, current.response
-    print("send_to_submitter")
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -246,7 +246,7 @@ def send_to_submitter(articleId: int, newStatus: str):
 # Send email to the requester (if any)
 def send_to_submitter_acknowledgement_submission(articleId: int):
     session, auth, db = current.session, current.auth, current.db
-    print("send_to_submitter_acknowledgement_submission")
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     article = db.t_articles[articleId]
@@ -642,7 +642,6 @@ def send_to_suggested_recommender(article: Article, recommender_id: int):
 def send_to_recommenders_review_completed(reviewId):
     session, auth, db = current.session, current.auth, current.db
 
-    print("send_to_recommenders_review_completed")
     mail_vars = emailing_tools.getMailCommonVars()
 
     reports = []
@@ -858,9 +857,9 @@ def send_to_reviewers_article_cancellation(articleId, newStatus):
 
                     reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
         else:
-            print("send_to_reviewers_article_cancellation: Recommendation not found")
+            pass #("send_to_reviewers_article_cancellation: Recommendation not found")
     else:
-        print("send_to_reviewers_article_cancellation: Article not found")
+        pass #("send_to_reviewers_article_cancellation: Article not found")
 
     emailing_tools.getFlashMessage(reports)
 
@@ -1111,7 +1110,6 @@ def send_to_admin_all_reviews_completed(reviewId):
 def send_admin_new_user(userId):
     session, auth, db = current.session, current.auth, current.db
 
-    print("send_admin_new_user")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1139,7 +1137,6 @@ def send_admin_new_user(userId):
 def send_new_user(userId):
     session, auth, db = current.session, current.auth, current.db
     
-    print("send_new_user")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1182,7 +1179,6 @@ def send_new_user(userId):
 def send_new_membreship(membershipId):
     session, auth, db = current.session, current.auth, current.db
 
-    print("send_new_membership")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1528,7 +1524,6 @@ def send_to_corecommenders(articleId, newStatus):
 def send_decision_to_reviewers(articleId, newStatus):
     session, auth, db = current.session, current.auth, current.db
 
-    print("send_decision_to_reviewers")
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -2784,7 +2779,7 @@ def create_reminder_for_reviewer_review_soon_due(reviewId: int):
 
     if review and recomm and article and reviewer:
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
-            print("Nope")
+            pass
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
@@ -2838,7 +2833,7 @@ def create_reminder_for_reviewer_review_due(reviewId: int):
 
     if review and recomm and article and reviewer:
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
-            print("Nope")
+            pass
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
@@ -2876,7 +2871,7 @@ def create_reminder_for_reviewer_review_over_due(reviewId: int):
 
     if review and recomm and article and reviewer:
         if scheduledSubmissionActivated and ((article.scheduled_submission_date is not None) or (article.status.startswith("Scheduled submission"))):
-            print("Nope")
+            pass
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]

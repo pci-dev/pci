@@ -559,7 +559,6 @@ def delete_recommendation_file():
         session.flash = T("Unavailable")
         redirect(request.env.http_referer)
     else:
-        print(request.vars.fileType)
         if request.vars.fileType == "reply_pdf":
             recomm.reply_pdf = None
             recomm.reply_pdf_data = None
@@ -608,7 +607,6 @@ def delete_review_file():
         session.flash = T("Unavailable")
         redirect(request.env.http_referer)
     else:
-        print(request.vars.fileType)
         if request.vars.fileType == "review_pdf":
             review.review_pdf = None
             review.review_pdf_data = None

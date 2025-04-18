@@ -359,7 +359,7 @@ class HtmlToLatex:
             val = selectors.get(selector)
             cssselector = CSSSelector(selector)
             matching: Any = cssselector.evaluate(document) # type: ignore
-            # print(selector, info)
+
             for element in matching:
                 info = val
                 if callable(val):
