@@ -265,8 +265,8 @@ auth.settings.extra_fields["auth_user"] = [
     ),
     RequiredField("cv", type="text", length=2097152, label=T("Areas of expertise")),
     RequiredField("keywords", type="string", length=1024, label=T("Keywords")),
-    Field("email_options", type="list:string", label=SPAN(T("Opt in/out of being cc'ed")), 
-          requires=[IS_EMPTY_OR(IS_IN_SET(email_options, multiple=True))], 
+    Field("email_options", type="list:string", label=SPAN(T("Opt in/out of being cc'ed")),
+          requires=[IS_EMPTY_OR(IS_IN_SET(email_options, multiple=True))],
           widget=SQLFORM.widgets.checkboxes.widget, default=list(email_options)
     ),
     RequiredField("website", type="string", length=4096, label=T("Link to your website, profile page, google scholar profile or any other professional website")),
@@ -372,7 +372,7 @@ auth.messages.email_sent = "A request of confirmation has been sent to your e-ma
 auth.messages.verify_email_subject = "%s: validate your registration" % myconf.get("app.longname")
 auth.messages.verify_email = (
     """
-Welcome %(username)s! 
+Welcome %(username)s!
 
 To complete your registration with the """
     + myconf.get("app.longname")
@@ -390,8 +390,8 @@ The Managing Board of """
     + """ is one of the communities of the parent project Peer Community In... .
 It is a community of researchers in """
     + myconf.get("app.thematics")
-    + """ dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals. 
-This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles. 
+    + """ dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals.
+This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles.
 More information can be found on the website of """
     + myconf.get("app.longname")
     + """: """
@@ -549,7 +549,7 @@ db.define_table(
         requires=RESIZE(500,500)),
     RequiredField("abstract", type="text", length=2097152, label=T("Abstract"), requires=TEXT_CLEANER()),
     Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
-    RequiredField("data_doi", 
+    RequiredField("data_doi",
         type="list:string",
         requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
         label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact "), appContactLink, ").", T(" In case all raw data are included in the preprint, indicate the DOI or URL of the preprint.")),
@@ -557,7 +557,7 @@ db.define_table(
         comment=T("You should fill this box only if you chose 'All or part of the results presented in this preprint are based on data'. URL must start with http:// or https://")
     ),
     Field("scripts_used_for_result", type="string", label="", requires=IS_IN_SET(db.script_choices), widget=SQLFORM.widgets.radio.widget,),
-    RequiredField("scripts_doi", 
+    RequiredField("scripts_doi",
         type="list:string",
         requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
         label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact "), appContactLink, ").", T(" In case all raw scripts are included in the preprint, indicate the DOI or URL of the preprint.")),
@@ -679,10 +679,10 @@ def update_alert_and_current_step_article(article_id: int):
 def after_update_article(s: ..., f: ...):
     if current.session.run_article_translation_for_default_langs:
         return
-        
+
     new_article: Article = s.select().first()
     old_article: Article = current.session.old_article
-    
+
     if not old_article:
         return
 
@@ -702,7 +702,7 @@ def deltaStatus(s: ..., f: Article):
 
     if "status" not in f:
         return
-    
+
     o: Article = s.select().first()
     current.session.old_article = o
 
@@ -743,7 +743,7 @@ def deltaStatus(s: ..., f: Article):
         elif o.status == "Pending" and f["status"] == "Pre-submission":
             # delete reminders
             emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
-        
+
         elif o.status == "Pending" and f["status"] == "Not considered":
             emailing.send_to_managers(o["id"], f["status"])
             emailing.send_to_submitter(o["id"], f["status"])
@@ -828,7 +828,7 @@ def deltaStatus(s: ..., f: Article):
             emailing.send_to_managers(o["id"], f["status"])
             emailing.send_to_recommender_status_changed(o["id"], f["status"])
             emailing.send_to_corecommenders(o["id"], f["status"])
-            
+
             if f["status"] == "Not considered":
                 emailing.send_to_submitter(o["id"], f["status"])
 
@@ -1132,12 +1132,12 @@ def reviewSuggested(s: ..., row: ...):
     recommendation = Recommendation.get_by_id(recommendation_id)
     if not recommendation:
         return
-    
+
     article = Article.get_by_id(recommendation.article_id)
     review = Review.get_by_id(review_id)
     if not review:
         return
-    
+
     review_recommendation = Recommendation.get_by_id(review.recommendation_id)
     no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
 
@@ -1182,7 +1182,7 @@ def reviewSuggested(s: ..., row: ...):
                      # renew reminder
                     if no_of_accepted_invites < 2 and recommendation.recommendation_state == "Ongoing":
                         emailing.alert_managers_recommender_action_needed("#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction", recommendation.id)
-    
+
     update_alert_and_current_step_article(recommendation.article_id)
 
 
@@ -1216,7 +1216,7 @@ def after_review_done(s: ..., current_review_values: Review):
     recommendation = Recommendation.get_by_id(current_review.recommendation_id)
     if not recommendation:
         return
-    
+
     no_of_completed_reviews = db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state == "Review completed")).count()
     total_no_of_accepted_invites =  db((db.t_reviews.recommendation_id == recommendation.id) & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))).count()
     no_of_accepted_invites = total_no_of_accepted_invites
@@ -1242,7 +1242,7 @@ def after_review_done(s: ..., current_review_values: Review):
                 emailing.delete_reminder_for_managers(["#ManagersRecommenderNotEnoughReviewersNeedsToTakeAction"], recommendation.id)
             elif no_of_completed_reviews >= 2 and no_of_completed_reviews == no_of_accepted_invites and recommendation.recommendation_state == "Ongoing":
                 emailing.alert_managers_recommender_action_needed("#ManagersRecommenderReceivedAllReviewsNeedsToTakeAction", recommendation.id)
-                   
+
         if no_of_completed_reviews >= 2 and no_of_completed_reviews < no_of_accepted_invites and recommendation.recommendation_state == "Ongoing" and last_recomm_reminder_mail is None:
             emailing.create_reminder_recommender_could_make_decision(recommendation.id)
         if old_review["review_state"] == "Awaiting review" and current_review['review_state'] in ["Cancelled", "Declined", "Declined manually"] and no_of_accepted_invites - no_of_completed_reviews == 1:
@@ -1256,7 +1256,7 @@ def after_review_done(s: ..., current_review_values: Review):
             emailing.delete_reminder_for_reviewer(["#ReminderReviewerInvitationNewRoundRegisteredUser"], old_review.id)
             emailing.delete_reminder_for_reviewer(["#ReminderReviewerReviewInvitationNewUser"], old_review.id)
             emailing.delete_reminder_for_reviewer(["#ReminderReviewInvitationRegisteredUserReturningReviewer"], old_review.id)
-            
+
         if old_review.review_state == ReviewState.NEED_EXTRA_REVIEW_TIME.value and current_review["review_state"] == ReviewState.AWAITING_REVIEW.value:
             emailing.create_reminder_for_reviewer_review_soon_due(old_review["id"])
             emailing.create_reminder_for_reviewer_review_due(old_review["id"])
@@ -1365,10 +1365,10 @@ def after_review_done(s: ..., current_review_values: Review):
                 emailing.delete_reminder_for_reviewer(["#ReminderReviewerInvitationNewRoundRegisteredUser"], old_review["id"])
                 emailing.delete_reminder_for_reviewer(["#ReminderReviewInvitationRegisteredUserReturningReviewer"], old_review["id"])
                 emailing.delete_reminder_for_reviewer(["#ReminderReviewInvitationRegisteredUserNewReviewer"], old_review["id"])
-                
+
                 if total_no_of_accepted_invites >= 2:
                     emailing.delete_reminder_for_recommender("#ReminderRecommenderNewReviewersNeeded", old_review["recommendation_id"])
-        
+
         if no_of_completed_reviews >= 2 and old_review["review_state"] in ["Willing to review", "Awaiting response"] and current_review["review_state"] == "Awaiting review":
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionSoonDue", recommendation["article_id"])
             emailing.delete_reminder_for_recommender_from_article_id("#ReminderRecommenderDecisionDue", recommendation["article_id"])
@@ -1411,7 +1411,7 @@ def after_update_suggested_recommender(s: ..., f: ...):
     article = Article.get_by_id(suggested_recommender.article_id)
     if not article:
         return
-    
+
     if suggested_recommender.recommender_validated:
         if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
             emailing.send_to_suggested_recommender(article, suggested_recommender.suggested_recommender_id)
@@ -1431,7 +1431,7 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
     article = Article.get_by_id(suggested_recommender.article_id)
     if not article:
         return
-    
+
     if suggested_recommender.recommender_validated and article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
         emailing.send_to_suggested_recommender(article, suggested_recommender.suggested_recommender_id)
         emailing.create_reminder_for_suggested_recommender_invitation(article, suggested_recommender.suggested_recommender_id)
@@ -1441,7 +1441,11 @@ def appendSuggRecommender(suggested_recommender: ..., suggested_recommender_id: 
 
     if suggested_recommender.recommender_validated is None and suggested_recommender.suggested_by == SuggestedBy.AUTHORS.value:
         emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id)
-        
+
+    nb_author_sugg = SuggestedRecommender.get_by_article(article.id, suggested_by=SuggestedBy.AUTHORS)
+    if nb_author_sugg >= 25:
+        emailing.delete_reminder_for_submitter("#ReminderSubmitterNewSuggestedRecommenderNeeded", article.id)
+
     update_alert_and_current_step_article(article.id)
 
 
@@ -1453,11 +1457,11 @@ def deleteSuggRecommender(s: ...):
     emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", sugg_recommender.article_id, sugg_recommender.suggested_recommender_id)
 
 
-def after_delete_sugg_recommender(s: ...):    
+def after_delete_sugg_recommender(s: ...):
     old_sugg_recommender: SuggestedRecommender = current.session.old_sugg_recommender
     if old_sugg_recommender is None:
         return
-    
+
     if old_sugg_recommender.suggested_by == SuggestedBy.AUTHORS.value:
         emailing.send_or_update_mail_manager_valid_suggested_recommender(old_sugg_recommender.article_id)
 
@@ -1593,7 +1597,7 @@ def after_update_mail(s: ..., f: ...):
 
 def _update_alert_after_update_or_insert_mail(mail: MailQueue):
     article_id: Optional[int] = None
-    
+
     if mail.article_id:
         article_id = mail.article_id
     elif mail.recommendation_id:
@@ -1606,7 +1610,7 @@ def _update_alert_after_update_or_insert_mail(mail: MailQueue):
             recommendation = Recommendation.get_by_id(review.recommendation_id)
             if recommendation:
                 article_id = recommendation.article_id
-    
+
     if article_id is not None:
         update_alert_and_current_step_article(mail.article_id)
 
