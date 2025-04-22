@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 import html
+import os
 from app_modules.common_tools import extract_doi
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 from app_modules.httpClient import HttpClient
 from gluon.html import DIV, XML
 from models.article import Article
@@ -10,10 +11,13 @@ from models.recommendation import Recommendation, RecommendationState
 from models.review import Review, ReviewState
 from models.user import User
 import re
+from gluon.template import render # type: ignore
 
 from gluon import current
 
 db = current.db
+
+CROSSREF_TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "../../templates/crossref")
 
 @dataclass
 class CrossrefXML:
@@ -257,133 +261,29 @@ def crossref_article_xml(recomm: Recommendation):
     timestamp = recomm.last_change.now().strftime("%Y%m%d%H%M%S%f")[:-3]
     batch_id = f"pci={pci.host}:rec={recomm.id}"
 
-    return f"""<?xml version="1.0" encoding="UTF-8"?>
-<doi_batch
-    xmlns="{crossref.base}/{crossref.version}"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="
-        {crossref.base}/{crossref.version}
-        {crossref.xsd}"
-    version="{crossref.version}">
+    xml = render( # type: ignore
+        filename=os.path.join(CROSSREF_TEMPLATE_DIR, "article.xml"),
+        context=dict(
+            he=he,
+            crossref=crossref,
+            batch_id=batch_id,
+            timestamp=timestamp,
+            pci=pci,
+            recomm_date=recomm_date,
+            recomm_title=recomm_title,
+            recommender=recommender,
+            co_recommenders=co_recommenders,
+            item_number=item_number,
+            recomm_description_text=recomm_description_text,
+            interwork_type=interwork_type,
+            interwork_ref=interwork_ref,
+            recomm_doi=recomm_doi,
+            recomm_url=recomm_url,
+            recomm_citations=XML(recomm_citations)
+        ))
 
-    <head>
-        <doi_batch_id>{he(batch_id)}</doi_batch_id>
-        <timestamp>{timestamp}</timestamp>
-        <depositor>
-            <depositor_name>peercom</depositor_name>
-            <email_address>{he(pci.email)}</email_address>
-        </depositor>
-        <registrant>Peer Community In</registrant>
-    </head>
+    return cast(str, xml), batch_id
 
-    <body>
-        <journal>
-
-            <journal_metadata language="en">
-                <full_title>{he(pci.long_name)}</full_title>
-                <abbrev_title>{he(pci.short_name)}</abbrev_title>
-                """ + (f"""
-                <issn media_type='electronic'>{pci.issn}</issn>
-                """ if pci.issn else "") + f"""
-                <doi_data>
-                    <doi>{he(pci.doi)}</doi>
-                    <resource>{he(pci.url)}/</resource>
-                </doi_data>
-            </journal_metadata>
-
-            <journal_issue>
-                <publication_date media_type='online'>
-                    <month>{recomm_date.month}</month>
-                    <day>{recomm_date.day}</day>
-                    <year>{recomm_date.year}</year>
-                </publication_date>
-            </journal_issue>
-
-            <journal_article publication_type='full_text'>
-
-            <titles>
-                <title>
-                    {he(recomm_title)}
-                </title>
-            </titles>
-
-            <contributors>
-                <person_name sequence='first' contributor_role='author'>
-                    <given_name>{he(recommender.first_name)}</given_name>
-                    <surname>{he(recommender.last_name)}</surname>
-                    <affiliation>{he(recommender.affiliation)}</affiliation>
-                </person_name>
-                """ + "\n".join([f"""
-                <person_name sequence='additional' contributor_role='author'>
-                    <given_name>{he(co_recommender.first_name)}</given_name>
-                    <surname>{he(co_recommender.last_name)}</surname>
-                    <affiliation>{he(co_recommender.affiliation)}</affiliation>
-                </person_name>
-                """ for co_recommender in co_recommenders ]) + f"""
-            </contributors>
-
-            <publication_date media_type='online'>
-                <month>{recomm_date.month}</month>
-                <day>{recomm_date.day}</day>
-                <year>{recomm_date.year}</year>
-            </publication_date>
-
-            <publisher_item>
-                <item_number item_number_type="article_number">{he(item_number)}</item_number>
-            </publisher_item>
-
-            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
-                <free_to_read/>
-                <license_ref applies_to="vor" start_date="{recomm_date.isoformat()}">
-                    https://creativecommons.org/licenses/by/4.0/
-                </license_ref>
-            </program>
-
-            <program xmlns="http://www.crossref.org/relations.xsd">
-                <related_item>
-                    <description>
-                        {he(recomm_description_text)}
-                    </description>
-                    <inter_work_relation
-                        relationship-type="isReviewOf"
-                        identifier-type="{interwork_type}">
-                        {he(interwork_ref)}
-                    </inter_work_relation>
-                </related_item>
-            </program>
-
-            <doi_data>
-                <doi>{he(recomm_doi)}</doi>
-                <resource>
-                    {he(recomm_url)}
-                </resource>
-
-                <collection property="crawler-based">
-                    <item crawler="iParadigms">
-                        <resource>
-                            {he(recomm_url)}
-                        </resource>
-                    </item>
-                </collection>
-
-                <collection property="text-mining">
-                    <item>
-                        <resource content_version="vor">
-                            {he(recomm_url)}
-                        </resource>
-                    </item>
-                </collection>
-            </doi_data>
-
-            <citation_list>
-                {recomm_citations}
-            </citation_list>
-
-            </journal_article>
-        </journal>
-    </body>
-</doi_batch>
-    """, batch_id
 
 def crossref_recommendations_xml(article: Article):
     recommendations = Article.get_last_recommendations(article.id, order_by=current.db.t_recommendations.id)
@@ -457,58 +357,26 @@ def crossref_review_xml(article: Article, recommendation: Recommendation, review
     else:
         status = "major-revision"
 
+    xml = render( # type: ignore
+        filename=os.path.join(CROSSREF_TEMPLATE_DIR, "review.xml"),
+        context=dict(
+            he=he,
+            crossref=crossref,
+            batch_id=batch_id,
+            timestamp=timestamp,
+            pci=pci,
+            round=round,
+            status=status,
+            contributor_tag=XML(contributor_tag),
+            article=article,
+            review_date=review_date,
+            interwork_type=interwork_type,
+            interwork_ref=interwork_ref,
+            review_doi=review_doi,
+            review_url=review_url
+        ))
 
-    return f"""<?xml version="1.0" encoding="UTF-8"?>
-<doi_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="
-        {crossref.base}/{crossref.version}
-        {crossref.xsd}"
-    version="{crossref.version}">
-  	<head>
-     	<doi_batch_id>{he(batch_id)}</doi_batch_id>
-     	<timestamp>{timestamp}</timestamp>
-     	<depositor>
-            <depositor_name>peercom</depositor_name>
-            <email_address>{he(pci.email)}</email_address>
-     	</depositor>
-     	<registrant>Peer Community In</registrant>
-  	</head>
-  	<body>
-     	<peer_review stage="pre-publication" revision-round="{round}" type="referee-report" recommendation="{status}">
-         	<contributors>
-                {contributor_tag}
-         	</contributors>
-         	<titles>
-            	<title>Review of: {he(article.title)}</title>
-         	</titles>
-         	<review_date>
-            	<month>{review_date.month}</month>
-            	<day>{review_date.day}</day>
-            	<year>{review_date.year}</year>
-         	</review_date>
-
-         	<competing_interest_statement>The reviewer declared that they have no conflict of interest (as defined in the code of conduct of PCI) with the authors or with the content of the article.</competing_interest_statement>
-
-            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
-                <free_to_read/>
-                <license_ref applies_to="vor" start_date="{review_date.isoformat()}">
-                    https://creativecommons.org/licenses/by/4.0/
-                </license_ref>
-            </program>
-
-         	<program xmlns="http://www.crossref.org/relations.xsd">
-            	<related_item>
-                    <inter_work_relation relationship-type="isReviewOf" identifier-type="{interwork_type}">{he(interwork_ref)}</inter_work_relation>
-            	</related_item>
-         	</program>
-         	<doi_data>
-            	<doi>{he(review_doi)}</doi>
-            	<resource>{he(review_url)}</resource>
-         	</doi_data>
-     	</peer_review>
-   	</body>
-</doi_batch>
-    """, batch_id
+    return cast(str, xml), batch_id
 
 
 def get_author_reply_doi(recommendation: Recommendation, round: int):
@@ -544,65 +412,32 @@ def crossref_author_reply_xml(article: Article, recommendation: Recommendation, 
     else:
         status = "major-revision"
 
+    xml = render( # type: ignore
+        filename=os.path.join(CROSSREF_TEMPLATE_DIR, "author_reply.xml"),
+        context=dict(
+            he=he,
+            crossref=crossref,
+            batch_id=batch_id,
+            timestamp=timestamp,
+            pci=pci,
+            round=round,
+            status=status,
+            author=author,
+            article=article,
+            recommendation_date=recommendation_date,
+            interwork_type=interwork_type,
+            interwork_ref=interwork_ref,
+            author_reply_doi=author_reply_doi,
+            author_reply_url=author_reply_url
+        ))
 
-    return f"""<?xml version="1.0" encoding="UTF-8"?>
-<doi_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="
-        {crossref.base}/{crossref.version}
-        {crossref.xsd}"
-    version="{crossref.version}">
-  	<head>
-     	<doi_batch_id>{he(batch_id)}</doi_batch_id>
-     	<timestamp>{timestamp}</timestamp>
-     	<depositor>
-            <depositor_name>peercom</depositor_name>
-            <email_address>{he(pci.email)}</email_address>
-     	</depositor>
-     	<registrant>Peer Community In</registrant>
-  	</head>
-  	<body>
-     	<peer_review stage="pre-publication" revision-round="{round}" type="author-comment" recommendation="{status}">
-         	<contributors>
-                <person_name contributor_role="author" sequence="first">
-                    <given_name>{he(author.first_name)}</given_name>
-                    <surname>{he(author.last_name)}</surname>
-                </person_name>
-         	</contributors>
-         	<titles>
-            	<title>Author response of: {he(article.title)}</title>
-         	</titles>
-         	<review_date>
-            	<month>{recommendation_date.month}</month>
-            	<day>{recommendation_date.day}</day>
-            	<year>{recommendation_date.year}</year>
-         	</review_date>
+    return cast(str, xml), batch_id
 
-         	<competing_interest_statement>The authors declared that they comply with the PCI rule of having no financial conflicts of interest in relation to the content of the article.</competing_interest_statement>
-
-            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
-                <free_to_read/>
-                <license_ref applies_to="vor" start_date="{recommendation_date.isoformat()}">
-                    https://creativecommons.org/licenses/by/4.0/
-                </license_ref>
-            </program>
-
-         	<program xmlns="http://www.crossref.org/relations.xsd">
-            	<related_item>
-                    <inter_work_relation relationship-type="isReviewOf" identifier-type="{interwork_type}">{he(interwork_ref)}</inter_work_relation>
-            	</related_item>
-         	</program>
-         	<doi_data>
-            	<doi>{he(author_reply_doi)}</doi>
-            	<resource>{he(author_reply_url)}</resource>
-         	</doi_data>
-     	</peer_review>
-   	</body>
-</doi_batch>
-    """, batch_id
 
 def get_decision_doi(recommendation: Recommendation, round: int):
     recommendation_doi = get_recommendation_doi(recommendation)
     return f"{recommendation_doi}.d{round}"
+
 
 def crossref_decision_xml(article: Article, recommendation: Recommendation, round: int):
     if not recommendation.validation_timestamp:
@@ -634,58 +469,23 @@ def crossref_decision_xml(article: Article, recommendation: Recommendation, roun
         status = "major-revision"
         title = f"Recommendation of: {he(article.title)}"
 
+    xml = render( # type: ignore
+        filename=os.path.join(CROSSREF_TEMPLATE_DIR, "decision.xml"),
+        context=dict(
+            he=he,
+            crossref=crossref,
+            batch_id=batch_id,
+            timestamp=timestamp,
+            pci=pci,
+            round=round,
+            status=status,
+            recommender=recommender,
+            title=title,
+            recommendation_date=recommendation_date,
+            interwork_type=interwork_type,
+            interwork_ref=interwork_ref,
+            decision_doi=decision_doi,
+            decision_url=decision_url
+        ))
 
-    return f"""<?xml version="1.0" encoding="UTF-8"?>
-<doi_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="
-        {crossref.base}/{crossref.version}
-        {crossref.xsd}"
-    version="{crossref.version}">
-  	<head>
-     	<doi_batch_id>{he(batch_id)}</doi_batch_id>
-     	<timestamp>{timestamp}</timestamp>
-     	<depositor>
-            <depositor_name>peercom</depositor_name>
-            <email_address>{he(pci.email)}</email_address>
-     	</depositor>
-     	<registrant>Peer Community In</registrant>
-  	</head>
-  	<body>
-     	<peer_review stage="pre-publication" revision-round="{round}" type="editor-report" recommendation="{status}">
-         	<contributors>
-                <person_name contributor_role="editor" sequence="first">
-                    <given_name>{he(recommender.first_name)}</given_name>
-                    <surname>{he(recommender.last_name)}</surname>
-                </person_name>
-         	</contributors>
-         	<titles>
-            	<title>{title}</title>
-         	</titles>
-         	<review_date>
-            	<month>{recommendation_date.month}</month>
-            	<day>{recommendation_date.day}</day>
-            	<year>{recommendation_date.year}</year>
-         	</review_date>
-
-         	<competing_interest_statement>The recommender in charge of the evaluation of the article declared that they have no conflict of interest (as defined in the code of conduct of PCI) with the authors or with the content of the article.</competing_interest_statement>
-
-            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
-                <free_to_read/>
-                <license_ref applies_to="vor" start_date="{recommendation_date.isoformat()}">
-                    https://creativecommons.org/licenses/by/4.0/
-                </license_ref>
-            </program>
-
-         	<program xmlns="http://www.crossref.org/relations.xsd">
-            	<related_item>
-                    <inter_work_relation relationship-type="isReviewOf" identifier-type="{interwork_type}">{he(interwork_ref)}</inter_work_relation>
-            	</related_item>
-         	</program>
-         	<doi_data>
-            	<doi>{he(decision_doi)}</doi>
-            	<resource>{he(decision_url)}</resource>
-         	</doi_data>
-     	</peer_review>
-   	</body>
-</doi_batch>
-    """, batch_id
+    return cast(str, xml), batch_id

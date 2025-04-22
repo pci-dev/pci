@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doi_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+        {{=crossref.base}}/{{=crossref.version}}
+        {{=crossref.xsd}}" version="{{=crossref.version}}">
+
+    <head>
+        <doi_batch_id>{{=he(batch_id)}}</doi_batch_id>
+        <timestamp>{{=timestamp}}</timestamp>
+        <depositor>
+            <depositor_name>peercom</depositor_name>
+            <email_address>{{=he(pci.email)}}</email_address>
+        </depositor>
+        <registrant>Peer Community In</registrant>
+    </head>
+
+    <body>
+        <peer_review stage="pre-publication" revision-round="{{=round}}" type="referee-report"
+            recommendation="{{=status}}">
+            <contributors>
+                {{=contributor_tag}}
+            </contributors>
+            <titles>
+                <title>Review of: {{=he(article.title)}}</title>
+            </titles>
+            <review_date>
+                <month>{{=review_date.month}}</month>
+                <day>{{=review_date.day}}</day>
+                <year>{{=review_date.year}}</year>
+            </review_date>
+
+            <competing_interest_statement>The reviewer declared that they have no conflict of interest (as defined in
+                the code of conduct of PCI) with the authors or with the content of the article.
+            </competing_interest_statement>
+
+            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
+                <free_to_read />
+                <license_ref applies_to="vor" start_date="{{=review_date.isoformat()}}">
+                    https://creativecommons.org/licenses/by/4.0/
+                </license_ref>
+            </program>
+
+            <program xmlns="http://www.crossref.org/relations.xsd">
+                <related_item>
+                    <inter_work_relation relationship-type="isReviewOf" identifier-type="{{=interwork_type}}">
+                        {{=he(interwork_ref)}}</inter_work_relation>
+                </related_item>
+            </program>
+            <doi_data>
+                <doi>{{=he(review_doi)}}</doi>
+                <resource>{{=he(review_url)}}</resource>
+            </doi_data>
+        </peer_review>
+    </body>
+</doi_batch>
