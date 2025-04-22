@@ -7,6 +7,7 @@ from gluon.sqlhtml import SQLFORM
 from gluon.contrib.appconfig import AppConfig
 from gluon import current
 from app_modules import emailing, common_small_html, emailing_vars
+from gluon.storage import Storage
 from gluon.validators import *
 from app_modules.helper import *
 from datetime import date
@@ -76,15 +77,15 @@ def searchByThematic(myVars, allowBlank=True,redirectSearchArticle=False):
                 I("", _class="glyphicon glyphicon-chevron-up pci2-icon-rotating " + iconPanelCLass),
                 _class="pci2-thematic-link",
                 _onclick="""
-					if( jQuery(".pci2-thematics-div" ).hasClass("pci2-panel-closed")) { 
-						jQuery(".pci2-thematics-div").removeClass("pci2-panel-closed") 						
-						jQuery(".pci2-icon-rotating").removeClass("glyphicon-rotate") 
-						jQuery(".pci2-icon-rotating").addClass("glyphicon-rotate-reversed") 
+					if( jQuery(".pci2-thematics-div" ).hasClass("pci2-panel-closed")) {
+						jQuery(".pci2-thematics-div").removeClass("pci2-panel-closed")
+						jQuery(".pci2-icon-rotating").removeClass("glyphicon-rotate")
+						jQuery(".pci2-icon-rotating").addClass("glyphicon-rotate-reversed")
 					} else {
-						jQuery(".pci2-thematics-div").addClass("pci2-panel-closed") 						
-						jQuery(".pci2-icon-rotating").removeClass("glyphicon-rotate-reversed") 
-						jQuery(".pci2-icon-rotating").addClass("glyphicon-rotate") 
-					} 
+						jQuery(".pci2-thematics-div").addClass("pci2-panel-closed")
+						jQuery(".pci2-icon-rotating").removeClass("glyphicon-rotate-reversed")
+						jQuery(".pci2-icon-rotating").addClass("glyphicon-rotate")
+					}
 				""",
             ),
             _class="pci2-thematic-link-div",
@@ -120,7 +121,7 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
         text = ' '
 
     if 'noluck' in current.request.post_vars:
-            current.request._next = next 
+            current.request._next = next
 
             return redirect(
                 URL("send_suggested_reviewers",
@@ -128,7 +129,7 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
 
     there_are_suggested_recommender = 'suggest_reviewers' in current.request.vars and len(current.request.vars.suggest_reviewers) > 0
     inputs: List[LI] = []
-    
+
     values: List[str] = []
     if there_are_suggested_recommender:
         if isinstance(current.request.vars.suggest_reviewers, str):
@@ -138,7 +139,7 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
             values = current.request.vars.suggest_reviewers
             for value in values:
                 inputs.append(_get_inputs_li(value))
-                
+
     else:
         inputs.append(_get_inputs_li())
 
@@ -190,7 +191,7 @@ def getSendMessageForm(declineKey: str, response: str, next: Optional[str] = Non
 
         if not has_error:
             current.response.flash = 'Ok'
-            current.request._next = next 
+            current.request._next = next
 
             return redirect(
                 URL("send_suggested_reviewers",
@@ -240,7 +241,7 @@ from app_modules import emailing_tools
 
 def update_mail_content_keep_editing_form(form: ...):
     db, request, response = current.db, current.request, current.response
-    
+
     mail = db.mail_queue[request.vars.id]
     content_saved = process_mail_content(mail, form)
 
@@ -353,7 +354,7 @@ def report_survey(article: Article, survey: Optional[ReportSurvey] = None, contr
         form.element(_type="submit")["_value"] = current.T("Complete your submission")
         form.element(_type="submit")["_class"] = "btn btn-success"
 
-    
+
     def report_survey_on_validation(form: FORM):
         form.vars.article_id = article.id
         if form.vars.q16 == "UNDER PRIVATE EMBARGO" and form.vars.q17 is None:
@@ -362,7 +363,7 @@ def report_survey(article: Article, survey: Optional[ReportSurvey] = None, contr
         error = report_survey_validate_due_date(form)
         if error and do_validate:
             form.errors.q10 = error
-        
+
         if form.vars.q10 is not None and form.vars.q4 is None:
             form.errors.q4 = "This box needs to be ticked"
 
@@ -575,7 +576,7 @@ def checklist_validation(form: ...):
         form.errors.scripts_doi = "Provide the web address(es) to the scripts used"
     if form.vars.codes_used_in_study == "Codes have been used in this study" and form.vars.codes_doi == []:
         form.errors.codes_doi = "Provide the web address(es) to the code used"
-        
+
 
 ########################################################
 def recommender_decline_invitation_form(article_id: int, user_id: int):
@@ -619,9 +620,9 @@ def recommender_decline_invitation_form(article_id: int, user_id: int):
             emailing.send_submitter_generic_mail(contact, article_id, form, "#RecommenderRejectMail")
         except Exception as e:
             session.flash = (session.flash or "") + current.T("Email failed.")
-            raise e 
+            raise e
         redirect(URL('default','index'))
-    
+
     return form
 
 def widget_submit_button(field: ...,value: ...):
