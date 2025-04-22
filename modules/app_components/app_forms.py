@@ -250,7 +250,7 @@ def update_mail_content_keep_editing_form(form: ...):
     else:
         response.flash = current.T("Error saving reminder: ") + form.error_msg
 
-    form.errors = True  # force validation failure to keep editing form
+    form.errors = Storage()  # force validation failure to keep editing form
     form.content_saved = content_saved
 
 
