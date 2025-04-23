@@ -50,7 +50,7 @@ def URL(a: Optional[str] = None,
         language: Optional[str] = None,
         hash_extension: bool = True
         ):
-    
+
     return str(html.URL(a, # type: ignore
                     c,
                     f,
@@ -89,7 +89,7 @@ def get_script(scriptName: str):
 
 
 ######################################################################################################################################################################
-def getShortText(text, length):
+def getShortText(text: str, length: int):
     text = text or ""
     if len(text) > length:
         text = text[0:length] + "..."
@@ -186,7 +186,7 @@ def get_manager_coauthors(artId):
     db = current.db
     article = db(db.t_articles.id == artId).select().last()
     manager_authors = (article.manager_authors or "").split(',')
-    
+
     return manager_authors
 
 
@@ -227,7 +227,7 @@ def get_exclude_suggested_recommender(article_id: int) -> List[int]:
     article = Article.get_by_id(article_id)
     if not article:
         return []
-    
+
     suggested_recommenders_id: List[int] = []
 
     suggested_recommenders = SuggestedRecommender.get_by_article(article_id)
@@ -235,7 +235,7 @@ def get_exclude_suggested_recommender(article_id: int) -> List[int]:
     if suggested_recommenders and len(suggested_recommenders) > 0:
         for suggested_recommender in suggested_recommenders:
             suggested_recommenders_id.append(suggested_recommender.suggested_recommender_id)
-    
+
     current_user_id = cast(int, auth.user_id)
     suggested_recommenders_id.append(current_user_id)
 
@@ -307,7 +307,7 @@ def get_reset_password_key():
         return vkey
     else:
         return None
-    
+
 def get_article_id():
     request = current.request
     if 'articleId' in request.vars:
@@ -319,7 +319,7 @@ def get_article_id():
         return int(articleId)
     else:
         return None
-    
+
 def get_review_id():
     request = current.request
     if 'reviewId' in request.vars:
@@ -331,7 +331,7 @@ def get_review_id():
         return int(review_id)
     else:
         return None
-    
+
 def get_next():
     request = current.request
     if '_next' in request.vars:
@@ -375,7 +375,7 @@ def separate_suggestions(suggested_reviewers: List[str]):
 
 def delete_user_from_PCI(user: User):
     Membership.remove_all_membership(user.id)
-    Review.change_reviews_state(user.id, 
+    Review.change_reviews_state(user.id,
                                 [ReviewState.ASK_FOR_REVIEW,
                                 ReviewState.AWAITING_REVIEW,
                                 ReviewState.AWAITING_RESPONSE,
@@ -392,12 +392,12 @@ def user_can_active_silent_mode():
         return Membership.has_membership(current.session.original_user_id, [Role.ADMINISTRATOR])
     else:
         return bool(current.auth.has_membership(role=Role.ADMINISTRATOR.value))
-    
+
 
 def is_silent_mode():
     if not user_can_active_silent_mode():
         return False
-    
+
     silent_mode = current.session.silent_mode
     if silent_mode is None:
         return False
@@ -413,16 +413,16 @@ def run_web2py_script(script_name: str, *args: ..., **kwargs: ...):
     cmd = [
             'python3',
             'web2py.py',
-            '-M', 
-            '-S', 
-            app_name, 
-            '-R', 
+            '-M',
+            '-S',
+            app_name,
+            '-R',
             f'applications/{app_name}/utils/{script_name}',
-            '-A', 
+            '-A',
             *encoded_args,
             *kwargs
         ]
-    
+
     os.environ['PYTHONIOENCODING'] = 'utf-8'
     p = subprocess.Popen(cmd,encoding='utf-8')
     del p
@@ -453,7 +453,7 @@ def url_to_doi_id(doi: str):
             .replace("dx.doi.org/", "") \
             .replace("www.biorxiv.org/", "") \
             .replace("content/", "") \
-            .replace("arxiv.org/abs/", "10.48550/arXiv.")    
+            .replace("arxiv.org/abs/", "10.48550/arXiv.")
     return doi
 
 

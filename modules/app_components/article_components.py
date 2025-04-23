@@ -114,7 +114,7 @@ def getRecommArticleRowCard(article: Article,
 
 
 ######################################################################################################################################################################
-def getArticleTrackcRowCard(article):
+def getArticleTrackcRowCard(article: Article):
     db = current.db
 
     nbReviews = db(
@@ -124,7 +124,7 @@ def getArticleTrackcRowCard(article):
     ).count(distinct=db.t_reviews.id)
     if nbReviews > 0:
         track = DIV(_class="pci-trackItem")
-        
+
         firstDate = article.upload_timestamp.strftime(DEFAULT_DATE_FORMAT)
         lastDate = article.last_status_change.strftime(DEFAULT_DATE_FORMAT)
         title = md_to_html(article.title)
@@ -200,7 +200,7 @@ def get_article_infos_card(article: Article, printable: bool,
     article_img = ""
     if article.uploaded_picture is not None and article.uploaded_picture != "":
         article_img = IMG(_alt="picture", _src=URL("static", "uploads", args=article.uploaded_picture))
-        
+
     printable_class = ""
     if printable:
         printable_class = "printable"
@@ -226,7 +226,7 @@ def get_article_infos_card(article: Article, printable: bool,
 
     doi = sub(r"doi: *", "", (article.doi or ""))
     article_altmetric = XML("<div class='text-right altmetric-embed' data-badge-type='donut' data-badge-popover='left' data-hide-no-mentions='true' data-doi='%s'></div>" % doi)
-    
+
 
     # info visibility policies
     recommendation = Article.get_last_recommendation(article.id)
@@ -305,7 +305,7 @@ def get_article_infos_card(article: Article, printable: bool,
 
     if submitted_by:
         article_content.update([("submittedBy", common_small_html.getArticleSubmitter(article))])
-    
+
     if keywords:
         article_content.update([("articleKeywords", article.keywords)])
 
@@ -318,7 +318,7 @@ def get_article_infos_card(article: Article, printable: bool,
         button_text = "Now published in a journal"
         if "10.24072/pcjournal" in doi_of_published_article:
             button_text = "Now published in Peer Community Journal"
-            
+
         article_content.update([("publishedDoi",  A(
                 SPAN(current.T(button_text), _class="btn btn-success"),
                 _href=doi_of_published_article, _target="blank"))])
@@ -344,7 +344,7 @@ def _get_article_translation(article: Article):
                 translations[lang]['automated'] = str(I('This is an automatically generated version. The authors and PCI decline all responsibility concerning its content'))
             else:
                 translations[lang]['automated'] = str(I('This is an author-verified version. The authors endorse the responsibility for its content.'))
-            
+
     if article.translated_keywords:
         for translated_keywords in article.translated_keywords:
             if not translated_keywords['public']:

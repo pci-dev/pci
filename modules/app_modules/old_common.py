@@ -42,7 +42,7 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 
 ######################################################################################################################################################################
 # Show reviews of cancelled articles for CNeuro
-def reviewsOfCancelled(art):
+def reviewsOfCancelled(art: Article):
     db, auth = current.db, current.auth
     track = None
     printable = False

@@ -3,7 +3,7 @@ import time
 from typing import Any, Dict, List, Optional as _, cast
 from pydal.validators import CRYPT
 
-from gluon.utils import web2py_uuid
+from gluon.utils import web2py_uuid # type: ignore
 from pydal.objects import Row
 from gluon import current
 
@@ -46,43 +46,43 @@ class User(Row):
         try: user = db.auth_user[id]
         except: user = None
         return cast(_[User], user)
-    
+
 
     @staticmethod
     def get_by_email(email: str):
         db = current.db
         user = db(db.auth_user.email == email).select().first()
         return cast(_[User], user)
-    
-    
+
+
     @staticmethod
     def get_by_reset_password_key(reset_password_key: str):
         db = current.db
         user = db(db.auth_user.reset_password_key == reset_password_key).select().first()
         return cast(_[User], user)
-    
+
 
     @staticmethod
     def get_by_recover_email_key(recover_email_key: str):
         db = current.db
         user = db(db.auth_user.recover_email_key == recover_email_key).select().first()
         return cast(_[User], user)
-    
+
 
     @staticmethod
-    def set_orcid(user: 'User', orcid: str):
+    def set_orcid(user: 'User', orcid: str) -> 'User':
         user.orcid = orcid
-        return user.update_record()
+        return user.update_record() # type: ignore
 
 
     @staticmethod
-    def set_no_orcid(user: 'User', no_orcid: bool = True):
+    def set_no_orcid(user: 'User', no_orcid: bool = True) -> 'User':
         user.no_orcid = no_orcid
-        return user.update_record()
-    
+        return user.update_record() # type: ignore
+
 
     @staticmethod
-    def is_profile_completed(user: 'User'): 
+    def is_profile_completed(user: 'User'):
         return user.first_name != None and len(user.first_name) > 0 \
             and user.last_name != None and len(user.last_name) > 0 \
             and user.email != None and len(user.email) > 0 \
@@ -95,17 +95,17 @@ class User(Row):
             and user.keywords != None and len(user.keywords) > 0 \
             and user.website != None and len(user.website) > 0 \
             and user.alerts != None and len(user.alerts) > 0
-    
+
 
     @staticmethod
     def change_email(user_id: int, new_email: str):
         user = User.get_by_id(user_id)
         if not user:
             raise Exception('User not found')
-        
+
         max_time = (15 * 24 * 60 * 60) + int(time.time())
         recover_email_key = str( max_time) + "-" + web2py_uuid()
-        user.update_record(recover_email_key=recover_email_key, recover_email=new_email)
+        user.update_record(recover_email_key=recover_email_key, recover_email=new_email) # type: ignore
 
         return recover_email_key
 
@@ -116,7 +116,7 @@ class User(Row):
             max_time = int(recover_email_key.split('-')[0])
         except:
             raise Exception('Invalid key')
-        
+
         user = User.get_by_recover_email_key(recover_email_key)
         if not user:
             raise Exception('Unknown key')
@@ -124,21 +124,25 @@ class User(Row):
         current_time = int(time.time())
         if current_time >= max_time:
             raise Exception('Expired key')
-    
+
         user.email = user.recover_email
         user.recover_email = None
         user.recover_email_key = None
-        user.update_record()
+        user.update_record() # type: ignore
 
 
     @staticmethod
     def delete(user_id: int):
         from app_modules.common_tools import delete_user_from_PCI
-        delete_user_from_PCI(User.get_by_id(user_id))
+        user = User.get_by_id(user_id)
+        if user:
+            delete_user_from_PCI(user)
+        else:
+            raise Exception("User {user_id} not found!")
 
 
     @staticmethod
-    def get_name(user: 'User'):        
+    def get_name(user: 'User'):
         name: List[str] = []
         if user.first_name:
             name.append(user.first_name)
@@ -155,12 +159,12 @@ class User(Row):
             return User.get_name(user)
         else:
             return "?"
-        
+
 
     @staticmethod
     def set_deleted(user: 'User'):
         user.deleted = True
-        user.update_record()
+        user.update_record() # type: ignore
         return user
 
 
@@ -189,9 +193,9 @@ class User(Row):
         user.email_options = []
         user.orcid = None
 
-        user.update_record()
+        user.update_record() # type: ignore
 
-    
+
     @staticmethod
     def generate_new_reset_password_key():
         reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
@@ -208,8 +212,8 @@ class User(Row):
                         orcid: _[str] = None):
         db = current.db
         my_crypt = CRYPT(key=current.auth.settings.hmac_key)
-        crypt_pass = my_crypt(current.auth.random_password())[0]
-        
+        crypt_pass = my_crypt(current.auth.random_password())[0] # type: ignore
+
         if not reset_password_key:
             reset_password_key = User.generate_new_reset_password_key()
 
@@ -222,26 +226,26 @@ class User(Row):
             institution=institution,
             country=country,
             orcid=orcid)
-        
+
         return User.get_by_id(new_user_id)
 
 
     @staticmethod
-    def set_in_new_article_cache(user: 'User', article_data: Dict[Any, Any]):
+    def set_in_new_article_cache(user: 'User', article_data: Dict[Any, Any]) -> 'User':
         user.new_article_cache = article_data
-        return user.update_record()
+        return user.update_record() # type: ignore
 
 
     @staticmethod
-    def clear_new_article_cache(user: 'User'):
+    def clear_new_article_cache(user: 'User') -> 'User':
         user.new_article_cache = None
-        return user.update_record()
+        return user.update_record() # type: ignore
 
 
     @staticmethod
     def get_all_user_subscribed_newsletter():
         db = current.db
-        users: List[User] = db((db.auth_user.alerts != None) 
+        users: List[User] = db((db.auth_user.alerts != None)
                                & (db.auth_user.alerts != "Never")
                                & (db.auth_user.alerts != "")
                                & (db.auth_user.deleted == False)
