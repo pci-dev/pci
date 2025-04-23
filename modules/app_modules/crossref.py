@@ -401,7 +401,7 @@ class pci:
 
 
 class crossref:
-    version = "4.3.7"
+    version = "4.4.2"
     base = "http://www.crossref.org/schema"
     xsd = f"{base}/crossref{version}.xsd"
 

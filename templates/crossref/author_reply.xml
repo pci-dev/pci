@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doi_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
         {{=crossref.base}}/{{=crossref.version}}
-        {{=crossref.xsd}}" version="{{=crossref.version}}">
+        {{=crossref.xsd}}" version="{{=crossref.version}}" xmlns="{{=crossref.base}}/{{=crossref.version}}">
 
     <head>
         <doi_batch_id>{{=he(batch_id)}}</doi_batch_id>
