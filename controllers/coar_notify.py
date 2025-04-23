@@ -395,7 +395,7 @@ def retry(func, url):
     for _ in range(30):
         try:
             r = func(url, timeout=(1,4), allow_redirects=True,
-                        headers={"user-agent":"curl"})
+                        headers={"user-agent":"peercommunityin.org"})
             r.raise_for_status()
             return r
         except:
