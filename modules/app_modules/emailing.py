@@ -3354,6 +3354,24 @@ def create_reminder_user_complete_submission(article):
     emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, article.id)
 
 
+def send_report_coar_post_received(req):
+    session, auth, db = current.session, current.auth, current.db
+
+    author = req["actor"]
+    doi = req["object"]["ietf:cite-as"]
+
+    mail_vars = emailing_tools.getMailCommonVars()
+
+    mail_vars["destAddress"] = myconf.get("contacts.generic_contact")
+    mail_vars["author_email_link"] = f'<a href="{author["id"]}">{author["name"]}</a>'
+    mail_vars["notification_link"] = URL("coar_notify", f"show?id={req['id']}", scheme=True)
+    mail_vars["submission_doi_link"] = f'<a href="{doi}">{doi}</a>'
+
+    hashtag_template = "#AdminReportCOARPostReceived"
+
+    emailing_tools.insertMailInQueue(hashtag_template, mail_vars)
+
+
 ######################################################################################################################################################################
 def check_mail_queue(hashtag, reviewer_mail, recomm_id):
     db = current.db

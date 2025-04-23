@@ -72,6 +72,8 @@ def inbox():
         try:
             body = json.loads(get_body())
 
+            emailing.send_report_coar_post_received(body)
+
             record_request(body)
             process_request(body)
 
