@@ -886,9 +886,8 @@ def mastodon_button(article, recommendation):
         _style=text_style,
     )
 
-def crossref_status(article):
-    recomm = db.get_last_recomm(article)
-    status_url = URL("crossref", f"get_status?recomm_id={recomm.id}")
+def crossref_status(article: Article):
+    status_url = URL("crossref", f"get_status?article_id={article.id}")
     return SPAN(
         SCRIPT('''
         (function get_crossref_status(elt) {

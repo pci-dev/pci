@@ -32,6 +32,29 @@ class CrossrefXML:
         self.author_replies = []
         self.reviews = {}
 
+
+    def get_all_filename(self):
+        filenames: List[str] = []
+
+        if self.article[1]:
+            filenames.append(self.article[1])
+
+        for decision in self.decisions:
+            if decision[2]:
+                filenames.append(decision[2])
+
+        for author_reply in self.author_replies:
+            if author_reply[2]:
+                filenames.append(author_reply[2])
+
+        for reviews in self.reviews.values():
+            for review in reviews:
+                if review[2]:
+                    filenames.append(review[2])
+
+        return filenames
+
+
     @classmethod
     def from_request(cls, request: ...):
         crossref_xml = CrossrefXML()
@@ -123,13 +146,20 @@ def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None):
         return f"error: {e}"
 
 
-def get_status(recomm: Recommendation):
+def get_status(recommendation_xml: CrossrefXML):
+    response = ""
+
     try:
-        req = _get_status(recomm)
-        req.raise_for_status()
-        return req.text
+        filenames = recommendation_xml.get_all_filename()
+        for filename in filenames:
+            req = _get_status(filename)
+            req.raise_for_status()
+            if req.text:
+                response = f"{response}\n{req.text}"
     except Exception as e:
         return f"error: {e.__class__.__name__}"
+
+    return response
 
 
 def mk_affiliation(user: User):
@@ -167,13 +197,13 @@ def post(crossref_xml: str,filename: str):
     )
 
 
-def _get_status(recomm: Recommendation):
+def _get_status(filename: str):
     return HttpClient().get(
         f"{crossref.api_url}/submissionDownload",
         params=dict(
             usr=crossref.login,
             pwd=crossref.passwd,
-            file_name=get_filename_article(recomm),
+            file_name=filename,
             type="result",
         )
     )

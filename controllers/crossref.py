@@ -3,7 +3,7 @@ from app_modules.clockss import send_to_clockss
 from app_modules.common_tools import URL
 from gluon import PRE, current
 from models.article import Article
-from models.recommendation import Recommendation
+
 
 auth = current.auth
 request = current.request
@@ -37,26 +37,26 @@ def post_form():
     if not recommendation.recommendation_title:
         return error("recommendation: no title (not recommended)")
 
-    crossref_status = get_crossref_status(recommendation)
     disable_form = False
 
     batch_id = crossref.get_filename_article(recommendation)
 
     if f"article_xml;{batch_id}" in request.vars:
         recommendation_xml = crossref.CrossrefXML.from_request(request)
-        status = crossref.post_and_forget(article, recommendation_xml)
+        crossref_status = get_crossref_status(recommendation_xml)
 
-        if not status:
+        post_response = crossref.post_and_forget(article, recommendation_xml)
+        if not post_response:
             try:
                 send_to_clockss(article, recommendation)
             except Exception as e:
                 response.flash = f"{e}"
 
-        crossref_status = status or "request sent"
+        crossref_status = post_response or "request sent"
         disable_form = True
     else:
         recommendation_xml = crossref.crossref_recommendations_xml(article)
-
+        crossref_status = get_crossref_status(recommendation_xml)
 
     response.view = "controller/crossref.html"
     return dict(
@@ -72,15 +72,16 @@ def post_form():
 
 @auth.requires(is_admin)
 def get_status():
-    recomm_id = request.vars.recomm_id
+    article_id = request.vars.article_id
 
     try:
-        recomm = Recommendation.get_by_id(recomm_id)
-        assert recomm
+        article = Article.get_by_id(article_id)
+        assert article
     except:
-        return f"error: no such recomm_id={recomm_id}"
+        return f"error: no such article_id={article_id}"
 
-    status = crossref.get_status(recomm)
+    recommendation_xml = crossref.crossref_recommendations_xml(article)
+    status = crossref.get_status(recommendation_xml)
     return (
         3 if status.startswith("error:") else
         2 if crossref.QUEUED in status else
@@ -89,8 +90,9 @@ def get_status():
     )
 
 
-def get_crossref_status(recomm: Recommendation):
-    status = crossref.get_status(recomm)
+def get_crossref_status(recommendation_xml: crossref.CrossrefXML):
+
+    status = crossref.get_status(recommendation_xml)
     if status.startswith("error:") \
     or crossref.QUEUED in status:
         return status
