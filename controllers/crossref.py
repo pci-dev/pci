@@ -43,7 +43,7 @@ def post_form():
 
     if f"article_xml;{batch_id}" in request.vars:
         recommendation_xml = crossref.CrossrefXML.from_request(request)
-        crossref_status = get_crossref_status(recommendation_xml)
+        crossref_status = recommendation_xml.get_status()
 
         post_response = crossref.post_and_forget(article, recommendation_xml)
         if not post_response:
@@ -55,8 +55,8 @@ def post_form():
         crossref_status = post_response or "request sent"
         disable_form = True
     else:
-        recommendation_xml = crossref.crossref_recommendations_xml(article)
-        crossref_status = get_crossref_status(recommendation_xml)
+        recommendation_xml = crossref.CrossrefXML.build(article)
+        crossref_status = recommendation_xml.get_status()
 
     response.view = "controller/crossref.html"
     return dict(
@@ -80,8 +80,8 @@ def get_status():
     except:
         return f"error: no such article_id={article_id}"
 
-    recommendation_xml = crossref.crossref_recommendations_xml(article)
-    status = crossref.get_status(recommendation_xml)
+    recommendation_xml = crossref.CrossrefXML.build(article)
+    status = recommendation_xml.get_status()
     return (
         3 if status.startswith("error:") else
         2 if crossref.QUEUED in status else
@@ -92,7 +92,7 @@ def get_status():
 
 def get_crossref_status(recommendation_xml: crossref.CrossrefXML):
 
-    status = crossref.get_status(recommendation_xml)
+    status = recommendation_xml.get_status()
     if status.startswith("error:") \
     or crossref.QUEUED in status:
         return status

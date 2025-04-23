@@ -3,11 +3,11 @@
 from datetime import datetime
 from functools import reduce
 import os
+import html as std_html
 from re import match
 import re
 import subprocess
 from typing import Any, Dict, List, Optional, Union, cast
-import unicodedata
 from zipfile import ZipFile
 import io
 from gluon import current
@@ -455,3 +455,18 @@ def url_to_doi_id(doi: str):
             .replace("content/", "") \
             .replace("arxiv.org/abs/", "10.48550/arXiv.")    
     return doi
+
+
+def he(non_html_str: Optional[Any]):
+    """Html escape (he)"""
+
+    if non_html_str is None:
+        return ""
+
+    if isinstance(non_html_str, html.DIV) or isinstance(non_html_str, html.XML):
+        non_html_str = str(non_html_str.flatten()) # type: ignore
+    elif not isinstance(non_html_str, str):
+        non_html_str = str(non_html_str)
+
+    non_html_str = re.sub(r'\*(.*?)\*', r'\1', non_html_str)
+    return std_html.escape(non_html_str)

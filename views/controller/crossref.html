@@ -37,17 +37,17 @@
 
     <div class="tab-content" style="padding-top: 20px;">
         <div id="article" class="tab-pane fade in active">
-            <textarea class="xml_textarea" name="article_xml;{{=recommendation_xml.article[1]}}" {{if disable_form:}}disabled="true"{{pass}}>
-                {{=recommendation_xml.article[0]}}
+            <textarea class="xml_textarea" name="article_xml;{{=recommendation_xml.article.filename}}" {{if disable_form:}}disabled="true"{{pass}}>
+{{=recommendation_xml.article.content}}
             </textarea>
             <hr />
         </div>
         <div id="decisions" class="tab-pane fade">
             {{for decision in recommendation_xml.decisions:}}
-            {{if decision[1]:}}
-            <h4>Round {{=decision[0]}}</h4>
-            <textarea class="xml_textarea" name="decision_xml_{{=decision[0]}};{{=decision[2]}}" {{if disable_form:}}disabled="true"{{pass}}">
-                {{=decision[1]}}
+            {{if decision.content:}}
+            <h4>Round {{=decision.round}}</h4>
+            <textarea class="xml_textarea" name="decision_xml_{{=decision.round}};{{=decision.filename}}" {{if disable_form:}}disabled="true"{{pass}}">
+{{=decision.content}}
             </textarea>
             <hr class="round-separator" />
             {{pass}}
@@ -55,10 +55,10 @@
         </div>
         <div id="author-reply" class="tab-pane fade">
             {{for author_reply in recommendation_xml.author_replies:}}
-            {{if author_reply[1]:}}
-            <h4>Round {{=author_reply[0]}}</h4>
-            <textarea class="xml_textarea" name="author_reply_{{=author_reply[0]}};{{=author_reply[2]}}" {{if disable_form:}}disabled="true"{{pass}}>
-                {{=author_reply[1]}}
+            {{if author_reply.content:}}
+            <h4>Round {{=author_reply.round}}</h4>
+            <textarea class="xml_textarea" name="author_reply_{{=author_reply.round}};{{=author_reply.filename}}" {{if disable_form:}}disabled="true"{{pass}}>
+{{=author_reply.content}}
             </textarea>
             <hr class="round-separator" />
             {{pass}}
@@ -69,8 +69,8 @@
             {{if reviews:}}
             <h4>Round {{=round}}</h4>
             {{for i, review in enumerate(reviews):}}
-            <textarea class="xml_textarea textarea_review" name="review_{{=i}}_{{=round}};{{=review[0]}}" {{if disable_form:}}disabled="true"{{pass}}>
-                {{=review[1]}}
+            <textarea class="xml_textarea textarea_review" name="review_{{=review.no_in_round}}_{{=round}};{{=review.filename}}" {{if disable_form:}}disabled="true"{{pass}}>
+{{=review.content}}
             </textarea>
             {{pass}}
             <hr class="round-separator" />

@@ -248,3 +248,27 @@ class User(Row):
                                & (db.auth_user.email != None)
                                ).select(distinct=True)
         return users
+
+
+    @staticmethod
+    def get_affiliation(user: 'User'):
+        if hasattr(user, "is_pseudo"):
+            return "(unavailable)"
+
+        affiliation = ""
+        if user.laboratory:
+            affiliation += user.laboratory
+        if user.laboratory and user.institution:
+            affiliation += ", "
+        if user.institution:
+            affiliation += f"{user.institution}"
+        if user.city or user.country:
+            affiliation += " – "
+        if user.city:
+            affiliation += user.city
+        if user.city and user.country:
+            affiliation += ", "
+        if user.country:
+            affiliation += user.country
+
+        return affiliation
