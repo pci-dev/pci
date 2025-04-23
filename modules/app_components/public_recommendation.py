@@ -270,7 +270,8 @@ def getPublicReviewRoundsHtml(articleId: int):
                 count_anon += 1
                 reviewer_number = common_tools.find_reviewer_number(review, count_anon)
                 reviewAuthorAndDate = SPAN(
-                    current.T("Reviewed by") + " " + current.T("anonymous reviewer %s"%(reviewer_number)) + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else "")
+                    current.T("Reviewed by") + " " + current.T("anonymous reviewer %s"%(reviewer_number)) + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else ""),
+                    _id=f"review-{review.id}"
                 )
 
             else:
@@ -278,6 +279,7 @@ def getPublicReviewRoundsHtml(articleId: int):
                     current.T("Reviewed by"),
                     " ", common_small_html.mkUser(review.reviewer_id, linked=True, orcid_exponant=True),
                     (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else ""),
+                    _id=f"review-{review.id}"
                 )
 
             reviewText = None
@@ -360,6 +362,7 @@ def getPublicReviewRoundsHtml(articleId: int):
             authorsReplyPdfLink=authorsReplyPdfLink,
             recommendationPdfLink=recommendationPdfLink,
             authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
+            recommendation=recomm
         )
 
         reviewRoundsHtml.append(XML(current.response.render("components/public_review_rounds.html", componentVars))) # type: ignore
