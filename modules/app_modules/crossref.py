@@ -345,11 +345,11 @@ class CrossrefXML:
                 req = _get_status(filename)
                 req.raise_for_status()
                 if req.text:
-                    response = f"{response}\n{req.text}"
+                    response = f"{response.strip()}\n\n===== {filename.strip()} =====\n\n{req.text.strip()}"
         except Exception as e:
             return f"error: {e.__class__.__name__}"
 
-        return response
+        return response.strip()
 
 
     @classmethod

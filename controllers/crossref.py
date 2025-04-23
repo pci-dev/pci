@@ -43,7 +43,6 @@ def post_form():
 
     if f"article_xml;{batch_id}" in request.vars:
         recommendation_xml = crossref.CrossrefXML.from_request(request)
-        crossref_status = recommendation_xml.get_status()
 
         post_response = crossref.post_and_forget(article, recommendation_xml)
         if not post_response:
@@ -54,12 +53,14 @@ def post_form():
 
         crossref_status = post_response or "request sent"
         disable_form = True
+        response.flash = "Send to Crossref & Clockss"
     else:
         recommendation_xml = crossref.CrossrefXML.build(article)
-        crossref_status = recommendation_xml.get_status()
+        crossref_status = ""
 
     response.view = "controller/crossref.html"
     return dict(
+        get_status_url=URL("crossref", f"get_status_response?article_id={article_id}"),
         crossref_status=crossref_status,
         back_url=URL("manager", f"recommendations?articleId={recommendation.article_id}"),
         disable_form=disable_form,
@@ -68,6 +69,21 @@ def post_form():
         pageTitle="Crossref post form",
     )
 
+
+@auth.requires(is_admin)
+def get_status_response():
+    article_id = request.vars.article_id
+
+    try:
+        article = Article.get_by_id(article_id)
+        assert article
+    except:
+        return f"error: no such article_id={article_id}"
+
+    recommendation_xml = crossref.CrossrefXML.build(article)
+    status = recommendation_xml.get_status()
+
+    return status
 
 
 @auth.requires(is_admin)
@@ -88,19 +104,6 @@ def get_status():
         1 if crossref.FAILED in status else
         0
     )
-
-
-def get_crossref_status(recommendation_xml: crossref.CrossrefXML):
-
-    status = recommendation_xml.get_status()
-    if status.startswith("error:") \
-    or crossref.QUEUED in status:
-        return status
-
-    if crossref.FAILED in status:
-        return "error: " + crossref.FAILED + "\n\n" + status
-    else:
-        return "success"
 
 
 def error(message: str):

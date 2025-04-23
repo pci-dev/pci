@@ -26,7 +26,7 @@
 
 <form enctype="multipart/form-data" method="post">
 
-    <pre name="status">{{=crossref_status}}</pre>
+    <pre id="status-panel" name="status" style="max-height: 250px;">{{=crossref_status}}</pre>
 
     <ul class="nav nav-tabs">
         <li role="presentation" class="active"><a data-toggle="tab" href="#article">Article</a></li>
@@ -79,7 +79,39 @@
         </div>
     </div>
     <div style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
-        <button type="submit" class="btn btn-info">Send to Crossref & Clockss</button>
+        <button type="submit" class="btn btn-info" onclick="onClickSubmit(this)" {{if disable_form:}}disabled="true"{{pass}}>Send to Crossref & Clockss</button>
         <button onclick="window.location.replace('{{=back_url}}'); return false;">Back</button>
     </div>
 </form>
+
+<script>
+    function onClickSubmit(button) {
+        button.disabled = 'true';
+        button.form.submit();
+        console.log('finish');
+    }
+
+    function getStatus() {
+        const statusPanel = document.getElementById('status-panel');
+        if (statusPanel.innerText.length > 0) {
+            return;
+        }
+
+        statusPanel.innerText = "Loading.."
+
+        req = new XMLHttpRequest();
+        req.open("get", '{{=get_status_url}}');
+        req.send();
+
+        req.addEventListener("load", function() {
+                statusPanel.innerText = '';
+                const status = document.createTextNode(this.response);
+                const xml = document.createElement('xmp');
+                xml.appendChild(status);
+                statusPanel.appendChild(xml);
+        });
+    }
+
+    $(document).ready(getStatus);
+
+</script>
