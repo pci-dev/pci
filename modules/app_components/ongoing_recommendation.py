@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
-from dateutil.relativedelta import *
 
 from gluon import current
 from gluon.html import *
