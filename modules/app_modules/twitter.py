@@ -21,7 +21,7 @@ class Twitter(SocialNetwork):
                                         client_secret=self.__general_api_secret,
                                         resource_owner_key=self.__general_access_token,
                                         resource_owner_secret=self.__general_access_secret)
-        
+
         self.__specific_api_key = self.get_config('specific_api_key')
         self.__specific_api_secret = self.get_config('specific_api_secret')
         self.__specific_access_token = self.get_config('specific_access_token')
@@ -42,7 +42,7 @@ class Twitter(SocialNetwork):
             and len(self.__specific_api_secret) > 0 \
             and len(self.__specific_access_token) > 0 \
             and len(self.__specific_access_secret) > 0
-    
+
 
     def has_general_twitter_config(self) -> bool:
          return len(self.__general_api_key) > 0 \
@@ -71,7 +71,7 @@ class Twitter(SocialNetwork):
                     payload['reply']['in_reply_to_tweet_id'] = parent_tweet_id
 
             response = twitter.post(url, json=payload)
-            
+
             tweet = response.json()
             if response.status_code == 201:
                 tweet = tweet['data']
