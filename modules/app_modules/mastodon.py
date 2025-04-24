@@ -61,11 +61,16 @@ class Mastodon(SocialNetwork) :
         return regex.sub('', instance_url).strip().strip('/')
 
 
-    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]):
-            if self.has_mastodon_general_config():
+    def send_post(self, article_id: int,
+                  recommendation_id: int,
+                  posts_text: List[str],
+                  specific_account: bool = True,
+                  general_account: bool = False):
+
+            if general_account and self.has_mastodon_general_config():
                 self.__mastodon_post(self.__general_mastodon, self.__general_instance_url, article_id, recommendation_id, posts_text)
 
-            if self.has_mastodon_specific_config():
+            if specific_account and self.has_mastodon_specific_config():
                 self.__mastodon_post(self.__specific_mastodon, self.__specific_instance_url, article_id, recommendation_id, posts_text)
 
 

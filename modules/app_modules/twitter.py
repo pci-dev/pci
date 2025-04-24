@@ -51,11 +51,15 @@ class Twitter(SocialNetwork):
             and len(self.__general_access_secret) > 0
 
 
-    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]):
-        if self.has_general_twitter_config():
+    def send_post(self, article_id: int,
+                  recommendation_id: int, posts_text: List[str],
+                  specific_account: bool = True,
+                  general_account: bool = False):
+
+        if general_account and self.has_general_twitter_config():
             self.__twitter_post(self.__twitter, article_id, recommendation_id, posts_text)
-        
-        if self.has_specific_twitter_config():
+
+        if specific_account and self.has_specific_twitter_config():
             self.__twitter_post(self.__specific_twitter, article_id, recommendation_id, posts_text)
 
 

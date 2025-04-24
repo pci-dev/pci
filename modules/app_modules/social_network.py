@@ -27,7 +27,11 @@ class SocialNetwork(metaclass=ABCMeta):
 
 
     @abstractmethod
-    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]):
+    def send_post(self, article_id: int,
+                  recommendation_id: int,
+                  posts_text: List[str],
+                  specific_account: bool = True,
+                  general_account: bool = False):
         ''' Send post to social network with general and specific account. Raise an exception if error to send post. '''
         pass
 
