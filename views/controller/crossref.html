@@ -97,7 +97,7 @@
             return;
         }
 
-        statusPanel.innerText = "Loading.."
+        statusPanel.innerText = "Waiting response from Crossref.."
 
         req = new XMLHttpRequest();
         req.open("get", '{{=get_status_url}}');

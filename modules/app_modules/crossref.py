@@ -20,6 +20,9 @@ db = current.db
 
 CROSSREF_TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "../../templates/crossref")
 
+class XMLException(Exception):
+    pass
+
 
 @dataclass
 class ArticleXML:
@@ -30,13 +33,13 @@ class ArticleXML:
     def build(recomm: Recommendation):
         article = Article.get_by_id(recomm.article_id)
         if not article:
-            return ArticleXML("Article not found!", "")
+            return ArticleXML(f"Article with id {recomm.article_id} not found!", "")
 
         recomm_url = f"{pci.url}/articles/rec?id={article.id}"
         recomm_doi = _get_recommendation_doi(recomm)
         recomm_date = recomm.validation_timestamp.date() if recomm.validation_timestamp else None
         if not recomm_date:
-            return ArticleXML("Missing recommendation validation timestamp!", "")
+            return ArticleXML(f"Missing recommendation validation timestamp for recommendation with id {recomm.id}!", "")
 
         recomm_title = recomm.recommendation_title
         recomm_description_text = Article.get_article_reference(article)
@@ -44,7 +47,7 @@ class ArticleXML:
 
         recommender = User.get_by_id(recomm.recommender_id)
         if not recommender:
-            return ArticleXML("Recommender not found!", "")
+            return ArticleXML(f"Recommender with id {recomm.recommender_id} not found!", "")
 
         co_recommenders: List[User] = []
         for row in PressReview.get_by_recommendation(recomm.id):
@@ -95,13 +98,13 @@ class DecisionElementXML:
     @staticmethod
     def build(article: Article, recommendation: Recommendation, round: int):
         if not recommendation.validation_timestamp:
-            return DecisionElementXML(round, "Missing validation timestamp for the recommendation", "")
+            return DecisionElementXML(round, f"Missing validation timestamp for the recommendation with id {recommendation.id}", "")
 
         if not recommendation.last_change:
-            return DecisionElementXML(round, "Missing last_change for the recommendation", "")
+            return DecisionElementXML(round, f"Missing last_change for the recommendation with id {recommendation.id}", "")
 
         if not recommendation.recommender_id:
-            return DecisionElementXML(round, "Missing recommender for the recommendation", "")
+            return DecisionElementXML(round, f"Missing recommender for the recommendation with id {recommendation.id}", "")
 
         recommender = User.get_by_id(recommendation.recommender_id)
         if not recommender:
@@ -154,13 +157,13 @@ class AuthorReplyElementXML:
     @staticmethod
     def build(article: Article, recommendation: Recommendation, round: int):
         if not recommendation.validation_timestamp:
-            return AuthorReplyElementXML(round, "Missing validation timestamp for the recommendation", "")
+            return AuthorReplyElementXML(round, f"Missing validation timestamp for the recommendation with id {recommendation.id}", "")
 
         if not recommendation.last_change:
-            return AuthorReplyElementXML(round, "Missing last_change for the recommendation", "")
+            return AuthorReplyElementXML(round, f"Missing last_change for the recommendation with id {recommendation.id}", "")
 
         if not article.user_id:
-            return AuthorReplyElementXML(round, "Missing author for the article", "")
+            return AuthorReplyElementXML(round, f"Missing author for the article with id {article.id}", "")
 
         author = User.get_by_id(article.user_id)
         if not author:
@@ -211,10 +214,10 @@ class ReviewElementXML:
     @staticmethod
     def build(article: Article, recommendation: Recommendation, review: Review, round: int, no_review_round: int):
         if not review.acceptation_timestamp:
-            return ReviewElementXML(no_review_round, "Missing acceptation timestamp for the review", "")
+            return ReviewElementXML(no_review_round, f"Missing acceptation timestamp for the review {no_review_round} of round {round}", "")
 
         if not review.last_change:
-            return ReviewElementXML(no_review_round, "Missing last_change for the review", "")
+            return ReviewElementXML(no_review_round, "Missing last_change for the review {no_review_round} of round {round}", "")
 
         batch_id = f"pci={pci.host}:rec={recommendation.id}:rev={review.id}"
 
@@ -230,7 +233,7 @@ class ReviewElementXML:
         else:
             reviewer = User.get_by_id(review.reviewer_id)
             if not reviewer:
-                return ReviewElementXML(no_review_round, "Reviewer not found!", "")
+                return ReviewElementXML(no_review_round, f"Reviewer with id {review.reviewer_id} not found!", "")
 
             reviewer_first_name = reviewer.first_name if reviewer.first_name else "?"
             reviewer_last_name = reviewer.last_name if reviewer.last_name else "?"
@@ -306,6 +309,25 @@ class CrossrefXML:
         return filenames
 
 
+    def raise_error(self):
+        if self.article.filename:
+            if not self.article.filename:
+                raise XMLException(self.article.content)
+
+        for decision in self.decisions:
+            if not decision.filename:
+                raise XMLException(decision.content)
+
+        for author_reply in self.author_replies:
+            if not author_reply.filename:
+                raise XMLException(author_reply.content)
+
+        for reviews in self.reviews.values():
+            for review in reviews:
+                if not review.filename:
+                    raise XMLException(review.content)
+
+
     @staticmethod
     def build(article: Article):
         recommendations = Article.get_last_recommendations(article.id, order_by=current.db.t_recommendations.id)
@@ -341,11 +363,15 @@ class CrossrefXML:
 
         try:
             filenames = self.get_all_filename()
+            self.raise_error()
+
             for filename in filenames:
                 req = _get_status(filename)
                 req.raise_for_status()
                 if req.text:
                     response = f"{response.strip()}\n\n===== {filename.strip()} =====\n\n{req.text.strip()}"
+        except XMLException as e:
+            return f"error: {e}"
         except Exception as e:
             return f"error: {e.__class__.__name__}"
 
@@ -418,24 +444,23 @@ def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None):
         xml = CrossrefXML.build(article)
 
     try:
+        xml.raise_error()
         assert crossref.login, "crossref.login not set"
         assert xml.article.filename
+
         resp = _post( xml.article.content, xml.article.filename)
         resp.raise_for_status()
 
         for author_reply in xml.author_replies:
-            assert author_reply.filename
             resp = _post(author_reply.content, author_reply.filename)
             resp.raise_for_status()
 
         for decision in xml.decisions:
-            assert decision.filename
             resp = _post(decision.content, decision.filename)
             resp.raise_for_status()
 
         for _, reviews in xml.reviews.items():
             for review in reviews:
-                assert review.filename
                 resp = _post(review.content, review.filename)
                 resp.raise_for_status()
 

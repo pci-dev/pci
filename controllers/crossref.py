@@ -44,16 +44,19 @@ def post_form():
     if f"article_xml;{batch_id}" in request.vars:
         recommendation_xml = crossref.CrossrefXML.from_request(request)
 
-        post_response = crossref.post_and_forget(article, recommendation_xml)
-        if not post_response:
-            try:
+        try:
+            recommendation_xml.raise_error()
+            post_response = crossref.post_and_forget(article, recommendation_xml)
+            if not post_response:
                 send_to_clockss(article, recommendation)
-            except Exception as e:
-                response.flash = f"{e}"
 
-        crossref_status = post_response or "request sent"
+            crossref_status = post_response or "Sent to Crossref & Clockss"
+            response.flash = "Sent to Crossref & Clockss"
+        except Exception as e:
+            crossref_status = f"{e}"
+            response.flash = f"{e}"
+
         disable_form = True
-        response.flash = "Send to Crossref & Clockss"
     else:
         recommendation_xml = crossref.CrossrefXML.build(article)
         crossref_status = ""
