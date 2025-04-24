@@ -571,6 +571,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
                 date_format=date_format,
                 article_cancelled=article_cancelled,
                 article_step=ArticleStep,
+                is_submitter=is_submitter,
             )
             recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
 
@@ -622,6 +623,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
             date_format=date_format,
             article_cancelled=article_cancelled,
             article_step=ArticleStep,
+            is_submitter=is_submitter,
         )
 
         recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore

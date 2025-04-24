@@ -69,8 +69,8 @@
         </div>
     </div>
 
-    {{if (roundNumber == 1) or (roundNumber > 1 and reviewCount > 0 and 
-    (not recommendationStepClass == "step-done" or 
+    {{if (roundNumber == 1) or (roundNumber > 1 and reviewCount > 0 and
+    (not recommendationStepClass == "step-done" or
     (acceptedReviewCount >= 2 and completedReviewCount >= 2))
     ):}}
         <div class="progress-step-div pci2-flex-row {{=reviewInvitationsAcceptedClass}}" data-step="{{=article_step.REVIEWERS_NEEDED}}">
@@ -124,7 +124,7 @@
 
     <div class="pci2-flex-row {{=managerDecisionDoneStepClass}} {{=managerDecisionDoneClass}}" data-step="{{=article_step.EVALUATION_AND_DECISION_UNDERWAY}}">
         <div class="pci2-flex-center progress-step-circle">
-            {{if validationDate or managerDecisionDoneClass == "step-done":}}
+            {{if (validationDate or managerDecisionDoneClass == "step-done") and not is_submitter:}}
                 {{if recommStatus == "Recommended":}}
                     <i class="glyphicon glyphicon-ok"></i>
                 {{elif recommStatus == "Revision":}}
@@ -139,14 +139,18 @@
         <div class="step-description">
             <h3><b style="color: #333">Round {{=roundNumber}}: </b>
                 {{if validationDate:}}
-                Decision validated by the Managing board
+                    Decision validated by the Managing board
                 {{elif managerDecisionDoneClass == "step-done":}}
-                    {{if recommStatus == "Recommended":}}
-                        Recommendation pending validation
-                    {{elif recommStatus == "Revision":}}
-                        Revision pending validation
-                    {{elif recommStatus == "Rejected":}}
-                        Rejection pending validation
+                    {{if is_submitter:}}
+                        Decision pending validation
+                    {{else:}}
+                        {{if recommStatus == "Recommended":}}
+                            Recommendation pending validation
+                        {{elif recommStatus == "Revision":}}
+                            Revision pending validation
+                        {{elif recommStatus == "Rejected":}}
+                            Rejection pending validation
+                        {{pass}}
                     {{pass}}
                 {{else:}}
                     Evaluation and decision underway
@@ -186,7 +190,7 @@
             {{pass}}">
 
     <div class="progress-step-circle pci2-flex-center">
-        {{if validationDate or managerDecisionDoneClass == "step-done":}}
+        {{if (validationDate or managerDecisionDoneClass == "step-done") and not is_submitter:}}
             {{if recommStatus == "Recommended":}}
                 <i class="glyphicon glyphicon-ok"></i>
             {{elif recommStatus == "Revision":}}
@@ -203,12 +207,16 @@
             {{if validationDate:}}
                 Decision validated by the Managing board
             {{elif managerDecisionDoneClass == "step-done":}}
-                {{if recommStatus == "Recommended":}}
-                    Recommendation pending validation
-                {{elif recommStatus == "Revision":}}
-                    Revision pending validation
-                {{elif recommStatus == "Rejected":}}
-                    Rejection pending validation
+                {{if is_submitter:}}
+                        Decision pending validation
+                {{else:}}
+                    {{if recommStatus == "Recommended":}}
+                        Recommendation pending validation
+                    {{elif recommStatus == "Revision":}}
+                        Revision pending validation
+                    {{elif recommStatus == "Rejected":}}
+                        Rejection pending validation
+                    {{pass}}
                 {{pass}}
             {{else:}}
                 Evaluation and decision underway
