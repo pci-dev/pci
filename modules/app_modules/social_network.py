@@ -2,18 +2,17 @@ from abc import ABCMeta, abstractmethod
 from textwrap import wrap
 from typing import List, cast
 from gluon import current
-from gluon.contrib.appconfig import AppConfig
+from gluon.contrib.appconfig import AppConfig # type: ignore
 from models.article import Article
 from models.post import Post, PostTable
 from models.recommendation import Recommendation
 from models.review import Review
-from models.user import User
 
 from app_modules.common_tools import generate_recommendation_doi
 
 
 class SocialNetwork(metaclass=ABCMeta):
-    
+
     POST_MAX_LENGTH: int
 
     def __init__(self, post_max_length: int, table_name: PostTable):
@@ -28,7 +27,11 @@ class SocialNetwork(metaclass=ABCMeta):
 
 
     @abstractmethod
-    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]):
+    def send_post(self, article_id: int,
+                  recommendation_id: int,
+                  posts_text: List[str],
+                  specific_account: bool = True,
+                  general_account: bool = False):
         ''' Send post to social network with general and specific account. Raise an exception if error to send post. '''
         pass
 
@@ -44,7 +47,7 @@ class SocialNetwork(metaclass=ABCMeta):
         posts = wrap(text, self._post_max_length - 4)
         for i, post in enumerate(posts[:-1]):
             posts[i] = post + '… 🔽'
-        
+
         return posts
 
 
@@ -56,11 +59,11 @@ class SocialNetwork(metaclass=ABCMeta):
 
     def get_posts_from_db(self, article_id: int, recommendation_id: int):
         return Post.get_posts_from_db(self._table_name, article_id, recommendation_id)
-    
+
 
     def has_already_posted(self, article_id: int, recommendation_id: int):
         return Post.has_already_posted(self._table_name, article_id, recommendation_id)
-    
+
 
     def _save_posts_in_db(self, post: Post):
         return Post.save_posts_in_db(self._table_name, post)

@@ -19,18 +19,18 @@ class Mastodon(SocialNetwork) :
                 'Authorization': f'Bearer {self.__general_access_token}',
                 'content-type': 'application/json',
             })
-        
+
         self.__specific_access_token = self.get_config('specific_access_token')
         self.__specific_instance_url = self.__get_instance_url(True)
         self.__specific_mastodon = HttpClient(default_headers = {
                 'Authorization': f'Bearer {self.__specific_access_token}',
                 'content-type': 'application/json',
             })
-        
+
 
     def has_mastodon_specific_config(self) -> bool:
         return len(self.__specific_access_token) > 0 and len(self.__specific_instance_url) > 0
-    
+
 
     def has_mastodon_general_config(self) -> bool:
         return len(self.__general_access_token) > 0 and len(self.__general_instance_url) > 0
@@ -49,7 +49,7 @@ class Mastodon(SocialNetwork) :
         if instance_url.endswith('/'):
             return instance_url[:-1]
         return instance_url
-    
+
 
     def get_instance_name(self, specific: bool = False):
         if specific:
@@ -59,13 +59,18 @@ class Mastodon(SocialNetwork) :
 
         regex = re.compile(r"https?://(www\.)?")
         return regex.sub('', instance_url).strip().strip('/')
-              
 
-    def send_post(self, article_id: int, recommendation_id: int, posts_text: List[str]):
-            if self.has_mastodon_general_config():
+
+    def send_post(self, article_id: int,
+                  recommendation_id: int,
+                  posts_text: List[str],
+                  specific_account: bool = True,
+                  general_account: bool = False):
+
+            if general_account and self.has_mastodon_general_config():
                 self.__mastodon_post(self.__general_mastodon, self.__general_instance_url, article_id, recommendation_id, posts_text)
 
-            if self.has_mastodon_specific_config():
+            if specific_account and self.has_mastodon_specific_config():
                 self.__mastodon_post(self.__specific_mastodon, self.__specific_instance_url, article_id, recommendation_id, posts_text)
 
 
