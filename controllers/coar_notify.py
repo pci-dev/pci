@@ -345,7 +345,7 @@ def map_datacite(metadata, xml_str):
     metadata["authors"] = ", ".join(authors)
     metadata["article_year"] = get("publicationYear")
     metadata["abstract"] = get("*/description")
-    metadata["keywords"] = get("*/subject")
+    metadata["keywords"] = ", ".join(get_all("*/subject"))
 
 
 def map_HAL_json(metadata, content):
