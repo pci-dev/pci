@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
-from dateutil.relativedelta import *
 
 from gluon import current
 from gluon.html import *
@@ -71,7 +70,7 @@ def getRecommStatusHeader(art: Article, userDiv: bool, printable: bool, quiet: b
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRequest = True
         manageRecommendersButton = manager_module.mkSuggestedRecommendersManagerButton(art, back2)
-    
+
     if pciRRactivated and lastRecomm and ((lastRecomm.recommender_id == auth.user_id or co_recommender) and lastRecomm.recommendation_state in ("Ongoing", "Revision")) and auth.has_membership(role="recommender") and not(quiet):
        allowManageRequest = True
 
@@ -79,7 +78,7 @@ def getRecommStatusHeader(art: Article, userDiv: bool, printable: bool, quiet: b
     verifyUrl = None
     if auth.has_membership(role="manager"):
         printableUrl = common_tools.URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), scheme=True)
-    
+
     if (auth.has_membership(role="recommender") or auth.has_membership(role="manager")) and art.user_id != auth.user_id:
         verifyUrl = common_tools.URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=art.id, printable=True), scheme=True)
 
@@ -136,7 +135,7 @@ def get_recommendation_status_buttons(article: Article):
     if auth.has_membership(role="manager") and not (article.user_id == auth.user_id):
         allow_manage_request = True
         manage_recommendation_button = manager_module.mkSuggestedRecommendersManagerButton(article, next_url, True)
-    
+
     if pciRRactivated and last_recommendation \
         and auth.has_membership(role=Role.RECOMMENDER.value) \
         and ((last_recommendation.recommender_id == auth.user_id or co_recommender) and last_recommendation.recommendation_state in (RecommendationState.ONGOING.value,
@@ -147,7 +146,7 @@ def get_recommendation_status_buttons(article: Article):
     verify_url = None
     if auth.has_membership(role="manager"):
         printable_url = common_tools.URL(c="manager", f="article_emails", vars=dict(articleId=article.id, printable=True), scheme=True)
-    
+
     if (auth.has_membership(role="recommender") or auth.has_membership(role="manager")) and article.user_id != auth.user_id:
         verify_url = common_tools.URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=article.id, printable=True), scheme=True)
 
@@ -184,7 +183,7 @@ def get_recommendation_status_buttons(article: Article):
 
     if printable_url:
         buttons.append(A(T('View e-mails'), _href=printable_url))
-    
+
     return buttons
 
 
@@ -215,14 +214,14 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
         if already_request_willing_to_recommend and not valid_sugg_recommender:
             if already_request_willing_to_recommend and not sugg_recommender:
                 myButtons.append(P("You have already requested to handle the recommendation process")) # type: ignore
-            
+
             btsAccDec.append(
                     BUTTON(current.T("Yes, I would like to handle the evaluation process"),
                     _class=f"buttontext btn btn-success pci-recommender",
                     _disabled=True
                 ),
             )
-        
+
         if not already_request_willing_to_recommend and not valid_sugg_recommender:
             btsAccDec.append(
                 A(
@@ -231,7 +230,7 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
                     _href=common_tools.URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id, skip_checkbox=True), scheme=True),
                 ),
             )
-        
+
         if valid_sugg_recommender:
             btsAccDec.append(
                 A(
@@ -240,7 +239,7 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
                     _href=common_tools.URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), scheme=True),
                 ),
             )
-                   
+
             btsAccDec.append(
                 A(
                     SPAN(current.T("No, I would rather not"), _class="buttontext btn btn-warning pci-recommender"),
@@ -289,7 +288,7 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
                 _class="pci-EditButtons pci2-flex-grow pci2-flex-center",
                 _id="cancel-submission-button",
             )
-        ) # author's button allowing cancellation 
+        ) # author's button allowing cancellation
 
     myContents.append(myButtons) # type: ignore
 
@@ -486,7 +485,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
 
             if reviewsStepDoneClass == "step-done" and lastReviewDate:
                 decision_due_date = lastReviewDate + timedelta(days=10)
-                
+
             if completedReviewCount == acceptedReviewCount and completedReviewCount >= 2:
                 recommendationStepClass = "step-done"
 
@@ -572,6 +571,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
                 date_format=date_format,
                 article_cancelled=article_cancelled,
                 article_step=ArticleStep,
+                is_submitter=is_submitter,
             )
             recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
 
@@ -623,6 +623,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
             date_format=date_format,
             article_cancelled=article_cancelled,
             article_step=ArticleStep,
+            is_submitter=is_submitter,
         )
 
         recommendationDiv.append(XML(current.response.render("components/recommendation_process_for_submitter.html", componentVars))) # type: ignore
@@ -694,10 +695,10 @@ def _must_hide_on_going_recommendation(article: Article, recommendation: Recomme
     # or a manager
     if auth.has_membership(role=Role.MANAGER.value) and (article.user_id != auth.user_id):
         return False
-    
+
     return ((article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)) or (article.status.startswith("Pre-"))) and not (recommendation.is_closed)  # (iRecomm==1)
 
-    
+
 def _get_author_reply(recommendation: Recommendation):
     authors_reply: Optional[DIV] = None
     if (recommendation.reply is not None) and (len(recommendation.reply) > 0):
@@ -740,7 +741,7 @@ def _is_scheduled_submission_revision(article: Article, printable: bool):
 
     if (article.status == ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value) and (article.user_id == auth.user_id) and not (printable):
         return common_tools.URL(c="user_actions", f="article_revised", vars=dict(articleId=article.id), user_signature=True, scheme=True)
-    
+
 
 def _get_authors_reply_track_change_file_link(recommendation: Recommendation):
     if recommendation.track_change:
@@ -750,7 +751,7 @@ def _get_authors_reply_track_change_file_link(recommendation: Recommendation):
             _href=common_tools.URL("default", "download", args=recommendation.track_change, scheme=True),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
-    
+
 
 def _is_recommendation_review_filled_or_null(recommendation: Recommendation):
     db = current.db
@@ -824,7 +825,7 @@ def _get_hide_on_going_review_and_set_show_review_request(article: Article, reco
     if (recommendation.recommender_id != auth.user_id and am_I_co_recommender == False) and review.review_state == ReviewState.WILLING_TO_REVIEW.value:
         review_vars.update([("showReviewRequest", False)])
         hide_on_going_review = True
-        
+
     if auth.has_membership(role=Role.MANAGER.value)  and review.review_state == ReviewState.WILLING_TO_REVIEW.value:
         review_vars.update([("showReviewRequest", True)])
         hide_on_going_review = False
@@ -925,7 +926,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
             ])
 
     return (review_vars, count_anonymous_review)
-    
+
 
 def _get_recommendation_label(recommendation: Recommendation, am_I_co_recommender: bool):
     auth = current.auth
@@ -985,7 +986,7 @@ def _get_invite_reviewer_links(article: Article, recommendation: Recommendation,
     if not (recommendation.is_closed) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender or auth.has_membership(role=Role.MANAGER.value)) and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)):
         invite_reviewer_link = common_tools.URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id), scheme=True)
         show_remove_searching_for_reviewers_button = article.is_searching_reviewers
-    
+
     return dict(
         invite_reviewer_link=invite_reviewer_link,
         show_remove_searching_for_reviewers_button=show_remove_searching_for_reviewers_button
@@ -1082,7 +1083,7 @@ def _get_manager_button(article: Article, is_recommender: bool):
         return sorry_you_are_coauthor_note()
     else:
         return validate_stage_button(article)
-    
+
 
 def get_recommendation_process_components(article: Article, printable: bool = False):
     auth = current.auth
@@ -1128,9 +1129,9 @@ def get_recommendation_process_components(article: Article, printable: bool = Fa
                 nb_on_going += 1
             if review.review_state == ReviewState.REVIEW_COMPLETED.value:
                 nb_completed += 1
-            
+
             review_vars, count_anonymous_review = _build_review_vars(article, recommendation, review, am_I_co_recommender, printable, count_anonymous_review, role)
-            reviews_list.append(review_vars)            
+            reviews_list.append(review_vars)
 
         recommender_buttons = _get_recommender_buttons(article, recommendation, am_I_co_recommender, nb_completed, nb_on_going, nb_round, printable)
         invite_reviewer_links_buttons= _get_invite_reviewer_links(article, recommendation, am_I_co_recommender)
@@ -1179,7 +1180,7 @@ def get_recommendation_process_components(article: Article, printable: bool = Fa
             pciRRactivated=pciRRactivated,
             recommenderId=recommendation.recommender_id
         )
-        
+
         recommendation_process_components.append(component_vars)
         previous_recommendation = recommendation # iteration is most recent first; last round (final reco) has no author's reply
 
@@ -1196,12 +1197,12 @@ def get_recommendation_process_components(article: Article, printable: bool = Fa
 
 def get_recommendation_process(article: Article, printable: bool = False):
     response = current.response
-    
+
     process = get_recommendation_process_components(article)
     process_components = cast(Dict[str, Any], process['components'])
     am_I_in_recommender_list= bool(process['am_I_in_recommender_list'])
     am_I_in_co_recommender_list = bool(process['am_I_in_co_recommender_list'])
-        
+
     recommendation_rounds_html = DIV("", _class=("pci-article-div-printable" if printable else "pci-article-div"))
     for component in process_components:
         recommendation_rounds_html.append(XML(response.render("components/recommendation_process.html", component))) # type: ignore
@@ -1281,12 +1282,12 @@ def validate_stage_button(article: Article):
 
                 return SPAN(H2(I(_style="margin-right: 10px", _class="glyphicon glyphicon-education"),
                     "To be checked",
-                    _style="margin-top:40px", 
-                    _id="title-recomm-process", 
+                    _style="margin-top:40px",
+                    _id="title-recomm-process",
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
                     validation_checklist('do_recommend_article', article) if not pciRRactivated else "",
                     button)
-            
+
             elif article.status == ArticleStatus.PRE_REVISION.value:
                 button = manager_action_button(
                     "do_revise_article",
@@ -1298,8 +1299,8 @@ def validate_stage_button(article: Article):
 
                 return SPAN(H2(I(_style="margin-right: 10px", _class="glyphicon glyphicon-education"),
                     "To be checked",
-                    _style="margin-top:40px", 
-                    _id="title-recomm-process", 
+                    _style="margin-top:40px",
+                    _id="title-recomm-process",
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
                     validation_checklist('do_revise_article', article) if not pciRRactivated else "",
                     button)
@@ -1314,8 +1315,8 @@ def validate_stage_button(article: Article):
 
                 return SPAN(H2(I(_style="margin-right: 10px", _class="glyphicon glyphicon-education"),
                     "To be checked",
-                    _style="margin-top:40px", 
-                    _id="title-recomm-process", 
+                    _style="margin-top:40px",
+                    _id="title-recomm-process",
                     _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center" ),
                     validation_checklist('do_reject_article', article) if not pciRRactivated else "",
                     button)
