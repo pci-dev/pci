@@ -983,6 +983,8 @@ def stream_pdf():
 
         return response.stream(file_to_download)
 
+    except HTTP as e:
+        raise e
     except Exception as e:
         raise HTTP(404, f"ERROR streaming PDF: {e}")
 
