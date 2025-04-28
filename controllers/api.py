@@ -25,6 +25,7 @@ def version():
     inc = int(ver[-2])
     tag = "-".join(ver[:-2])
     if inc: tag += f"+{inc}"
+    if "+" in sha: tag += "*"
 
     return json({
         "version": { "hash": sha, "tag": tag }

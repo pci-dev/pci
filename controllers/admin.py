@@ -960,3 +960,18 @@ def extract():
             }),
         ]
     ]))
+
+def urls():
+    response.view = "default/info.html"
+    return dict(message=DIV([
+        UL(A(url, _href=url))
+
+        for url in [
+            URL("admin", "extract"),
+            URL("api", "recommendations"),
+            URL("api", " "),
+            URL("coar_notify", " "),
+            URL("coar_notify", "show?id=XXX"),
+            URL("metadata", "recommendation?article_id=XXX"),
+        ]
+    ]))
