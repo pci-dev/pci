@@ -180,6 +180,7 @@ def _AdminMenu():
         menu_entry("Mailing queue", "glyphicon-send", URL("admin", "mailing_queue")),
         menu_entry("Send mail to all subscribers", "glyphicon-send", URL("admin", "send_mail_for_newsletter_subscriber")),
         silent_mode_menu,
+        menu_entry("URLs of interest", "glyphicon-list-alt", URL("admin", "urls")),
         divider(),
         menu_entry("Thematic fields", "glyphicon-tags", URL("admin", "thematics_list")),
         menu_entry("Status of articles", "glyphicon-bookmark", URL("admin", "article_status")),
