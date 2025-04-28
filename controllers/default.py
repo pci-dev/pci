@@ -981,8 +981,10 @@ def stream_pdf():
         # erase metadata
         os.system('exiftool -overwrite_original -all:all="" ' + file_to_download)
 
-        return response.stream(file_to_download)
+        response.stream(file_to_download) # raises HTTP(200) on success
 
+    except HTTP as e:
+        raise e
     except Exception as e:
         raise HTTP(404, f"ERROR streaming PDF: {e}")
 
