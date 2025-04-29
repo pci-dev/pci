@@ -29,16 +29,16 @@
     <pre id="status-panel" name="status" style="max-height: 250px;">{{=crossref_status}}</pre>
 
     <ul class="nav nav-tabs">
-        <li role="presentation" class="active"><a data-toggle="tab" href="#article">Article</a></li>
+        <li role="presentation" class="active"><a data-toggle="tab" href="#recommendation">Recommendation</a></li>
         <li role="presentation"><a data-toggle="tab" href="#decisions">Decisions</a></li>
         <li role="presentation"><a data-toggle="tab" href="#author-reply">Author replies</a></li>
         <li role="presentation"><a data-toggle="tab" href="#reviews">Reviews</a></li>
     </ul>
 
     <div class="tab-content" style="padding-top: 20px;">
-        <div id="article" class="tab-pane fade in active">
-            <textarea class="xml_textarea" name="article_xml;{{=recommendation_xml.article.filename}}" {{if disable_form:}}disabled="true"{{pass}}>
-{{=recommendation_xml.article.content}}
+        <div id="recommendation" class="tab-pane fade in active">
+            <textarea class="xml_textarea" name="recommendation_xml;{{=recommendation_xml.recommendation.filename}}" {{if disable_form:}}disabled="true"{{pass}}>
+{{=recommendation_xml.recommendation.content}}
             </textarea>
             <hr />
         </div>

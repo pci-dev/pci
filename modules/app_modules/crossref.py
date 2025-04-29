@@ -25,7 +25,7 @@ class XMLException(Exception):
 
 
 @dataclass
-class ArticleXML:
+class RecommendationXML:
     content: str
     filename: str
 
@@ -33,13 +33,13 @@ class ArticleXML:
     def build(recomm: Recommendation):
         article = Article.get_by_id(recomm.article_id)
         if not article:
-            return ArticleXML(f"Article with id {recomm.article_id} not found!", "")
+            return RecommendationXML(f"Article with id {recomm.article_id} not found!", "")
 
         recomm_url = f"{pci.url}/articles/rec?id={article.id}"
         recomm_doi = _get_recommendation_doi(recomm)
         recomm_date = recomm.validation_timestamp.date() if recomm.validation_timestamp else None
         if not recomm_date:
-            return ArticleXML(f"Missing recommendation validation timestamp for recommendation with id {recomm.id}!", "")
+            return RecommendationXML(f"Missing recommendation validation timestamp for recommendation with id {recomm.id}!", "")
 
         recomm_title = recomm.recommendation_title
         recomm_description_text = Article.get_article_reference(article)
@@ -47,7 +47,7 @@ class ArticleXML:
 
         recommender = User.get_by_id(recomm.recommender_id)
         if not recommender:
-            return ArticleXML(f"Recommender with id {recomm.recommender_id} not found!", "")
+            return RecommendationXML(f"Recommender with id {recomm.recommender_id} not found!", "")
 
         co_recommenders: List[User] = []
         for row in PressReview.get_by_recommendation(recomm.id):
@@ -86,7 +86,7 @@ class ArticleXML:
                 recomm_citations=XML(recomm_citations)
             ))
 
-        return ArticleXML(cast(str, xml), batch_id)
+        return RecommendationXML(cast(str, xml), batch_id)
 
 
 @dataclass
@@ -116,7 +116,7 @@ class DecisionElementXML:
         recommendation_date = recommendation.validation_timestamp.date()
         interwork_type, interwork_ref = _get_identifier(article.doi)
 
-        decision_doi = _get_decision_doi(recommendation, round)
+        decision_doi = get_decision_doi(recommendation, round)
         decision_url = f"{pci.url}/articles/rec?id={article.id}#d-{recommendation.id}"
 
         if recommendation.recommendation_state == RecommendationState.RECOMMENDED.value:
@@ -175,7 +175,7 @@ class AuthorReplyElementXML:
         recommendation_date = recommendation.validation_timestamp.date()
         interwork_type, interwork_ref = _get_identifier(article.doi)
 
-        author_reply_doi = _get_author_reply_doi(recommendation, round)
+        author_reply_doi = get_author_reply_doi(recommendation, round)
         author_reply_url = f"{pci.url}/articles/rec?id={article.id}#ar-{recommendation.id}"
 
         if recommendation.recommendation_state == RecommendationState.RECOMMENDED.value:
@@ -225,7 +225,7 @@ class ReviewElementXML:
         review_date = review.acceptation_timestamp.date()
         interwork_type, interwork_ref = _get_identifier(article.doi)
 
-        review_doi = _get_review_doi(recommendation, no_review_round, round)
+        review_doi = get_review_doi(recommendation, no_review_round, round)
         review_url = f"{pci.url}/articles/rec?id={article.id}#review-{review.id}"
 
         if review.anonymously:
@@ -275,13 +275,13 @@ class ReviewElementXML:
 
 @dataclass
 class CrossrefXML:
-    article: ArticleXML
+    recommendation: RecommendationXML
     decisions: List[DecisionElementXML]
     author_replies: List[AuthorReplyElementXML]
     reviews: Dict[int, List[ReviewElementXML]]
 
     def __init__(self):
-        self.article = ArticleXML("", "")
+        self.recommendation = RecommendationXML("", "")
         self.decisions = []
         self.author_replies = []
         self.reviews = {}
@@ -290,8 +290,8 @@ class CrossrefXML:
     def get_all_filename(self):
         filenames: List[str] = []
 
-        if self.article.filename:
-            filenames.append(self.article.filename)
+        if self.recommendation.filename:
+            filenames.append(self.recommendation.filename)
 
         for decision in self.decisions:
             if decision.filename:
@@ -310,9 +310,9 @@ class CrossrefXML:
 
 
     def raise_error(self):
-        if self.article.filename:
-            if not self.article.filename:
-                raise XMLException(self.article.content)
+        if self.recommendation.filename:
+            if not self.recommendation.filename:
+                raise XMLException(self.recommendation.content)
 
         for decision in self.decisions:
             if not decision.filename:
@@ -336,7 +336,7 @@ class CrossrefXML:
                                                         order_by=current.db.t_reviews.acceptation_timestamp)
 
         xml = CrossrefXML()
-        xml.article = ArticleXML.build(recommendations[-1])
+        xml.recommendation = RecommendationXML.build(recommendations[-1])
 
         for recommendation in recommendations:
             reviews = filter(lambda r: r.recommendation_id == recommendation.id, all_reviews)
@@ -394,7 +394,7 @@ class CrossrefXML:
             filename = splitted_for_name[1]
 
             if "article_xml" in name:
-                crossref_xml.article = ArticleXML(xml, filename)
+                crossref_xml.recommendation = RecommendationXML(xml, filename)
                 continue
 
             round = int(splitted_for_name[0].split('_')[-1])
@@ -446,9 +446,9 @@ def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None):
     try:
         xml.raise_error()
         assert crossref.login, "crossref.login not set"
-        assert xml.article.filename
+        assert xml.recommendation.filename
 
-        resp = _post( xml.article.content, xml.article.filename)
+        resp = _post( xml.recommendation.content, xml.recommendation.filename)
         resp.raise_for_status()
 
         for author_reply in xml.author_replies:
@@ -524,16 +524,16 @@ def _get_citation_list(recomm: Recommendation):
     return citations
 
 
-def _get_review_doi(recommendation: Recommendation, no_review_round: int, round: int):
+def get_review_doi(recommendation: Recommendation, no_review_round: int, round: int):
     recommendation_doi = _get_recommendation_doi(recommendation)
     return f"{recommendation_doi}.rev{round}{no_review_round}"
 
 
-def _get_author_reply_doi(recommendation: Recommendation, round: int):
+def get_author_reply_doi(recommendation: Recommendation, round: int):
     recommendation_doi = _get_recommendation_doi(recommendation)
     return f"{recommendation_doi}.ar{round}"
 
 
-def _get_decision_doi(recommendation: Recommendation, round: int):
+def get_decision_doi(recommendation: Recommendation, round: int):
     recommendation_doi = _get_recommendation_doi(recommendation)
     return f"{recommendation_doi}.d{round}"
