@@ -5,7 +5,7 @@ from gluon import STRONG
 from gluon.html import A, P
 from pydal.validators import IS_HTTP_URL
 from pydal.validators import Validator
-from app_modules.suggested_reviewers_parser import NameParser
+from app_modules.name_parser import NameParser
 
 from gluon import current
 

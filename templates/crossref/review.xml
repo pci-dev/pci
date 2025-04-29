@@ -14,13 +14,12 @@
     </head>
 
     <body>
-        <peer_review stage="pre-publication" revision-round="{{=round}}" type="referee-report"
-            recommendation="{{=status}}">
+        <peer_review stage="pre-publication" revision-round="{{=round}}" type="referee-report">
             <contributors>
                 {{=contributor_tag}}
             </contributors>
             <titles>
-                <title>Review of: {{=he(article.title)}}</title>
+                <title>Review of: {{=article_title}}</title>
             </titles>
             <review_date>
                 <month>{{=review_date.month}}</month>

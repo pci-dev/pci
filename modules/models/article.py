@@ -5,6 +5,7 @@ from typing import Any, List, NewType, Optional as _, Union, cast, TYPE_CHECKING
 from app_modules.crossref_api import CrossrefAPI
 from app_modules.datacite_api import DataciteAPI
 from app_modules.biorxiv_api import BiorxivAPI
+from app_modules.name_parser import FullId
 from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
@@ -674,6 +675,20 @@ class Article(Row):
             articles.append(article)
 
         return articles
+
+
+    @staticmethod
+    def get_authors(article: 'Article'):
+        authors: List[FullId] = []
+        if not article.authors:
+            return authors
+
+        names = article.authors.split(',')
+        for name in names:
+            name = FullId.parse(name)
+            authors.append(name)
+        return authors
+
 
 
 def is_scheduled_submission(article: Article) -> bool:

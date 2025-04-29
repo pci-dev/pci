@@ -14,21 +14,22 @@
     </head>
 
     <body>
-        <peer_review stage="pre-publication" revision-round="{{=round}}" type="author-comment"
-            recommendation="{{=status}}">
+        <peer_review stage="pre-publication" revision-round="{{=round}}" type="author-comment">
             <contributors>
+                {{for author in authors:}}
                 <person_name contributor_role="author" sequence="first">
-                    <given_name>{{=he(author.first_name)}}</given_name>
-                    <surname>{{=he(author.last_name)}}</surname>
+                    <given_name>{{=he(author.name.first)}}</given_name>
+                    <surname>{{=he(author.name.last)}}</surname>
                 </person_name>
+                {{pass}}
             </contributors>
             <titles>
-                <title>Author response of: {{=he(article.title)}}</title>
+                <title>Author response of: {{=article_title}}</title>
             </titles>
             <review_date>
-                <month>{{=recommendation_date.month}}</month>
-                <day>{{=recommendation_date.day}}</day>
-                <year>{{=recommendation_date.year}}</year>
+                <month>{{=author_reply_date.month}}</month>
+                <day>{{=author_reply_date.day}}</day>
+                <year>{{=author_reply_date.year}}</year>
             </review_date>
 
             <competing_interest_statement>The authors declared that they comply with the PCI rule of having no financial
@@ -36,7 +37,7 @@
 
             <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
                 <free_to_read />
-                <license_ref applies_to="vor" start_date="{{=recommendation_date.isoformat()}}">
+                <license_ref applies_to="vor" start_date="{{=author_reply_date.isoformat()}}">
                     https://creativecommons.org/licenses/by/4.0/
                 </license_ref>
             </program>

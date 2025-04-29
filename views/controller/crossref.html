@@ -1,5 +1,4 @@
 {{extend 'layout.html'}}
-<script>window.onload = function () { if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show(); }</script>
 
 <style>
     .xml_textarea {
@@ -22,11 +21,32 @@
     .textarea_review {
         margin-bottom: 5px;
     }
+
+    #recommendation hr {
+        margin-bottom: 0px;
+    }
+
+    #btn-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        margin-top: 15px;
+    }
+
+    #status-panel {
+        max-height: 250px;
+    }
+
+    .tab-content {
+        padding-top: 20px;
+    }
+
 </style>
 
 <form enctype="multipart/form-data" method="post">
 
-    <pre id="status-panel" name="status" style="max-height: 250px;">{{=crossref_status}}</pre>
+    <pre id="status-panel" name="status">{{=crossref_status}}</pre>
 
     <ul class="nav nav-tabs">
         <li role="presentation" class="active"><a data-toggle="tab" href="#recommendation">Recommendation</a></li>
@@ -35,7 +55,7 @@
         <li role="presentation"><a data-toggle="tab" href="#reviews">Reviews</a></li>
     </ul>
 
-    <div class="tab-content" style="padding-top: 20px;">
+    <div class="tab-content">
         <div id="recommendation" class="tab-pane fade in active">
             <textarea class="xml_textarea" name="recommendation_xml;{{=recommendation_xml.recommendation.filename}}" {{if disable_form:}}disabled="true"{{pass}}>
 {{=recommendation_xml.recommendation.content}}
@@ -78,7 +98,7 @@
             {{pass}}
         </div>
     </div>
-    <div style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+    <div id="btn-container">
         <button type="submit" class="btn btn-info" onclick="onClickSubmit(this)" {{if disable_form:}}disabled="true"{{pass}}>Send to Crossref & Clockss</button>
         <button onclick="window.location.replace('{{=back_url}}'); return false;">Back</button>
     </div>

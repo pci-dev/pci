@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import html
 import os
 from app_modules.common_tools import extract_doi
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional, Tuple, cast
 from app_modules.httpClient import HttpClient
 from gluon.html import XML
 from models.article import Article
@@ -30,43 +30,33 @@ class RecommendationXML:
     filename: str
 
     @staticmethod
-    def build(recomm: Recommendation):
-        article = Article.get_by_id(recomm.article_id)
+    def build(recommendation: Recommendation):
+        article = Article.get_by_id(recommendation.article_id)
         if not article:
-            return RecommendationXML(f"Article with id {recomm.article_id} not found!", "")
+            return RecommendationXML(f"Article with id {recommendation.article_id} not found!", "")
 
         recomm_url = f"{pci.url}/articles/rec?id={article.id}"
-        recomm_doi = _get_recommendation_doi(recomm)
-        recomm_date = recomm.validation_timestamp.date() if recomm.validation_timestamp else None
+        recomm_doi = _get_recommendation_doi(recommendation)
+        recomm_date = recommendation.validation_timestamp.date() if recommendation.validation_timestamp else None
         if not recomm_date:
-            return RecommendationXML(f"Missing recommendation validation timestamp for recommendation with id {recomm.id}!", "")
+            return RecommendationXML(f"Missing recommendation validation timestamp for recommendation with id {recommendation.id}!", "")
 
-        recomm_title = recomm.recommendation_title
+        recomm_title = recommendation.recommendation_title
         recomm_description_text = Article.get_article_reference(article)
-        recomm_citations = "\n        ".join(_get_citation_list(recomm))
+        recomm_citations = "\n        ".join(_get_citation_list(recommendation))
 
-        recommender = User.get_by_id(recomm.recommender_id)
+        recommender = User.get_by_id(recommendation.recommender_id)
         if not recommender:
-            return RecommendationXML(f"Recommender with id {recomm.recommender_id} not found!", "")
-
-        co_recommenders: List[User] = []
-        for row in PressReview.get_by_recommendation(recomm.id):
-            if row.contributor_id:
-                co_recommender = User.get_by_id(row.contributor_id)
-                if co_recommender:
-                    co_recommenders.append(co_recommender)
-
-        for user in [recommender] + co_recommenders:
-            user.affiliation = User.get_affiliation(user) # type: ignore
+            return RecommendationXML(f"Recommender with id {recommendation.recommender_id} not found!", "")
 
         interwork_type, interwork_ref = _get_identifier(article.doi)
         item_number = recomm_doi[-6:]
 
-        timestamp = recomm.last_change.now().strftime("%Y%m%d%H%M%S%f")[:-3]
-        batch_id = get_filename_article(recomm)
+        timestamp = recommendation.last_change.now().strftime("%Y%m%d%H%M%S%f")[:-3]
+        batch_id = get_filename_article(recommendation)
 
         xml = render( # type: ignore
-            filename=os.path.join(CROSSREF_TEMPLATE_DIR, "article.xml"),
+            filename=os.path.join(CROSSREF_TEMPLATE_DIR, "recommendation.xml"),
             context=dict(
                 he=he,
                 crossref=crossref,
@@ -75,8 +65,8 @@ class RecommendationXML:
                 pci=pci,
                 recomm_date=recomm_date,
                 recomm_title=recomm_title,
-                recommender=recommender,
-                co_recommenders=co_recommenders,
+                recommender=(recommender, User.get_affiliation(recommender)),
+                co_recommenders=get_co_recommender_infos(recommendation.id),
                 item_number=item_number,
                 recomm_description_text=recomm_description_text,
                 interwork_type=interwork_type,
@@ -96,7 +86,7 @@ class DecisionElementXML:
     filename: str
 
     @staticmethod
-    def build(article: Article, recommendation: Recommendation, round: int):
+    def build(article: Article, recommendation: Recommendation, round: int, total_round: int):
         if not recommendation.validation_timestamp:
             return DecisionElementXML(round, f"Missing validation timestamp for the recommendation with id {recommendation.id}", "")
 
@@ -119,12 +109,17 @@ class DecisionElementXML:
         decision_doi = get_decision_doi(recommendation, round)
         decision_url = f"{pci.url}/articles/rec?id={article.id}#d-{recommendation.id}"
 
+        article_title = _get_article_title(article, round)
+
         if recommendation.recommendation_state == RecommendationState.RECOMMENDED.value:
+            title = f"Recommendation of: {article_title}"
             status = "accept"
-            title = f"Editorial decision of: {he(article.title)}"
         else:
-            status = "major-revision"
-            title = f"Recommendation of: {he(article.title)}"
+            title = f"Decision Revise: {article_title}"
+            if round >= 2 and total_round >= 3:
+                status = "minor-revision"
+            else:
+                status = "major-revision"
 
         xml = render( # type: ignore
             filename=os.path.join(CROSSREF_TEMPLATE_DIR, "decision.xml"),
@@ -136,7 +131,8 @@ class DecisionElementXML:
                 pci=pci,
                 round=round,
                 status=status,
-                recommender=recommender,
+                recommender=(recommender, User.get_affiliation(recommender)),
+                co_recommenders=get_co_recommender_infos(recommendation.id),
                 title=title,
                 recommendation_date=recommendation_date,
                 interwork_type=interwork_type,
@@ -155,33 +151,28 @@ class AuthorReplyElementXML:
     filename: str
 
     @staticmethod
-    def build(article: Article, recommendation: Recommendation, round: int):
+    def build(article: Article, recommendation: Recommendation, round: int, next_recommendation: Recommendation):
         if not recommendation.validation_timestamp:
             return AuthorReplyElementXML(round, f"Missing validation timestamp for the recommendation with id {recommendation.id}", "")
 
-        if not recommendation.last_change:
-            return AuthorReplyElementXML(round, f"Missing last_change for the recommendation with id {recommendation.id}", "")
+        if not next_recommendation.recommendation_timestamp:
+            return AuthorReplyElementXML(round, f"Missing recommendation_timestamp for the recommendation with id {next_recommendation.id}", "")
 
         if not article.user_id:
             return AuthorReplyElementXML(round, f"Missing author for the article with id {article.id}", "")
 
-        author = User.get_by_id(article.user_id)
-        if not author:
+        authors = Article.get_authors(article)
+        if len(authors) == 0:
             return AuthorReplyElementXML(round, f"Missing user with id {article.user_id}", "")
 
         batch_id = f"pci={pci.host}:rec={recommendation.id}:ar={recommendation.id}"
 
-        timestamp = recommendation.last_change.strftime("%Y%m%d%H%M%S%f")[:-3]
-        recommendation_date = recommendation.validation_timestamp.date()
+        timestamp = next_recommendation.recommendation_timestamp.strftime("%Y%m%d%H%M%S%f")[:-3]
+        next_recommendation_date = next_recommendation.recommendation_timestamp.date()
         interwork_type, interwork_ref = _get_identifier(article.doi)
 
         author_reply_doi = get_author_reply_doi(recommendation, round)
         author_reply_url = f"{pci.url}/articles/rec?id={article.id}#ar-{recommendation.id}"
-
-        if recommendation.recommendation_state == RecommendationState.RECOMMENDED.value:
-            status = "accept"
-        else:
-            status = "major-revision"
 
         xml = render( # type: ignore
             filename=os.path.join(CROSSREF_TEMPLATE_DIR, "author_reply.xml"),
@@ -192,10 +183,9 @@ class AuthorReplyElementXML:
                 timestamp=timestamp,
                 pci=pci,
                 round=round,
-                status=status,
-                author=author,
-                article=article,
-                recommendation_date=recommendation_date,
+                authors=authors,
+                article_title=_get_article_title(article, round),
+                author_reply_date=next_recommendation_date,
                 interwork_type=interwork_type,
                 interwork_ref=interwork_ref,
                 author_reply_doi=author_reply_doi,
@@ -229,7 +219,7 @@ class ReviewElementXML:
         review_url = f"{pci.url}/articles/rec?id={article.id}#review-{review.id}"
 
         if review.anonymously:
-            contributor_tag = "<anonymous/>"
+            contributor_tag = '<anonymous contributor_role="reviewer" sequence="first" />'
         else:
             reviewer = User.get_by_id(review.reviewer_id)
             if not reviewer:
@@ -245,10 +235,8 @@ class ReviewElementXML:
     </person_name>
             """
 
-        if recommendation.recommendation_state == RecommendationState.RECOMMENDED.value:
-            status = "accept"
-        else:
-            status = "major-revision"
+        article_title = _get_article_title(article, round)
+        article_title = f"{article_title}/Reviewer#{no_review_round}"
 
         xml = render( # type: ignore
             filename=os.path.join(CROSSREF_TEMPLATE_DIR, "review.xml"),
@@ -259,9 +247,8 @@ class ReviewElementXML:
                 timestamp=timestamp,
                 pci=pci,
                 round=round,
-                status=status,
                 contributor_tag=XML(contributor_tag),
-                article=article,
+                article_title=article_title,
                 review_date=review_date,
                 interwork_type=interwork_type,
                 interwork_ref=interwork_ref,
@@ -330,27 +317,35 @@ class CrossrefXML:
 
     @staticmethod
     def build(article: Article):
-        recommendations = Article.get_last_recommendations(article.id, order_by=current.db.t_recommendations.id)
+        recommendations = list(Article.get_last_recommendations(article.id, order_by=current.db.t_recommendations.id))
         all_reviews = Review.get_by_article_id_and_state(article.id,
                                                         ReviewState.REVIEW_COMPLETED,
                                                         order_by=current.db.t_reviews.id)
 
-        xml = CrossrefXML()
-        xml.recommendation = RecommendationXML.build(recommendations[-1])
+        total_round = len(recommendations)
+        last_recommendation = recommendations[-1]
 
-        for recommendation in recommendations:
+        xml = CrossrefXML()
+        xml.recommendation = RecommendationXML.build(last_recommendation)
+
+        for i, recommendation in enumerate(recommendations):
+            if recommendation.id == last_recommendation.id:
+                continue
+
             reviews = filter(lambda r: r.recommendation_id == recommendation.id, all_reviews)
             round = Recommendation.get_current_round_number(recommendation)
 
-            xml_author_reply = AuthorReplyElementXML.build(article, recommendation, round)
-            xml.author_replies.append(xml_author_reply)
+            if recommendation.recommendation_state != RecommendationState.RECOMMENDED.value:
+                next_recommendation = recommendations[i + 1]
+                xml_author_reply = AuthorReplyElementXML.build(article, recommendation, round, next_recommendation)
+                xml.author_replies.append(xml_author_reply)
 
-            xml_decision= DecisionElementXML.build(article, recommendation, round)
+            xml_decision= DecisionElementXML.build(article, recommendation, round, total_round)
             xml.decisions.append(xml_decision)
 
             round_reviews: List[ReviewElementXML] = []
-            for i, review in enumerate(reviews):
-                xml_review = ReviewElementXML.build(article, recommendation, review, round, i)
+            for j, review in enumerate(reviews):
+                xml_review = ReviewElementXML.build(article, recommendation, review, round, j + 1)
                 round_reviews.append(xml_review)
 
             xml.reviews[round] = round_reviews
@@ -522,6 +517,24 @@ def _get_citation_list(recomm: Recommendation):
         else:
             citations.append(f"<citation key=\"refunstruc{i + 1}\"><unstructured_citation>{html.escape(reference)}</unstructured_citation></citation>")
     return citations
+
+
+def _get_article_title(article: Article, round: int):
+    article_title = he(article.title).strip()
+    if not article_title.endswith('.'):
+        article_title = f"{article_title}."
+    article_title = f"{article_title} Round#{round}"
+    return article_title
+
+
+def get_co_recommender_infos(recommendation_id: int):
+    co_recommenders_infos: List[Tuple[User, str]] = []
+    for row in PressReview.get_by_recommendation(recommendation_id):
+        if row.contributor_id:
+            co_recommender = User.get_by_id(row.contributor_id)
+            if co_recommender:
+                co_recommenders_infos.append((co_recommender, User.get_affiliation(co_recommender)))
+    return co_recommenders_infos
 
 
 def get_review_doi(recommendation: Recommendation, no_review_round: int, round: int):

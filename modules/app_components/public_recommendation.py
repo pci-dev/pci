@@ -296,7 +296,7 @@ def getPublicReviewRoundsHtml(articleId: int):
                     _style="font-weight: bold; margin-bottom: 5px; display:block",
                 )
 
-            review_doi = crossref.get_review_doi(recomm, i, roundNumber)
+            review_doi = crossref.get_review_doi(recomm, i + 1, roundNumber)
 
             reviwesPreparedData.append(dict(authorAndDate=reviewAuthorAndDate,
                                             text=reviewText,
