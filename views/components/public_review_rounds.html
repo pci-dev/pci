@@ -23,16 +23,17 @@
     <h4 class="pci2-round-review-sub-title" id="ar-{{=recommendation.id}}">{{=T("Author's Reply")}}, {{=authorsReplyDate}}</h4>
     <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
       {{if authorsReplyPdfLink is not None:}}
-        {{=authorsReplyPdfLink}}
+      {{=authorsReplyPdfLink}}
       {{pass}}
 
       {{if authorsReplyTrackChangeFileLink is not None:}}
-        {{=authorsReplyTrackChangeFileLink}}
+      {{=authorsReplyTrackChangeFileLink}}
       {{pass}}
 
       {{if authorsReply is not None:}}
-        {{=authorsReply}}
+      {{=authorsReply}}
       {{pass}}
+      <a class="doi-url-subsection" href="{{=author_reply_doi_url}}" target="_blank">{{=author_reply_doi_url}}</a>
     </div>
   {{pass}}
 
@@ -48,6 +49,7 @@
         {{pass}}
       </div>
     </div>
+    <a class="doi-url-subsection" href="{{=decision_doi_url}}" target="_blank">{{=decision_doi_url}}</a>
   {{pass}}
 
   {{for review in reviewsList:}}
@@ -56,12 +58,13 @@
 
       <div style="border-left: 1px solid #eee; padding: 5px 15px; margin-bottom: 25px;">
         {{if review['text'] is not None:}}
-          {{=review['text']}}
+        {{=review['text']}}
         {{pass}}
 
         {{if review['pdfLink'] is not None:}}
-          {{=review['pdfLink']}}
+        {{=review['pdfLink']}}
         {{pass}}
+        <a class="doi-url-subsection" href="{{=review['review_doi_url']}}" target="_blank">{{=review['review_doi_url']}}</a>
       </div>
     </div>
   {{pass}}

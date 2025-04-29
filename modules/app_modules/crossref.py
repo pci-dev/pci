@@ -333,7 +333,7 @@ class CrossrefXML:
         recommendations = Article.get_last_recommendations(article.id, order_by=current.db.t_recommendations.id)
         all_reviews = Review.get_by_article_id_and_state(article.id,
                                                         ReviewState.REVIEW_COMPLETED,
-                                                        order_by=current.db.t_reviews.acceptation_timestamp)
+                                                        order_by=current.db.t_reviews.id)
 
         xml = CrossrefXML()
         xml.recommendation = RecommendationXML.build(recommendations[-1])

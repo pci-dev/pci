@@ -11,13 +11,13 @@ from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.sqlhtml import *
 
-from app_modules import common_small_html
+from app_modules import common_small_html, crossref
 from app_modules import common_tools
 from app_modules.common_small_html import md_to_html
 
 from app_components import article_components
 from app_modules import emailing
-from app_modules.common_tools import URL
+from app_modules.common_tools import URL, doi_to_url
 from models.review import Review
 
 myconf = AppConfig(reload=True)
@@ -265,7 +265,7 @@ def getPublicReviewRoundsHtml(articleId: int):
         reviwesPreparedData: List[Dict[str, Optional[Any]]] = []
 
         count_anon = 0
-        for review in reviewsList:
+        for i, review in enumerate(reviewsList):
             if review.anonymously:
                 count_anon += 1
                 reviewer_number = common_tools.find_reviewer_number(review, count_anon)
@@ -296,7 +296,14 @@ def getPublicReviewRoundsHtml(articleId: int):
                     _style="font-weight: bold; margin-bottom: 5px; display:block",
                 )
 
-            reviwesPreparedData.append(dict(authorAndDate=reviewAuthorAndDate, text=reviewText, pdfLink=pdfLink, id=review.id))
+            review_doi = crossref.get_review_doi(recomm, i, roundNumber)
+
+            reviwesPreparedData.append(dict(authorAndDate=reviewAuthorAndDate,
+                                            text=reviewText,
+                                            pdfLink=pdfLink,
+                                            id=review.id,
+                                            review_doi_url=doi_to_url(review_doi)
+                                        ))
 
         authorsReply = None
         authorsReplyDate = None
@@ -347,6 +354,9 @@ def getPublicReviewRoundsHtml(articleId: int):
         recommAuthors = SPAN(recommAuthors)
         recommRound -= 1
 
+        decision_doi = crossref.get_decision_doi(recomm, roundNumber)
+        author_reply_doi = crossref.get_author_reply_doi(recomm, roundNumber)
+
         componentVars = dict(
             isLastRecomm=isLastRecomm or False,
             roundNumber=roundNumber,
@@ -362,7 +372,9 @@ def getPublicReviewRoundsHtml(articleId: int):
             authorsReplyPdfLink=authorsReplyPdfLink,
             recommendationPdfLink=recommendationPdfLink,
             authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
-            recommendation=recomm
+            recommendation=recomm,
+            decision_doi_url=doi_to_url(decision_doi),
+            author_reply_doi_url=doi_to_url(author_reply_doi)
         )
 
         reviewRoundsHtml.append(XML(current.response.render("components/public_review_rounds.html", componentVars))) # type: ignore
