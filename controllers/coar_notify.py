@@ -58,6 +58,7 @@ def inbox():
                 HTTPStatus.FORBIDDEN)
 
     elif request.method == "POST":
+      try:
         parse_content_type()
 
         if not is_coar_whitelisted(request.env.remote_addr):
@@ -70,6 +71,12 @@ def inbox():
 
         try:
             body = json.loads(get_body())
+            valid = validate(body)
+
+            emailing.send_report_coar_post_received(valid)
+
+            if str(body) != str(valid):
+                fail(f"request has missing mandatory fields: {valid}")
 
             record_request(body)
             process_request(body)
@@ -85,6 +92,10 @@ def inbox():
 
         add_location_header(coar_id=body['id'])
         return HTTP(status=HTTPStatus.CREATED.value)
+
+      except Exception as e:
+        #emailing.send_report_coar_post_error(e)
+        raise e
 
     elif request.method == "HEAD":
         add_describedby_header()
@@ -120,6 +131,27 @@ def get_body():
     request.body.seek(0)
     body = request.body.read()
     return str(body, request.encoding or "utf8")
+
+def ensure_has(req, *argv):
+    req = req.copy()
+    for spec in argv:
+        item = req
+        for key in spec.split("."):
+            it = item[key] = item.get(key) or {}
+            item = it
+    return req
+
+def validate(body):
+    return ensure_has(body,
+            "id",
+            "type",
+            "actor.id",
+            "actor.name",
+            "object.id",
+            "object.ietf:cite-as",
+            "target.inbox",
+            "origin.inbox",
+    )
 
 
 def process_request(req):
