@@ -58,7 +58,6 @@ def inbox():
                 HTTPStatus.FORBIDDEN)
 
     elif request.method == "POST":
-      try:
         parse_content_type()
 
         if not is_coar_whitelisted(request.env.remote_addr):
@@ -93,10 +92,6 @@ def inbox():
         add_location_header(coar_id=body['id'])
         response.status = HTTPStatus.CREATED.value
         return f"{response.status}: CREATED"
-
-      except Exception as e:
-        #emailing.send_report_coar_post_error(e)
-        raise e
 
     elif request.method == "HEAD":
         add_describedby_header()
