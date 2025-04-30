@@ -111,12 +111,17 @@ def rec():
 
 def handle_rec_signposting(recomm):
     if request.method == 'HEAD':
+        article_id = recomm.article_id.id
 
         response.headers = { "link": (
             '<' + URL("metadata", "recommendation", scheme=True,
-                vars=dict(article_id=recomm.article_id.id)
-            ) + '>' +
+                        vars=dict(article_id=article_id)) + '>' +
             '; rel="describedby" type="docmaps"'
+            +
+            ', <' + URL("metadata", "crossref", scheme=True,
+                        vars=dict(article_id=article_id)) + '>' +
+            '; rel="describedby" type="application/xml" profile="http://www.crossref.org/schema/4.3.7"'
+
         )}
         return True
 
