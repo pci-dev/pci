@@ -91,7 +91,8 @@ def inbox():
                     "\n" + traceback.format_exc())
 
         add_location_header(coar_id=body['id'])
-        return HTTP(status=HTTPStatus.CREATED.value)
+        response.status = HTTPStatus.CREATED.value
+        return f"{response.status}: CREATED"
 
       except Exception as e:
         #emailing.send_report_coar_post_error(e)
