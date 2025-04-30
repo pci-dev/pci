@@ -8,7 +8,7 @@ from models.review import ReviewState
 from gluon.storage import Storage
 
 
-def recommendation():
+def parse_args(request):
     article_id = request.vars.article_id or request.vars.id
 
     try:
@@ -24,6 +24,12 @@ def recommendation():
 
     if not recomm:
         raise HTTP(400, f"no recommendation for article: {article_id}")
+
+    return article, recomm
+
+
+def recommendation():
+    article, recomm = parse_args(request)
 
     response.headers.update({
         "Content-Type": "application/ld+json",
