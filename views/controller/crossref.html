@@ -49,20 +49,13 @@
     <pre id="status-panel" name="status">{{=crossref_status}}</pre>
 
     <ul class="nav nav-tabs">
-        <li role="presentation" class="active"><a data-toggle="tab" href="#recommendation">Recommendation</a></li>
-        <li role="presentation"><a data-toggle="tab" href="#decisions">Decisions</a></li>
+        <li role="presentation" class="active"><a data-toggle="tab" href="#decisions">Decisions</a></li>
         <li role="presentation"><a data-toggle="tab" href="#author-reply">Author replies</a></li>
         <li role="presentation"><a data-toggle="tab" href="#reviews">Reviews</a></li>
     </ul>
 
     <div class="tab-content">
-        <div id="recommendation" class="tab-pane fade in active">
-            <textarea class="xml_textarea" name="recommendation_xml;{{=recommendation_xml.recommendation.filename}}" {{if disable_form:}}disabled="true"{{pass}}>
-{{=recommendation_xml.recommendation.content}}
-            </textarea>
-            <hr />
-        </div>
-        <div id="decisions" class="tab-pane fade">
+        <div id="decisions" class="tab-pane fade in active">
             {{for decision in recommendation_xml.decisions:}}
             {{if decision.content:}}
             <h4>Round {{=decision.round}}</h4>

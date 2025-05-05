@@ -31,7 +31,7 @@
                 {{pass}}
             </contributors>
             <titles>
-                <title>{{=title}}</title>
+                <title>{{=he(title)}}</title>
             </titles>
             <review_date>
                 <month>{{=recommendation_date.month}}</month>

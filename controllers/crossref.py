@@ -38,12 +38,10 @@ def post_form():
         return error("recommendation: no title (not recommended)")
 
     disable_form = False
+    recommendation_xml = crossref.CrossrefXML.from_request(request)
+    is_empty_form = len(recommendation_xml.get_all_filenames()) == 0
 
-    batch_id = crossref.get_filename_article(recommendation)
-
-    if f"article_xml;{batch_id}" in request.vars:
-        recommendation_xml = crossref.CrossrefXML.from_request(request)
-
+    if not is_empty_form:
         try:
             recommendation_xml.raise_error()
             post_response = crossref.post_and_forget(article, recommendation_xml)
