@@ -4,7 +4,7 @@ SITES=$(dirname $0)/sites
 
 PILOTS='TEST|Zool|EvolBiol|Reports'
 
-RELEASE=origin/master
+RELEASE=${release:-origin/master}
 #RELEASE=origin/development
 
 
