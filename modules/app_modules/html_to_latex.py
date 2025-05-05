@@ -79,7 +79,7 @@ def convert_LaTeX_special_chars(string: str):
             .replace("‐", "-")
         return string
 
-class HtmlToLatex:        
+class HtmlToLatex:
 
     _selectors: Dict[str, Any] = {
         #'html': s('\\thispagestyle{empty}\n{\n', '\n}\n'),
@@ -171,7 +171,7 @@ class HtmlToLatex:
     def convert(self, html: str):
         if len(html) == 0:
             return ''
-        
+
         html_parser = lxml.html.HTMLParser(encoding='utf-8', remove_comments=True)
         tree: ... = lxml.html.parse(StringIO(html), parser=html_parser) # type: ignore
         root = tree.getroot() 
@@ -261,25 +261,25 @@ class HtmlToLatex:
 
         # strip whitespace at the start and end of lines
         return '\n'.join(map(str.strip, result_str.split('\n')))
-    
+
 
     def _fix_long_url(self, latex_code: str):
         if latex_code.count("\\href{") != 1 or latex_code.count("\\url{") > 0:
             return latex_code
-        
+
         latex_code = self._sanitize_url(latex_code)
-        
+
         regex = r"\\href{.*}{(.*)(?P<url>https?://?[\w-]+\.[^;:<>{}\[\]\"\'\s~]*[^.,;?!:<>{}\[\]()\"\'\s~\\])}+"
         pattern = re.compile(regex)
         match = pattern.search(latex_code)
 
         if not match:
             return latex_code
-        
+
         url_label = match.group('url')
         if not url_label:
             return latex_code
-        
+
         new_url_label = f"\\url{{{url_label}}}"
 
         latex_code = re.sub(pattern, partial(self._replace_closure, 'url', new_url_label), latex_code)
@@ -296,17 +296,17 @@ class HtmlToLatex:
         url = str(match['url'])
         if not url:
             return latex_code
-        
+
         url = url.replace('\n', '').replace('\\\\', '')
         latex_code = re.sub(regex, partial(self._replace_closure, 'url', url), latex_code)
         return latex_code
-    
+
 
     def _replace_closure(self, subgroup: str, replacement: str, m: ...):
         start = m.start(subgroup)
         end = m.end(subgroup)
         return str(m.group()[:start] + replacement + m.group()[end:])
-    
+
 
     def _modify_characters(self, el: ..., string: str, leaveText: bool = False):
         if not leaveText:
@@ -321,7 +321,7 @@ class HtmlToLatex:
                 string = convert_LaTeX_special_chars(string)
             else:
                 string = string_fixed
-        
+
         s = list(string)
         for i, char in enumerate(s):
             if char in self._characters:

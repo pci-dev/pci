@@ -53,7 +53,7 @@ class Clockss:
     LATEX_COMPILER_BIN: Optional[str] = myconf.get("latex.compiler")
 
     DATE_FORMAT = "%d %B %Y"
-    
+
     _article: Article
     _prefix: str
     _pdf_name: str
@@ -96,7 +96,7 @@ class Clockss:
             self._compile_latex(latex_content, pdf_path_to_generate)
 
         return self._pdf_name
-        
+
 
     def _compile_latex(self, latex_content: str, pdf_dest_path: str):
         if not self.LATEX_COMPILER_BIN:
@@ -154,7 +154,7 @@ class Clockss:
             template = self._replace_var_in_template(variable_name, variable_value, template)
 
         return template
-    
+
 
     def _get_recommendation_subtitle(self):
         recommenders_name = self._get_recommender_name()
@@ -169,7 +169,7 @@ class Clockss:
         title = self._recommendation.recommendation_title
         if not title:
             return
-        
+
         title = title.strip()
         title = convert_LaTeX_special_chars(title)
         title = self._convert_stars_to_italic(title)
@@ -192,17 +192,17 @@ class Clockss:
         title = self._article.title
         if not title:
             return
-        
+
         title = title.strip()
         title = convert_LaTeX_special_chars(title)
         title = self._convert_stars_to_italic(title)
-        
+
         has_punctuation = bool(re.search(r"[?!…¿;¡.]$", title))
         if has_punctuation:
             return title
         else:
             return f"{title}."
-    
+
 
     def _convert_stars_to_italic(self, text: str):
         text = re.sub(r'\*(.*?)\*', r'\\textit{\1}', text)
@@ -222,11 +222,11 @@ class Clockss:
                     reviewer_name = self._html_to_latex.convert(self._str(reviewer_html.components[0])) # type: ignore
                     reviewer_orcid = str(reviewer_html.components[1].attributes['_href']) # type: ignore
                     reviewer_name += f"\\href{{{reviewer_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=10px,height=10px]{{ORCID_ID.png}}}}"
-                
+
                 names.append(reviewer_name)
                 if review.reviewer_id:
                     user_id.append(review.reviewer_id)
-        
+
         user_id.clear()
 
         for review in reviews:
@@ -234,13 +234,13 @@ class Clockss:
                 nb_anonymous += 1
                 if review.reviewer_id:
                     user_id.append(review.reviewer_id)
-        
+
         if (nb_anonymous > 0):
             anonymous = str(nb_anonymous) + ' anonymous reviewer'
             if (nb_anonymous > 1):
                 anonymous += 's'
             names.append(anonymous)
-        
+
         formatted_names = ''
         for i, name in enumerate(names):
             if i == 0:
@@ -260,7 +260,7 @@ class Clockss:
             .select(db.t_recommendations.ALL, distinct=db.t_recommendations.recommender_id))
         press_reviews = cast(List[PressReview], db((db.t_recommendations.id == self._recommendation.id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id))\
             .select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id))
-        
+
         recommenders_id: List[int] = []
         for recommendation in recommendations:
             recommenders_id.append(recommendation.recommender_id)
@@ -287,12 +287,12 @@ class Clockss:
 
     def _replace_img_in_template(self):
         return f"{current.request.folder}/static/images/background.png"
-    
+
 
     def _replace_recommendation_process(self):
         recommendation_process: Any = get_recommendation_process_components(self._article)
         process = recommendation_process['components']
-        
+
         latex_code: List[str] = []
         first_round = True
 
@@ -322,7 +322,7 @@ class Clockss:
             if not first_round:
                 latex_round.extend(self._get_round_recommender_decision(round))
             latex_round.extend(self._get_round_reviews(round))
-            
+
             if len(latex_round) > 1:
                 latex_code.extend(latex_round)
 
@@ -330,12 +330,12 @@ class Clockss:
                 first_round = False
 
         return "\n".join(latex_code)
-    
+
 
     def _get_round_reviews(self, round: Dict[str, Any]):
         latex_lines: List[str] = []
         reviews: List[Dict[str, Any]] = round['reviewsList']
-                
+
         for review in reviews:
             reviewer_name = self._html_to_latex.convert(self._str(review['authors']))
             if not reviewer_name:
@@ -360,7 +360,7 @@ class Clockss:
                         reviewer_name = f"\\href{{{reviewer_link}}}{{{reviewer_name}}}"
                         if reviewer_orcid:
                             reviewer_name += f"\\href{{{reviewer_orcid}}}{{\\hspace{{2px}}\\includegraphics[width=9px,height=9px]{{ORCID_ID.png}}}}"
-                
+
                 reviewer_name += f", {review_date_str}"
 
             review_content = self._html_to_latex.convert(self._str(review['text']))
@@ -368,7 +368,7 @@ class Clockss:
 
             if review_content or review_link:
                 latex_lines.append(f"\\subsection*{{Reviewed by {reviewer_name}}}")
-            
+
             if review_content:
                 latex_lines.append(review_content)
 
@@ -388,7 +388,7 @@ class Clockss:
         recommender_decision = self._html_to_latex.convert(recommender_decision)
 
         if recommender_decision or recommendation_pdf_link:
-            
+
             recommendation_label = f"Decision"
 
             recommendation_author = self._html_to_latex.convert(self._str(round['recommendationAuthorName']))
@@ -424,7 +424,7 @@ class Clockss:
 
             if recommendation_pdf_link:
                 latex_lines.append(recommendation_pdf_link)
-                
+
         return latex_lines
 
 
@@ -441,16 +441,16 @@ class Clockss:
                 author_reply_date_str = author_reply_date.strftime(self.DATE_FORMAT)
                 author_reply_title += f", {author_reply_date_str}"
             latex_lines.append(f"\\subsection*{{{author_reply_title}}}")
-        
+
         if author_reply:
             latex_lines.append(f"{author_reply}")
 
         if author_reply_pdf_link:
             latex_lines.append(f"\n{author_reply_pdf_link}")
-        
+
         if author_reply_track_change_file:
             latex_lines.append(f"\n{author_reply_track_change_file}")
-        
+
         return latex_lines
 
 
@@ -482,16 +482,16 @@ class Clockss:
                     break
 
                 recommendation_text.append(f"\n{sub_line}")
-            
+
             if reference_start:
                 break
 
         return '\n'.join(recommendation_text)
-    
+
 
     def _replace_var_in_template(self, var_title: str, template_var: TemplateVar, template: str):
         content = self._str(template_var.value)
-        
+
         if content:
             if not template_var.is_latex_code:
                 content = self._html_to_latex.convert(content)
@@ -502,7 +502,7 @@ class Clockss:
             content = convert_LaTeX_special_chars(content)
 
         return template.replace(f"[[{var_title.upper()}]]", content)
-    
+
 
     def _replace_url_in_content(self, latex_content: str):
         regex = r"(?<!\{)(https?://?[\w-]+\.[^;:<>{}\[\]\"\'\s~]*[^.,;?!:<>{}\[\]()\"\'\s~\\])(?!\})"
@@ -512,16 +512,16 @@ class Clockss:
         if match:
             replacement = r"\\url{\1}"
             latex_content = re.sub(regex, replacement, latex_content)
-        
+
         return latex_content
-    
+
 
     def _get_list_references_in_template(self):
         references: List[str] = Recommendation.get_references(self._recommendation)
 
         if len(references) == 0:
             return
-        
+
         content: List[str] = [r'\textbf{\emph{References: }}',
                               r'\begin{flushleft}',
                               r'\begin{itemize}']
@@ -537,8 +537,8 @@ class Clockss:
         template_path = f"{self._get_templates_dir()}{self.LATEX_TEMPLATE_FILENAME}"
         with open(template_path, 'r') as template:
             return template.read()
-        
-    
+
+
     def _get_templates_dir(self):
         return f"{current.request.folder}/templates/clockss/"
 
