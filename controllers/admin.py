@@ -448,6 +448,10 @@ def manage_pdf():
 def recap_reviews():
     response.view = "default/myLayout.html"
 
+    if not db(db.t_reviews.id).count() > 0:
+        response.view = "default/info.html"
+        return dict(message="no reviews yet")
+
     runId = str(random.randint(1, 10000))
     db.executesql("DROP VIEW IF EXISTS _v_%(runId)s;" % locals())
     db.executesql(
