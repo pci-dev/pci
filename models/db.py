@@ -1411,17 +1411,20 @@ def after_update_suggested_recommender(s: ..., f: ...):
     if not article:
         return
 
-    if suggested_recommender.recommender_validated:
-        if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
-            emailing.send_to_suggested_recommender(article, suggested_recommender.suggested_recommender_id)
-            emailing.create_reminder_for_suggested_recommender_invitation(article, suggested_recommender.suggested_recommender_id)
-        if suggested_recommender.suggested_by == SuggestedBy.AUTHORS.value:
-            emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
-
-    if suggested_recommender.recommender_validated is False:
-        if suggested_recommender.suggested_by == SuggestedBy.AUTHORS.value:
-            emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
+    if suggested_recommender.declined:
         emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article.id, suggested_recommender.suggested_recommender_id)
+    else:
+        if suggested_recommender.recommender_validated:
+            if article.status == ArticleStatus.AWAITING_CONSIDERATION.value:
+                emailing.send_to_suggested_recommender(article, suggested_recommender.suggested_recommender_id)
+                emailing.create_reminder_for_suggested_recommender_invitation(article, suggested_recommender.suggested_recommender_id)
+            if suggested_recommender.suggested_by == SuggestedBy.AUTHORS.value:
+                emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
+
+        if suggested_recommender.recommender_validated is False:
+            if suggested_recommender.suggested_by == SuggestedBy.AUTHORS.value:
+                emailing.send_or_update_mail_manager_valid_suggested_recommender(suggested_recommender.article_id, False)
+            emailing.delete_reminder_for_one_suggested_recommender("#ReminderSuggestedRecommenderInvitation", article.id, suggested_recommender.suggested_recommender_id)
 
     update_alert_and_current_step_article(article.id)
 
