@@ -1591,6 +1591,9 @@ def after_insert_mail(s: ..., mail_id: int):
 
 def after_update_mail(s: ..., f: ...):
     mail: MailQueue = s.select().first()
+    if not mail:
+        return
+
     _update_alert_after_update_or_insert_mail(mail)
 
 
