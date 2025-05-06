@@ -64,9 +64,16 @@ class Clockss:
 
     def __init__(self, article: Article):
         self._article = article
-        self._html_to_latex = HtmlToLatex()
-        self._init_dir()
+
+        self._prefix = common_tools.generate_recommendation_doi(self._article.id)[9:]
+        self._tmp_dir_path = f"{current.request.folder}/tmp/{self._prefix}"
+        self.attachments_dir = os.path.join(str(current.request.folder), "clockss", self._prefix)
         self._pdf_name = f"{self._prefix}.pdf"
+
+        self._init_dir()
+        self._html_to_latex = HtmlToLatex(self._tmp_dir_path)
+
+
         recommendation = Article.get_last_recommendation(self._article.id)
         if not recommendation:
             raise Exception(f'No recommendation found for article with id: {self._article.id}')
@@ -82,11 +89,11 @@ class Clockss:
 
 
     def _init_dir(self):
-        prefix = common_tools.generate_recommendation_doi(self._article.id)[9:]
-        attachments_dir = os.path.join(str(current.request.folder), "clockss", prefix)
-        os.makedirs(attachments_dir, exist_ok=True)
-        self._prefix = prefix
-        self.attachments_dir = attachments_dir
+        os.makedirs(self.attachments_dir, exist_ok=True)
+
+        if os.path.exists(self._tmp_dir_path):
+            shutil.rmtree(self._tmp_dir_path)
+        shutil.copytree(self._get_templates_dir(), self._tmp_dir_path)
 
 
     def build_pdf(self):
@@ -102,19 +109,13 @@ class Clockss:
         if not self.LATEX_COMPILER_BIN:
             raise NoOptionError('compiler', 'latex')
 
-        tmp_folder = f"{current.request.folder}/tmp/{self._prefix}"
-        if os.path.exists(tmp_folder):
-            shutil.rmtree(tmp_folder)
-
-        shutil.copytree(self._get_templates_dir(), tmp_folder)
-
-        latex_file_path = f"{tmp_folder}/{self._prefix}.tex"
+        latex_file_path = f"{self._tmp_dir_path}/{self._prefix}.tex"
         print(latex_content, file=open(latex_file_path, 'w', encoding='utf-8'))
 
-        with self._change_working_dir(tmp_folder):
-            os.system(f'{self.LATEX_COMPILER_BIN} --output-directory={tmp_folder} -interaction=nonstopmode -halt-on-error {latex_file_path}')
-        shutil.move(f"{tmp_folder}/{self._pdf_name}", pdf_dest_path)
-        shutil.rmtree(tmp_folder)
+        with self._change_working_dir(self._tmp_dir_path):
+            os.system(f'{self.LATEX_COMPILER_BIN} --output-directory={self._tmp_dir_path} -interaction=nonstopmode -halt-on-error {latex_file_path}')
+        shutil.move(f"{self._tmp_dir_path}/{self._pdf_name}", pdf_dest_path)
+        shutil.rmtree(self._tmp_dir_path)
 
 
     @contextmanager

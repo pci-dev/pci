@@ -3,63 +3,19 @@
 from functools import partial
 from io import StringIO
 from typing import Any, Dict, Optional, Union
+from app_modules.httpClient import HttpClient
 import lxml.html
 from lxml.cssselect import CSSSelector
 import cssutils
 import re
 
-
-hyperlinks: Optional[str] = 'hyperref'
-replacements_head: Dict[str, Any] = {}
-replacements_tail: Dict[str, Any] = {}
-
-
-def s(start: str = '', end: str = '', ignoreStyle: bool = False, ignoreContent: bool = False) -> Dict[str, Union[str, bool]]:
+def _s(start: str = '', end: str = '', ignoreStyle: bool = False, ignoreContent: bool = False) -> Dict[str, Union[str, bool]]:
     return {
         'start': start,
         'end': end,
         'ignoreStyle': ignoreStyle,
         'ignoreContent': ignoreContent
     }
-
-
-def handle_anchor(selector: ..., el: ...):
-    href = el.get('href')
-    name = el.get('name')
-
-    if hyperlinks == 'hyperref':
-        start = ''
-        end = ''
-        if href and href.startswith('#'):
-            start = '\\hyperlink{' + href[1:] + '}{'
-            end = '}'
-        elif name:
-            start = '\\hypertarget{' + name + '}{'
-            end = '}'
-        elif href:
-            start = '\\href{' + convert_LaTeX_special_chars(href) + '}{'
-            end = '}'
-        return s(start, end)
-    elif hyperlinks == 'footnotes':
-        if href and not href.startswith('#'):
-            return s(end='\\footnote{' + href + '}')
-    return None
-
-
-def handle_paragraph(selector: ..., el: ...):
-    # hanging indentation
-    match = r'^“'
-    node = el
-    while True:
-        if node.text and re.match(match, node.text):
-            replacements_head[node] = (match, '\\\\leavevmode\\\\llap{“}')
-            break
-        elif not node.text and node.__len__() > 0:
-            node = node[0]
-        else:
-            break
-
-    return s('\n\n')
 
 
 def convert_LaTeX_special_chars(string: str):
@@ -81,29 +37,87 @@ def convert_LaTeX_special_chars(string: str):
 
 class HtmlToLatex:
 
+    _hyperlinks: Optional[str] = 'hyperref'
+    _replacements_head: Dict[str, Any] = {}
+    _replacements_tail: Dict[str, Any] = {}
+
+    def _handle_anchor(self, selector: ..., el: ...):
+        href = el.get('href')
+        name = el.get('name')
+
+        if self._hyperlinks == 'hyperref':
+            start = ''
+            end = ''
+            if href and href.startswith('#'):
+                start = '\\hyperlink{' + href[1:] + '}{'
+                end = '}'
+            elif name:
+                start = '\\hypertarget{' + name + '}{'
+                end = '}'
+            elif href:
+                start = '\\href{' + convert_LaTeX_special_chars(href) + '}{'
+                end = '}'
+            return _s(start, end)
+        elif self._hyperlinks == 'footnotes':
+            if href and not href.startswith('#'):
+                return _s(end='\\footnote{' + href + '}')
+        return None
+
+
+    def _handle_paragraph(self, selector: ..., el: ...):
+        # hanging indentation
+        match = r'^“'
+        node = el
+        while True:
+            if node.text and re.match(match, node.text):
+                self._replacements_head[node] = (match, '\\\\leavevmode\\\\llap{“}')
+                break
+            elif not node.text and node.__len__() > 0:
+                node = node[0]
+            else:
+                break
+
+        return _s('\n\n')
+
+
+    def _handle_img(self, selector: ..., el: ...):
+        src: str = el.attrib.get('src')
+        if not src.startswith('http'):
+            return
+
+        height: Optional[float] = self._px_to_cm(el.attrib.get('height'))
+        width: Optional[float] = self._px_to_cm(el.attrib.get('width'))
+
+        image_file_path = HttpClient().download(src, self._tmp_dir_path)
+
+        return _s(f"\\includegraphics[width={width}cm, height={height}cm]{{{image_file_path}}}")
+
+
+
+
     _selectors: Dict[str, Any] = {
         #'html': s('\\thispagestyle{empty}\n{\n', '\n}\n'),
-        'head': s(ignoreContent=True, ignoreStyle=True),
+        'head': _s(ignoreContent=True, ignoreStyle=True),
         #'body': s('\n\n', '\n\n\\clearpage\n\n'),
-        'blockquote': s('\n\\begin{quotation}', '\n\\end{quotation}'),
-        'ol': s('\n\\begin{enumerate}', '\n\\end{enumerate}'),
-        'ul': s('\n\\begin{itemize}', '\n\\end{itemize}'),
-        'li': s('\n\t\\item '),
-        'i': s('\\textit{', '}', ignoreStyle=True),
-        'b, strong': s('\\textbf{', '}', ignoreStyle=True),
-        'em': s('\\emph{', '}', ignoreStyle=True),
-        'u': s('\\underline{', '}', ignoreStyle=True),
-        'sub': s('\\textsubscript{', '}'),
-        'sup': s('\\textsuperscript{', '}'),
-        'br': s('~\\\\\n'),
-        'hr': s('\n\n\\line(1,0){300}\n', ignoreStyle=True),
-        'a': handle_anchor,
-
-        'p': handle_paragraph,
-        '.chapter-name': s('\n\\noindent\\hfil\\charscale[2,0,-0.1\\nbs]{', '}\\hfil\\newline\n\\vspace*{2\\nbs}\n\n', ignoreStyle=True),
-        '.chapter-number': s('\\vspace*{3\\nbs}\n\\noindent\\hfil\\charscale[1.0,0,-0.1\\nbs]{\\textsc{\\addfontfeature{Ligatures=NoCommon,LetterSpace=15}{\\strreplace{', '}{ }{}}}}\\hfil\\newline\n\\vspace*{0.0\\nbs}\n', ignoreStyle=True),
-        'p.break': s('\n\n\\scenepause', ignoreStyle=True, ignoreContent=True),
-        '.center': s('\n\n{\\csname @flushglue\\endcsname=0pt plus .25\\textwidth\n\\noindent\\centering{}', '\\par\n}', ignoreStyle=True)}
+        'blockquote': _s('\n\\begin{quotation}', '\n\\end{quotation}'),
+        'ol': _s('\n\\begin{enumerate}', '\n\\end{enumerate}'),
+        'ul': _s('\n\\begin{itemize}', '\n\\end{itemize}'),
+        'li': _s('\n\t\\item '),
+        'i': _s('\\textit{', '}', ignoreStyle=True),
+        'b, strong': _s('\\textbf{', '}', ignoreStyle=True),
+        'em': _s('\\emph{', '}', ignoreStyle=True),
+        'u': _s('\\underline{', '}', ignoreStyle=True),
+        'sub': _s('\\textsubscript{', '}'),
+        'sup': _s('\\textsuperscript{', '}'),
+        'br': _s('~\\\\\n'),
+        'hr': _s('\n\n\\line(1,0){300}\n', ignoreStyle=True),
+        'a': _handle_anchor,
+        'img': _handle_img,
+        'p': _handle_paragraph,
+        '.chapter-name': _s('\n\\noindent\\hfil\\charscale[2,0,-0.1\\nbs]{', '}\\hfil\\newline\n\\vspace*{2\\nbs}\n\n', ignoreStyle=True),
+        '.chapter-number': _s('\\vspace*{3\\nbs}\n\\noindent\\hfil\\charscale[1.0,0,-0.1\\nbs]{\\textsc{\\addfontfeature{Ligatures=NoCommon,LetterSpace=15}{\\strreplace{', '}{ }{}}}}\\hfil\\newline\n\\vspace*{0.0\\nbs}\n', ignoreStyle=True),
+        'p.break': _s('\n\n\\scenepause', ignoreStyle=True, ignoreContent=True),
+        '.center': _s('\n\n{\\csname @flushglue\\endcsname=0pt plus .25\\textwidth\n\\noindent\\centering{}', '\\par\n}', ignoreStyle=True)}
 
     _characters: Dict[str, str] = {
         u'\u00A0': '~',  # &nbsp;
@@ -142,7 +156,7 @@ class HtmlToLatex:
         },
 
         'display': {
-            'none': s(ignoreContent=True, ignoreStyle=True)
+            'none': _s(ignoreContent=True, ignoreStyle=True)
         },
 
         # customized
@@ -158,14 +172,17 @@ class HtmlToLatex:
             '1em': ('', '\n\n\\vspace{\\baselineskip}\n\\noindent\n')
         },
         '-latex-display': {
-            'none': s(ignoreContent=True, ignoreStyle=True)
+            'none': _s(ignoreContent=True, ignoreStyle=True)
         }
     }
 
 
-    def __init__(self):
-        self.replacements_head = replacements_head
-        self.replacements_tail = replacements_tail
+    def __init__(self, tmp_dir_path: str):
+        self._tmp_dir_path = tmp_dir_path
+
+        self._hyperlinks = 'hyperref'
+        self._replacements_head = {}
+        self._replacements_tail = {}
 
 
     def convert(self, html: str):
@@ -173,8 +190,8 @@ class HtmlToLatex:
             return ''
 
         html_parser = lxml.html.HTMLParser(encoding='utf-8', remove_comments=True)
-        tree: ... = lxml.html.parse(StringIO(html), parser=html_parser) # type: ignore
-        root = tree.getroot() 
+        tree: Any = lxml.html.parse(StringIO(html), parser=html_parser) # type: ignore
+        root: Any = tree.getroot() # type: ignore
         selectors = self._get_selectors(root, self._selectors)
         out = self._element_to_latex(root, {}, selectors)
         out = re.sub(r"^\s+|\s+$", "", out, flags=re.UNICODE)
@@ -240,17 +257,17 @@ class HtmlToLatex:
         result.append(''.join(heads))
 
         if not ignoreContent:
-            if el.text: # type: ignore
-                text: Any = self._inside_characters(el, el.text, leaveText, ignoreContent) # type: ignore
-                r = self.replacements_head.get(el, None)
+            if el.text:
+                text = self._inside_characters(el, el.text, leaveText, ignoreContent)
+                r = self._replacements_head.get(el, None)
                 if r:
                     text = re.sub(r[0], r[1], text)
                 result.append(text)
             for child in el:
                 result.append(self._element_to_latex(child, cascading_style, selectors))
-                if child.tail: # type: ignore
-                    text = self._modify_characters(child, child.tail) # type: ignore
-                    r = self.replacements_tail.get(el, None)
+                if child.tail:
+                    text = self._modify_characters(child, child.tail)
+                    r = self._replacements_tail.get(el, None)
                     if r:
                         text = re.sub(r[0], r[1], text)
                     result.append(text)
@@ -363,7 +380,11 @@ class HtmlToLatex:
             for element in matching:
                 info = val
                 if callable(val):
-                    info = val(selector, element)
+                    cls_fn = getattr(self, val.__name__, None)
+                    if cls_fn:
+                        info = cls_fn(selector, element)
+                    else:
+                        info = val(selector, element)
                 if element not in view:
                     view[element] = {}
                     if info:
@@ -372,3 +393,12 @@ class HtmlToLatex:
                     if info:
                         view[element].update(info)
         return view
+
+
+    def _px_to_cm(self, size: Optional[str]):
+        if not size:
+            return 5.0
+
+        size = size.strip()
+        return float(size) * 0.0264583333
+
