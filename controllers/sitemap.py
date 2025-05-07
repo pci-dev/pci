@@ -9,21 +9,24 @@ from models.article import Article, ArticleStatus
 
 class SiteMapUrl:
     loc: str
-    lastmod: str   
+    lastmod: str
 
 
 def index():
     articles = Article.get_by_status([ArticleStatus.RECOMMENDED], order_by=~current.db.t_articles.id)
     urls: List[SiteMapUrl] = []
-    
+    date_format = "%Y-%m-%d"
+
     for article in articles:
         url = SiteMapUrl()
         url.loc = URL(c="articles", f="rec", vars=dict(articleId=article.id), scheme=True)
-        url.lastmod = article.last_status_change.isoformat() if article.last_status_change else datetime.datetime.today().isoformat()
-        
+        url.lastmod = (
+                article.last_status_change or datetime.datetime.today()
+        ).strftime(date_format)
+
         urls.append(url)
-    
+
     current.response.headers['Content-Type'] = 'text/xml'
     current.response.view = "sitemap.html"
-    
+
     return dict(urls=urls)
