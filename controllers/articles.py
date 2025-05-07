@@ -118,7 +118,7 @@ def handle_rec_signposting(recomm: Recommendation):
             + f'>; rel="describedby" {opts}'
 
             for target, opts in [
-                ("recommendation", 'type="docmaps"'),
+                ("docmaps", 'type="application/ld+json" profile="https://w3id.org/docmaps/context.jsonld"'),
                 ("crossref", 'type="application/xml" profile="http://www.crossref.org/schema/4.3.7"'),
             ]
         ])}
