@@ -10,6 +10,7 @@ import subprocess
 from typing import Any, Dict, List, Optional, Union, cast
 from zipfile import ZipFile
 import io
+from bs4 import BeautifulSoup
 from gluon import current
 from gluon import html
 from gluon.http import HTTP
@@ -470,3 +471,8 @@ def he(non_html_str: Optional[Any]):
 
     non_html_str = re.sub(r'\*(.*?)\*', r'\1', non_html_str)
     return std_html.escape(non_html_str)
+
+
+def safe_html(html_text: str):
+    soup = BeautifulSoup(html_text, 'html.parser')
+    return html.XML(soup.prettify())

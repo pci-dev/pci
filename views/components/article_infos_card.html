@@ -7,7 +7,7 @@
       {{pass}}
       <div class="pci2-flex-column pci2-flex-center pci2-flex-grow pci2-article-image-div">
 
-        {{=articleImg}} 
+        {{=articleImg}}
         {{if articleImg == '' :}}
           <img
             src="{{=URL('static', 'images/small-background.png')}}"
@@ -17,10 +17,10 @@
       </div>
     </div>
 
-    
+
     <div class="pci2-flex-row pci2-flex-center">
       <div class="pci2-flex-column pci2-flex-grow">
-        
+
         <h3>{{=articleTitle}}</h3>
         <span class="pci2-article-infos">{{=articleAuthor}}</span>
         <span class="pci2-article-infos">{{=articleSource}}</span>
@@ -38,7 +38,7 @@
       </div>
     </div>
   </div>
-  
+
   {{if article_altmetric != '' and not printable:}}
     <div class="pci2-flex-end" style="margin-right: 10px;">
       {{=article_altmetric}}
@@ -46,13 +46,13 @@
   {{pass}}
 
   {{if 'dataDoi' in locals():}}
-  <div    
+  <div
     style="margin:  15px 0 0px;"
     {{if not printable:}}
     onclick="checkPanel('#menu-1','#icon-menu-1')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
-      class="pci2-flex-row pci2-flex-center"   
+      class="pci2-flex-row pci2-flex-center"
     {{pass}}
   >
     <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
@@ -83,13 +83,13 @@
 
 
 {{if 'codeDoi' in locals():}}
-  <div    
+  <div
     style="margin:  15px 0 0px;"
     {{if not printable:}}
     onclick="checkPanel('#menu-2','#icon-menu-2')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
-      class="pci2-flex-row pci2-flex-center"   
+      class="pci2-flex-row pci2-flex-center"
     {{pass}}
   >
     <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
@@ -121,13 +121,13 @@
 
 
 {{if 'scriptDoi' in locals():}}
-  <div    
+  <div
     style="margin:  15px 0 0px;"
     {{if not printable:}}
     onclick="checkPanel('#menu-3','#icon-menu-3')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
-      class="pci2-flex-row pci2-flex-center"   
+      class="pci2-flex-row pci2-flex-center"
     {{pass}}
   >
     <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
@@ -159,13 +159,13 @@
 
 
   {{if 'coverLetter' in locals():}}
-    <div    
+    <div
       style="margin:  15px 0 0px;"
       {{if not printable:}}
       onclick="checkPanel('#menu-4','#icon-menu-4')"
         class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
       {{else:}}
-        class="pci2-flex-row pci2-flex-center"   
+        class="pci2-flex-row pci2-flex-center"
       {{pass}}
     >
       <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
@@ -203,7 +203,7 @@
     onclick="checkPanel('#menu-9','#icon-menu-9')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
-      class="pci2-flex-row pci2-flex-center"   
+      class="pci2-flex-row pci2-flex-center"
     {{pass}}
   >
     <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
@@ -234,13 +234,13 @@
 
 
 {{if 'suggestReviewers' in locals():}}
-  <div    
+  <div
     style="margin:  15px 0 0px;"
     {{if not printable:}}
     onclick="checkPanel('#menu-7','#icon-menu-7')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
-      class="pci2-flex-row pci2-flex-center"   
+      class="pci2-flex-row pci2-flex-center"
     {{pass}}
   >
     <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
@@ -271,13 +271,13 @@
   {{pass}}
 
   {{if 'competitors' in locals():}}
-  <div 
+  <div
     style="margin: 15px 0 0px;"
     {{if not printable:}}
       onclick="checkPanel('#menu-8','#icon-menu-8')"
       class="pci2-flex-row pci2-flex-center pci2-hover-main-color"
     {{else:}}
-      class="pci2-flex-row pci2-flex-center" 
+      class="pci2-flex-row pci2-flex-center"
     {{pass}}
   >
   <b style="margin: 0;" {{if printable:}} class="pci2-main-color-text" {{pass}}
@@ -287,18 +287,18 @@
       style="margin: 0 10px;"
       class="pci2-main-color-hr pci2-flex-grow"
     />
-  
+
     {{if 'competitors' in locals() and not printable:}}
       <i id="icon-menu-8" class="glyphicon glyphicon-chevron-up pci2-icon-rotating glyphicon-rotate pci2-main-color-text"></i>
     {{pass}}
   </div>
-  
+
   {{if 'competitors' in locals() and not printable:}}
     <div id="menu-8" class="pci2-abstract-div pci2-panel-closed" style="margin-top: 15px;">
       {{=competitors}}
     </div>
   {{pass}}
-  
+
   {{if 'competitors' in locals() and printable:}}
     <div id="menu-8" class="pci2-abstract-div" style="margin-top: 15px;">
       {{=competitors}}
@@ -332,21 +332,19 @@
     <div id="menu-translations">
     {{for lang, translation in translations.items():}}
         {{if not printable:}}
-        <iframe srcdoc="
+        <div id="menu-5-{{=lang}}" class="pci2-abstract-div pci2-panel-closed">
         {{=translation.get('automated', '')}}
         {{=translation.get('title', '')}}
         {{=translation.get('abstract', '')}}
-        {{=translation.get('keywords', '')}}"
-        id="menu-5-{{=lang}}" class="pci2-abstract-div pci2-panel-closed">
-        </iframe>
+        {{=translation.get('keywords', '')}}
+        </div>
       {{else:}}
-        <iframe srcdoc="
+        <div id="menu-5-{{=lang}}" class="pci2-abstract-div">
           {{=translation.get('automated', '')}}
           {{=translation.get('title', '')}}
           {{=translation.get('abstract', '')}}
-          {{=translation.get('keywords', '')}}"
-          id="menu-5-{{=lang}}" class="pci2-abstract-div">
-        </iframe>
+          {{=translation.get('keywords', '')}}
+      </div>
       {{pass}}
     {{pass}}
     </div>
@@ -389,7 +387,7 @@
         {{pass}}
       </div>
   {{pass}}
-{{pass}}  
+{{pass}}
 
 </div>
 
