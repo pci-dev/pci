@@ -283,7 +283,7 @@ def mailing_lists():
     list_emails = ", ".join(emails)
     myContents.append(list_emails)
 
-    # Semestrial Newsletter users
+    # Newsletter users
     myContents.append(H1(T("Users receiving the newsletter:")))
     query = db.executesql("""
         SELECT email FROM auth_user
