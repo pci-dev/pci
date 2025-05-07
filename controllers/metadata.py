@@ -40,7 +40,7 @@ def crossref():
     return _crossref.crossref_xml(recomm)
 
 
-def recommendation():
+def docmaps():
     article, recomm = parse_args(request)
 
     response.headers.update({
