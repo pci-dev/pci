@@ -113,16 +113,15 @@ def handle_rec_signposting(recomm: Recommendation):
     if request.method == 'HEAD':
         article_id = recomm.article_id
 
-        response.headers = { "link": (
-            '<' + URL("metadata", "recommendation", scheme=True,
-                        vars=dict(article_id=article_id)) + '>' +
-            '; rel="describedby" type="docmaps"'
-            +
-            ', <' + URL("metadata", "crossref", scheme=True,
-                        vars=dict(article_id=article_id)) + '>' +
-            '; rel="describedby" type="application/xml" profile="http://www.crossref.org/schema/4.3.7"'
+        response.headers = { "link": ", ".join([
+            '<' + URL("metadata", f"{target}?article_id={article_id}", scheme=True)
+            + f'>; rel="describedby" {opts}'
 
-        )}
+            for target, opts in [
+                ("recommendation", 'type="docmaps"'),
+                ("crossref", 'type="application/xml" profile="http://www.crossref.org/schema/4.3.7"'),
+            ]
+        ])}
         return True
 
 
