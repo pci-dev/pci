@@ -2,13 +2,15 @@ import json
 import datetime
 import requests
 
+from app_modules import crossref as _crossref
+
 from app_modules.common_small_html import mkUser
 from models.review import ReviewState
 
 from gluon.storage import Storage
 
 
-def recommendation():
+def parse_args(request):
     article_id = request.vars.article_id or request.vars.id
 
     try:
@@ -24,6 +26,22 @@ def recommendation():
 
     if not recomm:
         raise HTTP(400, f"no recommendation for article: {article_id}")
+
+    return article, recomm
+
+
+def crossref():
+    article, recomm = parse_args(request)
+
+    response.headers.update({
+        "Content-Type": "text/xml",
+    })
+
+    return _crossref.crossref_xml(recomm)
+
+
+def recommendation():
+    article, recomm = parse_args(request)
 
     response.headers.update({
         "Content-Type": "application/ld+json",
