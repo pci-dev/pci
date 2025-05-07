@@ -111,7 +111,7 @@ def rec():
 
 def handle_rec_signposting(recomm: Recommendation):
     if request.method == 'HEAD':
-        article_id = recomm.article_id.id
+        article_id = recomm.article_id
 
         response.headers = { "link": (
             '<' + URL("metadata", "recommendation", scheme=True,
