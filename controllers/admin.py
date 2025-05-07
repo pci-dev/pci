@@ -287,7 +287,10 @@ def mailing_lists():
     myContents.append(H1(T("Users receiving the newsletter:")))
     query = db.executesql("""
         SELECT email FROM auth_user
-        WHERE alerts != 'Never' AND country is not NULL;
+        WHERE alerts != 'Never'
+        AND country is not NULL
+        AND not deleted
+        ;
     """
     )
     list_emails = ", ".join([email[0] for email in query])
