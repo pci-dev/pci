@@ -27,7 +27,7 @@ from app_modules.orcid import OrcidTools
 
 from gluon import current
 
-from app_modules.common_tools import URL
+from app_modules.common_tools import URL, doi_to_url
 
 myconf = AppConfig(reload=True)
 
@@ -1062,10 +1062,12 @@ def build_citation(article: Article, final_recommendation: Recommendation, for_l
                         citation=True)
 
     if final_recommendation.recommendation_doi:
+        recommendation_doi = doi_to_url(final_recommendation.recommendation_doi)
+
         if for_latex:
-            cite_ref = mkSimpleDOI(final_recommendation.recommendation_doi)
+            cite_ref = mkSimpleDOI(recommendation_doi)
         else:
-            cite_ref = mkDOI(final_recommendation.recommendation_doi)
+            cite_ref = mkDOI(recommendation_doi)
     else:
         cite_ref = False
 
