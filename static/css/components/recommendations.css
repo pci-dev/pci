@@ -250,6 +250,18 @@ h4.pci2-recomm-article-h2 .glyphicon {
   margin-top: 20px;
   font-weight: bold;
   color: #555;
+  margin-bottom: 0px;
+}
+
+.doi-url-subsection {
+  font-style: italic;
+  font-size: 9px;
+  margin-bottom: 5px;
+  display: inline-block;
+}
+
+.doi-url-subsection:not(:hover){
+  opacity: 0.5;
 }
 
 /* Comment Tree */

@@ -133,7 +133,6 @@ def impersonate_users():
         pageHelp=getHelp("#AdministrateUsers"),
         customText=getText("#AdministrateUsersText"),
         grid=grid,
-        
     )
 
 def _impersonate_button(user: User):
@@ -159,15 +158,15 @@ def impersonate():
     if Membership.has_membership(user_id, [Role.ADMINISTRATOR, Role.DEVELOPER, Role.MANAGER]):
         session.flash = "You can't impersonate this user"
         return redirect(URL('default','index'))
-    
+
     if auth.is_impersonating():
         session.flash = 'You are already impersonating user'
         return redirect(URL('default','index'))
-    
+
     if not auth.has_membership(Role.MANAGER.value):
         session.flash = 'You are not manager'
         return redirect(URL('default','index'))
-    
+
     if not auth.has_permission('impersonate', db.auth_user, user_id):
         manager_group = Group.get_by_role(Role.MANAGER)
         if manager_group:
@@ -274,7 +273,7 @@ def _manage_articles(statuses: Optional[List[str]] = None,
                      order_by: ... = db.t_articles.alert_date|db.t_articles.rdv_date):
     if pciRRactivated:
         return _manage_articles_rr(statuses, stats_query, show_not_considered_button)
-    
+
     response.view = "default/myLayout.html"
 
     last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
@@ -308,19 +307,19 @@ def _manage_articles(statuses: Optional[List[str]] = None,
     for a_field in t_articles.fields:
         if not a_field in full_text_search_fields:
             t_articles[a_field].readable = False
-    
+
     def article_row(article_id: int, article: Article):
         return common_small_html.represent_article_manager_board(article)
 
     def alert_date_row(article_last_status_change: int, article: Article):
         return common_small_html.represent_alert_manager_board(article)
-    
+
     def link_body_row(row: Article):
         return common_small_html.represent_link_column_manager_board(row)
-    
+
     def represent_rdv_date(rdv_date: Optional[datetime.date], row: Article):
         return common_small_html.represent_rdv_date(row)
-    
+
     def represent_article_status(status: Optional[str], row: Article):
         return common_small_html.represent_current_step_manager_board(row)
 
@@ -333,7 +332,7 @@ def _manage_articles(statuses: Optional[List[str]] = None,
 
     t_articles.id.readable = True
     t_articles.id.represent = article_row
-    
+
     t_articles.thematics.label = "Thematics fields"
     t_articles.thematics.type = "string"
     t_articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword)
@@ -456,7 +455,7 @@ def edit_rdv_date():
     except:
         response.flash = "Bad arguments"
         return HTTP(400, "Bad arguments")
-    
+
     if new_date and datetime.date.today() > new_date:
         response.flash = "Date must be upper than the today date"
         return HTTP(403, "Date must be upper than the today date")
@@ -465,7 +464,7 @@ def edit_rdv_date():
     if not article:
         response.flash = "Article not found"
         return HTTP(404, f"Article with id {article_id} not found")
-    
+
     try:
         Article.set_rdv_date(article, new_date)
     except:
@@ -483,12 +482,12 @@ def edit_remarks():
     except:
         response.flash = "Bad arguments"
         return HTTP(400, "Bad arguments")
-    
+
     article = Article.get_by_id(article_id)
     if not article:
         response.flash = "Article not found"
         return HTTP(404, f"Article with id {article_id} not found")
-    
+
     try:
         Article.set_remarks(article, remarks)
     except:
@@ -531,17 +530,17 @@ def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, 
         'keywords',
         'upload_timestamp',
         'thematics'
-    ]   
-    
+    ]
+
     def article_row(article_id: int, article: Article):
         return DIV(common_small_html.mkRepresentArticleLight(article_id), _class="pci-w300Cell")
-    
+
     def submitter_row(user_id: int, article: Article):
         return SPAN(
             DIV(common_small_html.mkAnonymousArticleField(article.anonymous_submission or False, "", article.id)),
             common_small_html.mk_user(users.get(article.user_id) if article.user_id else None),
         )
-    
+
     def recommender_row(article_title: str, article: Article):
         article_id = article.id
 
@@ -560,7 +559,7 @@ def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, 
             resu.insert(1, DIV(B("Co-recommenders:"))) # type: ignore
 
         return resu
-    
+
     def status_row(article_status: str, article: Article):
         return common_small_html.mkStatusDiv(
         article_status,
@@ -569,13 +568,13 @@ def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, 
         reportStage=article.report_stage,
         submission_change=article.request_submission_change,
     )
-    
+
     def upload_timestamp_row(upload_timestamp: datetime.datetime, article: Article):
         return common_small_html.mkLastChange(article.upload_timestamp)
 
     def last_status_change_row(last_status_change: datetime.datetime, article: Article):
         return common_small_html.mkLastChange(article.last_status_change)
-    
+
     def link_body_row(row: Article):
         return DIV(
                 A(
@@ -595,11 +594,11 @@ def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, 
 
     articles.id.readable = True
     articles.id.represent = article_row
-    
+
     articles.thematics.label = "Thematics fields"
     articles.thematics.type = "string"
     articles.thematics.requires = IS_IN_DB(db, db.t_thematics.keyword)
-    
+
     articles.user_id.represent = submitter_row
     articles.user_id.label = 'Submitter'
 
@@ -726,7 +725,7 @@ def recommendations():
 
     recommHeaderHtml = article_components.get_article_infos_card(art, printable, True, for_manager=True)
     recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, False, printable, quiet=False)
-    
+
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if not manager_coauthor:
         set_not_considered_button = ongoing_recommendation.set_to_not_considered(art) if art.status in (ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PRE_SUBMISSION.value) else None
@@ -748,11 +747,11 @@ def recommendations():
             twitter_button_element = twitter_button(art, recommendation)
             if twitter_button_element:
                 recommStatusHeader.append(twitter_button_element)
-            
+
             mastodon_button_element = mastodon_button(art, recommendation)
             if mastodon_button_element:
                 recommStatusHeader.append(mastodon_button_element)
-            
+
         recommStatusHeader.append(crossref_clockss_toolbar(art))
 
     if printable:
@@ -886,9 +885,8 @@ def mastodon_button(article, recommendation):
         _style=text_style,
     )
 
-def crossref_status(article):
-    recomm = db.get_last_recomm(article)
-    status_url = URL("crossref", f"get_status?recomm_id={recomm.id}")
+def crossref_status(article: Article):
+    status_url = URL("crossref", f"get_status?article_id={article.id}")
     return SPAN(
         SCRIPT('''
         (function get_crossref_status(elt) {
@@ -919,7 +917,7 @@ def manage_recommendations():
     art = db.t_articles[articleId]
     if art is None:
         redirect(URL(c="manager", f="all_recommendations"))
-    
+
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, art)
     if manager_coauthor:
         session.flash = T("You cannot access this page because you are a co-author of this submission")
@@ -1032,7 +1030,7 @@ def manage_recommendations():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def search_recommenders():
-    whatNext = request.vars["whatNext"] if request.vars["whatNext"] else URL(args=request.args, vars=request.get_vars, scheme=True)  
+    whatNext = request.vars["whatNext"] if request.vars["whatNext"] else URL(args=request.args, vars=request.get_vars, scheme=True)
     previous = URL(args=request.args, vars=request.get_vars, host=True)
     articleId = request.vars["articleId"]
     if articleId is None:
@@ -1198,7 +1196,7 @@ def suggested_recommenders():
 
     def make_user_mail(text: str, row: SuggestedRecommender):
         return common_small_html.mkUserWithMail(int(text))
-    
+
     def represent_willing(value: Optional[str], row: SuggestedRecommender):
         return STRONG(value) if value else ''
 
@@ -1212,7 +1210,7 @@ def suggested_recommenders():
     db.t_suggested_recommenders.recommender_validated.label = "Validated"
     db.t_suggested_recommenders.suggested_by.readable = True
     db.t_suggested_recommenders.suggested_by.represent = represent_willing
-    
+
 
 
     links: List[Dict[str, Any]] = []
@@ -1223,7 +1221,7 @@ def suggested_recommenders():
                 _class="btn btn-info pci-manager",
                 _href=URL(c="manager", f="suggested_recommender_emails", vars=dict(suggRecommId=row.suggested_recommender_id, articleId=row.article_id)),
             ) if not (row.declined) else ""
-    
+
     def make_valid_reject_sugg_recommender_button(row: SuggestedRecommender):
         next_url = URL(args=request.args, vars=request.get_vars, scheme=True)
 
@@ -1231,7 +1229,7 @@ def suggested_recommenders():
                 A("Valid", _class="btn btn-success", _href=URL("manager", "do_valid_suggested_recommender",vars=dict(sugg_recommender_id=row.id, _next=next_url))),
                 A("Reject", _class="btn btn-warning", _href=URL("manager", "do_reject_suggested_recommender", vars=dict(sugg_recommender_id=row.id, _next=next_url))),
             ) if row.recommender_validated is None else ""
-    
+
     links.append(
         dict(
             header="Emails history",
@@ -1300,10 +1298,10 @@ def suggested_recommenders():
 def represent_rejected_column(grid: ...):
     if not current.request.url.endswith('suggested_recommenders'):
         return
-    
+
     if len(grid.rows) == 0:
         return
-    
+
     th = grid.elements('th a')
     th[3].components[0] = "Rejected"
 
@@ -1445,7 +1443,7 @@ def edit_article():
 
     form = SQLFORM(db.t_articles, articleId, upload=URL("static", "uploads"), deletable=True, showid=True, extra_fields = manager_label + manager_fields,)
     form.element(_type="submit")["_id"] = "submit-article-btn"
-    
+
     ArticleTranslator.add_edit_translation_buttons(art, form)
     try:
         article_version = int(art.ms_version)
@@ -1608,7 +1606,7 @@ def all_recommendations():
         )
 
     if not isPress:
-        query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending"))) 
+        query = query & (db.t_articles.status.belongs(("Under consideration", "Scheduled submission under consideration", "Scheduled submission pending")))
     resu = _all_recommendations(goBack, query, isPress)
     return resu
 
@@ -1729,10 +1727,10 @@ def _all_recommendations(goBack, query, isPress):
                       't_recommendations.no_conflict_of_interest', 't_recommendations.reply', 'v_article_recommender.recommendation_id',
                       't_articles.anonymous_submission', 't_articles.has_manager_in_authors', 't_articles.article_year',
                       't_articles.article_source', 't_articles.doi', 't_articles.preprint_server',
-                      't_articles.ms_version', 't_articles.picture_rights_ok', 't_articles.upload_timestamp', 
+                      't_articles.ms_version', 't_articles.picture_rights_ok', 't_articles.upload_timestamp',
                       't_articles.validation_timestamp', 't_articles.last_status_change', 't_articles.request_submission_change',
-                      't_articles.funding', 't_articles.already_published', 't_articles.doi_of_published_article', 
-                      't_articles.parallel_submission', 't_articles.is_searching_reviewers', 't_articles.sub_thematics', 
+                      't_articles.funding', 't_articles.already_published', 't_articles.doi_of_published_article',
+                      't_articles.parallel_submission', 't_articles.is_searching_reviewers', 't_articles.sub_thematics',
                       't_articles.results_based_on_data', 't_articles.scripts_used_for_result',
                       't_articles.codes_used_in_study', 't_articles.record_id_version', 't_articles.record_url_version',
                       't_articles.manager_authors', 'v_recommendation_contributors.id']
@@ -1895,7 +1893,7 @@ def article_emails():
 
     def represent_mail_content(text: str, row: MailQueue):
         return XML(admin_module.sanitizeHtmlContent(text))
-    
+
     def represent_mail_subject(text: str, row: MailQueue):
         return DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-500")
 
@@ -1931,7 +1929,7 @@ def article_emails():
 
     if len(request.args) > 2 and request.args[0] == "edit":
         db.mail_queue.mail_template_hashtag.readable = True
-        
+
         mail = MailQueue.get_mail_by_id(request.args[2])
         if mail:
             dest_mail_address_writable = mail.sending_status == SendingStatus.PENDING.value
@@ -2000,7 +1998,7 @@ def article_emails():
         pageTitle=getTitle("#ArticleEmailsTitle"),
         customText=getText("#ArticleEmailsText"),
         pageHelp=getHelp("#ArticleEmails"),
-        myBackButton=common_small_html.mkBackButton(target=URL('manager','recommendations', vars=dict(articleId=articleId), user_signature=True)), 
+        myBackButton=common_small_html.mkBackButton(target=URL('manager','recommendations', vars=dict(articleId=articleId), user_signature=True)),
         grid=grid,
         myFinalScript=myScript,
         absoluteButtonScript=common_tools.absoluteButtonScript,
@@ -2023,15 +2021,15 @@ def send_submitter_generic_mail():
     art = Article.get_by_id(articleId)
     if not art:
         return fail("no article for review")
-    
+
     recomm = Article.get_last_recommendation(art.id)
     author: Optional[User] = None
     if art.user_id:
         author = User.get_by_id(art.user_id)
-    
+
     if not author:
         return fail("no author for article")
-    
+
     if not author.email:
         return fail("author has not email")
 
@@ -2039,7 +2037,7 @@ def send_submitter_generic_mail():
     mail_vars = emailing_tools.getMailCommonVars()
 
     if "revise_scheduled_submission" in request.args:
-        template = "#SubmitterScheduledSubmissionDeskRevisionsRequired" 
+        template = "#SubmitterScheduledSubmissionDeskRevisionsRequired"
         sched_sub_vars = emailing_vars.getPCiRRScheduledSubmissionsVars(art)
         mail_vars["scheduledSubmissionLatestReviewStartDate"] = sched_sub_vars["scheduledSubmissionLatestReviewStartDate"]
         mail_vars["scheduledReviewDueDate"] = sched_sub_vars["scheduledReviewDueDate"]
@@ -2276,18 +2274,18 @@ def email_for_recommender():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
         return
-    
+
     if lastRecomm is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
         return
-    
+
     article = db.t_articles[articleId]
     if not article:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
         return
-    
+
     recomm = db.get_last_recomm(articleId)
     if not recomm:
         session.flash = auth.not_authorized()
@@ -2366,7 +2364,7 @@ def manage_suggested_recommenders():
             & (db.t_articles.id == db.t_suggested_recommenders.article_id) \
             & (db.auth_user.id == db.t_suggested_recommenders.suggested_recommender_id) \
             & (db.t_articles.status.belongs([ArticleStatus.AWAITING_CONSIDERATION.value, ArticleStatus.PENDING.value]))
-    
+
     infos_by_article: Dict[int, Tuple[Article, List[Tuple[User, SuggestedRecommender]]]] = dict()
 
     elements = db(query).select()
@@ -2380,7 +2378,7 @@ def manage_suggested_recommenders():
             infos_by_article[article.id][1].append((recommender, sugg_recommender))
         else:
             infos_by_article[article.id] = (article, [(recommender, sugg_recommender)])
-    
+
     html: ... = DIV()
     next_url = URL(args=request.args, vars=request.get_vars, scheme=True)
 
@@ -2392,7 +2390,7 @@ def manage_suggested_recommenders():
             li = TR(
                 TD(mkUser_U(recommender, True, orcid=True)),
                 TD(A(recommender.email, _href=f"mailto:{recommender.email}"), _style="padding-left: 10px; font-style: italic"),
-                TD(A("Valid", _class="btn btn-success", 
+                TD(A("Valid", _class="btn btn-success",
                               _href=URL("manager", "do_valid_suggested_recommender",vars=dict(sugg_recommender_id=sugg_recommender.id, _next=next_url))),
                               _style="padding-left: 10px;"),
                 TD(A("Reject", _class="btn btn-warning",

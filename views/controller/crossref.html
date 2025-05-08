@@ -1,0 +1,130 @@
+{{extend 'layout.html'}}
+
+<style>
+    .xml_textarea {
+        font-family: monospace;
+        cursor: default;
+        width: 100%;
+        border-radius: 5px;
+        border: solid 1px #cccccc;
+        height: 400px;
+    }
+
+    .tab {
+        padding-bottom: 10px;
+    }
+
+    .round-separator {
+        margin-bottom: 0px;
+    }
+
+    .textarea_review {
+        margin-bottom: 5px;
+    }
+
+    #recommendation hr {
+        margin-bottom: 0px;
+    }
+
+    #btn-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        margin-top: 15px;
+    }
+
+    #status-panel {
+        max-height: 250px;
+    }
+
+    .tab-content {
+        padding-top: 20px;
+    }
+
+</style>
+
+<form enctype="multipart/form-data" method="post">
+
+    <pre id="status-panel" name="status">{{=crossref_status}}</pre>
+
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active"><a data-toggle="tab" href="#decisions">Decisions</a></li>
+        <li role="presentation"><a data-toggle="tab" href="#author-reply">Author replies</a></li>
+        <li role="presentation"><a data-toggle="tab" href="#reviews">Reviews</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="decisions" class="tab-pane fade in active">
+            {{for decision in recommendation_xml.decisions:}}
+            {{if decision.content:}}
+            <h4>Round {{=decision.round}}</h4>
+            <textarea class="xml_textarea" name="decision_xml_{{=decision.round}};{{=decision.filename}}" {{if disable_form:}}disabled="true"{{pass}}">
+{{=decision.content}}
+            </textarea>
+            <hr class="round-separator" />
+            {{pass}}
+            {{pass}}
+        </div>
+        <div id="author-reply" class="tab-pane fade">
+            {{for author_reply in recommendation_xml.author_replies:}}
+            {{if author_reply.content:}}
+            <h4>Round {{=author_reply.round}}</h4>
+            <textarea class="xml_textarea" name="author_reply_{{=author_reply.round}};{{=author_reply.filename}}" {{if disable_form:}}disabled="true"{{pass}}>
+{{=author_reply.content}}
+            </textarea>
+            <hr class="round-separator" />
+            {{pass}}
+            {{pass}}
+        </div>
+        <div id="reviews" class="tab-pane fade">
+            {{for round, reviews in recommendation_xml.reviews.items():}}
+            {{if reviews:}}
+            <h4>Round {{=round}}</h4>
+            {{for i, review in enumerate(reviews):}}
+            <textarea class="xml_textarea textarea_review" name="review_{{=review.no_in_round}}_{{=round}};{{=review.filename}}" {{if disable_form:}}disabled="true"{{pass}}>
+{{=review.content}}
+            </textarea>
+            {{pass}}
+            <hr class="round-separator" />
+            {{pass}}
+            {{pass}}
+        </div>
+    </div>
+    <div id="btn-container">
+        <button type="submit" class="btn btn-info" onclick="onClickSubmit(this)" {{if disable_form:}}disabled="true"{{pass}}>Send to Crossref & Clockss</button>
+        <button onclick="window.location.replace('{{=back_url}}'); return false;">Back</button>
+    </div>
+</form>
+
+<script>
+    function onClickSubmit(button) {
+        button.disabled = 'true';
+        button.form.submit();
+        console.log('finish');
+    }
+
+    function getStatus() {
+        const statusPanel = document.getElementById('status-panel');
+        if (statusPanel.innerText.length > 0) {
+            return;
+        }
+
+        statusPanel.innerText = "Waiting response from Crossref.."
+
+        req = new XMLHttpRequest();
+        req.open("get", '{{=get_status_url}}');
+        req.send();
+
+        req.addEventListener("load", function() {
+                statusPanel.innerText = '';
+                const status = document.createTextNode(this.response);
+                const xml = document.createElement('xmp');
+                xml.appendChild(status);
+                statusPanel.appendChild(xml);
+        });
+    }
+
+    $(document).ready(getStatus);
+
+</script>

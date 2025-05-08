@@ -41,9 +41,7 @@ def main():
             print(f"Article {article.id}: No recommendation found")
             continue
 
-        generated_xml = crossref.crossref_xml(recommendation)
-
-        status = crossref.post_and_forget(recommendation, generated_xml)
+        status = crossref.post_and_forget(article)
         if status:
             nok_crossref.append(article.id)
             print(f"Error to post to crossref: {status}")

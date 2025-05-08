@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from models.article import Article
 from models.recommendation import Recommendation
 from re import sub
-from dateutil.relativedelta import *
 from collections import OrderedDict
 
 from gluon.html import *
@@ -12,13 +11,14 @@ from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.sqlhtml import *
 
-from app_modules import common_small_html
+from app_modules import common_small_html, crossref
 from app_modules import common_tools
 from app_modules.common_small_html import md_to_html
 
 from app_components import article_components
 from app_modules import emailing
-from app_modules.common_tools import URL
+from app_modules.common_tools import URL, doi_to_url
+from models.review import Review
 
 myconf = AppConfig(reload=True)
 
@@ -144,7 +144,7 @@ def getArticleAndFinalRecommendation(art: Article,
             ("cite", cite),
             ("info", info),
             ("funding", funding),
-            ("recommText", WIKI(finalRecomm.recommendation_comments or "", safe_mode=False)),
+            ("recommText", WIKI(finalRecomm.recommendation_comments or "", safe_mode="")),
             ("pdfLink", pdfLink),
             ("printable", printable),
             ("recommendationPdfLink", recommendationPdfLink),
@@ -165,7 +165,7 @@ def getArticleAndFinalRecommendation(art: Article,
 
 ######################################################################################################################################################################
 def getRecommendationMetadata(art: Article, lastRecomm: Recommendation, pdfLink: Optional[str], citeNum: Optional[str]):
-    desc = "A recommendation of: " + (art.authors or "") + " " + (md_to_html(art.title).flatten() or "") + " " + (art.doi or "")
+    desc = str("A recommendation of: " + (art.authors or "") + " " + (md_to_html(art.title).flatten() or "") + " " + (art.doi or "")) # type: ignore
     whoDidItMeta = common_small_html.getRecommAndReviewAuthors(recomm=lastRecomm, with_reviewers=False, linked=False, as_list=True)
 
     # META headers
@@ -224,7 +224,7 @@ def _dublinc_core_meta_tag(article: Article):
         for translated_abstract in article.translated_abstract:
             if translated_abstract['public']:
                 dublin_core.append(META(_name="DC.Description", _content=translated_abstract['content'], _lang=translated_abstract['lang']))
-            
+
     if article.translated_keywords:
         for translated_keywords in article.translated_keywords:
             if translated_keywords['public']:
@@ -234,13 +234,15 @@ def _dublinc_core_meta_tag(article: Article):
 
 
 ######################################################################################################################################################################
-def getPublicReviewRoundsHtml(articleId):
-    db, auth = current.db, current.auth
+def getPublicReviewRoundsHtml(articleId: int):
+    db= current.db
 
-    recomms = db((db.t_recommendations.article_id == articleId)).select(orderby=~db.t_recommendations.id)
+    recomms = Recommendation.get_by_article_id(articleId, ~db.t_recommendations.id)
 
     recommRound = len(recomms)
     reviewRoundsHtml = DIV()
+
+    nextRound: Optional[Recommendation] = None
 
     for recomm in recomms:
         roundNumber = recommRound
@@ -256,19 +258,20 @@ def getPublicReviewRoundsHtml(articleId):
         else:
             lastChanges = SPAN(I("posted ", recomm.last_change.strftime(DEFAULT_DATE_FORMAT))) if recomm.last_change else ""
             validationDate = SPAN(I(", validated ", recomm.validation_timestamp.strftime(DEFAULT_DATE_FORMAT))) if recomm.validation_timestamp else ""
-            recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode=False)
+            recommendationText = WIKI(recomm.recommendation_comments or "", safe_mode="")
             preprintDoi = SPAN(common_small_html.mkDOI(recomm.doi), BR()) if ((recomm.doi or "") != "") else ""
 
-        reviewsList = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).select(orderby=db.t_reviews.id)
-        reviwesPreparedData = []
+        reviewsList: List[Review] = db((db.t_reviews.recommendation_id == recomm.id) & (db.t_reviews.review_state == "Review completed")).select(orderby=db.t_reviews.id)
+        reviwesPreparedData: List[Dict[str, Optional[Any]]] = []
 
         count_anon = 0
-        for review in reviewsList:
+        for i, review in enumerate(reviewsList):
             if review.anonymously:
                 count_anon += 1
                 reviewer_number = common_tools.find_reviewer_number(review, count_anon)
                 reviewAuthorAndDate = SPAN(
-                    current.T("Reviewed by") + " " + current.T("anonymous reviewer %s"%(reviewer_number)) + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else "")
+                    current.T("Reviewed by") + " " + current.T("anonymous reviewer %s"%(reviewer_number)) + (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else ""),
+                    _id=f"review-{review.id}"
                 )
 
             else:
@@ -276,12 +279,13 @@ def getPublicReviewRoundsHtml(articleId):
                     current.T("Reviewed by"),
                     " ", common_small_html.mkUser(review.reviewer_id, linked=True, orcid_exponant=True),
                     (", " + review.last_change.strftime(DEFAULT_DATE_FORMAT) if review.last_change else ""),
+                    _id=f"review-{review.id}"
                 )
 
             reviewText = None
             if review.review:
                 if len(review.review) > 2:
-                    reviewText = WIKI(review.review, safe_mode=False)
+                    reviewText = WIKI(review.review, safe_mode="")
 
             pdfLink = None
             if review.review_pdf:
@@ -292,12 +296,19 @@ def getPublicReviewRoundsHtml(articleId):
                     _style="font-weight: bold; margin-bottom: 5px; display:block",
                 )
 
-            reviwesPreparedData.append(dict(authorAndDate=reviewAuthorAndDate, text=reviewText, pdfLink=pdfLink, id=review.id))
+            review_doi = crossref.get_review_doi(recomm, i + 1, roundNumber)
+
+            reviwesPreparedData.append(dict(authorAndDate=reviewAuthorAndDate,
+                                            text=reviewText,
+                                            pdfLink=pdfLink,
+                                            id=review.id,
+                                            review_doi_url=doi_to_url(review_doi)
+                                        ))
 
         authorsReply = None
         authorsReplyDate = None
         if (recomm.reply is not None and len(recomm.reply) > 0):
-            authorsReply = DIV(WIKI(recomm.reply, safe_mode=False), _class="pci-bigtext")
+            authorsReply = DIV(WIKI(recomm.reply, safe_mode=""), _class="pci-bigtext")
 
         authorsReplyPdfLink = None
         if recomm.reply_pdf:
@@ -316,9 +327,12 @@ def getPublicReviewRoundsHtml(articleId):
                 _href=URL("default", "download", args=recomm.track_change, scheme=True),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
+
         if (recomm.reply is not None and len(recomm.reply) > 0) or recomm.reply_pdf is not None or recomm.track_change is not None:
-            authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT) \
-                if not isLastRecomm else None
+            if not isLastRecomm and nextRound and nextRound.recommendation_timestamp:
+                authorsReplyDate = nextRound.recommendation_timestamp.strftime(DEFAULT_DATE_FORMAT)
+            else:
+                authorsReplyDate = None
         nextRound = recomm # iteration is last first; last round (final reco) has no author's reply
 
         recommendationPdfLink = None
@@ -340,6 +354,9 @@ def getPublicReviewRoundsHtml(articleId):
         recommAuthors = SPAN(recommAuthors)
         recommRound -= 1
 
+        decision_doi = crossref.get_decision_doi(recomm, roundNumber)
+        author_reply_doi = crossref.get_author_reply_doi(recomm, roundNumber)
+
         componentVars = dict(
             isLastRecomm=isLastRecomm or False,
             roundNumber=roundNumber,
@@ -355,9 +372,12 @@ def getPublicReviewRoundsHtml(articleId):
             authorsReplyPdfLink=authorsReplyPdfLink,
             recommendationPdfLink=recommendationPdfLink,
             authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
+            recommendation=recomm,
+            decision_doi_url=doi_to_url(decision_doi),
+            author_reply_doi_url=doi_to_url(author_reply_doi)
         )
 
-        reviewRoundsHtml.append(XML(current.response.render("components/public_review_rounds.html", componentVars)))
+        reviewRoundsHtml.append(XML(current.response.render("components/public_review_rounds.html", componentVars))) # type: ignore
 
     return reviewRoundsHtml
 
@@ -390,7 +410,7 @@ def getRecommCommentListAndForm(articleId: int, parentId: Optional[int] = None):
         db.t_comments.parent_id.default = parentId
         db.t_comments.parent_id.writable = False
 
-        commentForm = SQLFORM(db.t_comments, fields=fields, showid=False)
+        commentForm: ... = SQLFORM(db.t_comments, fields=fields, showid=False)
 
         if commentForm.process().accepted:
             session.flash = current.T("Comment saved", lazy=False)
@@ -404,19 +424,19 @@ def getRecommCommentListAndForm(articleId: int, parentId: Optional[int] = None):
     commentsQy = db((db.t_comments.article_id == articleId) & (db.t_comments.parent_id == None)).select(orderby=db.t_comments.comment_datetime)
     if len(commentsQy) > 0:
         for comment in commentsQy:
-            commentsTree.append(getCommentsTreeHtml(comment.id))
+            commentsTree.append(getCommentsTreeHtml(comment.id)) # type: ignore
     else:
-        commentsTree.append(DIV(SPAN(current.T("No user comments yet")), _style="margin-top: 15px"))
+        commentsTree.append(DIV(SPAN(current.T("No user comments yet")), _style="margin-top: 15px")) # type: ignore
 
     componentVars = dict(isLoggedIn=isLoggedIn, scrollToCommentForm=scrollToCommentForm, commentForm=commentForm, commentsTree=commentsTree,)
 
     return XML(response.render("components/comments_tree_and_form.html", componentVars))
 
 
-def getCommentsTreeHtml(commentId):
+def getCommentsTreeHtml(commentId: int):
     auth, db, response = current.auth, current.db, current.response
     comment = db.t_comments[commentId]
-    childrenDiv = []
+    childrenDiv: List[XML] = []
     children = db(db.t_comments.parent_id == comment.id).select(orderby=db.t_comments.comment_datetime)
 
     for child in children:

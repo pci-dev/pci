@@ -5,7 +5,7 @@ from gluon import STRONG
 from gluon.html import A, P
 from pydal.validators import IS_HTTP_URL
 from pydal.validators import Validator
-from app_modules.suggested_reviewers_parser import NameParser
+from app_modules.name_parser import NameParser
 
 from gluon import current
 
@@ -23,7 +23,7 @@ class CUSTOM_VALID_URL(Validator):
 
         if value == "https://" or value == "http://":
             value = ""
-        
+
         if not value or len(value) == 0:
             return value, None
 
@@ -31,22 +31,22 @@ class CUSTOM_VALID_URL(Validator):
             url = urlparse(value)
         except ValueError as error:
             return value, f"{self.error_message}: {error}"
-        
+
         if not url.scheme:
             return value, f"{self.error_message}: Missing http(s)://"
-        
+
         if not url.netloc and not self._allow_empty_netloc:
             return value, self.error_message
-        
+
         _, error = self._is_http_url(value) # type: ignore
         if error:
             return value, error
-        
+
         return value, None
 
 
 class VALID_DOI(Validator):
-     
+
     _preprint_server: Optional[str]
     error_message: P
 
@@ -56,7 +56,7 @@ class VALID_DOI(Validator):
                 preprint_server = current.request.vars.preprint_server
             except:
                 preprint_server = None
-                
+
         if preprint_server is None:
             self._preprint_server = None
         else:
@@ -65,7 +65,7 @@ class VALID_DOI(Validator):
         self.error_message = P("The preprint server you have indicated provides DOIs.",
                             " Please replace this URL with a DOI, in the format ",
                             STRONG("https://doi.org/10.xxx", _style="white-space: nowrap;"),
-                            ". In case of OSFHOME, please see ", 
+                            ". In case of OSFHOME, please see ",
                             A("https://help.osf.io/article/220-create-dois", _href="https://help.osf.io/article/220-create-dois", _target="_blank", _rel="noreferrer noopener"),
                             " to create a DOI. OSF Preprints and all derived preprint servers (such as PsyArxiv) provide DOIs.")
 
@@ -76,15 +76,15 @@ class VALID_DOI(Validator):
 
         if self._preprint_server not in ('osf', 'zenodo') and 'rxiv' not in self._preprint_server:
             return CUSTOM_VALID_URL()(value, record_id)
-        
+
         if value.startswith('https://doi.org/10.'):
             return CUSTOM_VALID_URL()(value, record_id)
         else:
             return value, self.error_message
-        
-        
+
+
 class VALID_LIST_NAMES_MAIL(Validator):
-    
+
     _error_message: str
     _error_message_suggested: str
 
@@ -119,9 +119,9 @@ class VALID_LIST_NAMES_MAIL(Validator):
     def __call__(self, value: Optional[Union[str, List[str]]], record_id: Optional[int] = None):
         if not value or len(value) == 0:
             return value, None
-        
+
         clean_value: List[str] = []
-        
+
         if isinstance(value, str):
             people = value.split(',')
             for person in people:
@@ -131,9 +131,9 @@ class VALID_LIST_NAMES_MAIL(Validator):
                     clean_value.append(reviewer.format())
                 except Exception as e:
                     return value, f"{self._error_message} -> {person}: {e}"
-                
+
             return ", ".join(clean_value), None
-        
+
         else:
             for person in value:
                 try:
@@ -145,11 +145,11 @@ class VALID_LIST_NAMES_MAIL(Validator):
                         error_message = self._error_message_suggested
                     else:
                         error_message = self._error_message
-                        
+
                     return value, f"{error_message} -> {person}: {e}"
 
             return clean_value, None
-        
+
 
     def _check_constraints(self, reviewer: NameParser):
         if self._without_email:
@@ -165,7 +165,7 @@ class TEXT_CLEANER:
      def __call__(self, value: Optional[str], record_id: Optional[int] = None):
         if not value:
             return value, None
-        
+
         value = value.replace("http://http://", "http://") \
             .replace("https://https://", "https://") \
             .replace("http://doi.org/http://doi.org", "http://doi.org") \
@@ -181,9 +181,9 @@ class VALID_TEMPLATE:
     def __call__(self, value: Optional[str], record_id: Optional[int] = None):
         if not value:
             return value, None
-        
+
         value = value.strip()
         if not value.startswith('#'):
             value = f"#{value}"
-        
+
         return value, None

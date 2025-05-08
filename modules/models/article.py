@@ -5,6 +5,7 @@ from typing import Any, List, NewType, Optional as _, Union, cast, TYPE_CHECKING
 from app_modules.crossref_api import CrossrefAPI
 from app_modules.datacite_api import DataciteAPI
 from app_modules.biorxiv_api import BiorxivAPI
+from app_modules.name_parser import FullId
 from gluon.html import A, SPAN
 from gluon.tools import Auth
 from models.group import Role
@@ -139,13 +140,13 @@ class Article(Row):
     def get_by_id(id: int):
         db = current.db
         return cast(_[Article], db.t_articles[id])
-    
+
 
     @staticmethod
     def get_all() -> List['Article']:
         db = current.db
         return db(db.t_articles).select()
-    
+
 
     @staticmethod
     def add_or_update_translation(article: 'Article', field: TranslatedFieldType, new_translation: TranslatedFieldDict):
@@ -158,7 +159,7 @@ class Article(Row):
                 if current_translation['automated'] or not new_translation['automated']:
                     current_translation['content'] = new_translation['content']
                     current_translation['automated'] = new_translation['automated']
-                if new_translation['public'] != None: 
+                if new_translation['public'] != None:
                     current_translation['public'] = new_translation['public']
             else:
                 translations.append(new_translation)
@@ -175,7 +176,7 @@ class Article(Row):
         translations: _[List[TranslatedFieldDict]] = getattr(article, field.value)
         if not translations:
             return
-        
+
         index_to_remove: _[int] = None
         for i in range(0, len(translations)):
             translation = translations[i]
@@ -186,40 +187,40 @@ class Article(Row):
         if index_to_remove != None:
             translations.pop(index_to_remove)
             article.update_record() # type: ignore
-        
+
 
     @staticmethod
     def get_translation(article: 'Article', field: TranslatedFieldType, lang: Lang):
         translations: _[List[TranslatedFieldDict]] = getattr(article, field.value)
         if not translations:
             return None
-        
+
         for translation in translations:
             if translation['lang'] == lang.value.code:
                 return translation
-            
-    
+
+
     @staticmethod
     def get_all_translations(article: 'Article', field: TranslatedFieldType):
         return cast(_[List[TranslatedFieldDict]], getattr(article, field.value))
-            
+
 
     @staticmethod
     def already_translated(article: 'Article', field: TranslatedFieldType, lang: Lang, manual: bool = False):
         translation = Article.get_translation(article, field, lang)
         if not translation:
             return False
-        
+
         if manual:
             return not translation['automated']
-        
+
         return True
 
 
     @staticmethod
     def get_last_recommendation(article_id: int, cache: bool = False) -> _[Recommendation]:
         db = current.db
-        
+
         query = db(db.t_recommendations.article_id == article_id)
         if cache:
             return query.select(orderby=db.t_recommendations.id, cache=(current.cache.ram, 30)).last()
@@ -235,7 +236,7 @@ class Article(Row):
         else:
             recommendations = db(db.t_recommendations.article_id == article_id).select()
         return cast(List[Recommendation], recommendations)
-    
+
 
     @staticmethod
     def current_user_has_edit_translation_right(article: 'Article'):
@@ -249,7 +250,7 @@ class Article(Row):
                                                         ArticleStatus.CANCELLED.value)
         is_admin = bool(auth.has_membership(role=Role.ADMINISTRATOR.value)) # type: ignore
         return is_author or is_admin
-    
+
 
     @staticmethod
     def get_by_status(article_status: List[ArticleStatus], order_by: _[Any] = None) -> List['Article']:
@@ -262,8 +263,8 @@ class Article(Row):
             return db(db.t_articles.status.belongs(states_values)).select(orderby=order_by)
         else:
             return db(db.t_articles.status.belongs(states_values)).select()
-        
-    
+
+
     @staticmethod
     def create_prefilled_submission(user_id: int,
                                     doi: _[str] = None,
@@ -277,7 +278,7 @@ class Article(Row):
                                     pre_submission_token: _[str] = None,
                                     **kwargs: Any):
         db = current.db
- 
+
         article_id = db.t_articles.insert(
             user_id=user_id,
             doi=doi,
@@ -293,14 +294,14 @@ class Article(Row):
             **kwargs)
 
         return Article.get_by_id(article_id)
-    
+
 
     @staticmethod
     def set_status(article: 'Article', status: ArticleStatus):
         article.status = status.value
         article.update_record() # type: ignore
 
-    
+
     @staticmethod
     def set_rdv_date(article: 'Article', rdv_date: _[date]):
         article.rdv_date = rdv_date
@@ -318,7 +319,7 @@ class Article(Row):
         article.pre_submission_token = None
         article.update_record() # type: ignore
 
-    
+
     @staticmethod
     def get_article_reference(article: 'Article', with_prefix: bool = True, html: bool = False):
         from app_modules.common_small_html import md_to_html
@@ -350,7 +351,7 @@ class Article(Row):
             f"peer-reviewed and recommended by {pci_long_name}",
             f"{article_doi}",
         ])
-    
+
 
     @staticmethod
     def update_alert_date(article: 'Article', update_record: bool = True):
@@ -359,7 +360,7 @@ class Article(Row):
 
         if not article.last_status_change:
             return None
-        
+
         status = ArticleStatus(article.status)
         recommendations = Recommendation.get_by_article_id(article.id, ~current.db.t_recommendations.id)
         last_recommendation = recommendations[0] if recommendations else None
@@ -370,7 +371,7 @@ class Article(Row):
         if round_number <= 1:
             if status == ArticleStatus.PRE_SUBMISSION:
                 alert_date = article.last_status_change + timedelta(days=16) # Submission awaiting completion
-            elif status == ArticleStatus.PENDING: 
+            elif status == ArticleStatus.PENDING:
                 alert_date = article.last_status_change + timedelta(days=2) # Submission pending validation
             elif status == ArticleStatus.AWAITING_CONSIDERATION:
                 alert_date = article.last_status_change + timedelta(days=20) # Recommender needed
@@ -384,11 +385,11 @@ class Article(Row):
                             alert_date = awaiting_review_tuple[1] + timedelta(days=7) # Reviews underway
                 elif article.current_step_number == ArticleStep.AWAITING_DECISION:
                     if last_recommendation:
-                        decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)                            
+                        decision_due_date = Recommendation.get_decision_due_date(last_recommendation, article, round_number)
                         if decision_due_date:
                             alert_date = decision_due_date + timedelta(days=5) # Awaiting decision
-                
-                    
+
+
             elif status in (ArticleStatus.PRE_REVISION, ArticleStatus.PRE_REJECTED, ArticleStatus.PRE_RECOMMENDED):
                 alert_date = article.last_status_change + timedelta(days=2) # Decision pending validation
             elif status == ArticleStatus.AWAITING_REVISION:
@@ -440,7 +441,7 @@ class Article(Row):
                     oldest_awaiting_review_due_date = oldest_awaiting_review_due_date + timedelta(days=7)
                     if not potential_alert_date or oldest_awaiting_review_due_date < potential_alert_date:
                         potential_alert_date = oldest_awaiting_review_due_date
-                    
+
                 # Alert date 4
                 if not oldest_awaiting_review_due_date:
                     most_recent_completed_review_date: _[datetime] = None
@@ -496,14 +497,14 @@ class Article(Row):
                 current.db(current.db.t_articles.id == article.id).update(current_step=article.current_step)
 
         return current_step
-    
+
 
     @staticmethod
     def get_current_step(article: 'Article'):
         current_step = Article.update_current_step(article)
         if current_step:
             return str(current_step[1])
-    
+
 
     @staticmethod
     def are_equal(article_1: 'Article', article_2: 'Article'):
@@ -515,7 +516,7 @@ class Article(Row):
 
             attr_1 = getattr(article_1, attribute, None)
             attr_2 = getattr(article_2, attribute, None)
-            
+
             if isinstance(attr_2, str) and len(attr_2) == 0 and attr_1 is None:
                 continue
 
@@ -525,7 +526,7 @@ class Article(Row):
             if attr_1 != attr_2:
                 return False
         return True
-    
+
 
     @staticmethod
     def get_by_step(step: List[StepNumber]) -> List['Article']:
@@ -556,7 +557,7 @@ class Article(Row):
                 None
         )
         return dup_info
-    
+
 
     @staticmethod
     def get_or_set_doi_published_article(article: 'Article'):
@@ -571,7 +572,7 @@ class Article(Row):
         if doi_of_published_article:
             current.db(current.db.t_articles.id == article.id).update(doi_of_published_article=doi_of_published_article)
             return doi_of_published_article
-        
+
 
     @staticmethod
     def request_api_get_published_article_doi(doi: str) -> _[str]:
@@ -579,7 +580,7 @@ class Article(Row):
             CrossrefAPI().get_published_article_doi_method_1(doi) or \
             CrossrefAPI().get_published_article_doi_method_2(doi) or \
             DataciteAPI().get_published_article_doi(doi)
-        
+
         if not doi_of_published_article:
             doi_without_version = re.sub(r"v[0-9]+$", "", doi)
             if doi != doi_without_version:
@@ -603,12 +604,12 @@ class Article(Row):
             )
 
         return db(query).select()
-    
+
 
     @staticmethod
     def get_recommenders_and_reviewers_mails(article_id: int):
         from models.review import ReviewState
-        
+
         db = current.db
 
         last_recommendation = Article.get_last_recommendation(article_id)
@@ -629,8 +630,8 @@ class Article(Row):
                                     & (db.auth_user.id == db.t_reviews.reviewer_id)).select(db.auth_user.email, distinct=True)]
 
         return (recommender, co_recommenders, reviewers)
-    
-    
+
+
     @staticmethod
     def create_new_recommendation_round(article: 'Article', recommender_id: int):
         db = current.db
@@ -645,19 +646,19 @@ class Article(Row):
         article.status = ArticleStatus.UNDER_CONSIDERATION.value
         article.update_record() # type: ignore
         return recommendation_id
-    
+
 
     @staticmethod
     def get_articles_need_recommender_for_user(user_id: int) -> List['Article']:
         db = current.db
-        
+
         result = db(db.t_articles.status == ArticleStatus.AWAITING_CONSIDERATION.value) \
             .select(db.t_articles.ALL,
                     db.t_suggested_recommenders.ALL,
                     left=db.t_suggested_recommenders.on(
                         (db.t_articles.id == db.t_suggested_recommenders.article_id) \
                       & (db.t_suggested_recommenders.suggested_recommender_id == user_id)))
-        
+
         articles: List[Article] = []
 
         for r in result:
@@ -676,9 +677,23 @@ class Article(Row):
         return articles
 
 
+    @staticmethod
+    def get_authors(article: 'Article'):
+        authors: List[FullId] = []
+        if not article.authors:
+            return authors
+
+        names = article.authors.split(',')
+        for name in names:
+            name = FullId.parse(name)
+            authors.append(name)
+        return authors
+
+
+
 def is_scheduled_submission(article: Article) -> bool:
     from models.report_survey import ReportSurvey
-    
+
     report_survey = cast(_['ReportSurvey'], article.t_report_survey.select().first()) # type: ignore
 
     is_scheduled_submission = scheduledSubmissionActivated and (
