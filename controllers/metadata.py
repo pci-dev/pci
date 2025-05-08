@@ -37,7 +37,7 @@ def crossref():
         "Content-Type": "text/xml",
     })
 
-    return _crossref.crossref_xml(recomm)
+    return _crossref.RecommendationXML.build(recomm).content
 
 
 def docmaps():
