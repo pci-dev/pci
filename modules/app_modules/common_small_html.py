@@ -27,7 +27,7 @@ from app_modules.orcid import OrcidTools
 
 from gluon import current
 
-from app_modules.common_tools import URL
+from app_modules.common_tools import URL, doi_to_url
 
 myconf = AppConfig(reload=True)
 
@@ -134,10 +134,10 @@ def mkUserId(userId, linked=False, fullURL=False):
 def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: bool = False, orcid_exponant: bool = False, mail_link: bool = False):
     if not user:
         return SPAN("?")
-    
+
     first_name = user.first_name or "?"
     last_name = user.last_name or "?"
-    
+
     if reverse:
         first_name = '-'.join(map(lambda x: f"{x[0].upper()}.", first_name.split('-')))
         name = f"{last_name}, {first_name}"
@@ -147,7 +147,7 @@ def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: boo
     if mail_link and user.email and not user.deleted:
         result = A(B(name),
                     _href=f"mailto:{user.email}",
-                    _class="cyp-user-profile-link")    
+                    _class="cyp-user-profile-link")
     elif linked and not user.deleted:
         result = A(B(name),
                     _href=URL(c="public", f="user_public_page",scheme=True, vars=dict(userId=user.id)),
@@ -274,7 +274,7 @@ def mkStatusDiv(status: str, showStage: bool = False, stage1Id: Optional[int] = 
             DIV(B(current.T(reportStage)), stage1Link, _class="pci-status-addition", _style="text-align: center; width: 150px;"),
             DIV(B(current.T(change_text)), _class="pci-status-addition", _style="text-align: center;"),
         )
-        
+
 
     else:
         result = DIV(status_txt, _class="pci-status " + color_class, _title=current.T(hint))
@@ -559,7 +559,7 @@ def mkRepresentArticleLight(article_id: int):
             DIV(mkAnonymousArticleField(art.anonymous_submission, art.authors, art.id)),
             doi_text,
             BR(),
-            SPAN(" " + current.T("ArticleID") + " #" + str(art.id)),            
+            SPAN(" " + current.T("ArticleID") + " #" + str(art.id)),
             BR(),
             SPAN(" " + current.T("version") + " " + art.ms_version) if art.ms_version else "",
             (BR() + SPAN(art.article_source) if art.article_source else ""),
@@ -577,7 +577,7 @@ def represent_article_with_recommendation_info(recommendation_id: int):
         return ''
 
     html = ''
-    
+
     if scheduledSubmissionActivated and  article.scheduled_submission_date is not None:
         doi_text = SPAN(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))))
     else:
@@ -588,12 +588,12 @@ def represent_article_with_recommendation_info(recommendation_id: int):
             DIV(mkAnonymousArticleField(article.anonymous_submission, article.authors, article.id)),
             doi_text,
             BR(),
-            SPAN(" " + current.T("ArticleID") + " #" + str(article.id)),            
+            SPAN(" " + current.T("ArticleID") + " #" + str(article.id)),
             BR(),
             SPAN(" " + current.T("version") + " " + recommendation.ms_version) if recommendation.ms_version else "",
             (BR() + SPAN(article.article_source) if article.article_source else ""),
         )
-    
+
     return html
 
 
@@ -622,7 +622,7 @@ def represent_article_manager_board(article: Article):
         press_reviews = PressReview.get_by_recommendation(last_recommendation.id)
         if len(press_reviews) > 0:
             html.append(BR())
-            html.append("Co-recommender: " if len(press_reviews) == 1 else "Co-recommenders: ") 
+            html.append("Co-recommender: " if len(press_reviews) == 1 else "Co-recommenders: ")
         for i, press_review in enumerate(press_reviews):
             if press_review.contributor_id:
                 co_recommender = mkUser(press_review.contributor_id, mail_link=True, reverse=True)
@@ -695,7 +695,7 @@ def represent_alert_manager_board(article: Article):
         return DIV(
             STRONG(alert_date.strftime(DEFAULT_DATE_FORMAT), _style=style, _class="article-alert"),
             _style="width: 50px;")
-    
+
 
 def represent_current_step_manager_board(article: Article):
     current_step = article.current_step
@@ -703,7 +703,7 @@ def represent_current_step_manager_board(article: Article):
         return XML(current_step)
     else:
         return ''
-    
+
 
 def represent_rdv_date(article: Article):
     input = INPUT(_type="date",
@@ -720,7 +720,7 @@ def represent_rdv_date(article: Article):
     else:
         value = article.rdv_date.strftime(DEFAULT_DATE_FORMAT)
         style = "background: none; color: inherit; border: 1px solid #dfd7ca; padding: 2px 2px 3px 2px; white-space: normal; width: 50px;"
-    
+
     button = BUTTON(value,
                     _popovertarget=f"rdv-date-popover-{article.id}",
                     _class="your-rdv btn btn-default",
@@ -1060,12 +1060,14 @@ def build_citation(article: Article, final_recommendation: Recommendation, for_l
                         fullURL=True,
                         recomm=final_recommendation, this_recomm_only=True,
                         citation=True)
-    
+
     if final_recommendation.recommendation_doi:
+        recommendation_doi = doi_to_url(final_recommendation.recommendation_doi)
+
         if for_latex:
-            cite_ref = mkSimpleDOI(final_recommendation.recommendation_doi)
+            cite_ref = mkSimpleDOI(recommendation_doi)
         else:
-            cite_ref = mkDOI(final_recommendation.recommendation_doi)
+            cite_ref = mkDOI(recommendation_doi)
     else:
         cite_ref = False
 
@@ -1219,7 +1221,7 @@ def fetch_url(data: List[str]):
     result: List[DIV] = []
     for doi in data:
         doi = doi.strip()
-        
+
         if doi.strip() == "https://":
             continue
 
@@ -1250,8 +1252,8 @@ def mkSearchWidget(chars: List[str]):
 #################################################################################
 
 def confirmationDialog(text: str, url: str = ''):
-    return DIV( 
-    DIV(TAG(current.T(text)), _class="modal-body"), 
+    return DIV(
+    DIV(TAG(current.T(text)), _class="modal-body"),
     DIV(SPAN(current.T("confirm"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-info", _id="confirm-dialog", _redirect=url),
         SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="cancel-dialog"),
     _class="modal-footer"), _id="confirmation-modal", _class="modal fade", _role="dialog")
@@ -1268,11 +1270,11 @@ def hypothesis_dialog(article: Row):
             DIV(H5(TAG(current.T("Hypothes.is")), _class="modal-title", _id="info-dialog-title"), _class="modal-header"),
             DIV(TAG(current.T("The following annotation is going to be posted on Biorxiv with Hypothes.is:") + "<br/>"),
                 TEXTAREA(hypothesis_client.get_stored_annotation(), _name=f'hypothesis_annotation_form', _class='form-control'),
-                _class="modal-body", id="info-modal-body"), 
+                _class="modal-body", id="info-modal-body"),
             DIV(INPUT(_type="submit", **{'_data-dismiss': 'modal'}, _class="btn btn-info", _id="confirm-dialog"),
                 SPAN(current.T("cancel"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="cancel-dialog"),
             _class="modal-footer"), _id="info-dialog", _class="modal fade", _role="dialog")
-    
+
     if form.process().accepted:
         hypothesis_client.store_annotation(form.vars.hypothesis_annotation_form)
         redirect(URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=article.id), user_signature=True))
@@ -1303,8 +1305,8 @@ def custom_mail_dialog(article_id: int, subject: str, message: str, submit_url: 
 ###################################################################################
 
 def complete_profile_dialog(next: str):
-    return DIV( 
-    DIV(TAG('Some information from your profile is missing. Do you want to complete your profile now?'), _class="modal-body"), 
+    return DIV(
+    DIV(TAG('Some information from your profile is missing. Do you want to complete your profile now?'), _class="modal-body"),
     DIV(A(current.T("Complete my profile"), _href=URL("default", "user/profile", user_signature=True, vars=dict(_next=next)), _class="btn btn-info", _id="complete-profile-confirm-dialog"),
         SPAN(current.T("Later"), _type="button", **{'_data-dismiss': 'modal'}, _class="btn btn-default", _id="complete-profile-cancel-dialog"),
     _class="modal-footer"), _id="complete-profile-modal", _class="modal fade", _role="dialog")
@@ -1315,7 +1317,7 @@ def complete_orcid_dialog():
     radio_label_style = "display: inline;"
     radio_container_style = "margin-top: 5px;"
     url = cast(str, URL("default", "orcid_choice"))
-    
+
     return DIV(
         OrcidTools.get_orcid_formatter_script(),
         common_tools.get_script('complete_orcid_dialog.js'),
@@ -1364,7 +1366,7 @@ def invitation_to_review_form(article_id: int, user: User, review: Review, more_
             ),
             _class="checkbox")
         )
-    
+
     form.append(DIV(
         LABEL(
             INPUT(_type="checkbox", _name="anonymous_agreement", _id="anonymous_agreement", _value="yes"),
@@ -1385,7 +1387,7 @@ def invitation_to_review_form(article_id: int, user: User, review: Review, more_
                         A(TAG(current.T("code of conduct")), _target="_blank", _href=URL('about', 'ethics'))
                     )
                 ),
-                _class="checkbox"   
+                _class="checkbox"
             )
         )
 
@@ -1446,9 +1448,9 @@ def suggested_recommender_list(article_id: int):
     suggested_recommenders = SuggestedRecommender.get_by_article(article_id)
     if not suggested_recommenders or len(suggested_recommenders) == 0:
         return
-    
+
     suggested_recommenders_html = DIV(_style="margin-top: 20px")
-    suggested_recommenders_html.append(H2(I(_class="glyphicon glyphicon-user", _style="margin-right: 10px;"), 'Suggested recommenders', 
+    suggested_recommenders_html.append(H2(I(_class="glyphicon glyphicon-user", _style="margin-right: 10px;"), 'Suggested recommenders',
                                           _class="pci2-recomm-article-h2 pci2-flex-grow pci2-flex-row pci2-align-items-center"))
 
     recommender_list = UL()
@@ -1464,19 +1466,19 @@ def suggested_recommender_list(article_id: int):
 def get_current_step_article(article: Article) -> Optional[Tuple[StepNumber, SPAN]]:
     timeline = ongoing_recommendation.getRecommendationProcessForSubmitter(article, False, "%d\xa0%b")['content']
     if not isinstance(timeline, DIV):
-        return 
-    
+        return
+
     parser = bs4.BeautifulSoup(str(timeline.components[-1].text), 'html.parser') # type: ignore
     step_done_els: ... = parser.find_all(class_="step-done") # type: ignore
     if len(step_done_els) == 0:
         return
-    
+
     step_done_container = step_done_els[-1]
 
     step_number: StepNumber = StepNumber(0)
     if step_done_container.has_attr('data-step'):
         step_number = StepNumber(int(step_done_container.attrs['data-step']))
-    
+
     step_done_content = cast(List[Any], step_done_els[-1].find(class_="step-description").contents)
     img = f"{_get_current_step_img(step_done_els)}"
 
@@ -1528,7 +1530,7 @@ def _get_step_classes(step_done_container: ..., els: str):
     step_text = els.lower()
     if 'awaiting revision' in step_text:
         classes += " warning-step"
-    
+
     if 'needed' in step_text or 'submission pending validation' in step_text:
         classes += " danger-step"
 
@@ -1537,7 +1539,7 @@ def _get_step_classes(step_done_container: ..., els: str):
 
 
 def _get_current_step_img(step_done_els: ...) -> Union[DIV, None]:
-    step_done_img = cast(List[Union[str, bs4.element.Tag, None]], 
+    step_done_img = cast(List[Union[str, bs4.element.Tag, None]],
                                                  step_done_els[-1].find(class_="progress-step-circle").contents)
     img: Optional[bs4.element.Tag] = None
     for el in step_done_img:
