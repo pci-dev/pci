@@ -2,7 +2,8 @@ from app_modules import crossref
 from app_modules.clockss import send_to_clockss
 from app_modules.common_tools import URL
 from gluon import PRE, current
-from models.article import Article
+from models.article import Article, ArticleStage
+from gluon.contrib.appconfig import AppConfig # type: ignore
 
 
 auth = current.auth
@@ -12,7 +13,10 @@ response = current.response
 T = current.T
 session = current.session
 
+config = AppConfig()
+pci_rr_activated = config.get("config.registered_reports", default=False)
 is_admin = auth.has_membership(role="administrator")
+
 
 def index():
     request.function = "post_form" # zap header in layout.html
@@ -29,6 +33,13 @@ def post_form():
     article = Article.get_by_id(article_id)
     if not article:
         return error("article: no such article")
+
+    if pci_rr_activated:
+        if article.report_stage == ArticleStage.STAGE_1.value:
+            return error("article: no xml for stage 1")
+
+    if article.already_published:
+        return error("article: no xml for postprint")
 
     recommendation = Article.get_last_recommendation(article_id)
     if not recommendation :

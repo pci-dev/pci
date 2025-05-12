@@ -37,7 +37,6 @@ from app_modules.twitter import Twitter
 from app_modules.mastodon import Mastodon
 from app_modules.article_translator import ArticleTranslator
 
-from models import suggested_recommender
 from models.group import Group, Role
 from models.mail_queue import MailQueue, SendingStatus
 from models.review import Review
@@ -700,7 +699,7 @@ def recommendations():
     if art is None: return redirect(request.home)
 
     if manager_authors != None:
-        art.update_record(manager_authors=manager_authors)
+        art.update_record(manager_authors=manager_authors) # type: ignore
 
     if art.already_published:
         myContents = ongoing_recommendation.getPostprintRecommendation(art, printable, quiet=False)
@@ -708,11 +707,12 @@ def recommendations():
         myContents = ongoing_recommendation.get_recommendation_process(art, printable)
 
     isStage2 = art.art_stage_1_id is not None
-    stage1Link = None
-    stage2List = None
+    stage1Link: Optional[Union[DIV, Literal[""]]] = None
+    stage2List: Optional[List[Union[DIV, Literal[""]]]] = None
     if pciRRactivated and isStage2:
         # stage1Link = A(T("Link to Stage 1"), _href=URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id)))
         urlArticle = URL(c="manager", f="recommendations", vars=dict(articleId=art.art_stage_1_id))
+        assert art.art_stage_1_id
         stage1Link = common_small_html.mkRepresentArticleLightLinkedWithStatus(art.art_stage_1_id, urlArticle)
     elif pciRRactivated and not isStage2:
         stage2Articles = db(db.t_articles.art_stage_1_id == articleId).select()
@@ -742,23 +742,23 @@ def recommendations():
         recommStatusHeader = TAG(recommStatusHeader)
         if not pciRRactivated:
             if hypothesis.Hypothesis.may_have_annotation(art.doi):
-                recommStatusHeader.append(basic_hypothesis_button(art.id))
+                recommStatusHeader.append(basic_hypothesis_button(art.id)) # type: ignore
 
             twitter_button_element = twitter_button(art, recommendation)
             if twitter_button_element:
-                recommStatusHeader.append(twitter_button_element)
+                recommStatusHeader.append(twitter_button_element) # type: ignore
 
             mastodon_button_element = mastodon_button(art, recommendation)
             if mastodon_button_element:
-                recommStatusHeader.append(mastodon_button_element)
+                recommStatusHeader.append(mastodon_button_element) # type: ignore
 
-        recommStatusHeader.append(crossref_clockss_toolbar(art))
+        show_crossref = ((pciRRactivated and isStage2) or not pciRRactivated) and not art.already_published
+        if show_crossref:
+            recommStatusHeader.append(crossref_clockss_toolbar(art)) # type: ignore
 
     if printable:
-        printableClass = "printable"
         response.view = "default/wrapper_printable.html"
     else:
-        printableClass = ""
         response.view = "default/wrapper_normal.html"
 
     recommendation_process = ongoing_recommendation.getRecommendationProcessForSubmitter(art, printable)
@@ -793,14 +793,14 @@ def recommendations():
     )
 
 
-def crossref_clockss_toolbar(article):
+def crossref_clockss_toolbar(article: Article):
     return DIV(
         crossref_clockss_button(article),
         crossref_status(article),
         _style="width: fit-content; display: inline-block; margin-right: 25px;",
     )
 
-def crossref_clockss_button(article: Row):
+def crossref_clockss_button(article: Article):
     return A(
         I(_class="glyphicon glyphicon-edit", _style="vertical-align:middle"),
         T("Crossref/Clockss"),

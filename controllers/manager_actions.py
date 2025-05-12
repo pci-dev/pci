@@ -99,12 +99,13 @@ def do_cancel_article():
 def do_recommend_article():
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
     articleId = request.vars["articleId"]
-    art = db.t_articles[articleId]
+    art = Article.get_by_id(articleId)
+
     if art is None:
         session.flash = auth.not_authorized()
-        redirect(request.env.http_referer)
+        return redirect(request.env.http_referer)
     recomm = get_last_recomm(articleId)
 
     redir_url = URL(c="manager", f="recommendations", vars=dict(articleId=art.id))
@@ -120,33 +121,37 @@ def do_recommend_article():
                     artStage1.update_record()
             else:
                 session.flash = T("Stage 1 report recommendation process is not finished yet")
-                redirect(redir_url)
+                return redirect(redir_url)
 
     # stage 1 recommended privately
     if art.status == "Pre-recommended-private":
         art.status = "Recommended-private"
         recomm.validation_timestamp = request.now
         recomm.update_record()
-        art.update_record()
-        redirect(redir_url)
+        art.update_record() # type: ignore
+        return redirect(redir_url)
     elif art.status == "Pre-recommended":
         art.status = "Recommended"
         recomm.validation_timestamp = request.now
         recomm.update_record()
-        art.update_record()
+        art.update_record() # type: ignore
 
     if is_stage_1(art):
-        redirect(redir_url)
+        return redirect(redir_url)
 
     if not pciRRactivated:
         Hypothesis(art).post_annotation()
 
-    try:
-        status = crossref.post_and_forget(art)
-        if not status:
-            send_to_clockss(art, recomm)
-    except Exception as e:
-        session.flash = f"{e}"
+        try:
+            if not art.already_published:
+                status = crossref.post_and_forget(art)
+            else:
+                status = None
+
+            if not status:
+                send_to_clockss(art, recomm)
+        except Exception as e:
+            session.flash = f"{e}"
 
     redirect(redir_url)
 

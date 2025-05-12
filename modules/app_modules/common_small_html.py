@@ -511,7 +511,7 @@ def mkRepresentArticleLightLinked(article_id: int, urlArticle: Optional[str] = N
 
 
 ######################################################################################################################################################################
-def mkRepresentArticleLightLinkedWithStatus(article_id, urlArticle=None):
+def mkRepresentArticleLightLinkedWithStatus(article_id: int, urlArticle: Optional[str] = None):
     db = current.db
     anchor = ""
     art = db.t_articles[article_id]
