@@ -1145,7 +1145,7 @@ def send_new_user(userId):
     if type(user.thematics) is list:
         thema = user.thematics
     else:
-        thema = [user.thematics]
+        thema = list(user.thematics or '')
     if type(user.alerts) is list:
         alerts = user.alerts
     else:
