@@ -328,7 +328,7 @@
     .navbar-header,
     .main-logo {
         display: block;
-        position: relative;   
+        position: relative;
     }
 
     .navbar-toggle .icon-bar {
@@ -478,10 +478,15 @@
     }
 
     .review-container,
+    .pci2-round-review-sub-title,
     .pci-infotext h2,
     .pci-infotext h3,
     .pci-infotext h4 {
         scroll-margin-top: 10rem;
+    }
+
+    .pci2-recomm-review-container {
+        scroll-margin-top: 11rem;
     }
 
     .footer-content a > img {
@@ -742,7 +747,7 @@
     }
 
     .pci2-articles-list .pci-smallBtn,
-    #main-page-search-grid .pci-smallBtn { 
+    #main-page-search-grid .pci-smallBtn {
         width: 6.5rem;
         background-color: rgb(41, 171, 224);
     }
@@ -1076,7 +1081,7 @@
     #main-page-search-grid .web2py_console .w2p_query_row .form-control {
         max-width: 10rem;
     }
-    
+
     #main-page-search-grid .web2py_console .w2p_query_row .string.form-control,
     #main-page-search-grid .web2py_console .w2p_query_row .integer.form-control {
         max-width: unset;
@@ -1119,7 +1124,7 @@
     #pci-home-header {
         padding-top: 10rem;
     }
-    
+
     #pci-home-header img,
     #pci-home-header-large img {
         width: 45rem;
@@ -1132,7 +1137,7 @@
     .web2py_grid {
         margin-top: 9rem;
     }
-    
+
     .logout-btn-alt {
         margin-top: 10rem;
     }
@@ -1287,18 +1292,18 @@
 
     .collapsible2:hover,
     .collapsible2.active,
-    .collapsible2:focus, 
-    .collapsible2:active, 
-    .collapsible2:active:focus, 
-    .collapsible2.active:focus, 
-    .collapsible2.focus, 
-    .collapsible2:active.focus, 
+    .collapsible2:focus,
+    .collapsible2:active,
+    .collapsible2:active:focus,
+    .collapsible2.active:focus,
+    .collapsible2.focus,
+    .collapsible2:active.focus,
     .collapsible2.active.focus {
         background-color: white;
         color: rgb(62, 63, 58);
         box-shadow: none;
     }
-            
+
     .content2 {
         display: block;
     }
@@ -1579,7 +1584,7 @@
         padding-right: 0;
     }
 
-    .navbar-collapse-alt.collapse { 
+    .navbar-collapse-alt.collapse {
         width: 90rem;
         padding-right: 0;
     }
@@ -1684,7 +1689,7 @@
     .web2py_grid {
         margin-top: 2rem;
     }
-    
+
     .logout-btn-alt {
         margin-top: 0;
     }
