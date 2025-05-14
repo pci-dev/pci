@@ -14,52 +14,92 @@
     </head>
 
     <body>
-        <peer_review stage="pre-publication" revision-round="{{=round}}" type="editor-report"
-            recommendation="{{=status}}">
-            <contributors>
-                <person_name contributor_role="editor" sequence="first">
-                    <given_name>{{=he(recommender[0].first_name)}}</given_name>
-                    <surname>{{=he(recommender[0].last_name)}}</surname>
-                    <affiliation>{{=he(recommender[1])}}</affiliation>
-                </person_name>
-                {{for co_recommender, affiliation in co_recommenders:}}
-                <person_name sequence="additional" contributor_role="editor">
-                    <given_name>{{=he(co_recommender.first_name)}}</given_name>
-                    <surname>{{=he(co_recommender.last_name)}}</surname>
-                    <affiliation>{{=he(affiliation)}}</affiliation>
-                </person_name>
+        <journal>
+            <journal_metadata language="en">
+                <full_title>{{=he(pci.long_name)}}</full_title>
+                <abbrev_title>{{=he(pci.short_name)}}</abbrev_title>
+                {{if pci.issn:}}
+                <issn media_type="electronic">{{=pci.issn}}</issn>
                 {{pass}}
-            </contributors>
-            <titles>
-                <title>{{=he(title)}}</title>
-            </titles>
-            <review_date>
-                <month>{{=recommendation_date.month}}</month>
-                <day>{{=recommendation_date.day}}</day>
-                <year>{{=recommendation_date.year}}</year>
-            </review_date>
+                <doi_data>
+                    <doi>{{=he(pci.doi)}}</doi>
+                    <resource>{{=he(pci.url)}}/</resource>
+                </doi_data>
+            </journal_metadata>
 
-            <competing_interest_statement>The recommender in charge of the evaluation of the article declared that they
-                have no conflict of interest (as defined in the code of conduct of PCI) with the authors or with the
-                content of the article.</competing_interest_statement>
+            <journal_issue>
+                <publication_date media_type="online">
+                    <month>{{=recommendation_date.month}}</month>
+                    <day>{{=recommendation_date.day}}</day>
+                    <year>{{=recommendation_date.year}}</year>
+                </publication_date>
+            </journal_issue>
 
-            <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
-                <free_to_read />
-                <license_ref applies_to="vor" start_date="{{=recommendation_date.isoformat()}}">
-                    https://creativecommons.org/licenses/by/4.0/
-                </license_ref>
-            </program>
+            <journal_article publication_type="full_text">
+                <titles>
+                    <title>{{=he(title)}}</title>
+                </titles>
 
-            <program xmlns="http://www.crossref.org/relations.xsd">
-                <related_item>
-                    <inter_work_relation relationship-type="isReviewOf" identifier-type="{{=interwork_type}}">
-                        {{=he(interwork_ref)}}</inter_work_relation>
-                </related_item>
-            </program>
-            <doi_data>
-                <doi>{{=he(decision_doi)}}</doi>
-                <resource>{{=he(decision_url)}}</resource>
-            </doi_data>
-        </peer_review>
+                <contributors>
+                    <person_name contributor_role="editor" sequence="first">
+                        <given_name>{{=he(recommender[0].first_name)}}</given_name>
+                        <surname>{{=he(recommender[0].last_name)}}</surname>
+                        <affiliation>{{=he(recommender[1])}}</affiliation>
+                    </person_name>
+                    {{for co_recommender, affiliation in co_recommenders:}}
+                    <person_name sequence="additional" contributor_role="editor">
+                        <given_name>{{=he(co_recommender.first_name)}}</given_name>
+                        <surname>{{=he(co_recommender.last_name)}}</surname>
+                        <affiliation>{{=he(affiliation)}}</affiliation>
+                    </person_name>
+                    {{pass}}
+                </contributors>
+
+                <publication_date media_type="online">
+                    <month>{{=recommendation_date.month}}</month>
+                    <day>{{=recommendation_date.day}}</day>
+                    <year>{{=recommendation_date.year}}</year>
+                </publication_date>
+
+                <publisher_item>
+                    <item_number item_number_type="article_number">{{=he(item_number)}}</item_number>
+                </publisher_item>
+
+                <program xmlns="http://www.crossref.org/AccessIndicators.xsd">
+                    <free_to_read />
+                    <license_ref applies_to="vor" start_date="{{=recommendation_date.isoformat()}}">
+                        https://creativecommons.org/licenses/by/4.0/
+                    </license_ref>
+                </program>
+
+                <program xmlns="http://www.crossref.org/relations.xsd">
+                    <related_item>
+                        <inter_work_relation relationship-type="isReviewOf" identifier-type="{{=interwork_type}}">
+                            {{=he(interwork_ref)}}</inter_work_relation>
+                    </related_item>
+                </program>
+                <doi_data>
+                    <doi>{{=he(decision_doi)}}</doi>
+                    <resource>{{=he(decision_url)}}</resource>
+
+                    <collection property="crawler-based">
+                        <item crawler="iParadigms">
+                            <resource>
+                                {{=he(decision_url)}}
+                            </resource>
+                        </item>
+                    </collection>
+
+                    <collection property="text-mining">
+                        <item>
+                            <resource content_version="vor">
+                                {{=he(decision_url)}}
+                            </resource>
+                        </item>
+                    </collection>
+                </doi_data>
+
+            </journal_article>
+        </journal>
     </body>
 </doi_batch>

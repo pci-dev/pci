@@ -127,6 +127,8 @@ class DecisionElementXML:
             else:
                 status = "major-revision"
 
+        item_number = ".".join(decision_doi.split(".")[-2:])
+
         xml = render( # type: ignore
             filename=os.path.join(CROSSREF_TEMPLATE_DIR, "decision.xml"),
             context=dict(
@@ -145,6 +147,7 @@ class DecisionElementXML:
                 interwork_ref=interwork_ref,
                 decision_doi=decision_doi,
                 decision_url=decision_url,
+                item_number=item_number
             ))
 
         return DecisionElementXML(round, cast(str, xml), batch_id)
@@ -179,6 +182,7 @@ class AuthorReplyElementXML:
 
         author_reply_doi = get_author_reply_doi(recommendation, round)
         author_reply_url = f"{pci.url}/articles/rec?id={article.id}#ar-{recommendation.id}"
+        item_number = ".".join(author_reply_doi.split(".")[-2:])
 
         xml = render( # type: ignore
             filename=os.path.join(CROSSREF_TEMPLATE_DIR, "author_reply.xml"),
@@ -195,7 +199,8 @@ class AuthorReplyElementXML:
                 interwork_type=interwork_type,
                 interwork_ref=interwork_ref,
                 author_reply_doi=author_reply_doi,
-                author_reply_url=author_reply_url
+                author_reply_url=author_reply_url,
+                item_number=item_number
             ))
 
         return AuthorReplyElementXML(round, cast(str, xml), batch_id)
@@ -223,6 +228,7 @@ class ReviewElementXML:
 
         review_doi = get_review_doi(recommendation, no_review_round, round)
         review_url = f"{pci.url}/articles/rec?id={article.id}#review-{review.id}"
+        item_number = ".".join(review_doi.split(".")[-2:])
 
         if review.anonymously:
             contributor_tag = '<anonymous contributor_role="reviewer" sequence="first" />'
@@ -259,7 +265,8 @@ class ReviewElementXML:
                 interwork_type=interwork_type,
                 interwork_ref=interwork_ref,
                 review_doi=review_doi,
-                review_url=review_url
+                review_url=review_url,
+                item_number=item_number
             ))
 
         return ReviewElementXML(no_review_round, cast(str, xml), batch_id)
