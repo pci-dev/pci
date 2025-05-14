@@ -1149,10 +1149,7 @@ def send_new_user(userId):
     if type(user.alerts) is list:
         alerts = user.alerts
     else:
-        if user.alerts:
-            alerts = [user.alerts]
-        else:
-            alerts = ["[no alerts]"]
+        alerts = list(user.alerts or "[no alerts]")
 
     if user:
         mail_vars["destPerson"] = common_small_html.mkUser(userId)
