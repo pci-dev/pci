@@ -1,6 +1,6 @@
 from http.client import HTTPException
 from typing import Any, Dict, List, Optional, cast
-from attr import dataclass
+from dataclasses import dataclass
 
 from gluon.dal import SQLCustomType
 from gluon.contrib.appconfig import AppConfig
