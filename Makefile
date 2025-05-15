@@ -5,7 +5,8 @@ virt-env:
 	mkvirtualenv pci --python=`which python3.8`
 
 web2py:
-	cd .. ; git clone --depth=10 https://github.com/pci-dev/web2py
+	cd .. ; git clone --recurse-submodules --depth=1 --branch v3.0.11 \
+		https://github.com/web2py/web2py
 	ln -s $(PWD) ../web2py/applications/pci
 	cp utils/routes.py ../web2py/
 
