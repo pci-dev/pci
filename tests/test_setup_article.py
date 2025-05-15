@@ -234,9 +234,6 @@ class Recommender_handles:
     select("#no_table_reviewer_email").send_keys(reviewer.email)
 
     select("input[type=submit]").click()
-    select("input#checkbox_0.user-checkbox").click()
-    select("a", contains="Yes, use the selected user and return to invitation editing".upper()).click()
-    select("input[type=submit]").click()
 
  def invite_external_unregistered_reviewer(_):
     select(".dropdown-toggle", contains="For recommenders").click()
