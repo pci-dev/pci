@@ -373,7 +373,7 @@ def article_details():
             recommStatusHeader = ongoing_recommendation.getRecommStatusHeader(art, False, printable, quiet=False)
             recommTopButtons = ongoing_recommendation.getRecommendationTopButtons(art, printable, quiet=False)
 
-            infoCard = TAG(recommHeaderHtml)
+            infoCard = TAG(str(recommHeaderHtml))
             coverLetter = infoCard.element("div#menu-4")
             if coverLetter:
                 coverLetter.attributes["_class"] = (coverLetter.attributes["_class"]

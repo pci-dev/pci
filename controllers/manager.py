@@ -739,7 +739,7 @@ def recommendations():
         and recommendation
         and art.status == "Recommended"
     ):
-        recommStatusHeader = TAG(recommStatusHeader)
+        recommStatusHeader = TAG(str(recommStatusHeader))
         if not pciRRactivated:
             if hypothesis.Hypothesis.may_have_annotation(art.doi):
                 recommStatusHeader.append(basic_hypothesis_button(art.id)) # type: ignore
