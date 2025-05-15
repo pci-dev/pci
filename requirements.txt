@@ -1,4 +1,4 @@
-pydal<20240427
+pydal
 yatl
 furl
 lxml<5
