@@ -154,8 +154,9 @@ def index():
     )
       # check url arguments passed to grid did not break db
       db.executesql("select 1")
-    except:
-        raise HTTP(418, "I'm a teapot")
+    except Exception as e:
+        #raise e
+        raise HTTP(418, f"I'm a teapot ({e})")
 
 
     integer_fields = ['v_article.article_year']
