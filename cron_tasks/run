@@ -15,7 +15,9 @@ main() {
 
 cd $DIR/../../..
 
-python3 web2py.py --no_banner \
+. /var/www/venv/bin/activate
+
+python web2py.py --no_banner \
 	-M \
 	-S $SITE \
 	-R applications/$SITE/cron_tasks/$SCRIPT
