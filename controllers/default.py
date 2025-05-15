@@ -155,6 +155,7 @@ def index():
       # check url arguments passed to grid did not break db
       db.executesql("select 1")
     except Exception as e:
+        #raise e
         raise HTTP(418, f"I'm a teapot ({e})")
 
 
