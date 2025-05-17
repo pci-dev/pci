@@ -3,7 +3,7 @@ from io import BytesIO
 
 
 def resizeImage(data, size, format="PNG"):
-    im = Image.open(BytesIO(data))
+    im = Image.open(data)
     im.thumbnail(size, Image.LANCZOS) # ANTIALIAS
     ba = BytesIO()
     im.save(ba, format=format)
@@ -23,7 +23,7 @@ class RESIZE:
             return (value, None)
 
         try:
-            data = resizeImage(value.value, self.size, self.format)
+            data = resizeImage(value.file, self.size, self.format)
             value.file = BytesIO(data)
         except Exception as e:
             return (value, "resize error: " + str(e))
