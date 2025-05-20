@@ -1492,7 +1492,7 @@ def edit_article():
                 lastRecomm.doi = form.vars.doi
                 lastRecomm.update_record()
 
-        if prev_picture and form.vars.uploaded_picture:
+        if prev_picture != form.vars.uploaded_picture:
             try: os.unlink(os.path.join(request.folder, "uploads", prev_picture))
             except: pass
 

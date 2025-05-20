@@ -1079,7 +1079,7 @@ def edit_my_article():
         if article == None:
             session.flash = T("Unavailable")
             return redirect(URL("my_articles", user_signature=True))
-        if prev_picture and form.vars.uploaded_picture:
+        if prev_picture != form.vars.uploaded_picture:
             try: os.unlink(os.path.join(request.folder, "uploads", prev_picture))
             except: pass
 
