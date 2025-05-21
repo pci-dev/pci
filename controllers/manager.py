@@ -450,7 +450,7 @@ def edit_rdv_date():
     try:
         article_id = int(request.vars.get("article_id"))
         new_date = request.vars.get("new_date")
-        new_date = datetime.date.fromisoformat(request.vars.get("new_date")) if new_date else None
+        new_date = datetime.date.fromisoformat(new_date) if new_date else None
     except:
         response.flash = "Bad arguments"
         return HTTP(400, "Bad arguments")
