@@ -1470,7 +1470,7 @@ def edit_article():
             if suggested_reviewers_error:
                 form.errors.suggest_reviewers = suggested_reviewers_error
 
-            opposed_reviewers_reviewers_value, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.opposed_reviewers)
+            opposed_reviewers_reviewers_value, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.competitors)
             if opposed_reviewers_reviewers_error:
                 form.errors.competitors = opposed_reviewers_reviewers_error
 
