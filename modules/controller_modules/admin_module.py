@@ -67,34 +67,34 @@ def recommLatex(articleId, tmpDir, withHistory=False):
     if art == None:
         session.flash = T("Unavailable")
         redirect(URL('default','index'))
-    template = """
-\\documentclass[a4paper]{article}
-\\usepackage[top=7cm,bottom=2.5cm,headheight=120pt,headsep=15pt,left=6cm,right=1.5cm,marginparwidth=4cm,marginparsep=0.5cm]{geometry}
-\\usepackage{marginnote}
-\\reversemarginpar  %% sets margin notes to the left
-\\usepackage{lipsum} %% Required to insert dummy text
-\\usepackage{calc}
-\\usepackage{siunitx}
-\\usepackage{pdfpages}
-%%\\usepackage[none]{hyphenat} %% use only if there is a problem 
+    template = r"""
+\documentclass[a4paper]{article}
+\usepackage[top=7cm,bottom=2.5cm,headheight=120pt,headsep=15pt,left=6cm,right=1.5cm,marginparwidth=4cm,marginparsep=0.5cm]{geometry}
+\usepackage{marginnote}
+\reversemarginpar  %% sets margin notes to the left
+\usepackage{lipsum} %% Required to insert dummy text
+\usepackage{calc}
+\usepackage{siunitx}
+\usepackage{pdfpages}
+%%\usepackage[none]{hyphenat} %% use only if there is a problem
 %% Use Unicode characters
-\\usepackage[utf8]{inputenc}
-\\usepackage[T1]{fontenc}
-\\usepackage{newunicodechar}
-%%\\usepackage{textcomp}
-\\usepackage{filecontents}
-\\begin{filecontents}{\\jobname.bib}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{newunicodechar}
+%%\usepackage{textcomp}
+\usepackage{filecontents}
+\begin{filecontents}{\jobname.bib}
 %(bib)s
-\\end{filecontents}
+\end{filecontents}
 %% Clean unsupported unicode chars
-\\DeclareUnicodeCharacter{B0}{\\textdegree}
-\\DeclareUnicodeCharacter{A0}{ }
-\\DeclareUnicodeCharacter{AD}{\\-}
-\\DeclareUnicodeCharacter{20AC}{\\euro}
-\\newunicodechar{−}{--}
+\DeclareUnicodeCharacter{B0}{\textdegree}
+\DeclareUnicodeCharacter{A0}{ }
+\DeclareUnicodeCharacter{AD}{\-}
+\DeclareUnicodeCharacter{20AC}{\euro}
+\newunicodechar{−}{--}
 
 %% Clean citations with biblatex
-\\usepackage[
+\usepackage[
 backend=biber,
 natbib=true,
 sortcites=true,
@@ -107,147 +107,147 @@ uniquename=init,
 terseinits=true, %% change to 'false' for initials like L. D.
 url=false,
 ]{biblatex}
-\\DeclareNameAlias{default}{family-given}
-\\DeclareNameAlias{sortname}{family-given}
-%%\\renewcommand*{\\revsdnamepunct}{} %% no comma between family and given names
-\\renewcommand*{\\nameyeardelim}{\\addspace} %% remove comma inline citations
-\\renewbibmacro{in:}{%%
-  \\ifentrytype{article}{}{\\printtext{\\bibstring{in}\\intitlepunct}}} %% remove 'In:' before journal name
-\\DeclareFieldFormat[article]{pages}{#1} %% remove pp.
-\\AtEveryBibitem{\\ifentrytype{article}{\\clearfield{number}}{}} %% don't print issue numbers
-\\DeclareFieldFormat[article, inbook, incollection, inproceedings, misc, thesis, unpublished]{title}{#1} %% title without quotes
-\\usepackage{csquotes}
-\\RequirePackage[english]{babel} %% must be called after biblatex
-\\addbibresource{\\jobname.bib}
-%%\\addbibresource{%% ( bibfile ) s}
-\\DeclareBibliographyCategory{ignore}
-\\addtocategory{ignore}{recommendation} %% adding recommendation to 'ignore' category so that it does not appear in the References
+\DeclareNameAlias{default}{family-given}
+\DeclareNameAlias{sortname}{family-given}
+%%\renewcommand*{\revsdnamepunct}{} %% no comma between family and given names
+\renewcommand*{\nameyeardelim}{\addspace} %% remove comma inline citations
+\renewbibmacro{in:}{%%
+  \ifentrytype{article}{}{\printtext{\bibstring{in}\intitlepunct}}} %% remove 'In:' before journal name
+\DeclareFieldFormat[article]{pages}{#1} %% remove pp.
+\AtEveryBibitem{\ifentrytype{article}{\clearfield{number}}{}} %% don't print issue numbers
+\DeclareFieldFormat[article, inbook, incollection, inproceedings, misc, thesis, unpublished]{title}{#1} %% title without quotes
+\usepackage{csquotes}
+\RequirePackage[english]{babel} %% must be called after biblatex
+\addbibresource{\jobname.bib}
+%%\addbibresource{%% ( bibfile ) s}
+\DeclareBibliographyCategory{ignore}
+\addtocategory{ignore}{recommendation} %% adding recommendation to 'ignore' category so that it does not appear in the References
 
-%% Clickable references. Use \\url{www.example.com} or \\href{www.example.com}{description} to add a clicky url
-\\usepackage{nameref}
-\\usepackage[pdfborder={0 0 0}]{hyperref}  %% sets link border to white
-\\urlstyle{same}
+%% Clickable references. Use \url{www.example.com} or \href{www.example.com}{description} to add a clicky url
+\usepackage{nameref}
+\usepackage[pdfborder={0 0 0}]{hyperref}  %% sets link border to white
+\urlstyle{same}
 
 %% Include figures
-%%\\usepackage{graphbox} %% loads graphicx package with extended options for vertical alignment of figures
-\\usepackage{graphicx}
+%%\usepackage{graphbox} %% loads graphicx package with extended options for vertical alignment of figures
+\usepackage{graphicx}
 
 %% Line numbers
-%%\\usepackage[right]{lineno}
+%%\usepackage[right]{lineno}
 
 %% Improve typesetting in LaTex
-\\usepackage{microtype}
-\\DisableLigatures[f]{encoding = *, family = * }
+\usepackage{microtype}
+\DisableLigatures[f]{encoding = *, family = * }
 
 %% Text layout and font (Open Sans)
-\\setlength{\\parindent}{0.4cm}
-\\linespread{1.2}
-\\RequirePackage[default,scale=0.90]{opensans}
+\setlength{\parindent}{0.4cm}
+\linespread{1.2}
+\RequirePackage[default,scale=0.90]{opensans}
 
 %% Defining document colors
-\\usepackage{xcolor}
-\\definecolor{darkgray}{HTML}{808080}
-\\definecolor{mediumgray}{HTML}{6D6E70}
-\\definecolor{ligthgray}{HTML}{d9d9d9}
-\\definecolor{pciblue}{HTML}{74adca}
-\\definecolor{opengreen}{HTML}{77933c}
+\usepackage{xcolor}
+\definecolor{darkgray}{HTML}{808080}
+\definecolor{mediumgray}{HTML}{6D6E70}
+\definecolor{ligthgray}{HTML}{d9d9d9}
+\definecolor{pciblue}{HTML}{74adca}
+\definecolor{opengreen}{HTML}{77933c}
 
 %% Use adjustwidth environment to exceed text width
-\\usepackage{changepage}
+\usepackage{changepage}
 
 %% Adjust caption style
-\\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,singlelinecheck=off]{caption}
+\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,singlelinecheck=off]{caption}
 
 %% Headers and footers
-\\usepackage{fancyhdr}  %% custom headers/footers
-\\usepackage{lastpage}  %% number of page in the document
-\\pagestyle{fancy}  %% enables customization of headers/footers
-\\fancyhfoffset[L]{4.5cm}  %% offsets header and footer to the left to include margin
-\\renewcommand{\\headrulewidth}{\\ifnum\\thepage=1 0.5pt \\else 0pt \\fi} %% header ruler only on first page
-\\renewcommand{\\footrulewidth}{0.5pt}
-\\lhead{\\ifnum\\thepage=1 \\includegraphics[width=13.5cm]{%(logo)s} \\else \\includegraphics[width=5cm]{%(smalllogo)s} \\fi}  %% full logo on first page, then small logo on subsequent pages 
-\\chead{}
-\\rhead{}
-\\lfoot{\\scriptsize \\textsc{\\color{mediumgray}%(applongname)s}}
-\\cfoot{}
-\\rfoot{}
-\\begin{document}
-\\vspace*{0.5cm}
-\\newcommand{\\preprinttitle}{%(Atitle)s}
-\\newcommand{\\preprintauthors}{%(Aauthors)s}
-\\newcommand{\\recommendationtitle}{%(title)s}
-\\newcommand{\\datepub}{%(datePub)s}
-\\newcommand{\\email}{%(emailRecomm)s}
-\\newcommand{\\recommenders}{%(recommenders)s}
-\\newcommand{\\affiliations}{%(affiliations)s}
-\\newcommand{\\reviewers}{%(reviewers)s}
-\\newcommand{\\DOI}{%(doi)s}
-\\newcommand{\\DOIlink}{\\href{%(doiLink)s}{\\DOI}}
-\\begin{flushleft}
-\\baselineskip=30pt
-%%\\marginpar{\\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{opengreen}Open Access}\\\\
-\\marginpar{\\includegraphics[width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{opengreen}Open Access}\\\\
-\\\\
-\\large\\textnormal{\\color{opengreen}RECOMMENDATION}}
-{\\Huge
-\\fontseries{sb}\\selectfont{\\recommendationtitle}}
-\\end{flushleft}
-\\vspace*{0.75cm}
+\usepackage{fancyhdr}  %% custom headers/footers
+\usepackage{lastpage}  %% number of page in the document
+\pagestyle{fancy}  %% enables customization of headers/footers
+\fancyhfoffset[L]{4.5cm}  %% offsets header and footer to the left to include margin
+\renewcommand{\headrulewidth}{\ifnum\thepage=1 0.5pt \else 0pt \fi} %% header ruler only on first page
+\renewcommand{\footrulewidth}{0.5pt}
+\lhead{\ifnum\thepage=1 \includegraphics[width=13.5cm]{%(logo)s} \else \includegraphics[width=5cm]{%(smalllogo)s} \fi}  %% full logo on first page, then small logo on subsequent pages
+\chead{}
+\rhead{}
+\lfoot{\scriptsize \textsc{\color{mediumgray}%(applongname)s}}
+\cfoot{}
+\rfoot{}
+\begin{document}
+\vspace*{0.5cm}
+\newcommand{\preprinttitle}{%(Atitle)s}
+\newcommand{\preprintauthors}{%(Aauthors)s}
+\newcommand{\recommendationtitle}{%(title)s}
+\newcommand{\datepub}{%(datePub)s}
+\newcommand{\email}{%(emailRecomm)s}
+\newcommand{\recommenders}{%(recommenders)s}
+\newcommand{\affiliations}{%(affiliations)s}
+\newcommand{\reviewers}{%(reviewers)s}
+\newcommand{\DOI}{%(doi)s}
+\newcommand{\DOIlink}{\href{%(doiLink)s}{\DOI}}
+\begin{flushleft}
+\baselineskip=30pt
+%%\marginpar{\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \space \large\textbf{\color{opengreen}Open Access}\\
+\marginpar{\includegraphics[width=0.5cm]{%(logoOA)s} \space \large\textbf{\color{opengreen}Open Access}\\
+\\
+\large\textnormal{\color{opengreen}RECOMMENDATION}}
+{\Huge
+\fontseries{sb}\selectfont{\recommendationtitle}}
+\end{flushleft}
+\vspace*{0.75cm}
 %% Author(s)  %% update if multiple recommenders
-\\begin{flushleft}
-\\Large
-\\recommenders
+\begin{flushleft}
+\Large
+\recommenders
 
 %% Margin information
-\\marginpar{\\raggedright
-\\scriptsize\\textbf{Cite as:}\\space
-\\fullcite{recommendation}\\\\
-\\vspace*{0.5cm}
-\\textbf{Published:} \datepub\\\\
-\\vspace*{0.5cm}
-\\textbf{Based on reviews by:}\\\\
-\\reviewers\\\\
-\\vspace*{0.5cm}
-\\textbf{Correspondence:}\\\\
-\\href{mailto:\\email}{\\email}\\\\
-%%\\vspace*{0.5cm} %% remove line if no ORCID
-%%\\textbf{ORCID:}\\\\ %% remove line if no ORCID
-%%\\href{https://orcid.org/\\ORCID}{\\ORCID}\\ %% remove line if no ORCID / Add \\space (initials) if multiple recommenders
-\\vspace*{3cm}
-%%\\textnormal{\\copyright \\space \\number\\year \\space \\recommender}\\\\ %% update if there are more than one recommender
-\\vspace*{0.2cm}
-%%\\includegraphics[align=c,width=0.4cm]{%(ccPng)s} \\includegraphics[align=c,width=0.4cm]{%(byPng)s} \\includegraphics[align=c,width=0.4cm]{%(ndPng)s} \\space\\space \\textnormal{\\href{https://creativecommons.org/licenses/by-nd/4.0/}{CC-BY-ND 4.0}}\\\\
-\\includegraphics[width=0.4cm]{%(ccPng)s} \\includegraphics[width=0.4cm]{%(byPng)s} \\includegraphics[width=0.4cm]{%(ndPng)s} \\space\\space \\textnormal{\\href{https://creativecommons.org/licenses/by-nd/4.0/}{CC-BY-ND 4.0}}\\\\
-\\vspace*{0.2cm}
-\\textnormal{This work is licensed under the Creative Commons Attribution-NoDerivatives 4.0 International License.}
+\marginpar{\raggedright
+\scriptsize\textbf{Cite as:}\space
+\fullcite{recommendation}\\
+\vspace*{0.5cm}
+\textbf{Published:} \datepub\\
+\vspace*{0.5cm}
+\textbf{Based on reviews by:}\\
+\reviewers\\
+\vspace*{0.5cm}
+\textbf{Correspondence:}\\
+\href{mailto:\email}{\email}\\
+%%\vspace*{0.5cm} %% remove line if no ORCID
+%%\textbf{ORCID:}\\ %% remove line if no ORCID
+%%\href{https://orcid.org/\ORCID}{\ORCID}\ %% remove line if no ORCID / Add \space (initials) if multiple recommenders
+\vspace*{3cm}
+%%\textnormal{\copyright \space \number\year \space \recommender}\\ %% update if there are more than one recommender
+\vspace*{0.2cm}
+%%\includegraphics[align=c,width=0.4cm]{%(ccPng)s} \includegraphics[align=c,width=0.4cm]{%(byPng)s} \includegraphics[align=c,width=0.4cm]{%(ndPng)s} \space\space \textnormal{\href{https://creativecommons.org/licenses/by-nd/4.0/}{CC-BY-ND 4.0}}\\
+\includegraphics[width=0.4cm]{%(ccPng)s} \includegraphics[width=0.4cm]{%(byPng)s} \includegraphics[width=0.4cm]{%(ndPng)s} \space\space \textnormal{\href{https://creativecommons.org/licenses/by-nd/4.0/}{CC-BY-ND 4.0}}\\
+\vspace*{0.2cm}
+\textnormal{This work is licensed under the Creative Commons Attribution-NoDerivatives 4.0 International License.}
 }
-\\end{flushleft}
-\\bigskip
+\end{flushleft}
+\bigskip
 
 %% Affiliation(s)
-{\\raggedright \\affiliations}
+{\raggedright \affiliations}
 
 %% Recommended preprint box
-\\begin{flushleft}
-\\noindent
-\\fcolorbox{lightgray}{lightgray}{
-\\parbox{\\textwidth - 2\\fboxsep}{
-\\raggedright\\large{\\fontseries{sb}\\selectfont{A recommendation of}}\\
-\\small \\fullcite{preprint}}}
-\\end{flushleft}
-\\vspace*{0.5cm}
+\begin{flushleft}
+\noindent
+\fcolorbox{lightgray}{lightgray}{
+\parbox{\textwidth - 2\fboxsep}{
+\raggedright\large{\fontseries{sb}\selectfont{A recommendation of}}\
+\small \fullcite{preprint}}}
+\end{flushleft}
+\vspace*{0.5cm}
 
 %%%% RECOMMENDATION %%%%
 %(recommendation)s
 
-\\printbibliography[notcategory=ignore]
-\\section*{Appendix}
-Reviews by \\reviewers, \\href{https://dx.doi.org/\\DOI}{DOI: \\DOI}
+\printbibliography[notcategory=ignore]
+\section*{Appendix}
+Reviews by \reviewers, \href{https://dx.doi.org/\DOI}{DOI: \DOI}
 
 %%%% HISTORY %%%%
 %(history)s
 
-\\end{document}
+\end{document}
 
 """
     applongname = latex_escape(myconf.take("app.description"))
@@ -416,7 +416,7 @@ def recommBibtex(articleId):
         SPAN(common_small_html.getRecommAndReviewAuthors(article=art, with_reviewers=False, linked=False)).flatten()
     )
     year = art.last_status_change.year
-    pat = re.search("\\.(?P<num>\d+)$", doi)
+    pat = re.search(r"\.(?P<num>\d+)$", doi)
     if pat:
         eid = pat.group("num") or ""
     else:
@@ -437,25 +437,25 @@ def frontPageLatex(articleId):
         session.flash = T("Unavailable")
         redirect(URL('default','index'))
 
-    template = """
-\\documentclass[a4paper]{article}
-\\usepackage[top=7cm,bottom=2.5cm,headheight=120pt,headsep=15pt,left=6cm,right=1.5cm,marginparwidth=4cm,marginparsep=0.5cm]{geometry}
-\\usepackage{marginnote}
-\\reversemarginpar  %% sets margin notes to the left
-\\usepackage{lipsum} %% Required to insert dummy text
-\\usepackage{calc}
-\\usepackage{siunitx}
-\\usepackage{xpatch}
-%%\\usepackage[none]{hyphenat} %% use only if there is a problem 
+    template = r"""
+\documentclass[a4paper]{article}
+\usepackage[top=7cm,bottom=2.5cm,headheight=120pt,headsep=15pt,left=6cm,right=1.5cm,marginparwidth=4cm,marginparsep=0.5cm]{geometry}
+\usepackage{marginnote}
+\reversemarginpar  %% sets margin notes to the left
+\usepackage{lipsum} %% Required to insert dummy text
+\usepackage{calc}
+\usepackage{siunitx}
+\usepackage{xpatch}
+%%\usepackage[none]{hyphenat} %% use only if there is a problem
 %% Use Unicode characters
-\\usepackage[utf8]{inputenc}
-\\usepackage[T1]{fontenc}
-\\usepackage{filecontents}
-\\begin{filecontents}{\\jobname.bib}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{filecontents}
+\begin{filecontents}{\jobname.bib}
 %(bib)s
-\\end{filecontents}
+\end{filecontents}
 %% Clean citations with biblatex
-\\usepackage[
+\usepackage[
 backend=biber,
 natbib=true,
 sortcites=true,
@@ -469,116 +469,116 @@ terseinits=true, %% change to 'false' for initials like L. D.
 url=false,
 dashed=false
 ]{biblatex}
-\\DeclareNameAlias{default}{family-given}
-\\DeclareNameAlias{sortname}{family-given}
-%%\\renewcommand*{\\revsdnamepunct}{} %% no comma between family and given names
-\\renewcommand*{\\nameyeardelim}{\\addspace} %% remove comma inline citations
-\\renewbibmacro{in:}{%%
-  \\ifentrytype{article}{}{\\printtext{\\bibstring{in}\\intitlepunct}}} %% remove 'In:' before journal name
-\\DeclareFieldFormat[article]{pages}{#1} %% remove pp.
-\\AtEveryBibitem{\\ifentrytype{article}{\\clearfield{number}}{}} %% don't print issue numbers
-\\DeclareFieldFormat[article, inbook, incollection, inproceedings, misc, thesis, unpublished]{title}{#1} %% title without quotes
-\\preto\\fullcite{\\AtNextCite{\\defcounter{maxnames}{99}}} %% print all authors when using \\fullcite
-\\xpretobibmacro{date+extrayear}{\\setunit{\\addperiod\space}}{}{} %% add a dot after last author (requires package xpatch)
-\\usepackage{csquotes}
-\\RequirePackage[english]{babel} %% must be called after biblatex
-\\addbibresource{\\jobname.bib}
-\\DeclareBibliographyCategory{ignore}
-\\addtocategory{ignore}{recommendation} %% adding recommendation to 'ignore' category so that it does not appear in the References
+\DeclareNameAlias{default}{family-given}
+\DeclareNameAlias{sortname}{family-given}
+%%\renewcommand*{\revsdnamepunct}{} %% no comma between family and given names
+\renewcommand*{\nameyeardelim}{\addspace} %% remove comma inline citations
+\renewbibmacro{in:}{%%
+  \ifentrytype{article}{}{\printtext{\bibstring{in}\intitlepunct}}} %% remove 'In:' before journal name
+\DeclareFieldFormat[article]{pages}{#1} %% remove pp.
+\AtEveryBibitem{\ifentrytype{article}{\clearfield{number}}{}} %% don't print issue numbers
+\DeclareFieldFormat[article, inbook, incollection, inproceedings, misc, thesis, unpublished]{title}{#1} %% title without quotes
+\preto\fullcite{\AtNextCite{\defcounter{maxnames}{99}}} %% print all authors when using \fullcite
+\xpretobibmacro{date+extrayear}{\setunit{\addperiod\space}}{}{} %% add a dot after last author (requires package xpatch)
+\usepackage{csquotes}
+\RequirePackage[english]{babel} %% must be called after biblatex
+\addbibresource{\jobname.bib}
+\DeclareBibliographyCategory{ignore}
+\addtocategory{ignore}{recommendation} %% adding recommendation to 'ignore' category so that it does not appear in the References
 
-%% Clickable references. Use \\url{www.example.com} or \\href{www.example.com}{description} to add a clicky url
-\\usepackage{nameref}
-\\usepackage[pdfborder={0 0 0}]{hyperref}  %% sets link border to white
-\\urlstyle{same}
+%% Clickable references. Use \url{www.example.com} or \href{www.example.com}{description} to add a clicky url
+\usepackage{nameref}
+\usepackage[pdfborder={0 0 0}]{hyperref}  %% sets link border to white
+\urlstyle{same}
 
 %% Include figures
-%%\\usepackage{graphbox} %% loads graphicx package with extended options for vertical alignment of figures
-\\usepackage{graphicx}
+%%\usepackage{graphbox} %% loads graphicx package with extended options for vertical alignment of figures
+\usepackage{graphicx}
 
 %% Improve typesetting in LaTex
-\\usepackage{microtype}
-\\DisableLigatures[f]{encoding = *, family = * }
+\usepackage{microtype}
+\DisableLigatures[f]{encoding = *, family = * }
 
 %% Text layout and font (Open Sans)
-\\setlength{\\parindent}{0.4cm}
-\\linespread{1.2}
-\\RequirePackage[default,scale=0.90]{opensans}
+\setlength{\parindent}{0.4cm}
+\linespread{1.2}
+\RequirePackage[default,scale=0.90]{opensans}
 
 %% Defining document colors
-\\usepackage{xcolor}
-\\definecolor{darkgray}{HTML}{808080}
-\\definecolor{mediumgray}{HTML}{6D6E70}
-\\definecolor{ligthgray}{HTML}{d9d9d9}
-\\definecolor{pciblue}{HTML}{74adca}
-\\definecolor{opengreen}{HTML}{77933c}
+\usepackage{xcolor}
+\definecolor{darkgray}{HTML}{808080}
+\definecolor{mediumgray}{HTML}{6D6E70}
+\definecolor{ligthgray}{HTML}{d9d9d9}
+\definecolor{pciblue}{HTML}{74adca}
+\definecolor{opengreen}{HTML}{77933c}
 
 %% Use adjustwidth environment to exceed text width
-\\usepackage{changepage}
+\usepackage{changepage}
 
 %% Headers and footers
-\\usepackage{fancyhdr}  %% custom headers/footers
-\\usepackage{lastpage}  %% number of page in the document
-\\pagestyle{fancy}  %% enables customization of headers/footers
-\\fancyhfoffset[L]{4.5cm}  %% offsets header and footer to the left to include margin
-\\renewcommand{\\headrulewidth}{\\ifnum\\thepage=1 0.5pt \\else 0pt \\fi} %% header ruler only on first page
-\\renewcommand{\\footrulewidth}{0.5pt}
-\\lhead{\\includegraphics[width=13.5cm]{%(logo)s}}  %% full logo on first page 
-\\chead{}
-\\rhead{}
-\\lfoot{\\scriptsize \\textsc{\\color{mediumgray}%(applongname)s}}
-\\cfoot{}
-\\rfoot{}
+\usepackage{fancyhdr}  %% custom headers/footers
+\usepackage{lastpage}  %% number of page in the document
+\pagestyle{fancy}  %% enables customization of headers/footers
+\fancyhfoffset[L]{4.5cm}  %% offsets header and footer to the left to include margin
+\renewcommand{\headrulewidth}{\ifnum\thepage=1 0.5pt \else 0pt \fi} %% header ruler only on first page
+\renewcommand{\footrulewidth}{0.5pt}
+\lhead{\includegraphics[width=13.5cm]{%(logo)s}}  %% full logo on first page
+\chead{}
+\rhead{}
+\lfoot{\scriptsize \textsc{\color{mediumgray}%(applongname)s}}
+\cfoot{}
+\rfoot{}
 
-\\begin{document}
-\\vspace*{0.5cm}
-\\newcommand{\\preprinttitle}{%(title)s}
-\\newcommand{\\preprintauthors}{%(authors)s}
+\begin{document}
+\vspace*{0.5cm}
+\newcommand{\preprinttitle}{%(title)s}
+\newcommand{\preprintauthors}{%(authors)s}
 
-\\newcommand{\\whodidit}{%(whoDidIt)s}
-\\newcommand{\\DOI}{%(doi)s}
-\\newcommand{\\DOIlink}{\\href{%(doiLink)s}{\\DOI}}
+\newcommand{\whodidit}{%(whoDidIt)s}
+\newcommand{\DOI}{%(doi)s}
+\newcommand{\DOIlink}{\href{%(doiLink)s}{\DOI}}
 
-\\begin{flushleft}
-\\baselineskip=30pt
-%%\\marginpar{\\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{pciblue}Open Access}\\\\
-\\marginpar{\\includegraphics[width=0.5cm]{%(logoOA)s} \\space \\large\\textbf{\\color{pciblue}Open Access}\\\\
-\\\\
-\\large\\textnormal{\\color{pciblue}RESEARCH ARTICLE}}
-{\\Huge\\fontseries{sb}\\selectfont{\\preprinttitle}}
-\\end{flushleft}
-\\vspace*{0.75cm}
+\begin{flushleft}
+\baselineskip=30pt
+%%\marginpar{\includegraphics[align=c,width=0.5cm]{%(logoOA)s} \space \large\textbf{\color{pciblue}Open Access}\\
+\marginpar{\includegraphics[width=0.5cm]{%(logoOA)s} \space \large\textbf{\color{pciblue}Open Access}\\
+\\
+\large\textnormal{\color{pciblue}RESEARCH ARTICLE}}
+{\Huge\fontseries{sb}\selectfont{\preprinttitle}}
+\end{flushleft}
+\vspace*{0.75cm}
 %% Author(s)
-\\begin{flushleft}
-\\Large\\preprintauthors\\
-\\
-\\vspace*{0.75cm}
+\begin{flushleft}
+\Large\preprintauthors\
+\
+\vspace*{0.75cm}
 %% Citation
-\\noindent
-\\fcolorbox{lightgray}{lightgray}{
-\\parbox{\\textwidth - 2\\fboxsep}{
-\\raggedright\\normalsize\\textbf{Cite as:}\\newline
-\\fullcite{preprint}}}\\
-\\
-\\vspace*{1.75cm}
+\noindent
+\fcolorbox{lightgray}{lightgray}{
+\parbox{\textwidth - 2\fboxsep}{
+\raggedright\normalsize\textbf{Cite as:}\newline
+\fullcite{preprint}}}\
+\
+\vspace*{1.75cm}
 %% Recommendation box
-\\fcolorbox{pciblue}{pciblue}{
-\\parbox{\\textwidth - 2\\fboxsep}{
-\\vspace{0.25cm}
-\\large \\textbf{Peer-reviewed and recommended by \\href{%(siteUrl)s}{%(applongname)s}}
-\\vspace{0.5cm}\\newline
-\\normalsize
-\\textbf{Recommendation DOI:} \\space \\DOIlink
-%%\\newline
-%%\\textbf{Published:} \\space \\today
-\\newline
-\\textbf{Recommender(s):} \\space \\whodidit
-\\newline
+\fcolorbox{pciblue}{pciblue}{
+\parbox{\textwidth - 2\fboxsep}{
+\vspace{0.25cm}
+\large \textbf{Peer-reviewed and recommended by \href{%(siteUrl)s}{%(applongname)s}}
+\vspace{0.5cm}\newline
+\normalsize
+\textbf{Recommendation DOI:} \space \DOIlink
+%%\newline
+%%\textbf{Published:} \space \today
+\newline
+\textbf{Recommender(s):} \space \whodidit
+\newline
 
-\\vspace{0.25cm}}}
+\vspace{0.25cm}}}
 
-\\end{flushleft}
+\end{flushleft}
 
-\\end{document}
+\end{document}
 
 """
     applongname = myconf.take("app.description")

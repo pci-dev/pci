@@ -151,6 +151,19 @@ def list_users():
     db.auth_user.last_alert.readable = True
     db.auth_user.last_alert.writable = True
 
+    fixup_email_requires(db.auth_user.email)
+
+    def onvalidation(form):
+        # validate only for sqlform's user edit form
+        if not "email" in form.vars: return
+
+        user_id = request.args[-1]
+        if form.vars.email == db.auth_user[user_id].email:
+            return
+        if db(db.auth_user.email == form.vars.email).count():
+            form.errors.update({"email": "E-mail already associated to another user"})
+
+
     original_grid = SQLFORM.smartgrid(
                     db.auth_user,
                     fields=fields,
@@ -169,6 +182,7 @@ def list_users():
                     editable=dict(auth_user=True, auth_membership=False),
                     details=dict(auth_user=True, auth_membership=False),
                     searchable=dict(auth_user=True, auth_membership=False),
+                    onvalidation=onvalidation,
                     create=dict(
                         auth_user=create,
                         auth_membership=create,
@@ -209,6 +223,14 @@ def list_users():
         grid=grid,
     )
 
+
+def fixup_email_requires(email: Field):
+    import pydal
+    email.requires = [
+        pydal.validators.IS_EMAIL(),
+        pydal.validators.IS_LOWER(),
+        #pydal.validators.IS_NOT_IN_DB(), # discard this one
+    ]
 
 ######################################################################################################################################################################
 # Prepares lists of email addresses by role
