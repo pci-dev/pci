@@ -2,10 +2,13 @@ install: web2py pydeps postgresql additional
 
 virt-env:
 	sudo apt-get install virtualenvwrapper
-	mkvirtualenv pci --python=`which python3.8`
+	mkvirtualenv pci --python=`which python3.12`
 
 web2py:
-	cd .. ; git clone --depth=10 https://github.com/pci-dev/web2py
+	cd .. ; git clone --recurse-submodules \
+		--depth=3 \
+		--branch v3.0.11+pci-patches \
+		https://github.com/pci-dev/web2py
 	ln -s $(PWD) ../web2py/applications/pci
 	cp utils/routes.py ../web2py/
 
