@@ -1465,17 +1465,7 @@ def edit_article():
             if not prev_picture and form.vars.uploaded_picture == b"":
                 form.errors.uploaded_picture = not_empty.error_message
             app_forms.checklist_validation(form)
-
-            suggested_reviewers_value, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.suggest_reviewers)
-            if suggested_reviewers_error:
-                form.errors.suggest_reviewers = suggested_reviewers_error
-
-            opposed_reviewers_reviewers_value, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.competitors)
-            if opposed_reviewers_reviewers_error:
-                form.errors.competitors = opposed_reviewers_reviewers_error
-
-            form.vars.suggest_reviewers = suggested_reviewers_value
-            form.vars.competitors = opposed_reviewers_reviewers_value
+            check_suggested_and_opposed_reviewers(form)
 
         form.vars.doi = clean_vars_doi(form.vars.doi)
         form.vars.data_doi = clean_vars_doi_list(form.vars.data_doi)
@@ -1518,6 +1508,21 @@ def edit_article():
         myFinalScript=[myFinalScript, article_form_common_script],
         confirmationScript=confirmationScript,
     )
+
+
+def check_suggested_and_opposed_reviewers(form: ...):
+    suggest_reviewers, suggested_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.suggest_reviewers)
+    if suggested_reviewers_error:
+        form.errors.suggest_reviewers = suggested_reviewers_error
+
+    opposed_reviewers, opposed_reviewers_reviewers_error = VALID_LIST_NAMES_MAIL(True, optional_email=True)(form.vars.competitors)
+    if opposed_reviewers_reviewers_error:
+        form.errors.competitors = opposed_reviewers_reviewers_error
+
+    form.vars.suggest_reviewers = suggest_reviewers
+    form.vars.competitors = opposed_reviewers
+
+    return suggest_reviewers, opposed_reviewers
 
 
 ######################################################################################################################################################################
