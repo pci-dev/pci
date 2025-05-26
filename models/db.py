@@ -721,6 +721,8 @@ def deltaStatus(s: ..., f: Article):
     else:  # PREPRINTS
         if f.status in ["Cancelled", "Rejected", "Not considered"]:
             emailing.delete_all_reminders_from_article_id(o.id)
+            if f.status == "Cancelled":
+                remove_temporary_user(o.user_id)
 
         if o.status == "Pending" and f["status"] == "Awaiting consideration":
             emailing.send_to_suggested_recommenders(o["id"])
@@ -804,6 +806,7 @@ def deltaStatus(s: ..., f: Article):
             emailing.send_to_corecommenders(o["id"], f["status"])
             emailing.send_to_reviewers_article_cancellation(o["id"], f["status"])
             emailing.send_to_submitter(o["id"], f["status"])
+            remove_temporary_user(o.user_id)
 
         elif o.status in ("Pending", "Awaiting consideration", "Under consideration") and f["status"] == "Scheduled submission pending":
             articleId = o.id
