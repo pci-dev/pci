@@ -39,8 +39,9 @@ def rec():
 
     try:
         articleId = int(article_id_str)
+        assert articleId > 0
     except:
-        session.flash = T("Article id must be a digit")
+        session.flash = T("Article id must be a positive number")
         return redirect(request.home)
 
     # Remove "reviews" vars from url
