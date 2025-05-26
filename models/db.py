@@ -872,6 +872,14 @@ def newArticle(s: Article, article_id: int):
         update_alert_and_current_step_article(article_id)
 
 
+def remove_temporary_user(user: User):
+    if user.deleted: # skip multiple calls (hooks?) on a single delete
+        return
+    if user.reset_password_key != "" and user.country == None:
+        user.deleted = True
+        db(db.auth_user.id == user.id).delete()
+
+
 db.define_table(
     "t_recommendations",
     Field("id", type="id"),
