@@ -14,10 +14,11 @@ log = None
 if (myconf.get("config.use_logger", default=True) is True):
 	try:
 		import logging
-		from systemd.journal import JournalHandler
+		import systemd
+		JournalHandler = systemd.journal.JournaldLogHandler
 		logName = myconf.take("app.name")
 		log = logging.getLogger(logName)
-		hand = JournalHandler(SYSLOG_IDENTIFIER=logName)
+		hand = JournalHandler(identifier=logName)
 		hand.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
 		log.root.addHandler(hand)
 		log.setLevel(logging.INFO)

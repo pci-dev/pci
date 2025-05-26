@@ -1,6 +1,6 @@
 from abc import ABCMeta
 from typing import Any, Dict, List, Optional, TypedDict
-from attr import dataclass
+from dataclasses import dataclass
 from deep_translator import GoogleTranslator
 from deep_translator.base import BaseTranslator
 

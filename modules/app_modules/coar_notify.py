@@ -144,7 +144,7 @@ class COARNotifier:
             response = post_notification(target_inbox, notification)
             response.raise_for_status()
         except Exception as e:
-            logger.exception(f"_send_to_listeners: {e}")
+            logger.warn(f"_send_to_listeners: {e}")
 
 
     def parse_listeners(self, config):
