@@ -395,7 +395,7 @@ This project was driven by a desire to establish a free, transparent and public 
 More information can be found on the website of """
     + myconf.get("app.longname")
     + """: """
-    + URL(c="default", f="index", scheme=scheme, host=host, port=port)
+    + URL(c="default", f="index", scheme=True)
 )
 
 
