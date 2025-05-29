@@ -52,6 +52,7 @@ class COARNotifier:
         config = AppConfig()
         self.enabled = config.get("coar_notify.enabled")
         self.listeners = self.parse_listeners(config)
+        self.inbox_auth = parse_inbox_auth(config)
 
     base_url = URL("|", "|", scheme=True).replace("|/|", "")
 
@@ -291,6 +292,11 @@ def post_notification(target_inbox, notification):
             timeout=(1, 4),
     )
     return response
+
+
+def parse_inbox_auth(config):
+    return { config.get(f"coar_notify.{_id}_inbox"): config.get(f"coar_notify.{_id}_token")
+                for _id in config.get("coar_notify.auth", []) }
 
 
 def send_ack(self,
