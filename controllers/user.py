@@ -1146,6 +1146,7 @@ def _hide_suggested_reviewer_for_user(article: Article, form: ...):
     li_els = form.components[0].components[20].components[1].components[0].components
     session.hidden_suggested_reviewer = []
 
+    li = None
     for li in li_els.copy():
         if type(li.components[0]) is str: continue
         value: str = str(li.components[0].attributes['value'])
