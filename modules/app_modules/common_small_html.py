@@ -927,17 +927,20 @@ def getRecommAndReviewAuthors(
                               with_reviewers: bool = False,
                               as_list: bool = False,
                               linked: bool = False,
-                              fullURL: bool = False,
                               this_recomm_only: bool = False,
                               citation: bool = False,
                               orcid: bool = False,
                               orcid_exponant: bool = False
                              ) -> List[Any]:
     db = current.db
-    whoDidIt = []
+    recomm = cast(Recommendation, recomm)
+
+    whoDidIt: List[Union[str, DIV]] = []
 
     if hasattr(recomm, "article_id"):
         article = db(db.t_articles.id == recomm.article_id).select(db.t_articles.id, db.t_articles.already_published).last()
+
+    article = cast(Article, article)
 
     if hasattr(article, "id"):
         select_recomm = ((db.t_recommendations.id == recomm.id)
@@ -960,7 +963,7 @@ def getRecommAndReviewAuthors(
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(mkUser_U(theUser['id']).flatten())
+                    whoDidIt.append(mkUser_U(theUser['id']).flatten()) # type: ignore
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
@@ -979,24 +982,27 @@ def getRecommAndReviewAuthors(
                         whoDidIt.append(", ")
 
         else:  # NOTE: PRE-PRINT
+            na1 = 0
+
             if with_reviewers:
-                namedReviewers = db(
+                namedReviewers: List[Review] = db(
                     (db.t_recommendations.article_id == article.id)
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
                     & (db.t_reviews.anonymously == False)
                     & (db.t_reviews.review_state == "Review completed")
                 ).select(db.t_reviews.ALL, distinct=db.t_reviews.reviewer_id)
-                na = db(
+                na: List[int] = db(
                     (db.t_recommendations.article_id == article.id)
                     & (db.t_reviews.recommendation_id == db.t_recommendations.id)
                     & (db.t_reviews.anonymously == True)
                     & (db.t_reviews.review_state == "Review completed")
                 ).select(db.t_reviews.reviewer_id, distinct=True)
-                na = len(na)
-                na1 = 1 if na > 0 else 0
+                len_na = len(na)
+                if len_na > 0:
+                    na1 = 1
             else:
                 namedReviewers = []
-                na = 0
+                len_na = 0
             nr = len(allRecommenders)
             nw = len(namedReviewers)
             ir = 0
@@ -1004,7 +1010,7 @@ def getRecommAndReviewAuthors(
             for theUser in allRecommenders:
                 ir += 1
                 if as_list:
-                    whoDidIt.append(mkUser_U(theUser['id']).flatten())
+                    whoDidIt.append(mkUser_U(theUser['id']).flatten()) # type: ignore
                 elif citation:
                     if theUser['id']:
                         theUser = db.auth_user[theUser['id']]
@@ -1023,31 +1029,31 @@ def getRecommAndReviewAuthors(
                         whoDidIt.append(", ")
             if nr > 0:
               if not as_list:
-                if nw + na > 0:
+                if nw + len_na > 0:
                     whoDidIt.append(current.T(" based on reviews by "))
-                elif nw + na == 1:
+                elif nw + len_na == 1:
                     whoDidIt.append(current.T(" based on review by "))
             iw = 0
             for theUser in namedReviewers:
                 iw += 1
                 if as_list:
-                    whoDidIt.append(mkUser_U(theUser['reviewer_id']).flatten())
+                    whoDidIt.append(mkUser_U(theUser['reviewer_id']).flatten()) # type: ignore
                 else:
                     if theUser.reviewer_id:
                         theUser = db.auth_user[theUser.reviewer_id]
                         whoDidIt.append(mkUser_U(theUser, linked=False))
                     else:
-                        whoDidIt.append(mkUser_U(theUser['reviewer_id']).flatten())
+                        whoDidIt.append(mkUser_U(theUser['reviewer_id']).flatten()) # type: ignore
                     if iw == nw + na1 - 1 and iw >= 1:
                         whoDidIt.append(current.T(" and "))
                     elif iw < nw + na1:
                         whoDidIt.append(", ")
 
             if not as_list:
-                if na > 1:
-                    whoDidIt.append(current.T("%d anonymous reviewers") % (na))
-                elif na == 1:
-                    whoDidIt.append(current.T("%d anonymous reviewer") % (na))
+                if len_na > 1:
+                    whoDidIt.append(current.T("%d anonymous reviewers") % (len_na))
+                elif len_na == 1:
+                    whoDidIt.append(current.T("%d anonymous reviewer") % (len_na))
 
     return whoDidIt
 
@@ -1057,7 +1063,6 @@ def build_citation(article: Article, final_recommendation: Recommendation, for_l
     recommendation_authors = getRecommAndReviewAuthors(
                         article=article,
                         with_reviewers=False, linked=False,
-                        fullURL=True,
                         recomm=final_recommendation, this_recomm_only=True,
                         citation=True)
 
@@ -1206,12 +1211,12 @@ def mk_reviewer_info(user: User, orcid: bool = False):
 
 ######################################################################################################################################################################
 def mkRecommenderandContributorList(records: List[Union[Recommendation, PressReview]]):
-    result = []
+    result: List[Dict[str, Any]] = []
     for record in records:
         if hasattr(record, 'recommender_id'):
-            result_dict = {'id': record.recommender_id, 'details': mkUserWithMail(record.recommender_id).flatten()}
+            result_dict: Dict[str, Any] = {'id': record.recommender_id, 'details': mkUserWithMail(record.recommender_id).flatten()} # type: ignore
         elif hasattr(record, 'contributor_id'):
-             result_dict = {'id': record.contributor_id, 'details': mkUserWithMail(record.contributor_id).flatten()}
+             result_dict: Dict[str, Any] = {'id': record.contributor_id, 'details': mkUserWithMail(record.contributor_id).flatten()} # type: ignore
         else:
             raise Exception('DB record is not a Recommendation or PressReview.')
         result.append(result_dict)
