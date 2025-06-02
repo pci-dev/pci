@@ -49,7 +49,7 @@ def rss(feed):
 
 
 def safe_encode(text):
-    if not isinstance(text, (str, unicodeT)):
+    if not isinstance(text, str):
         text = str(text)
     try:
         text = text.encode('utf8','replace')
