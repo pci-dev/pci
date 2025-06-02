@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  {{if article_altmetric != '' and not printable:}}
+  {{if article_altmetric and not printable:}}
     <div class="pci2-flex-end" style="margin-right: 10px;">
       {{=article_altmetric}}
     </div>

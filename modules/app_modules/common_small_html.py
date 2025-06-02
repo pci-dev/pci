@@ -1232,7 +1232,7 @@ def fetch_url(data: List[str]):
 ################################################################################
 def md_to_html(text: Optional[str]):
     return SPAN(
-            TAG(WIKI(text or ""))[0].components
+            TAG(str(WIKI(text or "")))[0].components
     ) # WIKI returns XML('<p>htmlized text</p>'), replace P with SPAN
 
 ################################################################################

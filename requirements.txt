@@ -1,4 +1,4 @@
-pydal<20240427
+pydal
 yatl
 furl
 lxml<5
@@ -11,6 +11,7 @@ feedparser
 pillow
 requests
 requests-oauthlib
+systemd
 deep_translator
 cssselect
 cssutils

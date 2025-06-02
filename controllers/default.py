@@ -154,8 +154,9 @@ def index():
     )
       # check url arguments passed to grid did not break db
       db.executesql("select 1")
-    except:
-        raise HTTP(418, "I'm a teapot")
+    except Exception as e:
+        #raise e
+        raise HTTP(418, f"I'm a teapot ({e})")
 
 
     integer_fields = ['v_article.article_year']
@@ -478,7 +479,7 @@ def intercept_reset_password_login(_next):
 
 def get_user_from_article(_next):
     if "edit_my_article?articleId=" in _next:
-        m = re.match(".*articleId=(\d+).*", _next)
+        m = re.match(r".*articleId=(\d+).*", _next)
         article_id = m.group(1) if m else None
         article = db.t_articles[article_id]
     else:
@@ -954,7 +955,7 @@ def download():
 def stream_pdf():
     filename = request.args[0] if request.args else ""
 
-    match_regex = re.match("(.*?)\.(.*?)\.", filename)
+    match_regex = re.match(r"(.*?)\.(.*?)\.", filename)
 
     if not match_regex:
         raise HTTP(404, "404: " + T("Unavailable"))

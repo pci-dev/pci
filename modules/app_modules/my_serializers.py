@@ -6,7 +6,6 @@ from gluon.languages import lazyT
 
 # import gluon.contrib.rss2 as rss2
 import imported_modules.my_rss2 as rss2
-from gluon.serializers import safe_encode
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 
@@ -48,3 +47,18 @@ def rss(feed):
 
     return rss.to_xml(encoding="utf-8")
 
+
+def safe_encode(text):
+    if not isinstance(text, str):
+        text = str(text)
+    try:
+        text = text.encode('utf8','replace')
+    except ValueError:
+        new_text = ''
+        for c in text:
+            try:
+                new_text += c.encode('utf8')
+            except:
+                new_text += '?'
+        text = new_text
+    return text

@@ -186,9 +186,9 @@ def select():
         is_imap = db._uri.startswith("imap://")
     except (KeyError, AttributeError, TypeError):
         is_imap = False
-    regex = re.compile("(?P<table>\w+)\.(?P<field>\w+)=(?P<value>\d+)")
+    regex = re.compile(r"(?P<table>\w+)\.(?P<field>\w+)=(?P<value>\d+)")
     if len(request.args) > 1 and hasattr(db[request.args[1]], "_primarykey"):
-        regex = re.compile("(?P<table>\w+)\.(?P<field>\w+)=(?P<value>.+)")
+        regex = re.compile(r"(?P<table>\w+)\.(?P<field>\w+)=(?P<value>.+)")
     if request.vars.query:
         match = regex.match(request.vars.query)
         if match:
@@ -238,7 +238,7 @@ def select():
 
     tb = None
     if form.accepts(request.vars, formname=None):
-        regex = re.compile(request.args[0] + "\.(?P<table>\w+)\..+")
+        regex = re.compile(request.args[0] + r"\.(?P<table>\w+)\..+")
         match = regex.match(form.vars.query.strip())
         if match:
             table = match.group("table")
@@ -386,7 +386,7 @@ def ccache():
     import copy
     import time
     import math
-    from gluon import portalocker
+    from pydal.contrib import portalocker
 
     ram = {"entries": 0, "bytes": 0, "objects": 0, "hits": 0, "misses": 0, "ratio": 0, "oldest": time.time(), "keys": []}
 
@@ -422,7 +422,7 @@ def ccache():
         except (KeyError, ZeroDivisionError):
             ram["ratio"] = 0
 
-        for key, value in cache.ram.storage.iteritems():
+        for key, value in cache.ram.storage.items():
             if hp:
                 ram["bytes"] += hp.iso(value[1]).size
                 ram["objects"] += hp.iso(value[1]).count
@@ -450,6 +450,7 @@ def ccache():
                 disk["keys"].append((key, GetInHMS(time.time() - value[0])))
 
         ram_keys = ram.keys()  # ['hits', 'objects', 'ratio', 'entries', 'keys', 'oldest', 'bytes', 'misses']
+        ram_keys = list(ram_keys)
         ram_keys.remove("ratio")
         ram_keys.remove("oldest")
         for key in ram_keys:
