@@ -131,6 +131,21 @@ def mkUserId(userId, linked=False, fullURL=False):
 
 
 ######################################################################################################################################################################
+def cut_composed_name(name: str):
+    particles = name.split(" ")
+    names: List[str] = []
+
+    for particle in particles:
+        if "-" in particle:
+            dash_name = particle.split('-')
+            particle = "-".join(map(lambda x: f"{x[0].upper()}.", dash_name))
+            names.append(particle)
+        else:
+            names.append(f"{particle[0].upper()}.")
+
+    return " ".join(names)
+
+
 def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: bool = False, orcid_exponant: bool = False, mail_link: bool = False):
     if not user:
         return SPAN("?")
@@ -139,7 +154,7 @@ def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: boo
     last_name = user.last_name or "?"
 
     if reverse:
-        first_name = '-'.join(map(lambda x: f"{x[0].upper()}.", first_name.split('-')))
+        first_name = cut_composed_name(first_name)
         name = f"{last_name}, {first_name}"
     else:
         name = f"{first_name} {last_name}"
