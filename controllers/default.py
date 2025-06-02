@@ -980,7 +980,7 @@ def stream_pdf():
         temp_file.close()
 
         # erase metadata
-        os.system('exiftool -overwrite_original -all:all="" ' + file_to_download)
+        os.system('exiftool -q -q -overwrite_original -all:all="" ' + file_to_download)
 
         response.stream(file_to_download) # raises HTTP(200) on success
 
