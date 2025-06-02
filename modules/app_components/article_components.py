@@ -63,7 +63,6 @@ def getRecommArticleRowCard(article: Article,
     recommAuthors = common_small_html.getRecommAndReviewAuthors(
                         article=article,
                         with_reviewers=True, linked=True,
-                        fullURL=fullURL,
                         recomm=recomm, this_recomm_only=True,
                         orcid_exponant=orcid_exponant
                         )

@@ -46,7 +46,7 @@ def mkRecommArticleRss(row):
     else:
         img = None
     link = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=True)
-    whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=row, with_reviewers=False, linked=False, fullURL=True)
+    whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=row, with_reviewers=False, linked=False)
     desc = DIV()
     article = DIV(CENTER(I(row.title), BR(), SPAN(row.authors), BR(), common_small_html.mkDOI(row.doi)), _style="border:2px solid #cccccc; margin-bottom:8px; font-size:larger;")
     desc.append(article)
@@ -90,7 +90,7 @@ def mkRecommArticleRss4bioRxiv(row):
     # <doi>10.1101/273367</doi>
     # </link>
     auth, db = current.auth, current.db
-    
+
     recomm = db((db.t_recommendations.article_id == row.id) & (db.t_recommendations.recommendation_state == "Recommended")).select(orderby=db.t_recommendations.id).last()
     if recomm is None:
         return None

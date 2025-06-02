@@ -404,7 +404,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
                 authorsReplyDate = None # current round
 
             recommenderName = common_small_html.getRecommAndReviewAuthors(
-                recomm=recomm, with_reviewers=False, linked=not (printable), fullURL=True,
+                recomm=recomm, with_reviewers=False, linked=not (printable),
             )
 
             recommStatus = None
@@ -1517,7 +1517,7 @@ def getPostprintRecommendation(art: Article, printable: bool = False, quiet: boo
         recommendationDiv.append("NO RECOMMENDATION") # type: ignore
         return recommendationDiv
 
-    whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=recomm, with_reviewers=False, linked=not (printable), fullURL=True)
+    whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=recomm, with_reviewers=False, linked=not (printable))
 
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 

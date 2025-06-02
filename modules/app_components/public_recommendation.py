@@ -100,7 +100,6 @@ def getArticleAndFinalRecommendation(art: Article,
     whoDidRecomm = common_small_html.getRecommAndReviewAuthors(
             recomm=finalRecomm,
             with_reviewers=True, linked=True,
-            fullURL=fullURL,
             this_recomm_only=True,
             orcid_exponant=True
             )
@@ -347,7 +346,6 @@ def getPublicReviewRoundsHtml(articleId: int):
         recommAuthors = common_small_html.getRecommAndReviewAuthors(
                         recomm=recomm,
                         with_reviewers=False, linked=True,
-                        fullURL=True,
                         this_recomm_only=True,
                         orcid_exponant=True
                         )

@@ -70,7 +70,7 @@ def reviewsOfCancelled(art: Article):
 
         for recomm in recomms:
 
-            whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=recomm, with_reviewers=True, linked=not (printable), fullURL=True)
+            whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=recomm, with_reviewers=True, linked=not (printable))
 
             myReviews = ""
             myReviews = []
