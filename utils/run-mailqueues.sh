@@ -44,4 +44,34 @@ main() {
     done
 }
 
-main
+check_running() {
+    pid=$(ps -C `basename $0` -o pid=)
+    pid=$(ps -o pid= $pid | grep -v $$)
+    [ "$pid" = "" ] || {
+        echo already running:
+        ps $pid
+        exit 1
+    }
+}
+
+case $1 in
+    -d|--daemon)
+        check_running
+        main &>> $0.log &
+        ;;
+    -r|--run)
+        check_running
+        run_mailqueues | tee -a $0.log
+        ;;
+    -c|--check)
+        check_running
+        echo "not running"
+        ;;
+    -h|--help|"")
+        echo "usage: $0 [-d|--daemon] [-r|--run] [-c|--check]"
+        ;;
+    *)
+        echo "unknown command: $1"
+        exit 1
+        ;;
+esac
