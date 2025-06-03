@@ -136,9 +136,19 @@ def cut_composed_name(name: str):
     names: List[str] = []
 
     for particle in particles:
+        if len(particle) == 0:
+            continue
+
         if "-" in particle:
             dash_name = particle.split('-')
-            particle = "-".join(map(lambda x: f"{x[0].upper()}.", dash_name))
+            els: List[str] = []
+
+            for d in dash_name:
+                if len(d) == 0:
+                    continue
+                els.append(f"{d[0].upper()}.")
+
+            particle = "-".join(els)
             names.append(particle)
         else:
             names.append(f"{particle[0].upper()}.")
