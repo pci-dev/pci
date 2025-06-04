@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+Crawl-delay: 4
+
+Sitemap: /sitemap
+
+User-agent:GPTbot 
+Disallow: /
+
+User-agent:OAI-SearchBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: GoogleOther
+Disallow: /
