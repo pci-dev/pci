@@ -7,176 +7,19 @@
 BASE=/var/www/peercommunityin/web2py/applications
 RUN=cron_tasks/run
 
-SITE=PCICompStat
 
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
 
-SITE=PCIZool
+# PCI sites periodic jobs (run sequentially, see scripts in utils/)
 
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
+0 3 * * *   $HOME/run-jobs.sh --run > /dev/null
 
-SITE=PCIEcology
+@reboot     $HOME/run-mailqueues.sh --daemon
 
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
+@reboot     while true; do $BASE/PCIEcology/$RUN import_biorxiv_xml.py; sleep 1m; done
 
-SITE=PCIAnimSci
 
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCINeuro
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIEvolBiol
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIArchaeology
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIForestWoodSci
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIPaleo
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIGenomics
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIMCB
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCINetworkSci
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIEcotoxEnvChem
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIRegisteredReports
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN warn_submitters.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIInfections
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIMicrobiol
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
-
-SITE=PCIHealthMovSci
-
-* *   * * * $BASE/$SITE/$RUN mail_queue.py
-*/5 * * * * $BASE/$SITE/$RUN newsletter.py
-1 */6 * * * $BASE/$SITE/$RUN delete_old_article_mails.py
-0 3   * * * $BASE/$SITE/$RUN delete_accounts.py
-0 1   * * * $BASE/$SITE/$RUN fetch_doi.py
-*/1 * * * * $BASE/$SITE/$RUN import_biorxiv_xml.py
-5 00  * * * $BASE/$SITE/$RUN refresh_dashboard_manager.py
+# force web2py reload to purge RAM usage
+0 */3 * * * touch $BASE/../wsgihandler.py
 
 
 # force delete session files older than 3 days
