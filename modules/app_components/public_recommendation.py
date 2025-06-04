@@ -110,7 +110,7 @@ def getArticleAndFinalRecommendation(art: Article,
     pdfLink = None
 
     if len(pdf_query) > 0:
-        pdfUrl = URL("articles", "rec", vars=dict(articleId=art.id, asPDF=True), scheme=fullURL)
+        pdfUrl = URL("articles", "rec", vars=dict(id=art.id, asPDF=True), scheme=fullURL)
         pdfLink = A(SPAN(current.T("PDF recommendation"), " ", IMG(_alt="pdf", _src=URL("static", "images/application-pdf.png"))), _href=pdfUrl, _class="btn btn-info pci-public",)
 
     recommendationPdfLink = None
@@ -442,7 +442,7 @@ def getCommentsTreeHtml(commentId: int):
 
     replyToLink = ""
     if auth.user:
-        replyToLink = A(current.T("Reply..."), _href=URL(c="articles", f="rec", vars=dict(articleId=comment.article_id, comments=True, replyTo=comment.id),), _style="margin: 0",)
+        replyToLink = A(current.T("Reply..."), _href=URL(c="articles", f="rec", vars=dict(id=comment.article_id, comments=True, replyTo=comment.id),), _style="margin: 0",)
 
     componentVars = dict(
         userLink=common_small_html.mkUser_U(comment.user_id, linked=True),
