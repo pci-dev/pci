@@ -46,7 +46,7 @@ curl --fail -s \
         "type": "sorg:AboutPage"
     },
     "object": {
-        "id": "https://$pci.peercommunityin.org/articles/rec?articleId=$article_id",
+        "id": "https://$pci.peercommunityin.org/articles/rec?id=$article_id",
         "type": [
             "Page",
             "sorg:WebPage"
