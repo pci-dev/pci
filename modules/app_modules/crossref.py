@@ -436,12 +436,19 @@ def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None):
         xml.raise_error()
         assert crossref.login, "crossref.login not set"
 
-        for author_reply in xml.author_replies:
-            resp = _post(author_reply.content, author_reply.filename)
-            resp.raise_for_status()
+        recommendation = sorted(xml.decisions, key=lambda d: len(d.filename))[0]
+        resp = _post(recommendation.content, recommendation.filename)
+        resp.raise_for_status()
 
         for decision in xml.decisions:
+            if decision.filename == recommendation.filename:
+                continue
+
             resp = _post(decision.content, decision.filename)
+            resp.raise_for_status()
+
+        for author_reply in xml.author_replies:
+            resp = _post(author_reply.content, author_reply.filename)
             resp.raise_for_status()
 
         for _, reviews in xml.reviews.items():
