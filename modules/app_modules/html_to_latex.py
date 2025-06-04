@@ -314,7 +314,7 @@ class HtmlToLatex:
         if not url:
             return latex_code
 
-        url = url.replace('\n', '').replace('\\\\', '')
+        url = url.replace('\n', '').replace('\\\\', '').strip().strip("~")
         latex_code = re.sub(regex, partial(self._replace_closure, 'url', url), latex_code)
         return latex_code
 
