@@ -1,4 +1,6 @@
 from typing import Any, List, Union, cast
+
+from requests import Response
 from models.post import  Post, PostTable
 from requests_oauthlib import OAuth1Session
 
@@ -74,10 +76,10 @@ class Twitter(SocialNetwork):
                     payload['reply'] = {}
                     payload['reply']['in_reply_to_tweet_id'] = parent_tweet_id
 
-            response = twitter.post(url, json=payload)
+            response = cast(Response, twitter.post(url, json=payload)) # type: ignore
 
-            tweet = response.json()
-            if response.status_code == 201:
+            tweet = response.json() # type: ignore
+            if response.status_code == 201: # type: ignore
                 tweet = tweet['data']
                 tweet_post = Post(tweet['id'], tweet['text'], i, article_id, recommendation_id, parent_id)
                 parent_id = self._save_posts_in_db(tweet_post)
