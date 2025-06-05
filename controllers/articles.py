@@ -28,7 +28,13 @@ def index():
 ######################################################################################################################################################################
 # Recommendations of an article (public)
 def rec():
-    article_id_str = str(request.vars.get("articleId") or request.vars.get("id"))
+    if request.vars.get("articleId"):
+        article_id = request.vars.get("articleId")
+        request.vars.pop("articleId")
+        request.vars.id = article_id
+        return redirect(URL(c="articles", f="rec", args=request.args, vars=request.vars), how=301)
+
+    article_id_str = str(request.vars.get("id"))
     printable = str(request.vars.get("printable")) == "True"
     with_comments = not printable
     as_pdf = str(request.vars.get("asPDF")) == "True"
@@ -109,8 +115,8 @@ def rec():
     return dict(
         viewToRender=viewToRender,
         withComments=with_comments,
-        printableUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId, printable=True), user_signature=True),
-        currentUrl=URL(c="articles", f="rec", vars=dict(articleId=articleId), scheme=True),
+        printableUrl=URL(c="articles", f="rec", vars=dict(id=articleId, printable=True), user_signature=True),
+        currentUrl=URL(c="articles", f="rec", vars=dict(id=articleId), scheme=True),
         shareButtons=True,
         nbReviews=nbReviews,
         pciRRactivated=pciRRactivated,

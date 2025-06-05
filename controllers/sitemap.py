@@ -19,7 +19,7 @@ def index():
 
     for article in articles:
         url = SiteMapUrl()
-        url.loc = URL(c="articles", f="rec", vars=dict(articleId=article.id), scheme=True)
+        url.loc = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=True)
         url.lastmod = (
                 article.last_status_change or datetime.datetime.today()
         ).strftime(date_format)

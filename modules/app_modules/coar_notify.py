@@ -161,14 +161,14 @@ class COARNotifier:
         recommendation = self.db.t_recommendations[review.recommendation_id]
         article = self.db.t_articles[recommendation.article_id]
         return {
-            "id": f"{self.base_url}articles/rec?articleId={article.id}#review-{review.id}",
+            "id": f"{self.base_url}articles/rec?id={article.id}#review-{review.id}",
             "type": ["Document", "sorg:Review"],
         }
 
     def _recommendation_as_jsonld(self, recommendation):
         article = self.db.t_articles[recommendation.article_id]
         return {
-            "id": f"{self.base_url}articles/rec?articleId={article.id}",
+            "id": f"{self.base_url}articles/rec?id={article.id}",
             "type": ["Page", "sorg:WebPage"],
             "ietf:cite-as": mkLinkDOI(recommendation.recommendation_doi),
         }
@@ -182,7 +182,7 @@ class COARNotifier:
 
     def _article_as_jsonld_using_pci_ref_to_article(self, article):
         return {
-            "id": f"{self.base_url}articles/rec?articleId={article.id}#article-{article.id}",
+            "id": f"{self.base_url}articles/rec?id={article.id}#article-{article.id}",
             "ietf:cite-as": article_cite_as(article),
             "type": "sorg:AboutPage",
         }
