@@ -742,6 +742,9 @@ def deltaStatus(s: ..., f: Article):
             emailing.delete_reminder_for_submitter("#ReminderUserCompleteSubmissionBiorxiv", o["id"])
             emailing.delete_reminder_for_submitter("#ReminderRevisionsRequiredToYourSubmission", o["id"])
 
+        elif o.status == ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value and f["status"] == ArticleStatus.SCHEDULED_SUBMISSION_PENDING.value:
+            emailing.delete_reminder_for_submitter("#ReminderRevisionsRequiredToYourSubmission", o["id"])
+
         elif o.status == "Pending" and f["status"] == "Pre-submission":
             # delete reminders
             emailing.delete_reminder_for_submitter("#ReminderSubmitterSuggestedRecommenderNeeded", o["id"])
