@@ -24,3 +24,6 @@ RUN=cron_tasks/run
 
 # force delete session files older than 3 days
 0 2   * * * sudo -u www-data find $BASE/*/sessions -type f -mtime +3 -delete
+
+# logrotate logs
+0 5 * * * /usr/sbin/logrotate -s /dev/null $HOME/logrotate.conf
