@@ -840,7 +840,7 @@ def color_hypothesis_button():
     ).xml()
 
 
-def twitter_button(article, recommendation):
+def twitter_button(article: Article, recommendation: Recommendation):
     twitter_client = Twitter()
 
     already_send = twitter_client.has_already_posted(article.id, recommendation.id)
@@ -862,7 +862,8 @@ def twitter_button(article, recommendation):
         _style=text_style,
     )
 
-def mastodon_button(article, recommendation):
+
+def mastodon_button(article: Article, recommendation: Recommendation):
     mastodon_client = Mastodon()
 
     already_send = mastodon_client.has_already_posted(article.id, recommendation.id)

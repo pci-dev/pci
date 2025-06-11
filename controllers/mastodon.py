@@ -1,28 +1,25 @@
-from typing import Any, Dict, List, Union, cast
+from typing import Any, Dict, List, Union
 from gluon import current
-from gluon.contrib.appconfig import AppConfig
-from gluon.globals import Response, Request, Session
-from gluon.html import DIV, FORM, IMG, INPUT, P, TAG, TEXTAREA, URL
-from gluon.http import redirect
-from gluon.tools import Auth
+from gluon.contrib.appconfig import AppConfig # type: ignore
+from gluon.html import DIV, FORM, IMG, INPUT, P, TAG, TEXTAREA
+from gluon.http import HTTP, redirect # type: ignore
 from models.article import Article
-from models.recommendation import Recommendation
-from pydal.base import DAL
 
 from app_modules.mastodon import Mastodon
+from app_modules.common_tools import URL
 
-db = cast(DAL, current.db)
-response = cast(Response, current.response)
-request = cast(Request, current.request)
-session = cast(Session, current.session)
-auth = cast(Auth, current.auth)
+db = current.db
+response = current.response
+request = current.request
+session = current.session
+auth = current.auth
 config = AppConfig()
 
 is_admin = auth.has_membership(role="administrator")
 
 NB_TEXTAREA = 3
 
-def index() -> Union[Dict[str, Any], None]: 
+def index() -> Union[Dict[str, Any], None]:
     request.function = 'post_form'
     return post_form()
 
@@ -30,14 +27,15 @@ def index() -> Union[Dict[str, Any], None]:
 @auth.requires(is_admin)
 def post_form():
 
-    article_id = cast(int, request.vars.article_id)
+    article_id = int(request.vars.article_id)
     article = Article.get_by_id(article_id)
-    recommendation = cast(Recommendation, db.get_last_recomm(article))
 
     if not article:
-        session.flash = current.T(f'No article found.')
-        redirect(URL("mastodon", f"post_form?article_id={article_id}"))
-        return
+        raise HTTP(404, f"Article with id {article_id} not found")
+
+    recommendation = Article.get_last_recommendation(article_id)
+    if not recommendation:
+        raise HTTP(404, f"Recommendation for article {article_id} not found")
 
     mastodon_client = Mastodon()
     mastodon_instance_name = merge_instance_name(mastodon_client)
@@ -54,14 +52,14 @@ def post_form():
 
     form = generate_form(toots_text, not already_send, mastodon_instance_name, mastodon_client.POST_MAX_LENGTH)
 
-    if not already_send and form.process().accepted:
+    if not already_send and form.process().accepted: # type: ignore
         toot_texts = get_toots_text_from_form()
         try:
             mastodon_client.send_post(article_id, recommendation.id, toot_texts)
         except Exception as e:
             session.flash = current.T(f'Error sending post to {mastodon_instance_name}: {e}')
             redirect(URL("mastodon", f"post_form?article_id={article_id}"))
-        
+
         session.flash = current.T(f'Post send to {mastodon_instance_name}')
         redirect(URL(c='manager', f='recommendations', vars=dict(articleId=article_id), user_signature=True))
     else:
@@ -76,7 +74,7 @@ def post_form():
             data['prevContent'] = get_before_send_information_message(mastodon_client, mastodon_instance_name)
         else:
             data['prevContent'] = get_after_send_information_message(mastodon_client, mastodon_instance_name)
- 
+
         return data
 
 def merge_instance_name(mastodon_client: Mastodon):
@@ -84,19 +82,19 @@ def merge_instance_name(mastodon_client: Mastodon):
 
     if mastodon_client.has_mastodon_general_config():
         instance_name += mastodon_client.get_instance_name()
-    
+
     if mastodon_client.has_mastodon_specific_config() and mastodon_client.get_instance_name(True) != instance_name:
         if (len(instance_name) > 0):
             instance_name += ' & '
         instance_name += mastodon_client.get_instance_name(True)
-    
+
     return instance_name
 
 def get_toots_text_from_form() -> List[str]:
     toots_text: List[str] = []
     i = 0
     for i in range(NB_TEXTAREA):
-        text = cast(str, request.vars[f'toot_{i}'])
+        text = str(request.vars[f'toot_{i}'])
         if len(text.strip()) > 0:
             toots_text.append(text)
     return toots_text
@@ -128,7 +126,7 @@ def generate_form(toots_text: List[str], show_submit: bool, mastodon_instance_na
         form = FORM(*inputs)
 
     return form
-    
+
 
 def get_after_send_information_message(mastodon_client: Mastodon, mastodon_instance_name: str):
     message: str = current.T(f"The following post has already been sent and is online on {mastodon_instance_name}.")
@@ -148,7 +146,7 @@ def get_mastodon_icon(mastodon_instance_name: str):
 
 def add_account_info_at_end(mastodon_client: Mastodon, message: str):
     general_mastodon_pseudo: str = f"{current.T('@PeerCommunityIn')} on {mastodon_client.get_instance_name()}"
-    specific_mastodon_pseudo: Union[str, None] = cast(str, config.get('social.mastodon'))
+    specific_mastodon_pseudo: Union[str, None] = str(config.get('social.mastodon'))
 
     if mastodon_client.has_mastodon_general_config():
         message += f'\n\nGeneral account: {general_mastodon_pseudo}'

@@ -86,8 +86,8 @@ class Mastodon(SocialNetwork) :
 
             response = mastodon.post(url, json=payload)
 
-            toot = response.json()
-            if response.status_code == 200:
+            toot = response.json() # type: ignore
+            if response.status_code == 200: # type: ignore
                 text_post = self.remove_html_tag(toot['content'])
                 toot_post = Post(toot['id'], text_post, i, article_id, recommendation_id, parent_id)
                 parent_id = self._save_posts_in_db(toot_post)
