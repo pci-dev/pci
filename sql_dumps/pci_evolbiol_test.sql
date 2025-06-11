@@ -24,7 +24,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
@@ -38,7 +38,7 @@ CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION unaccent IS 'text search dictionary that removes accents';
@@ -57,8 +57,8 @@ DECLARE
   myIds int[];
 BEGIN
   -- builds regexp based on user's thematics
-  SELECT replace(regexp_replace(regexp_replace(u.thematics, E'^\\|', '('), E'\\|$', ')'), '|', ')|('), u.last_alert 
-	FROM auth_user AS u 
+  SELECT replace(regexp_replace(regexp_replace(u.thematics, E'^\\|', '('), E'\\|$', ')'), '|', ')|('), u.last_alert
+	FROM auth_user AS u
 	WHERE u.id=userId INTO myThematicsRegexp, myLastAlert;
   RAISE INFO 're=%', myThematicsRegexp;
   -- search articles recommended after last alert within user's thematics
@@ -307,11 +307,11 @@ CREATE FUNCTION public.distinct_words_trigger_function() RETURNS trigger
   BEGIN
     IF (TG_OP = 'INSERT') THEN
 		WITH w(article_id, coef, word) AS (
-			SELECT DISTINCT a.id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple', 
+			SELECT DISTINCT a.id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple',
 			coalesce(title, '')||E'\n'||coalesce(authors, '')||E'\n'||coalesce(keywords, '')||E'\n'))::text, ' '), '''', ''))
 			FROM t_articles AS a WHERE a.id = NEW.id
 			UNION
-			SELECT DISTINCT a.id, 0.5, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple', 
+			SELECT DISTINCT a.id, 0.5, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple',
 			coalesce(abstract, '')))::text, ' '), '''', ''))
 			FROM t_articles AS a WHERE a.id = NEW.id
 		)
@@ -323,31 +323,31 @@ CREATE FUNCTION public.distinct_words_trigger_function() RETURNS trigger
 	ELSIF (TG_OP = 'UPDATE') THEN
 		DELETE FROM t_articles_words WHERE article_id = OLD.id;
 		WITH w(article_id, coef, word) AS (
-			SELECT DISTINCT a.id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple', 
+			SELECT DISTINCT a.id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple',
 			coalesce(title, '')||E'\n'||coalesce(authors, '')||E'\n'||coalesce(keywords, '')||E'\n'))::text, ' '), '''', ''))
 			FROM t_articles AS a WHERE a.id = NEW.id
 			UNION
-			SELECT DISTINCT a.id, 0.5, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple', 
+			SELECT DISTINCT a.id, 0.5, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple',
 			coalesce(abstract, '')))::text, ' '), '''', ''))
 			FROM t_articles AS a WHERE a.id = NEW.id
 			UNION
-			SELECT DISTINCT r.article_id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple', 
+			SELECT DISTINCT r.article_id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple',
 			coalesce(recommendation_title, '')))::text, ' '), '''', ''))
 			FROM t_recommendations AS r WHERE r.article_id = NEW.id AND r.recommendation_state LIKE 'Recommended'
 			UNION
-			SELECT DISTINCT r.article_id, 0.5, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple', 
+			SELECT DISTINCT r.article_id, 0.5, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple',
 			coalesce(recommendation_comments, '')))::text, ' '), '''', ''))
 			FROM t_recommendations AS r WHERE r.article_id = NEW.id AND r.recommendation_state LIKE 'Recommended'
 			UNION
-			SELECT DISTINCT r.article_id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple', 
+			SELECT DISTINCT r.article_id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple',
 			coalesce(last_name, '')||' '||coalesce(first_name, '')))::text, ' '), '''', ''))
-			FROM t_recommendations AS r 
+			FROM t_recommendations AS r
 			JOIN auth_user AS au ON r.recommender_id = au.id
 			WHERE r.article_id = NEW.id AND r.recommendation_state LIKE 'Recommended'
 			UNION
-			SELECT DISTINCT r.article_id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple', 
+			SELECT DISTINCT r.article_id, 1.0, unaccent(replace(regexp_split_to_table(strip(to_tsvector('simple',
 			coalesce(last_name, '')||' '||coalesce(first_name, '')))::text, ' '), '''', ''))
-			FROM t_recommendations AS r 
+			FROM t_recommendations AS r
 			JOIN t_press_reviews AS pr ON pr.recommendation_id = r.id
 			JOIN auth_user AS au ON contributor_id = au.id
 			WHERE r.article_id = NEW.id AND r.recommendation_state LIKE 'Recommended'
@@ -376,7 +376,7 @@ CREATE FUNCTION public.get_distinct_word_id(myword character varying) RETURNS in
     AS $$
 DECLARE
   wid integer;
-BEGIN 
+BEGIN
   SELECT id FROM t_distinct_words WHERE word = myWord INTO wid;
   IF wid IS NULL THEN
     wid := nextval('t_distinct_words_id_seq'::regclass);
@@ -425,7 +425,7 @@ BEGIN
   myThematicsRegexp := coalesce('('|| array_to_string(mythematics, ')|(') ||')', '^$');
   IF (mywords IS NOT NULL AND array_to_string(mywords,'') NOT LIKE '') THEN
 	  PERFORM set_limit(mylimit);
-	  RETURN QUERY WITH 
+	  RETURN QUERY WITH
 		q(w) AS (
 			SELECT DISTINCT unaccent(unnest(mywords))
 		),
@@ -441,10 +441,10 @@ BEGIN
 			FROM q0
 			GROUP BY q0.article_id
 		)
-		SELECT a.id, row_number() OVER (ORDER BY qq.score DESC, a.last_status_change DESC)::int, qq.score, 
-			a.title, 
-			CASE WHEN a.anonymous_submission THEN '[Undisclosed]'::varchar ELSE a.authors END AS authors, 
-			a.article_source, a.doi, a.abstract, a.upload_timestamp, 
+		SELECT a.id, row_number() OVER (ORDER BY qq.score DESC, a.last_status_change DESC)::int, qq.score,
+			a.title,
+			CASE WHEN a.anonymous_submission THEN '[Undisclosed]'::varchar ELSE a.authors END AS authors,
+			a.article_source, a.doi, a.abstract, a.upload_timestamp,
 			replace(regexp_replace(a.thematics, '(^\|)|([\| \r\n]*$)', '', 'g'), '|', ', ')::varchar(1024) AS thematics,
 			a.keywords, a.auto_nb_recommendations, a.status, a.last_status_change, a.uploaded_picture, a.already_published,
 			a.anonymous_submission, a.parallel_submission
@@ -455,10 +455,10 @@ BEGIN
 		  --AND qq.score > show_limit() * (SELECT count(w) FROM q)
 		  ;
   ELSIF (all_by_default IS TRUE) THEN
-		RETURN QUERY SELECT a.id, row_number() OVER (ORDER BY a.last_status_change DESC)::int, NULL::float8, 
-				a.title, 
-				CASE WHEN a.anonymous_submission THEN '[Undisclosed]'::varchar ELSE a.authors END AS authors, 
-				a.article_source, a.doi, a.abstract, a.upload_timestamp, 
+		RETURN QUERY SELECT a.id, row_number() OVER (ORDER BY a.last_status_change DESC)::int, NULL::float8,
+				a.title,
+				CASE WHEN a.anonymous_submission THEN '[Undisclosed]'::varchar ELSE a.authors END AS authors,
+				a.article_source, a.doi, a.abstract, a.upload_timestamp,
 				replace(regexp_replace(a.thematics, '(^\|)|([\| \r\n]*$)', '', 'g'), '|', ', ')::varchar(1024) AS thematics,
 				a.keywords, a.auto_nb_recommendations, a.status, a.last_status_change, a.uploaded_picture, a.already_published,
 				a.anonymous_submission, a.parallel_submission
@@ -487,7 +487,7 @@ BEGIN
   myThematicsRegexp := coalesce('('|| array_to_string(mythematics, ')|(') ||')', '^$');
   IF (mywords IS NOT NULL AND array_to_string(mywords,'') NOT LIKE '') THEN
 	  PERFORM set_limit(mylimit);
-	  RETURN QUERY WITH 
+	  RETURN QUERY WITH
 		q(w) AS (
 			SELECT DISTINCT unaccent(unnest(mywords))
 		),
@@ -503,10 +503,10 @@ BEGIN
 			FROM q0
 			GROUP BY q0.article_id
 		)
-		SELECT a.id, row_number() OVER (ORDER BY qq.score DESC, a.last_status_change DESC)::int, qq.score, 
-			a.title, 
-			CASE WHEN a.anonymous_submission THEN '[Undisclosed]'::varchar ELSE a.authors END AS authors, 
-			a.article_source, a.doi, a.abstract, a.upload_timestamp, 
+		SELECT a.id, row_number() OVER (ORDER BY qq.score DESC, a.last_status_change DESC)::int, qq.score,
+			a.title,
+			CASE WHEN a.anonymous_submission THEN '[Undisclosed]'::varchar ELSE a.authors END AS authors,
+			a.article_source, a.doi, a.abstract, a.upload_timestamp,
 			replace(regexp_replace(a.thematics, '(^\|)|([\| \r\n]*$)', '', 'g'), '|', ', ')::varchar(1024) AS thematics,
 			a.keywords, a.auto_nb_recommendations, a.status, a.last_status_change, a.uploaded_picture, a.already_published,
 			a.anonymous_submission, a.parallel_submission, a.art_stage_1_id
@@ -517,10 +517,10 @@ BEGIN
 		  --AND qq.score > show_limit() * (SELECT count(w) FROM q)
 		  ;
   ELSIF (all_by_default IS TRUE) THEN
-		RETURN QUERY SELECT a.id, row_number() OVER (ORDER BY a.last_status_change DESC)::int, NULL::float8, 
-				a.title, 
-				CASE WHEN a.anonymous_submission THEN '[Undisclosed]'::varchar ELSE a.authors END AS authors, 
-				a.article_source, a.doi, a.abstract, a.upload_timestamp, 
+		RETURN QUERY SELECT a.id, row_number() OVER (ORDER BY a.last_status_change DESC)::int, NULL::float8,
+				a.title,
+				CASE WHEN a.anonymous_submission THEN '[Undisclosed]'::varchar ELSE a.authors END AS authors,
+				a.article_source, a.doi, a.abstract, a.upload_timestamp,
 				replace(regexp_replace(a.thematics, '(^\|)|([\| \r\n]*$)', '', 'g'), '|', ', ')::varchar(1024) AS thematics,
 				a.keywords, a.auto_nb_recommendations, a.status, a.last_status_change, a.uploaded_picture, a.already_published,
 				a.anonymous_submission, a.parallel_submission, a.art_stage_1_id
@@ -553,7 +553,7 @@ BEGIN
   END IF;
   raise WARNING 'myThematicsRegexp=%', myThematicsRegexp;
   IF (myWords IS NOT NULL AND array_to_string(myWords,'') NOT LIKE '') THEN
-	  RETURN QUERY WITH 
+	  RETURN QUERY WITH
 		q(w) AS (
 			SELECT DISTINCT unaccent(unnest(myWords))
 		),
@@ -567,7 +567,7 @@ BEGIN
 			FROM q0
 			GROUP BY q0.user_id
 		)
-		SELECT a.id, row_number() OVER (ORDER BY qq.score DESC, a.last_name)::int, qq.score, 
+		SELECT a.id, row_number() OVER (ORDER BY qq.score DESC, a.last_name)::int, qq.score,
 			a.first_name, a.last_name, a.email, a.uploaded_picture, a.city, a.country, a.laboratory, a.institution,
 			replace(regexp_replace(a.thematics, '(^\|)|([\| \r\n]*$)', '', 'g'), '|', ', ')::varchar(1024) AS thematics,
 			a.id = ANY(exclude) AS excluded
@@ -581,7 +581,7 @@ BEGIN
 		  --AND qq.score > show_limit() * (SELECT count(w) FROM q)
 		  ORDER BY qq.score DESC;
   ELSE
-	RETURN QUERY SELECT a.id, row_number() OVER (ORDER BY a.last_name)::int, 1.0::float8, 
+	RETURN QUERY SELECT a.id, row_number() OVER (ORDER BY a.last_name)::int, 1.0::float8,
 			a.first_name, a.last_name, a.email, a.uploaded_picture, a.city, a.country, a.laboratory, a.institution,
 			replace(regexp_replace(a.thematics, '(^\|)|([\| \r\n]*$)', '', 'g'), '|', ', ')::varchar(1024) AS thematics,
 			a.id = ANY(exclude) AS excluded
@@ -612,8 +612,8 @@ BEGIN
 		WHERE article_id = my_id
 		GROUP BY article_id
 	)
-	UPDATE t_articles SET auto_keywords=kws 
-	FROM q 
+	UPDATE t_articles SET auto_keywords=kws
+	FROM q
 	WHERE t_articles.id=q.id;
 END;
 $$;
@@ -1263,7 +1263,7 @@ CREATE TABLE public.t_articles (
 
 ALTER TABLE public.t_articles OWNER TO pci_admin;
 
-ALTER TABLE public.t_articles 
+ALTER TABLE public.t_articles
 ADD COLUMN  IF NOT EXISTS no_results_based_on_data  boolean DEFAULT false,
 ADD COLUMN  IF NOT EXISTS results_based_on_data  boolean DEFAULT false,
 ADD COLUMN  IF NOT EXISTS data_doi character varying(512),
@@ -2785,7 +2785,7 @@ SET search_path to public;
 
 -- 2022-02-21 updates/alter_new_submission_fields.sql
 
-ALTER TABLE "t_articles" 
+ALTER TABLE "t_articles"
 DROP COLUMN IF EXISTS no_results_based_on_data,
 DROP COLUMN IF EXISTS no_codes_used_in_study,
 DROP COLUMN IF EXISTS no_scripts_used_for_result,
@@ -2952,7 +2952,7 @@ alter view v_article_recommender owner to pci_admin;
 ALTER TABLE "t_report_survey"
 ADD COLUMN IF NOT EXISTS  tracked_changes_url character varying(512) DEFAULT '';
 
-ALTER TABLE "t_report_survey" 
+ALTER TABLE "t_report_survey"
 RENAME COLUMN "q30" TO "q30_details";
 
 ALTER TABLE "t_report_survey"
@@ -3026,21 +3026,21 @@ $$ LANGUAGE plpgsql;
 
 DROP VIEW IF EXISTS v_recommender_stats;
 CREATE OR REPLACE VIEW v_recommender_stats AS
-SELECT 
+SELECT
     recommender.id AS id,
     (SELECT COUNT(DISTINCT id) FROM (
-        SELECT DISTINCT art.id FROM t_articles art,  t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = art.id and recomm.recommender_id=recommender.id and recomm.id=v_art.recommendation_id 
+        SELECT DISTINCT art.id FROM t_articles art,  t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = art.id and recomm.recommender_id=recommender.id and recomm.id=v_art.recommendation_id
 		    UNION ALL
 	    SELECT DISTINCT art.id FROM t_articles art, t_suggested_recommenders ts WHERE ts.suggested_recommender_id=recommender.id and ts.article_id = art.id ) total_invitations_nb) AS total_invitations,
     (SELECT COUNT(recomm.id) FROM t_articles art, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id=art.id and recomm.recommender_id=recommender.id and recomm.id = v_art.recommendation_id) AS total_accepted,
     (SELECT COUNT(recomm.id) FROM t_articles art, t_recommendations recomm, v_article_recommender v_art WHERE art.id=recomm.article_id and art.status in ('Recommended', 'Recommended-private', 'Rejected', 'Cancelled') and art.report_stage in ('STAGE 1', 'STAGE 2') and  recomm.recommender_id=recommender.id and recomm.id = v_art.recommendation_id) AS total_completed,
-    (SELECT COUNT(art.id) FROM t_articles art, t_suggested_recommenders sug WHERE sug.suggested_recommender_id=recommender.id and sug.declined='FALSE' and art.id=sug.article_id and art.status='Awaiting consideration') AS current_invitations,          
+    (SELECT COUNT(art.id) FROM t_articles art, t_suggested_recommenders sug WHERE sug.suggested_recommender_id=recommender.id and sug.declined='FALSE' and art.id=sug.article_id and art.status='Awaiting consideration') AS current_invitations,
     (SELECT COUNT(recomm.id) FROM t_articles art, t_recommendations recomm, v_article_recommender v_art WHERE art.id=recomm.article_id and art.status in ('Under consideration', 'Awaiting revision', 'Scheduled submission revision', 'Scheduled submission under consideration') and art.report_stage in ('STAGE 1', 'STAGE 2') and recomm.recommender_id=recommender.id and recomm.id = v_art.recommendation_id) AS current_assignments,
     (SELECT COUNT(recomm.id) FROM t_articles art, t_recommendations recomm, v_article_recommender v_art WHERE art.id=recomm.article_id and art.status in ('Awaiting revision', 'Scheduled submission revision') and art.report_stage in ('STAGE 1', 'STAGE 2') and  recomm.recommender_id=recommender.id and recomm.id = v_art.recommendation_id) AS awaiting_revision,
     (SELECT COUNT(DISTINCT id) FROM (
-        SELECT DISTINCT recomm.id FROM t_articles art JOIN t_recommendations recomm ON art.id = recomm.article_id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id 
+        SELECT DISTINCT recomm.id FROM t_articles art JOIN t_recommendations recomm ON art.id = recomm.article_id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id
         LEFT JOIN (
-                SELECT recommendation_id, 
+                SELECT recommendation_id,
                     COUNT(CASE WHEN review_state = 'Awaiting review' THEN 1 ELSE NULL END) AS num_awaiting_reviews,
                     MAX(CASE WHEN review_state = 'Review completed' THEN 1 ELSE 0 END) AS has_completed_review
                 FROM t_reviews
@@ -3049,12 +3049,12 @@ SELECT
         WHERE art.status = 'Under consideration' AND recomm.recommender_id = recommender.id AND COALESCE(rev.has_completed_review, 0) = 0 GROUP BY recomm.id, art.report_stage, rev.num_awaiting_reviews
         HAVING ((art.report_stage = 'STAGE 1' AND COALESCE(rev.num_awaiting_reviews, 0) < 2) OR (art.report_stage = 'STAGE 2' AND COALESCE(rev.num_awaiting_reviews, 0) = 0))
             UNION ALL
-	    SELECT DISTINCT recomm.id FROM t_articles art JOIN t_recommendations recomm ON recomm.article_id = art.id JOIN t_reviews trev ON trev.recommendation_id = recomm.id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id LEFT JOIN t_reviews trew ON trew.recommendation_id = recomm.id AND trew.review_state = 'Awaiting review' WHERE art.status = 'Under consideration' AND recomm.recommender_id = recommender.id AND trev.review_state = 'Review completed' 
+	    SELECT DISTINCT recomm.id FROM t_articles art JOIN t_recommendations recomm ON recomm.article_id = art.id JOIN t_reviews trev ON trev.recommendation_id = recomm.id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id LEFT JOIN t_reviews trew ON trew.recommendation_id = recomm.id AND trew.review_state = 'Awaiting review' WHERE art.status = 'Under consideration' AND recomm.recommender_id = recommender.id AND trev.review_state = 'Review completed'
             GROUP BY recomm.id, art.id, recomm.recommender_id HAVING COUNT(trev.id) >= 2 AND SUM(CASE WHEN trew.id IS NULL THEN 0 ELSE 1 END) = 0) requiring_action_nb) AS requiring_action,
-    (SELECT COALESCE(SUM(nb), 0) 
-    FROM (SELECT COUNT(*) AS nb FROM t_articles art JOIN t_recommendations recomm ON art.id = recomm.article_id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id 
+    (SELECT COALESCE(SUM(nb), 0)
+    FROM (SELECT COUNT(*) AS nb FROM t_articles art JOIN t_recommendations recomm ON art.id = recomm.article_id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id
         LEFT JOIN (
-                SELECT recommendation_id, 
+                SELECT recommendation_id,
                     COUNT(CASE WHEN review_state = 'Awaiting review' THEN 1 ELSE NULL END) AS num_awaiting_reviews,
                     MAX(CASE WHEN review_state = 'Review completed' THEN 1 ELSE 0 END) AS has_completed_review
                 FROM t_reviews
@@ -3063,10 +3063,10 @@ SELECT
         WHERE art.status = 'Under consideration' AND recomm.recommender_id = recommender.id AND COALESCE(rev.has_completed_review, 0) = 0 GROUP BY recomm.id, art.report_stage, rev.num_awaiting_reviews
         HAVING ((art.report_stage = 'STAGE 1' AND COALESCE(rev.num_awaiting_reviews, 0) < 2) OR (art.report_stage = 'STAGE 2' AND COALESCE(rev.num_awaiting_reviews, 0) = 0))
     ) subquery) AS requiring_reviewers,
-    (SELECT COALESCE(SUM(nb), 0) FROM (SELECT COUNT(DISTINCT recomm.id) AS nb FROM t_articles art JOIN t_recommendations recomm ON recomm.article_id = art.id JOIN t_reviews trev ON trev.recommendation_id = recomm.id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id LEFT JOIN t_reviews trew ON trew.recommendation_id = recomm.id AND trew.review_state = 'Awaiting review' WHERE art.status = 'Under consideration' AND recomm.recommender_id = recommender.id AND trev.review_state = 'Review completed' 
+    (SELECT COALESCE(SUM(nb), 0) FROM (SELECT COUNT(DISTINCT recomm.id) AS nb FROM t_articles art JOIN t_recommendations recomm ON recomm.article_id = art.id JOIN t_reviews trev ON trev.recommendation_id = recomm.id JOIN v_article_recommender v_art ON recomm.id = v_art.recommendation_id LEFT JOIN t_reviews trew ON trew.recommendation_id = recomm.id AND trew.review_state = 'Awaiting review' WHERE art.status = 'Under consideration' AND recomm.recommender_id = recommender.id AND trev.review_state = 'Review completed'
             GROUP BY recomm.id, art.id, recomm.recommender_id HAVING COUNT(trev.id) >= 2 AND SUM(CASE WHEN trew.id IS NULL THEN 0 ELSE 1 END) = 0) subquery) AS required_reviews_completed,
     (SELECT COUNT(DISTINCT recomm.id) FROM t_articles art, t_reviews trev, t_recommendations recomm, v_article_recommender v_art WHERE recomm.article_id = art.id and trev.recommendation_id = recomm.id and recomm.recommender_id=recommender.id and recomm.id=v_art.recommendation_id and recomm.recommendation_state = 'Ongoing' and trev.review_state = 'Awaiting review' and trev.acceptation_timestamp + convert_duration_to_sql_interval(trev.review_duration) < NOW()) AS late_reviews
-FROM 
+FROM
 (SELECT au.id FROM auth_user au, auth_membership am, auth_group ag WHERE au.id=am.user_id and am.group_id=ag.id and ag.role='recommender') recommender;
 
 GRANT SELECT ON v_recommender_stats TO pci_admin;
@@ -3086,7 +3086,7 @@ ALTER table t_coar_notification
 ADD COLUMN if not exists coar_id text;
 
 --
-ALTER TABLE "mail_queue" 
+ALTER TABLE "mail_queue"
 ADD COLUMN IF NOT EXISTS sender_name varchar(256);
 
 -- 2023-10-11 updates/due_date_review.sql
@@ -3094,15 +3094,15 @@ ALTER TABLE "t_reviews"
 ADD COLUMN IF NOT EXISTS due_date TIMESTAMP;
 
 --2023-09-13 updates/email_options.sql
-ALTER TABLE "auth_user" 
+ALTER TABLE "auth_user"
 ADD COLUMN "email_options" character varying(1024) DEFAULT '|Email to reviewers|Email to authors|'::character varying;
 
 -- 2023-10-12 updates/ORCID_auth_user.sql
-ALTER TABLE "auth_user" 
+ALTER TABLE "auth_user"
 ADD COLUMN IF NOT EXISTS orcid varchar(16);
 
 --- 2023-10-25 updates/no_orcid_auth_user.sql
-ALTER TABLE "auth_user" 
+ALTER TABLE "auth_user"
 ADD COLUMN IF NOT EXISTS no_orcid boolean DEFAULT(FALSE) NOT NULL;
 
 -- 2023-11-09 updates/new_article_field_managers.sql
@@ -3122,7 +3122,7 @@ ALTER TABLE t_articles ADD COLUMN translated_title jsonb;
 ALTER TABLE t_articles ADD COLUMN translated_keywords jsonb;
 
 --- 2024-04-09 updates/methods_require_specific_expertise.sql
-ALTER TABLE t_articles 
+ALTER TABLE t_articles
 ADD COLUMN IF NOT EXISTS methods_require_specific_expertise text;
 
 --- 2024-05-27 updates/BiorxivFTPAlert_template.sql
@@ -3130,27 +3130,27 @@ ALTER table t_articles
 ADD COLUMN if not exists pre_submission_token text;
 
 --- 2024-06-26 updates/fill_new_article.sql
-ALTER TABLE auth_user 
+ALTER TABLE auth_user
 ADD COLUMN IF NOT EXISTS new_article_cache jsonb;
 
 --- 2024-07-24 updates/suggested_reco_quick_decline_key.sql
-ALTER table t_suggested_recommenders 
+ALTER table t_suggested_recommenders
 ADD COLUMN if not exists quick_decline_key text;
 
 --- 2024-10-01 updates/rdv_date.sql
-ALTER TABLE t_articles 
+ALTER TABLE t_articles
 ADD COLUMN IF NOT EXISTS rdv_date DATE;
 
 --- 2024-10-01 updates/remarks.sql
-ALTER TABLE t_articles 
+ALTER TABLE t_articles
 ADD COLUMN IF NOT EXISTS remarks text;
 
 --- 2024-10-02 updates/alert_date.sql
-ALTER TABLE t_articles 
+ALTER TABLE t_articles
 ADD COLUMN IF NOT EXISTS alert_date DATE;
 
 --- 2024-10-02 updates/current_step.sql
-ALTER TABLE t_articles 
+ALTER TABLE t_articles
 ADD COLUMN IF NOT EXISTS current_step text;
 
 ALTER TABLE t_articles
@@ -3164,3 +3164,16 @@ alter table t_suggested_recommenders add column if not exists recommender_valida
 
 --- 2025-03-31 updates/willing_reco_validation.sql
 ALTER TABLE t_suggested_recommenders ADD column IF NOT EXISTS suggested_by varchar(50) DEFAULT NULL;
+
+--- 2025-06-05
+CREATE TABLE bluesky_posts(
+	id serial4 PRIMARY KEY,
+	post_id varchar(1000) UNIQUE NOT NULL,
+	text_content text NOT NULL,
+	thread_position int NOT NULL,
+	article_id integer NOT NULL REFERENCES t_articles(id) ON DELETE CASCADE,
+	recommendation_id integer NOT NULL REFERENCES t_recommendations(id) ON DELETE CASCADE,
+	parent_id integer REFERENCES toots(id) ON DELETE CASCADE
+);
+
+ALTER TABLE bluesky_posts OWNER TO pci_admin;

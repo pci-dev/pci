@@ -9,11 +9,12 @@ from gluon import current
 class PostTable(Enum):
     TOOTS = 'toots'
     TWEETS = 'tweets'
+    BLUESKY_POSTS = 'bluesky_posts'
 
 
 class Post(Row):
     id: int
-    post_id: int
+    post_id: int | str
     text_content: str
     thread_position: int
     article_id: int
@@ -21,7 +22,7 @@ class Post(Row):
     parent_id: _[int]
 
 
-    def __init__(self, post_id: int, text_content: str, thread_position: int, article_id: int, recommendation_id: int, parent_id: _[int]):
+    def __init__(self, post_id: int | str, text_content: str, thread_position: int, article_id: int, recommendation_id: int, parent_id: _[int]):
         self.post_id = post_id
         self.text_content = text_content
         self.thread_position = thread_position
@@ -46,7 +47,7 @@ class Post(Row):
     def save_posts_in_db(table_name: PostTable, post: Post) -> int:
         db = current.db
         table = cast(Table, db[table_name.value])
-        id = cast(int, table.insert(post_id=post.post_id, # À changer
+        id = cast(int, table.insert(post_id=post.post_id, # type: ignore
                         text_content=post.text_content,
                         thread_position=post.thread_position,
                         article_id=post.article_id,

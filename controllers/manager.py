@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, List, Literal, Tuple, Union, cast, Optio
 
 # import html2text
 from app_components.custom_validator import VALID_LIST_NAMES_MAIL
+from app_modules.bluesky import Bluesky
 from gluon import IS_EMAIL, Field
 from gluon.contrib.markdown import WIKI # type: ignore
 from gluon.dal import Row
@@ -752,6 +753,10 @@ def recommendations():
             if mastodon_button_element:
                 recommStatusHeader.append(mastodon_button_element) # type: ignore
 
+            bluesky_button_element = bluesky_button(art, recommendation)
+            if bluesky_button_element:
+                recommStatusHeader.append(bluesky_button_element) # type: ignore
+
         show_crossref = ((pciRRactivated and isStage2) or not pciRRactivated) and not art.already_published
         if show_crossref:
             recommStatusHeader.append(crossref_clockss_toolbar(art)) # type: ignore
@@ -885,6 +890,31 @@ def mastodon_button(article: Article, recommendation: Recommendation):
         _class="pci2-tool-link pci2-yellow-link",
         _style=text_style,
     )
+
+
+def bluesky_button(article: Article, recommendation: Recommendation):
+    bluesky_client = Bluesky()
+
+    already_send = bluesky_client.has_already_posted(article.id, recommendation.id)
+    has_config = bluesky_client.has_general_bluesky_config() or bluesky_client.has_specific_bluesky_config()
+
+    if not already_send and not has_config:
+        return
+
+    text_style = 'display: inline-block; margin-right: 20px;'
+    icon_style = 'vertical-align:middle;'
+    if not already_send:
+        text_style += f'color: {ACCENT_COLOR}'
+        icon_style += f'color: {ACCENT_COLOR}'
+
+    return A(
+        I(_class="glyphicon glyphicon-edit", _style=icon_style),
+        T("Bluesky"),
+        _href=URL("bluesky", f"post_form?article_id={article.id}"),
+        _class="pci2-tool-link pci2-yellow-link",
+        _style=text_style,
+    )
+
 
 def crossref_status(article: Article):
     status_url = URL("crossref", f"get_status?article_id={article.id}")
