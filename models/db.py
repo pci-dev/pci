@@ -1660,6 +1660,17 @@ db.define_table(
     Field("parent_id", type="reference toots", ondelete="CASCADE", label=T("Toot parent")),
 )
 
+db.define_table(
+    "bluesky_posts",
+    Field("id", type="id"),
+    Field("post_id", type="text", requires=IS_LENGTH(100)),
+    Field("text_content", type="text"),
+    Field("thread_position", type="integer"),
+    Field("article_id", type="reference t_articles", ondelete="CASCADE", label=T("Article")),
+    Field("recommendation_id", type="reference t_recommendations", ondelete="CASCADE", label=T("Recommendation")),
+    Field("parent_id", type="reference toots", ondelete="CASCADE", label=T("Toot parent")),
+)
+
 def _Field_CC(default):
     return Field(
             "cc",
