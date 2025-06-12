@@ -199,7 +199,14 @@ def uninpersonate():
 # Display pending articles and allow management
 @auth.requires(auth.has_membership(role="manager") or is_recommender())
 def pending_articles():
-    states = ["Pending", "Pre-recommended", "Pre-revision", "Pre-rejected", "Pre-recommended-private"]
+    states = [
+        ArticleStatus.PENDING.value,
+        ArticleStatus.PRE_RECOMMENDED.value,
+        ArticleStatus.PRE_REVISION.value,
+        ArticleStatus.PRE_REJECTED.value,
+        ArticleStatus.PRE_RECOMMENDED_PRIVATE.value,
+        ArticleStatus.SCHEDULED_SUBMISSION_PENDING.value
+    ]
 
     resu = _manage_articles(states, show_not_considered_button=False)
     resu["customText"] = getText("#ManagerPendingArticlesText")
