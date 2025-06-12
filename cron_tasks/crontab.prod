@@ -18,8 +18,8 @@ RUN=cron_tasks/run
 @reboot     while true; do $BASE/PCIEcology/$RUN import_biorxiv_xml.py; sleep 1m; done
 
 
-# force web2py reload to purge RAM usage
-0 */3 * * * touch $BASE/../wsgihandler.py
+# force web2py reload to purge RAM when usage >70%
+@reboot     $HOME/mem-watch+reset.sh --max-mem 70
 
 
 # force delete session files older than 3 days
