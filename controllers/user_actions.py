@@ -186,7 +186,7 @@ def article_revised():
                 recommendation_title=None,
             )
             # propagate co-recommenders
-            corecommenders = db(db.t_press_reviews.recommendation_id == last_recomm.id).select(db.t_press_reviews.contributor_id)
+            corecommenders = Recommendation.get_co_recommenders(last_recomm.id)
             if len(corecommenders) > 0:
                 # NOTE: suspend emailing trigger declared as : db.t_press_reviews._after_insert.append(lambda s,i: newPressReview(s,i))
                 db.t_press_reviews._after_insert = []

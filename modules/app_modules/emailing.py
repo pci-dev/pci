@@ -1488,7 +1488,7 @@ def send_to_corecommenders(articleId, newStatus):
         mail_vars["linkTarget"] = URL(c="recommender", f="my_co_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
 
-        contribs = db(db.t_press_reviews.recommendation_id == recomm.id).select()
+        contribs = Recommendation.get_co_recommenders(recomm.id)
         for contrib in contribs:
             mail_vars["destPerson"] = common_small_html.mkUser(contrib.contributor_id)
             dest = db.auth_user[contrib.contributor_id]

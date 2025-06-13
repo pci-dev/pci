@@ -2873,7 +2873,7 @@ def verify_co_authorship():
 
     has_recommender = db(db.v_article_recommender.recommendation_id == recommendation.id).select(db.v_article_recommender.recommender) if recommendation else None
     has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state)
-    has_co_recommenders = db(db.t_press_reviews.recommendation_id == recommendation.id).select(db.t_press_reviews.contributor_id) if recommendation else None
+    has_co_recommenders = Recommendation.get_co_recommenders(recommendation.id) if recommendation else None
 
     report_survey = ReportSurvey.get_by_article(article_id)
     grid = []
@@ -2885,7 +2885,9 @@ def verify_co_authorship():
     if has_recommender:
         recommenders = [{"group" : "recommender", "name" : user.recommender} for user in has_recommender]
     if has_co_recommenders:
-        recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(user.contributor_id)} for user in has_co_recommenders]
+        for user in has_co_recommenders:
+            if user.contributor_id:
+                recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(user.contributor_id)}]
     if has_reviewers:
         recommenders += common_small_html.group_reviewers(has_reviewers)
     if report_survey and report_survey.q8:
