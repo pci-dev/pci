@@ -56,7 +56,7 @@ class Recommendation(Row):
     def get_by_id(id: int):
         db = current.db
         return cast(_[Recommendation], db.t_recommendations[id])
-    
+
     @staticmethod
     def get_by_article_id(article_id: int, order_by: ... = None):
         db = current.db
@@ -78,7 +78,7 @@ class Recommendation(Row):
     def get_current_round_number(recommendation: 'Recommendation'):
         db = current.db
         return cast(int, db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count())
-    
+
 
     @staticmethod
     def get_all(recommendation_states: List[RecommendationState] = []):
@@ -94,7 +94,7 @@ class Recommendation(Row):
     @staticmethod
     def get_last_pdf(recommendation_id: int) -> _[PDF]:
         db = current.db
-        return db(db.t_pdf.recommendation_id == recommendation_id).select().last() 
+        return db(db.t_pdf.recommendation_id == recommendation_id).select().last()
 
 
     @staticmethod
@@ -111,7 +111,7 @@ class Recommendation(Row):
             if contributor_name and contributor_name not in names:
                 names.append(contributor_name)
         formatted_names = ', '.join(names)
-        return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1] 
+        return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1]
 
 
     @staticmethod
@@ -126,7 +126,7 @@ class Recommendation(Row):
         recommendation_text = recommendation.recommendation_comments or ''
         references: List[str] = []
         start_reference = False
-        lines = recommendation_text.splitlines() 
+        lines = recommendation_text.splitlines()
         for line in lines:
             sub_lines = line.split('<br>&nbsp;<br>')
             for sub_line in sub_lines:
@@ -145,7 +145,7 @@ class Recommendation(Row):
                         references.append(sub_line)
 
         return references
-    
+
 
     @staticmethod
     def get_decision_due_date(recommendation: 'Recommendation', article: 'Article', round_number: int) -> _[datetime]:
@@ -163,7 +163,7 @@ class Recommendation(Row):
                     article.id,
                     ["#ReminderReviewerReviewInvitationNewUser","#ReminderReviewerReviewInvitationRegisteredUser", "#ReminderReviewerInvitationNewRoundRegisteredUser"],
                     [SendingStatus.PENDING])) > 0
-            
+
         accepted_reviews_count = 0
         completed_reviews_count = 0
         last_review_date: _[datetime] = None
@@ -173,14 +173,14 @@ class Recommendation(Row):
         for review in reviews:
             if review.last_change and (not last_review_date or last_review_date < review.last_change):
                 last_review_date = review.last_change
-                
+
             accepted_reviews_count += 1
             if review == ReviewState.REVIEW_COMPLETED:
                 completed_reviews_count += 1
 
         if accepted_reviews_count == 0 and not there_are_review_reminder and article.last_status_change:
             decision_due_date = article.last_status_change + timedelta(days=10)
-        
+
         if round_number == 1:
             if accepted_reviews_count >= 2 and last_review_date:
                 decision_due_date = last_review_date + timedelta(days=10)

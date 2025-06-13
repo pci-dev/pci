@@ -91,7 +91,7 @@ def mkRecommendation4ReviewFormat(row: Review):
     db = current.db
     recomm = db(db.t_recommendations.id == row.recommendation_id).select(db.t_recommendations.id, db.t_recommendations.recommender_id).last()
     anchor = SPAN(common_small_html.mkUserWithMail(recomm.recommender_id))
-    return anchor    
+    return anchor
 
 ######################################################################################################################################################################
 def do_exclude_article_from(articleId: int, recommenderId: int):
