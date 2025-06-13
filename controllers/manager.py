@@ -512,13 +512,13 @@ def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, 
     def index_by(field: str, query: ...): return { x[field]: x for x in db(query).select() }
 
     users: Dict[int, User] = index_by("id", db.auth_user)
-    last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
+    last_recomms_result = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
                    db.executesql("select max(id) from t_recommendations where article_id in " +
                        "(select id from t_articles where status in ('" + "','".join(statuses) + "')) " +
                        "group by article_id")
-    last_recomms = [x[0] for x in last_recomms]
+    last_recomms: list[int] = [x[0] for x in last_recomms_result]
     recomms = index_by("article_id", db.t_recommendations.id.belongs(last_recomms))
-    co_recomms = db(db.t_press_reviews.recommendation_id.belongs(last_recomms)).select()
+    co_recomms = Recommendation.get_co_recommenders(last_recomms)
 
     # articles
     articles = db.t_articles

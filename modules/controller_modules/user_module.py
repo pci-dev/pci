@@ -91,7 +91,7 @@ def mkRecommendation4ReviewFormat(row: Review):
     db = current.db
     recomm = db(db.t_recommendations.id == row.recommendation_id).select(db.t_recommendations.id, db.t_recommendations.recommender_id).last()
     anchor = SPAN(common_small_html.mkUserWithMail(recomm.recommender_id))
-    return anchor    
+    return anchor
 
 ######################################################################################################################################################################
 def do_exclude_article_from(articleId: int, recommenderId: int):
@@ -106,7 +106,7 @@ def getRecommender(row: ...):
     )
     if recomm and recomm.recommender_id:
         resu = SPAN(common_small_html.mkUser(recomm.recommender_id))
-        corecommenders = db(db.t_press_reviews.recommendation_id == recomm.id).select(db.t_press_reviews.contributor_id)
+        corecommenders = Recommendation.get_co_recommenders(recomm.id)
         if len(corecommenders) > 0:
             resu.append(BR()) # type: ignore
             resu.append(B(current.T("Co-recommenders:"))) # type: ignore

@@ -280,7 +280,7 @@ def send_to_submitter_scheduled_submission_open(article: Article):
     full_upload_opening_offset: datetime.datetime = db.full_upload_opening_offset
     scheduled_submission_date = get_scheduled_submission_date(article)
     sending_date: Optional[datetime.date] = None
-    
+
     if scheduled_submission_date:
         sending_date = scheduled_submission_date - full_upload_opening_offset
 
@@ -340,7 +340,7 @@ def send_to_recommender_postprint_status_changed(articleId, newStatus):
 # Send email to the recommenders (if any)
 def send_to_recommender_status_changed(articleId: int, newStatus: str):
     session, auth, db = current.session, current.auth, current.db
-    
+
     mail_vars: Dict[str, Any] = emailing_tools.getMailCommonVars()
     reports: List[Dict[str, Union[bool, str]]] = []
 
@@ -409,7 +409,7 @@ def send_to_recommender_status_changed(articleId: int, newStatus: str):
 def send_to_recommender_decision_sent_back(form, articleId, lastRecomm, hashtag):
     if common_tools.is_silent_mode():
         return
-    
+
     session, auth, db = current.session, current.auth, current.db
 
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.vars.cc_mail_addresses)
@@ -580,7 +580,7 @@ def build_sugg_recommender_buttons(link_target: str, article_id: int, suggested_
                 ),
                 _style="width: 100%; text-align: center; margin-bottom: 25px;",
             )
-    
+
     return sugg_recommender_buttons
 
 
@@ -890,9 +890,9 @@ def send_to_reviewer_review_request_accepted(reviewId, newForm):
                     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
                     mail_vars["expectedDuration"] = datetime.timedelta(days=get_review_days(rev))
                     mail_vars["dueTime"] = str((datetime.datetime.now() + mail_vars["expectedDuration"]).strftime(DEFAULT_DATE_FORMAT))
-                    
+
                     mail_vars["reviewDuration"] = (rev.review_duration).lower()
-                    
+
                     hashtag_template = emailing_tools.get_correct_hashtag("#ReviewerReviewRequestAccepted", article)
 
                     emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, article.id)
@@ -949,17 +949,17 @@ def send_to_thank_reviewer_acceptation(reviewId: int):
     if not review:
         emailing_tools.getFlashMessage(reports)
         return
-    
+
     recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         emailing_tools.getFlashMessage(reports)
         return
-    
+
     article = Article.get_by_id(recommendation.article_id)
     if not article:
         emailing_tools.getFlashMessage(reports)
         return
-    
+
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
@@ -1136,7 +1136,7 @@ def send_admin_new_user(userId):
 ######################################################################################################################################################################
 def send_new_user(userId):
     session, auth, db = current.session, current.auth, current.db
-    
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -1488,7 +1488,7 @@ def send_to_corecommenders(articleId, newStatus):
         mail_vars["linkTarget"] = URL(c="recommender", f="my_co_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
         mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
 
-        contribs = db(db.t_press_reviews.recommendation_id == recomm.id).select()
+        contribs = Recommendation.get_co_recommenders(recomm.id)
         for contrib in contribs:
             mail_vars["destPerson"] = common_small_html.mkUser(contrib.contributor_id)
             dest = db.auth_user[contrib.contributor_id]
@@ -1580,14 +1580,14 @@ def send_decision_to_reviewers(articleId, newStatus):
 ######################################################################################################################################################################
 def send_to_reviewers_preprint_submitted(articleId):
     session, auth, db = current.session, current.auth, current.db
-    
+
     article = db.t_articles[articleId]
     finalRecomm = db(db.t_recommendations.article_id == articleId).select().last()
 
     if article and finalRecomm:
 
         reviews = db((db.t_reviews.recommendation_id == finalRecomm.id) & (db.t_reviews.review_state == "Awaiting review")).select()
-        
+
         mail_vars = emailing_tools.getMailCommonVars()
 
         mail_vars["articleTitle"] = md_to_html(article.title)
@@ -1739,7 +1739,7 @@ def send_reviewer_invitation(reviewId: int,
     if not reviewer:
         emailing_tools.getFlashMessage(reports)
         return
-    
+
     sender: Optional[User] = None
     if auth.has_membership(role="manager"):
         sender = User.get_by_id(recommendation.recommender_id)
@@ -1748,7 +1748,7 @@ def send_reviewer_invitation(reviewId: int,
 
     if not sender:
         return
-    
+
     mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recommendation, reviewer.last_name)
     mail_vars["LastName"] = reviewer.last_name
     mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
@@ -1788,7 +1788,7 @@ def send_reviewer_invitation(reviewId: int,
 
         elif review.review_state == "Awaiting review":
             reviewer_invitation_buttons = DIV(P(B(current.T("TO WRITE, EDIT OR UPLOAD YOUR REVIEW CLICK ON THE FOLLOWING LINK:"))), A(linkTarget, _href=linkTarget))
-        
+
         if hashtag_template == "#DefaultReviewInvitationRegisteredUserNewReviewerStage2":
             reg_user_reminder_template = emailing_tools.get_correct_hashtag("#ReminderReviewInvitationRegisteredUserNewReviewer", article)
         if hashtag_template == "#DefaultReviewInvitationRegisteredUserReturningReviewerStage2":
@@ -1868,7 +1868,7 @@ def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, revi
                             _href=link + "&more_delay=true",
                             _style="text-decoration: none; display: block",
                         )
-    
+
     decline_button = A(
                         SPAN(
                             current.T("Decline"),
@@ -1882,18 +1882,18 @@ def generate_reviewer_invitation_buttons(link: str, declineLinkTarget: str, revi
                 P(B(current.T("TO ACCEPT OR DECLINE CLICK ON ONE OF THE FOLLOWING BUTTONS:"))),
                 DIV(accept_button, _style="width: 100%; text-align: center; margin-bottom: 25px;"),
             )
-    
+
     if pciRRactivated and article.report_stage == "STAGE 1" and (article.is_scheduled or models.article.is_scheduled_submission(article)):
         pass
     else:
         html.components[1].components.append(B(current.T("OR"))) # type: ignore
         html.components[1].components.append(more_delay_button) # type: ignore
-        
+
     html.components[1].components.append(B(current.T("OR"))) # type: ignore
     html.components[1].components.append(decline_button) # type: ignore
 
     return html
-    
+
 
 ######################################################################################################################################################################
 def send_to_recommender_reviewers_suggestions(review, suggested_reviewers_text):
@@ -1919,7 +1919,7 @@ def send_to_recommender_reviewers_suggestions(review, suggested_reviewers_text):
                 port=mail_vars["port"],
                 vars=dict(pressReviews=article.already_published),
             )
-    
+
             mail_vars["suggestedReviewersText"] = suggested_reviewers_text.strip().replace('\n','<br>')
 
             if review.review_state in [ReviewState.NEED_EXTRA_REVIEW_TIME.value, ReviewState.AWAITING_RESPONSE.value, ReviewState.AWAITING_REVIEW.value, ReviewState.WILLING_TO_REVIEW.value, ReviewState.REVIEW_COMPLETED.value]:
@@ -1927,7 +1927,7 @@ def send_to_recommender_reviewers_suggestions(review, suggested_reviewers_text):
             else:
                 hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderSuggestedReviewers", article)
             emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recomm.id, None, recomm.article_id)
-    
+
             reports = emailing_tools.createMailReport(True, mail_vars["destPerson"].flatten(), reports)
 
     emailing_tools.getFlashMessage(reports)
@@ -1958,7 +1958,7 @@ def send_change_mail(user_id: int, dest_mail: str, recover_email_key: str):
 def send_reviewer_generic_mail(reviewer_email, recomm, form):
     if common_tools.is_silent_mode():
         return
-    
+
     session, auth, db = current.session, current.auth, current.db
 
     clean_cc_addresses, cc_errors = emailing_tools.clean_addresses(form.cc)
@@ -2026,7 +2026,7 @@ def send_submitter_generic_reminder(hashtag_template: str, subject: str, message
         mail_subject = subject
 
     mail_content = mk_mail(subject, message)
-    
+
     emailing_tools.insert_generic_reminder_mail_in_queue(hashtag_template,
                                                          mail_subject,
                                                          mail_content,
@@ -2039,7 +2039,7 @@ def mk_mail(subject: str, message: str, resend: bool = False) -> str :
     applogo = URL("static", "images/small-background.png",
                     scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     subject_without_appname = subject.replace("%s: " % mail_vars["appName"], "")
-    
+
     if not resend: mail_template = MAIL_HTML_LAYOUT
     else: mail_template = RESEND_MAIL_HTML_LAYOUT
 
@@ -2621,11 +2621,11 @@ def create_reminder_for_reviewer_review_invitation_new_user(reviewId: int,
     review = Review.get_by_id(reviewId)
     if not review:
         return
-    
+
     recomm = Recommendation.get_by_id(review.recommendation_id)
     if not recomm:
         return
-    
+
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
@@ -2644,10 +2644,10 @@ def create_reminder_for_reviewer_review_invitation_new_user(reviewId: int,
 
         mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
-        
+
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
         mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
-        
+
         mail_vars["reviewDuration"] = (review.review_duration).lower() if review.review_duration else ''
 
 
@@ -2668,7 +2668,7 @@ def create_reminder_for_reviewer_review_invitation_new_user(reviewId: int,
 
         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]] + emailing_vars.get_co_recommenders_mails(recomm.id)
         mail_vars["replytoAddresses"] = replyto_addresses
-       
+
         if hashtag_template is None:
             hashtag_template = emailing_tools.get_correct_hashtag("#ReminderReviewerReviewInvitationNewUser", article)
 
@@ -2692,11 +2692,11 @@ def create_reminder_for_reviewer_review_invitation_registered_user(reviewId: int
     review = Review.get_by_id(reviewId)
     if not review:
         return
-    
+
     recomm = Recommendation.get_by_id(review.recommendation_id)
     if not recomm:
         return
-    
+
     article = Article.get_by_id(recomm.article_id)
     reviewer = User.get_by_id(review.reviewer_id)
 
@@ -2716,7 +2716,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(reviewId: int
         mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
         mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
         mail_vars["sender"] = mkSender(recomm)
-        
+
         mail_vars["myReviewsLink"] = reviewLink(pendingOnly=True)
         mail_vars["recommenderName"] = common_small_html.mkUser(recomm.recommender_id)
         mail_vars["reviewDuration"] = (review.review_duration).lower() if review.review_duration else ''
@@ -2766,7 +2766,7 @@ def create_reminder_for_reviewer_review_invitation_registered_user(reviewId: int
 ######################################################################################################################################################################
 def create_reminder_for_reviewer_review_soon_due(reviewId: int):
     session, auth, db = current.session, current.auth, current.db
-    
+
     mail_vars = emailing_tools.getMailCommonVars()
 
     review = Review.get_by_id(reviewId)
@@ -2834,7 +2834,7 @@ def create_reminder_for_reviewer_review_due(reviewId: int):
         else:
             mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
             mail_vars["destAddress"] = db.auth_user[review.reviewer_id]["email"]
-            
+
             mail_vars["delay"] = review.review_duration.lower()
             mail_vars["myReviewsLink"] = reviewLink()
             mail_vars["articleTitle"] = md_to_html(article.title)
@@ -2942,7 +2942,7 @@ def delete_reminder_for_reviewer(hashtag_template: List[str], reviewId: int):
                     & (db.mail_queue.mail_template_hashtag.startswith(hashtag_template_rr))
                     & (db.mail_queue.recommendation_id == recomm.id)
                 ).delete()
-            
+
     return nb_deleted
 
 ######################################################################################################################################################################
@@ -2993,7 +2993,7 @@ def create_reminder_for_recommender_new_reviewers_needed(recommendation_id: int)
     mail_already_exists = MailQueue.there_are_mails_for_article_recommendation(article.id, recommendation.id, hashtag_template, [SendingStatus.PENDING]) > 0
     if mail_already_exists:
         return
-    
+
     recommendation_count = int(db((db.t_recommendations.article_id == article.id)).count())
 
     if recommendation and article and recommendation_count == 1:
@@ -3386,19 +3386,19 @@ def create_cancellation_for_reviewer(review_id: int):
     review = Review.get_by_id(review_id)
     if not review:
         return
-    
+
     recommendation = Recommendation.get_by_id(review.recommendation_id)
     if not recommendation:
         return
-    
+
     article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
-    
+
     reviewer = User.get_by_id(review.reviewer_id)
     if not reviewer: # dest reviewer might have been deleted
         return
-    
+
     mail_vars = emailing_tools.getMailCommonVars()
     reports = []
 
@@ -3428,7 +3428,7 @@ def create_cancellation_for_reviewer(review_id: int):
 
     if not hashtag_template:
         return
-    
+
     if not check_mail_queue(hashtag_template, reviewer.email, review.recommendation_id):
         emailing_tools.insertMailInQueue(hashtag_template, mail_vars, recommendation.id, None, recommendation.article_id)
         reports = emailing_tools.createMailReport(True, mail_vars["destPerson"], reports)
@@ -3523,7 +3523,7 @@ def send_conditional_acceptation_review_mail(review: Review):
     article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
-    
+
     recommender = User.get_by_id(recommendation.recommender_id)
     if not recommender:
         return
@@ -3598,7 +3598,7 @@ def send_decision_new_delay_review_mail(accept: bool, review: Review):
     article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
-    
+
     reviewer = User.get_by_id(review.reviewer_id)
     if not reviewer:
         return
@@ -3648,7 +3648,7 @@ def create_reminder_for_conditional_recommender_acceptation_review(review: Revie
     conditional_recommender_acceptation_review_mail = MailQueue.get_mail_by_id(conditional_recommender_acceptation_review_mail_id)
     if conditional_recommender_acceptation_review_mail:
         mail_vars["message"] = MailQueue.get_mail_content(conditional_recommender_acceptation_review_mail)
-    
+
     hashtag_template = "#ReminderRecommenderAcceptationReview"
 
     emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recommendation.id, None, article.id, review.id, reviewer_invitation_buttons=buttons)
@@ -3666,11 +3666,11 @@ def send_alert_reviewer_due_date_change(review: Review):
     article = Article.get_by_id(recommendation.article_id)
     if not article:
         return
-    
+
     reviewer = User.get_by_id(review.reviewer_id)
     if not reviewer:
         return
-    
+
     recommender = User.get_by_id(recommendation.recommender_id)
     if not recommender:
         return
@@ -3760,7 +3760,7 @@ def send_message_to_recommender_and_reviewers(article_id: int):
         recommenders_mails = Article.get_recommenders_and_reviewers_mails(article_id)
         if not recommenders_mails:
             return
-        
+
         mail_vars["destAddress"] = recommenders_mails[0]
         mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
         mail_vars["articleDoi"] = common_small_html.mkLinkDOI(article.doi)
@@ -3779,7 +3779,7 @@ def send_unsubscription_alert_for_manager():
 
     mail_vars["person"] = common_small_html.mkUser(auth.user.id)
     mail_vars["address"] = auth.user.email
-    
+
     mail_vars["destAddress"] = mail_vars["appContactMail"]
     mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
@@ -3794,7 +3794,7 @@ def send_new_comment_alert(article_id: int):
 
     if not article or not recommendation:
         return
-    
+
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destAddress"] = mail_vars["appContactMail"]
     mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
@@ -3815,7 +3815,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
     article = Article.get_by_id(article_id)
     if not article:
         return
-    
+
     next_url = URL(c="manager", f="suggested_recommenders", vars=dict(articleId=article_id), scheme=True)
 
     mail_vars = emailing_tools.getMailCommonVars()
@@ -3856,7 +3856,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
                 _style="margin-top: 5px"),
                 _style="width: 100%; text-align: center; margin-bottom: 25px;",
             )
-        
+
         buttons.append(button) # type: ignore
 
     pending_mails = MailQueue.get_by_article_and_template(article_id, template, [SendingStatus.PENDING])
@@ -3873,10 +3873,10 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
                                                         article_id=article_id,
                                                         sugg_recommender_buttons=buttons,
                                                         sending_date_forced=sending_date)
-    
+
     if len(pending_mails) > 0 or resend:
         delete_reminder_for_managers([template_reminder], article_id=article_id, sending_status=[SendingStatus.PENDING])
-        
+
     pending_mails_reminder = MailQueue.get_by_article_and_template(article_id, template_reminder, [SendingStatus.PENDING])
     if len(pending_mails_reminder) > 0:
         for pending_mail in pending_mails_reminder:
@@ -3888,7 +3888,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
                                                         mail_vars,
                                                         article_id=article_id,
                                                         sugg_recommender_buttons=buttons)
-            if mail_id: 
+            if mail_id:
                 mail = MailQueue.get_mail_by_id(mail_id)
                 if mail:
                     mail.update_record(sending_date=mail.sending_date + datetime.timedelta(hours=1)) # type: ignore
@@ -3897,7 +3897,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
 def send_manager_alert_willing_to_recommend(article_id: int):
     if SuggestedRecommender.already_request_willing_to_recommend(article_id, current.auth.user_id):
         return
-    
+
     mail_template = "#WillingRecommenderValidation"
     recommender_id = int(current.auth.user_id)
 
