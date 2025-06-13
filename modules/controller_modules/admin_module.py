@@ -33,7 +33,7 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 ######################################################################################################################################################################
 def mkRoles(row):
     auth, db = current.auth, current.db
-    
+
     if auth.has_membership(role="administrator") or auth.has_membership(role="developer"):
         resu = ""
         if row.id:
@@ -46,7 +46,7 @@ def mkRoles(row):
 ######################################################################################################################################################################
 def set_as_recommender(ids):
     auth, db = current.auth, current.db
-    
+
     if auth.has_membership(role="administrator") or auth.has_membership(role="developer"):
 
         # get recommender group id

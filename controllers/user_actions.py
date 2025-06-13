@@ -78,7 +78,7 @@ def suggest_article_to():
     if len(nb_author_sugg) >= 25:
         manager_mail = str(config.take("contacts.managers"))
         current.session.flash = f"You have reached the limit of 25 recommenders that you can typically suggest. If you wish to suggest more recommenders, please contact the managing board at {manager_mail}"
-    else:    
+    else:
         SuggestedRecommender.add_suggested_recommender(recommender_id, article_id, SuggestedBy.AUTHORS)
         exclude_list = exclude if isinstance(exclude, list) else exclude.split(",")
         exclude_list.append(str(recommender_id))
@@ -303,7 +303,7 @@ def accept_review_confirmed(): # no auth required
         session.flash = current.T('No review id found')
         redirect(URL('default','index'))
         return
-    
+
     review = Review.get_by_id(review_id)
     if not review:
         session.flash = current.T('No review found')
@@ -337,13 +337,13 @@ def send_suggestion_page():
         session.flash = current.T('No review id found')
         redirect(URL('default','index'))
         return
-    
+
     review = Review.get_by_id(review_id)
     if not review:
         session.flash = current.T('No review found')
         redirect(URL('default','index'))
         return
-    
+
     next = get_next()
     if review.suggested_reviewers_send:
         if next:
@@ -370,7 +370,7 @@ def send_suggestion_page():
             form = app_forms.getSendMessageForm(review.quick_decline_key, 'accept', next)
         return _awaiting_recommender_response_page(message, form)
 
-    
+
 def _declined_by_recommender_page():
     response.view = "default/info.html"
     return dict(
@@ -450,7 +450,7 @@ def add_suggest_reviewers_to_article(article, review, text):
     '''
     reviewer = db(db.auth_user.id == review.reviewer_id).select()
     reviewer_name = User.get_name(reviewer[0])
-    
+
     suggested_reviewers = article[0].t_articles.suggest_reviewers or []
     if type(suggested_reviewers) is str:
         suggested_reviewers = [suggested_reviewers] \
@@ -498,7 +498,7 @@ def do_ask_to_review():
         session.flash = T("Already reviewer on this article")
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=recomm.article_id)))
         return
-    
+
     if recomm.recommender_id == auth.user_id:
         raise HTTP(403, "403: " + T("ERROR: You are the recommender this article"))
 
@@ -543,13 +543,13 @@ def delete_recommendation_file():
     if not ("recommId" in request.vars):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    
+
     recomm = db.t_recommendations[request.vars.recommId]
 
     if recomm is None:
         session.flash = T("Unavailable")
         redirect(request.env.http_referer)
-    
+
     art = db.t_articles[recomm.article_id]
     if not ((art.user_id == auth.user_id or auth.has_membership(role="manager")) and (art.status == "Awaiting revision")):
         session.flash = T("Unauthorized", lazy=False)
@@ -572,7 +572,7 @@ def delete_recommendation_file():
             redirect(request.env.http_referer)
 
     session.flash = T("File successfully deleted")
-    
+
     redirect(request.env.http_referer)
 
 
@@ -616,5 +616,5 @@ def delete_review_file():
             redirect(request.env.http_referer)
 
     session.flash = T("File successfully deleted")
-    
+
     redirect(request.env.http_referer)
