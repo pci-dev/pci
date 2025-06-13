@@ -72,10 +72,10 @@ def mkSuggestReviewToButton(row: User, recommId: int, myGoal: Union[Literal['4re
 
 ######################################################################################################################################################################
 def mkOtherContributors(row: Recommendation):
-    db, auth = current.db, current.auth
+    auth = current.auth
     butts: List[UL] = []
     hrevs: List[LI] = []
-    revs = db(db.t_press_reviews.recommendation_id == row.id).select()
+    revs = Recommendation.get_co_recommenders(row.id)
     for rev in revs:
         if rev.contributor_id:
             if rev.contributor_id != auth.user_id:

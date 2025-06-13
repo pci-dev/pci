@@ -106,7 +106,7 @@ def getRecommender(row: ...):
     )
     if recomm and recomm.recommender_id:
         resu = SPAN(common_small_html.mkUser(recomm.recommender_id))
-        corecommenders = db(db.t_press_reviews.recommendation_id == recomm.id).select(db.t_press_reviews.contributor_id)
+        corecommenders = Recommendation.get_co_recommenders(recomm.id)
         if len(corecommenders) > 0:
             resu.append(BR()) # type: ignore
             resu.append(B(current.T("Co-recommenders:"))) # type: ignore

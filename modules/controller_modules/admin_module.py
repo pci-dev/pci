@@ -625,66 +625,28 @@ def mkRecommendationFormat2(row):
 
 
 ######################################################################################################################################################################
-def mkRecommendersList(recomm):
-    db, auth = current.db, current.auth
-    recommenders = [common_small_html.mkUser(recomm.recommender_id).flatten()]
-    contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
+def mkRecommendersList(recomm: Recommendation):
+    recommenders: list[Any] = [common_small_html.mkUser(recomm.recommender_id).flatten()] # type: ignore
+    contribsQy = Recommendation.get_co_recommenders(recomm.id)
     for contrib in contribsQy:
-        recommenders.append(common_small_html.mkUser(contrib.contributor_id).flatten())
+        recommenders.append(common_small_html.mkUser(contrib.contributor_id).flatten()) # type: ignore
     return recommenders
 
 
 ######################################################################################################################################################################
-def mkRecommendersAffiliations(recomm):
-    db, auth = current.db, current.auth
-    affiliations = []
+def mkRecommendersAffiliations(recomm: Recommendation):
+    db = current.db
+    affiliations: list[str] = []
     theUser = db.auth_user[recomm.recommender_id]
     if theUser:
         affiliations.append(("%s, %s -- %s, %s" % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
-    contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
+    contribsQy = Recommendation.get_co_recommenders(recomm.id)
     for contrib in contribsQy:
         theUser = db.auth_user[contrib.contributor_id]
         if theUser:
             affiliations.append(("%s, %s -- %s, %s" % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))
     return affiliations
 
-    recommendersStr = common_small_html.mkRecommendersString(recomm)
-    # reviewers = []
-    reviewsQy = db(
-        (db.t_reviews.recommendation_id == db.t_recommendations.id)
-        & (db.t_recommendations.article_id == articleId)
-        & (db.t_reviews.anonymously == False)
-        & (db.t_reviews.review_state == "Review completed")
-    ).select(db.t_reviews.reviewer_id, distinct=True)
-    # if reviewsQy is not None:
-    # nR = len(reviewsQy)
-    # i = 0
-    # for rw in reviewsQy:
-    # if rw.reviewer_id:
-    # i += 1
-    # if (i > 1):
-    # if (i < nR):
-    # reviewers += ', '
-    # else:
-    # reviewers += ' and '
-    # reviewers += common_small_html.mkUser(rw.reviewer_id).flatten()
-    reviewsQyAnon = db(
-        (db.t_reviews.recommendation_id == db.t_recommendations.id)
-        & (db.t_recommendations.article_id == articleId)
-        & (db.t_reviews.anonymously == True)
-        & (db.t_reviews.review_state == "Review completed")
-    ).select(db.t_reviews.reviewer_id, distinct=True)
-    # if reviewsQyAnon is not None:
-    # nRA = len(reviewsQyAnon)
-    # if nRA > 0:
-    # if len(reviewers) > 0:
-    # reviewers += ' and '
-    # if nRA > 1:
-    # reviewers += '%s anonymous reviewers' % nRA
-    # else:
-    # reviewers += 'one anonymous reviewer'
-    # reviewersStr = ''.join(reviewers)
-    return reviewersStr
 
 def makeMailStatusDiv(text: str):
     if text == "sent":

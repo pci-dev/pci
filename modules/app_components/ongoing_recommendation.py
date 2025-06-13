@@ -1522,9 +1522,10 @@ def getPostprintRecommendation(art: Article, printable: bool = False, quiet: boo
     amICoRecommender = db((db.t_press_reviews.recommendation_id == recomm.id) & (db.t_press_reviews.contributor_id == auth.user_id)).count() > 0
 
     contributors: List[int] = []
-    contrQy = db((db.t_press_reviews.recommendation_id == recomm.id)).select(orderby=db.t_press_reviews.id)
+    contrQy = Recommendation.get_co_recommenders(recomm.id)
     for contr in contrQy:
-        contributors.append(contr.contributor_id)
+        if contr.contributor_id is not None:
+            contributors.append(contr.contributor_id)
 
     editRecommendationLink = None
     sendRecommendationLink = None

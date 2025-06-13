@@ -68,10 +68,17 @@ class Recommendation(Row):
 
 
     @staticmethod
-    def get_co_recommenders(recommendation_id: int):
+    def get_co_recommenders(recommendation_id: int | list[int]) -> list[PressReview]:
         db = current.db
-        return cast(List[PressReview], db((db.t_recommendations.id == recommendation_id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id))\
-            .select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id))
+        if isinstance(recommendation_id, int):
+            query = db((db.t_press_reviews.recommendation_id == recommendation_id))
+        else:
+            query = db(db.t_press_reviews.recommendation_id.belongs(recommendation_id))
+
+        co_recommenders: list[PressReview] = query.select(distinct=db.t_press_reviews.contributor_id)
+        co_recommenders = [cr for cr in co_recommenders]
+        co_recommenders.sort(key=lambda x: x.id)
+        return co_recommenders
 
 
     @staticmethod
