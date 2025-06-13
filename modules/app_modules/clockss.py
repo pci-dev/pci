@@ -259,8 +259,7 @@ class Clockss:
 
         recommendations = cast(List[Recommendation], db(db.t_recommendations.id == self._recommendation.id)\
             .select(db.t_recommendations.ALL, distinct=db.t_recommendations.recommender_id))
-        press_reviews = cast(List[PressReview], db((db.t_recommendations.id == self._recommendation.id) & (db.t_press_reviews.recommendation_id == db.t_recommendations.id))\
-            .select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id))
+        press_reviews = Recommendation.get_co_recommenders(self._recommendation.id)
 
         recommenders_id: List[int] = []
         for recommendation in recommendations:

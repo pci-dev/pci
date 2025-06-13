@@ -798,7 +798,7 @@ def mkArticleCellNoRecommFromId(recommId: int):
         art = db.t_articles[recomm.article_id]
         if art:
             recommenders = [mkUser(recomm.recommender_id)]
-            contribsQy = db(db.t_press_reviews.recommendation_id == recommId).select()
+            contribsQy = Recommendation.get_co_recommenders(recommId)
             n = len(contribsQy)
             i = 0
             for contrib in contribsQy:
@@ -880,12 +880,12 @@ def mkArticleCitation(myRecomm):
 
 
 ######################################################################################################################################################################
-def mkCoRecommenders(row, goBack=URL()):
+def mkCoRecommenders(row: Recommendation, goBack: str = URL()):
     db = current.db
-    butts = []
-    hrevs = []
+    butts: list[UL | A] = []
+    hrevs: list[LI] = []
     art = db.t_articles[row.article_id]
-    revs = db(db.t_press_reviews.recommendation_id == row.id).select()
+    revs = Recommendation.get_co_recommenders(row.id)
     for rev in revs:
         if rev.contributor_id:
             hrevs.append(LI(mkUserWithMail(rev.contributor_id)))
@@ -972,13 +972,10 @@ def getRecommAndReviewAuthors(
                             if this_recomm_only else
                         (db.t_recommendations.article_id == article.id))
 
-        mainRecommenders = db(select_recomm).select(
+        mainRecommenders: list[Recommendation] = db(select_recomm).select(
             db.t_recommendations.ALL, distinct=db.t_recommendations.recommender_id)
 
-        coRecommenders = db(
-            select_recomm
-            & (db.t_press_reviews.recommendation_id == db.t_recommendations.id)
-        ).select(db.t_press_reviews.ALL, distinct=db.t_press_reviews.contributor_id)
+        coRecommenders = Recommendation.get_co_recommenders([reco.id for reco in mainRecommenders])
 
         allRecommenders = mkRecommenderandContributorList(mainRecommenders) + mkRecommenderandContributorList(coRecommenders)
 
@@ -1187,10 +1184,9 @@ def group_reviewers(reviews: List[Review]):
     return result
 
 ######################################################################################################################################################################
-def mkRecommendersString(recomm):
-    db = current.db
-    recommenders = [mkUser(recomm.recommender_id).flatten()]
-    contribsQy = db(db.t_press_reviews.recommendation_id == recomm.id).select()
+def mkRecommendersString(recomm: Recommendation):
+    recommenders: list[Any] = [mkUser(recomm.recommender_id).flatten()] # type: ignore
+    contribsQy = Recommendation.get_co_recommenders(recomm.id)
     n = len(contribsQy)
     i = 0
     for contrib in contribsQy:
@@ -1199,7 +1195,7 @@ def mkRecommendersString(recomm):
             recommenders += ", "
         else:
             recommenders += " and "
-        recommenders += mkUser(contrib.contributor_id).flatten()
+        recommenders += cast(Any, mkUser(contrib.contributor_id).flatten()) # type: ignore
     recommendersStr = "".join(recommenders)
     return recommendersStr
 
@@ -1235,7 +1231,7 @@ def mk_reviewer_info(user: User, orcid: bool = False):
     return anchor
 
 ######################################################################################################################################################################
-def mkRecommenderandContributorList(records: List[Union[Recommendation, PressReview]]):
+def mkRecommenderandContributorList(records: list[Recommendation] | list[PressReview]):
     result: List[Dict[str, Any]] = []
     for record in records:
         if hasattr(record, 'recommender_id'):

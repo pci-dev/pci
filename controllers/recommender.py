@@ -88,7 +88,7 @@ def fields_awaiting_articles():
 
     def represent_article_id(article_id: int, article: Article):
         return common_small_html.mkRepresentArticleLight(article_id)
-    
+
     def represent_upload_timestamp(upload_timestamp: datetime.datetime, article: Article):
         return common_small_html.mkLastChange(upload_timestamp)
 
@@ -454,7 +454,7 @@ def my_awaiting_articles():
         & (db.t_suggested_recommenders.declined == False)
         & (db.t_suggested_recommenders.recommender_validated == True)
     )
-       
+
     db.t_articles.user_id.writable = False
     db.t_articles.user_id.represent = lambda userId, row: common_small_html.mkAnonymousArticleField(
             row.anonymous_submission,
@@ -535,7 +535,7 @@ def accept_new_article_to_recommend():
     actionFormUrl = None
     appLongName = None
     hidenVarsForm = None
-    skip_checkbox = "skip_checkbox" in current.request.vars and str(current.request.vars["skip_checkbox"]).lower() == 'true' 
+    skip_checkbox = "skip_checkbox" in current.request.vars and str(current.request.vars["skip_checkbox"]).lower() == 'true'
 
     if not ("articleId" in request.vars):
         session.flash = auth.not_authorized()
@@ -579,13 +579,13 @@ def validation_request_new_article_to_recommend():
     article_id = request.vars.get("article_id")
     if not article_id:
         return HTTP(400, "Missing article_id parameter in url")
-    
+
     article = Article.get_by_id(article_id)
     if not article:
         return HTTP(404, f"Article {article_id} not found")
-    
+
     response.view = "default/info.html"
-        
+
     html = CENTER(
         B(T("Thanks for your willingness to handle the evaluation of this preprint.")),
         BR(),
@@ -1132,7 +1132,7 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
             reviewers_list: List[LI] = []
             current_reviewers_ids: List[int] = []
             nb_anonymous = 1
-            
+
             for review in reviews:
                 if review.review_state is None:  # delete this unfinished review declaration
                     db(db.t_reviews.id == review.id).delete()
@@ -1160,9 +1160,9 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
                         common_small_html.mkUserWithMail(reviewer_id),
                         " ",
                         B(T(" (YOU) ")) if reviewer_id and reviewer_id == recommendation.recommender_id else "",
-                        I("(" + (review.review_state or "") + ")"), 
+                        I("(" + (review.review_state or "") + ")"),
                         )
-                
+
                 if new_round or new_stage:
                     current_reviewers = Review.get_by_recommendation_id(recommendation.id)
                     for current_reviewer in current_reviewers:
@@ -1179,9 +1179,9 @@ def _edit_reviewers(reviews: List[Review], recommendation: Recommendation, lates
                     )
                     if review.anonymously:
                         nb_anonymous += 1
-                
+
                 reviewers_list.append(html)
-                    
+
             return reviewers_list, reviewers_ids
 
 
@@ -1214,9 +1214,9 @@ def get_prev_reviewers(article_id, recomm, new_round=False, new_stage=False):
     prevRoundHeader = DIV(
         BUTTON(H4(B(text, SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
         DIV(P(UL(prevReviewersList)),
-        _class="content2",              
+        _class="content2",
         _style="width:100%; max-width: 1200px")) if prevRoundreviewersList else ""
-    
+
 
 
     customText=getText("#RecommenderReinviteReviewersText")
@@ -1252,7 +1252,7 @@ def reviewers():
     if (recomm.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    else:  
+    else:
         recomm_round = db((db.t_recommendations.article_id == article.id)).count()
         first_round_id = db((db.t_recommendations.article_id == article.id)).select(orderby=db.t_recommendations.id).first()
         no_of_first_round_reviews = db((db.t_reviews.recommendation_id == first_round_id)).count()
@@ -1286,7 +1286,7 @@ def reviewers():
                         reviewer_box.append(reviewer_ul)
                     reviewer_box.append(H5(B(action_text)))
                     suggested_reviewers_by_reviewers.append(reviewer_box)
-                        
+
             if article.competitors:
                 oppossed_reviewers = DIV(
                     BUTTON(H4(B("Opposed reviewers"), T(" (reviewers that the authors suggest NOT to invite)"), SPAN(_class="caret"), ), _class="collapsible2 active", _type="button"),
@@ -1319,7 +1319,7 @@ def reviewers():
                         reviewer_box.append(reviewer_ul)
                     reviewer_box.append(H5(B(action_text)))
                     suggested_reviewers_by_reviewers.append(reviewer_box)
-        
+
         reviewersListSel = Review.get_by_recommendation_id(recommId, db.t_reviews.id)
         selfFlag = False
         selfFlagCancelled = False
@@ -1335,7 +1335,7 @@ def reviewers():
                 BUTTON(H4(B("Reviewers already invited:", SPAN(_class="caret"))), _class="collapsible2 active", _type="button"),
                 DIV(P(UL(reviewersList)),
                )))
-        
+
         if len(content_el) > 0:
             my_content = DIV(*content_el, _class="content2", _style="width:100%; max-width: 1200px")
         else:
@@ -1515,7 +1515,7 @@ def send_review_cancellation():
 
         clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
         replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
-        
+
         try:
             emailing.send_reviewer_invitation(
                 reviewId, replyto_addresses, cc_addresses, hashtag_template, request.vars["subject"], request.vars["message"], None, linkTarget
@@ -1532,7 +1532,7 @@ def send_review_cancellation():
     reminder_hashtag = ["#ReminderReviewerReviewSoonDue", "#ReminderReviewerReviewDue", "#ReminderReviewerReviewOverDue"]
     emailing.delete_reminder_for_reviewer(reminder_hashtag, reviewId)
     emailing.delete_reminder_for_reviewer(["#ReminderScheduledReviewComingSoon"], reviewId)
-    
+
     return dict(
         form=form,
         pageHelp=getHelp("#EmailForRegisterdReviewer"),
@@ -1664,7 +1664,7 @@ def email_for_registered_reviewer():
     if recommendation_id is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    
+
     recommendation = Recommendation.get_by_id(recommendation_id)
     if not recommendation:
         session.flash = auth.not_authorized()
@@ -1675,15 +1675,15 @@ def email_for_registered_reviewer():
     if (recommendation.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-        
+
     recomm_round = db((db.t_recommendations.article_id == recommendation.article_id) & (db.t_recommendations.id <= recommendation.id)).count()
-    
+
     article = Article.get_by_id(recommendation.article_id)
     if not article:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
         return
-    
+
     reviewer = User.get_by_id(reviewer_id)
     if not reviewer:
         session.flash = ("""
@@ -1741,7 +1741,7 @@ def email_for_registered_reviewer():
     default_message = emailing_tools.replaceMailVars(mail_template["content"], mail_vars)
 
     default_subject = emailing.patch_email_subject(default_subject, recommendation.article_id)
-    
+
     replyto_address = "%s, %s" % (sender.email, myconf.take("contacts.managers"))
     default_cc = '%s, %s'%(sender.email, myconf.take("contacts.managers"))
     ccAddresses = ",".join(emailing_tools.exempt_addresses(default_cc.split(","), hashtag_template))
@@ -1790,7 +1790,7 @@ def email_for_registered_reviewer():
 
         clean_replyto_adresses, replyto_errors = emailing_tools.clean_addresses(replyto_address)
         replyto_addresses = emailing_tools.list_addresses(clean_replyto_adresses)
-        
+
         Review.set_review_duration(review, article, form.vars.review_duration)
 
         try:
@@ -1833,7 +1833,7 @@ def email_for_new_reviewer():
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
         return
-    
+
     co_recommender = is_co_recommender(recommendation.id)
     if (recommendation.recommender_id != auth.user_id) and not co_recommender and not (auth.has_membership(role="manager")):
         session.flash = auth.not_authorized()
@@ -1849,7 +1849,7 @@ def email_for_new_reviewer():
         sender = User.get_by_id(recommendation.recommender_id)
     else:
         sender = cast(User, auth.user)
-    
+
     mail_vars = emailing_tools.getMailForReviewerCommonVars(sender, article, recommendation, request.vars["reviewer_last_name"])
 
     # NOTE: 4 parallel submission
@@ -2167,7 +2167,7 @@ def contributions():
         db.t_press_reviews.recommendation_id.writable = False
         db.t_press_reviews.recommendation_id.readable = False
         db.t_press_reviews.contributor_id.writable = True
-        db.t_press_reviews.contributor_id.represent = lambda text, row: common_small_html.mkUserWithMail(row.contributor_id) if row else ""  
+        db.t_press_reviews.contributor_id.represent = lambda text, row: common_small_html.mkUserWithMail(row.contributor_id) if row else ""
         alreadyCo = db(db.t_press_reviews.recommendation_id == recommId)._select(db.t_press_reviews.contributor_id)
         otherContribsQy = db(
             (db.auth_user._id != auth.user_id)
@@ -2244,7 +2244,7 @@ def edit_recommendation():
                     _name="recommender_opinion",
                     _type="radio",
                     _value="do_recommend_private",
-                    _checked=(recomm.recommendation_state_saved == "Recommended"), 
+                    _checked=(recomm.recommendation_state_saved == "Recommended"),
                     _disabled=True if publish_now else False,
                 ),
                 B(current.T("I recommend this preprint")),
@@ -2267,7 +2267,7 @@ def edit_recommendation():
                     (DIV(
                         SPAN(
                             INPUT(
-                                _id="opinion_recommend", _name="recommender_opinion", _type="radio", _value="do_recommend", _checked=(recomm.recommendation_state_saved == "Recommended"), 
+                                _id="opinion_recommend", _name="recommender_opinion", _type="radio", _value="do_recommend", _checked=(recomm.recommendation_state_saved == "Recommended"),
                                 _disabled=False if publish_now else True
                             ),
                             B(current.T("I recommend this preprint")),
@@ -2597,7 +2597,7 @@ def review_emails():
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
             ) if row.sending_status == "pending" else (recommender_module.mkEditResendButton(row, reviewId, recommendation.id, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
-    
+
     links = [
         dict(
             header="",
@@ -2721,7 +2721,7 @@ def article_reviews_emails():
                 _class="btn btn-default",
                 _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
             ) if row.sending_status == "pending" else (recommender_module.mkEditResendButton(row, articleId=articleId, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
-    
+
     links = [
         dict(
             header="",
@@ -2782,7 +2782,7 @@ def article_reviews_emails():
         pageTitle=getTitle("#ArticleReviewsEmailsTitle"),
         customText=getText("#ArticleReviewsEmailsText"),
         pageHelp=getHelp("#ArticleReviewsEmails"),
-        myBackButton=common_small_html.mkBackButton(target=target), 
+        myBackButton=common_small_html.mkBackButton(target=target),
         grid=original_grid,
         myFinalScript=myScript,
         absoluteButtonScript=common_tools.absoluteButtonScript,
@@ -2873,7 +2873,7 @@ def verify_co_authorship():
 
     has_recommender = db(db.v_article_recommender.recommendation_id == recommendation.id).select(db.v_article_recommender.recommender) if recommendation else None
     has_reviewers = db(reviewer_query).select(db.t_reviews.reviewer_id, db.t_reviews.review_state)
-    has_co_recommenders = db(db.t_press_reviews.recommendation_id == recommendation.id).select(db.t_press_reviews.contributor_id) if recommendation else None
+    has_co_recommenders = Recommendation.get_co_recommenders(recommendation.id) if recommendation else None
 
     report_survey = ReportSurvey.get_by_article(article_id)
     grid = []
@@ -2885,7 +2885,9 @@ def verify_co_authorship():
     if has_recommender:
         recommenders = [{"group" : "recommender", "name" : user.recommender} for user in has_recommender]
     if has_co_recommenders:
-        recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(user.contributor_id)} for user in has_co_recommenders]
+        for user in has_co_recommenders:
+            if user.contributor_id:
+                recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(user.contributor_id)}]
     if has_reviewers:
         recommenders += common_small_html.group_reviewers(has_reviewers)
     if report_survey and report_survey.q8:
@@ -2896,7 +2898,7 @@ def verify_co_authorship():
         for reviewer in article.suggest_reviewers:
             recommenders.append({'group': 'suggested reviewer', 'name': extract_name_without_email(reviewer)})
 
-  
+
     grid = query_semantic_api(authors, recommenders) if len(recommenders) > 0 else SPAN("Submission has no recommender/reviewer assigned yet.")
 
     return dict(
