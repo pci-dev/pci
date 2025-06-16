@@ -3177,3 +3177,6 @@ CREATE TABLE bluesky_posts(
 );
 
 ALTER TABLE bluesky_posts OWNER TO pci_admin;
+
+--- 2025-06-16 doi_xml_column.sql
+alter table t_articles add column if not exists show_doi_decision bool default FALSE;
