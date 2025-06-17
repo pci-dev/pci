@@ -1,8 +1,8 @@
 from typing import List, Optional, Union
 
-from gluon.html import DIV, SPAN
 from pydal.objects import Field
 from pydal.validators import IS_IN_SET, IS_NOT_EMPTY, Validator, IS_LIST_OF
+from yatl import DIV, SPAN
 
 
 class RequiredField(Field):
@@ -31,5 +31,5 @@ class RequiredField(Field):
         if label:
             label = SPAN(label, SPAN(" * ", _style="color:red;"))
         kwargs['label'] = label
-        
+
         super().__init__(*args, **kwargs) # type: ignore

@@ -22,3 +22,5 @@ log.txt
 geckodriver.log
 /clockss/
 /web2py
+/py4web
+.venv

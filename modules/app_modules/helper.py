@@ -20,7 +20,6 @@ shortname = myconf.take("app.name")
 longname = myconf.take("app.longname")
 contact = myconf.take("contacts.managers")
 siteUrl = URL(c="default", f="index", scheme=myconf.take("alerts.scheme"), host=myconf.take("alerts.host"), port=myconf.take("alerts.port"))
-issn = "set in models/db.py"
 
 ######################################################################################################################################################################
 def getHelp(myHashtag: str, myLanguage: str = "default"):
@@ -39,10 +38,10 @@ def getHelp(myHashtag: str, myLanguage: str = "default"):
         A(
             SPAN(current.T("show/hide help")),
             _onclick="""jQuery(function(){ if ($.cookie('PCiHideHelp') == 'On') {
-												$('DIV.pci-helptext').show(); 
+												$('DIV.pci-helptext').show();
 												$.cookie('PCiHideHelp', 'Off', {expires:365, path:'/'});
 											} else {
-												$('DIV.pci-helptext').hide(); 
+												$('DIV.pci-helptext').hide();
 												$.cookie('PCiHideHelp', 'On', {expires:365, path:'/'});
 											}
 									})""",
@@ -132,7 +131,7 @@ def replaceMailVars(text: str, mail_vars: Dict[str, Any]):
 ######################################################################################################################################################################
 def is_recommender():
     auth, request = current.auth, current.request
-    
+
     return (
         auth.has_membership(role="recommender") and
         str(auth.user_id) == request.vars["recommender"]
@@ -150,15 +149,15 @@ def is_co_recommender(recommendation_id: int, user_id: Optional[int] = None):
 def user_is_in_recommender_team(article_id: int, user_id: Optional[int] = None):
     if user_id is None:
         user_id = current.auth.user_id
-        
+
     if not current.auth.has_membership(Role.RECOMMENDER.value, user_id=user_id):
         return False
-    
+
     recommendations = Recommendation.get_by_article_id(article_id)
     for recommendation in recommendations:
         if recommendation.recommender_id == user_id or is_co_recommender(recommendation.id, user_id):
             return True
-    
+
     return False
 
 
@@ -205,7 +204,7 @@ def _get_author_ids(data: Dict[str, str]) -> List[Dict[str, Any]]:
                             "papers": [paper for paper in author["papers"] if paper.get("year") is not None and current_year - paper["year"] <= 4]
                             }
                             for author in result['data']
-                        ]   
+                        ]
         return []
 
 def query_semantic_api(authors: List[Dict[str, str]], recommenders: List[Dict[str, str]]):
@@ -233,7 +232,7 @@ def query_semantic_api(authors: List[Dict[str, str]], recommenders: List[Dict[st
     recommender_data = all_data["accepted reviewer"] + all_data["invited reviewer"] + all_data["recommender"] + all_data["suggested recommender"] + all_data["co-recommender"] + all_data['suggested reviewer']
     if len(recommender_data) == 0:
         return grid
-    
+
     # Check if any of the authors have co-published with the suggested recommenders
     for author in authors:
         grid.append(BR())
@@ -267,6 +266,6 @@ def query_semantic_api(authors: List[Dict[str, str]], recommenders: List[Dict[st
 def format_keywords_for_google_scholar(input_string: str):
     # Split the string by commas, semicolons, or 'and'
     keywords = re.split(r',|;| and ', input_string)
-    
+
     formatted_keywords = ['"' + keyword.strip().replace(' ', '+') + '"' for keyword in keywords]
     return '+AND+'.join(formatted_keywords)

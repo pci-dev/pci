@@ -2,16 +2,13 @@ from http.client import HTTPException
 from typing import Any, Dict, List, Optional, cast
 from dataclasses import dataclass
 
-from gluon.dal import SQLCustomType
-from gluon.contrib.appconfig import AppConfig
-from gluon.html import A, CENTER, FORM, IMG, URL, SPAN, DIV, STRONG
-from gluon.http import redirect
-from gluon.sqlhtml import SQLFORM
-from gluon import current
+from py4web.utils.form import Form
+from pydal import SQLCustomType
+from yatl import A, FORM, IMG, SPAN, DIV, STRONG
 
-from app_modules.httpClient import HttpClient
-from app_modules.common_tools import get_next, get_script, sget
-from app_modules.country import Country
+from .httpClient import HttpClient
+from .common_tools import get_next, get_script, sget, URL, CENTER
+from .country import Country
 
 
 class OrcidTools:
@@ -28,23 +25,23 @@ class OrcidTools:
         if not value or len(value) == 0:
             return None
         return value.replace('-', '')
-    
+
 
     @staticmethod
     def get_orcid_formatter_script():
         return get_script("orcid_formatter.js")
-    
+
 
     @staticmethod
     def configure_orcid_input(form: DIV):
         form.element(_name="orcid")["_maxlength"] = ORCID_NUMBER_LENGTH_WITH_HYPHEN
         return form
-    
+
 
     @staticmethod
-    def add_orcid_auth_user_form(auth_user_form: SQLFORM, redirect_url: Optional[str] = None):
+    def add_orcid_auth_user_form(auth_user_form: Form, redirect_url: Optional[str] = None):
         session = current.session
-        
+
         OrcidTools.configure_orcid_input(auth_user_form)
         if not redirect_url or len(redirect_url) == 0:
             return
@@ -76,7 +73,7 @@ class OrcidTools:
         else:
             redirect(next)
 
-    
+
     @staticmethod
     def get_orcid_number_label():
         return DIV(STRONG("ORCID number"), SPAN(" (using the following format: 0000-000X-XXX-XXX)", _style="font-size: small; font-weight: initial"))
@@ -91,11 +88,11 @@ class OrcidTools:
             if before:
                 style += ";position: relative; right: 3px; bottom: 1px;"
             else:
-                style += ";position: relative; left: 3px; bottom: 1px;" 
-        
-        orcid_link = A(IMG(_alt="ORCID_LOGO", _src=URL(c="static", f="images/ORCID_ID.svg"), _heigth=height, _width=width), 
+                style += ";position: relative; left: 3px; bottom: 1px;"
+
+        orcid_link = A(IMG(_alt="ORCID_LOGO", _src=URL(c="static", f="images/ORCID_ID.svg"), _heigth=height, _width=width),
                   _title=orcid_id, _href=f"https://orcid.org/{orcid_id}", _target="_blank", _rel="noreferrer noopener", _style=style)
-        
+
         if before:
             return SPAN(orcid_link, user_name)
         else:
@@ -119,7 +116,7 @@ class OrcidValidator:
 
         if len(value) != ORCID_NUMBER_LENGTH:
             return value, f'{self.error_message}: expected length 16, got {len(value)}'
-        
+
         if value[-1] == "X":
             digits = value[:-1]
         else:
@@ -127,7 +124,7 @@ class OrcidValidator:
 
         if not digits.isdigit():
             return value, f'{self.error_message}: must contain only digits, optionally a trailing X'
-        
+
         return value, None
 
 
@@ -176,7 +173,7 @@ class OrcidAPI:
                 session.token_orcid = self.__orcid_keys
         else:
             self.__orcid_keys = session.token_orcid
-                
+
         user_infos = self.__retrieve_user_infos()
         self.__fill_form(user_infos, form)
 
@@ -205,7 +202,7 @@ class OrcidAPI:
         self.__set_value_in_form(form, 'laboratory', laboratory_value)
         self.__set_value_in_form(form, 'city', city_value)
         self.__set_value_in_form(form, 'email', email_value)
-    
+
 
     def __extract_email_value(self, user_infos: Any):
         email_value: Optional[str] = ''
@@ -270,7 +267,7 @@ class OrcidAPI:
                 keyword_value += keyword.get('content', '') + ','
             keyword_value = keyword_value[:-1]
         return keyword_value
-    
+
 
     def __extract_website_value(self, user_infos: Any):
         website_value: Optional[str] = ''
@@ -284,18 +281,18 @@ class OrcidAPI:
     def __set_value_in_form(self, form: FORM, form_name: str, value: Optional[str]):
         if not value or len(value) == 0:
             return
-                
+
         input = form.element(_name=form_name)
         if not input:
             return
-        
+
         if input.tag == 'textarea':
             if len(input.components) > 0:
                 input.components[0] = value
             else:
                 input.components.append(value)
             return
-        
+
         input["_value"] = value
 
         if input.tag == 'select':
@@ -309,7 +306,7 @@ class OrcidAPI:
     def __retrieve_user_infos(self) -> Optional[Dict[str, Any]]:
         if not self.__orcid_keys:
             return
-        
+
         http_client = HttpClient(default_headers={'Accept': 'application/json', 'Authorization': f'Bearer {self.__orcid_keys.token}'})
         response = http_client.get(self.API_URL + self.__orcid_keys.orcid)
 
@@ -322,9 +319,9 @@ class OrcidAPI:
     def __init_token_orcid(self, code: str):
         if not code:
             return None
-        
+
         payload = f'client_id={self.__client_id}&client_secret={self.__client_secret}&grant_type=authorization_code&redirect_uri={self.__redirect_url}&code={code}'
-        
+
         http_client = HttpClient({'Content-Type': 'application/x-www-form-urlencoded'})
         response = http_client.post(self.OAUTH_TOKEN_URL, data=payload)
         json_response = response.json()
