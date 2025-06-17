@@ -516,7 +516,7 @@ def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, 
                    db.executesql("select max(id) from t_recommendations where article_id in " +
                        "(select id from t_articles where status in ('" + "','".join(statuses) + "')) " +
                        "group by article_id")
-    last_recomms: list[int] = [x[0] for x in last_recomms_result]
+    last_recomms: List[int] = [x[0] for x in last_recomms_result]
     recomms = index_by("article_id", db.t_recommendations.id.belongs(last_recomms))
     co_recomms = Recommendation.get_co_recommenders(last_recomms)
 

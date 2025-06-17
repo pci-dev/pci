@@ -626,7 +626,7 @@ def mkRecommendationFormat2(row):
 
 ######################################################################################################################################################################
 def mkRecommendersList(recomm: Recommendation):
-    recommenders: list[Any] = [common_small_html.mkUser(recomm.recommender_id).flatten()] # type: ignore
+    recommenders: List[Any] = [common_small_html.mkUser(recomm.recommender_id).flatten()] # type: ignore
     contribsQy = Recommendation.get_co_recommenders(recomm.id)
     for contrib in contribsQy:
         recommenders.append(common_small_html.mkUser(contrib.contributor_id).flatten()) # type: ignore
@@ -636,7 +636,7 @@ def mkRecommendersList(recomm: Recommendation):
 ######################################################################################################################################################################
 def mkRecommendersAffiliations(recomm: Recommendation):
     db = current.db
-    affiliations: list[str] = []
+    affiliations: List[str] = []
     theUser = db.auth_user[recomm.recommender_id]
     if theUser:
         affiliations.append(("%s, %s -- %s, %s" % (theUser.laboratory, theUser.institution, theUser.city, theUser.country)))

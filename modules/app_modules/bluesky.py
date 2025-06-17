@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 from app_modules.httpClient import HttpClient
 from app_modules.mastodon import SocialNetwork
 from models.post import Post, PostTable
@@ -50,9 +50,9 @@ class Bluesky(SocialNetwork):
 
         http_client = HttpClient({"Content-Type": "application/json", "Authorization": f"Bearer {token}"})
 
-        parent_id: int | None = None
-        root_post: Any | None = None
-        parent_post: Any | None = None
+        parent_id: Optional[int] = None
+        root_post: Optional[Any] = None
+        parent_post: Optional[Any] = None
 
         for i, post_text in enumerate(posts_text):
             payload: dict[str, Any] = {

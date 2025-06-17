@@ -25,7 +25,7 @@ class FullName:
     @staticmethod
     def parse(input: str) -> "FullName":
         # Check every name separately.
-        names: list[str] = re.split(SEP, input.strip())
+        names: List[str] = re.split(SEP, input.strip())
         n = len(names)
         for i, name in enumerate(names):
             # Authorize abbreviated names (ending with '.') unless it's the last one.
@@ -83,14 +83,14 @@ class NameParser:
             if self.suggestor.email:
                 name.append(self.suggestor.email)
             name.append("suggested:")
-        
+
         if self.person.name.first:
             name.append(self.person.name.first)
         if self.person.name.last:
             name.append(self.person.name.last)
         if self.person.email:
             name.append(self.person.email)
-        
+
         return " ".join(name)
 
 
@@ -155,7 +155,7 @@ def clean_name(name: str):
     while name[0] in char_to_clean or name[-1] in char_to_clean:
         for c in char_to_clean:
             name = name.strip().strip(c).strip()
-    
+
     return name
 
 
