@@ -1231,7 +1231,7 @@ def mk_reviewer_info(user: User, orcid: bool = False):
     return anchor
 
 ######################################################################################################################################################################
-def mkRecommenderandContributorList(records: list[Recommendation] | list[PressReview]):
+def mkRecommenderandContributorList(records: List[Union[Recommendation, PressReview]]):
     result: List[Dict[str, Any]] = []
     for record in records:
         if hasattr(record, 'recommender_id'):
