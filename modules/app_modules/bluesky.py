@@ -32,7 +32,7 @@ class Bluesky(SocialNetwork):
         return len(self._specific_handle) > 0 and len(self._specific_app_password) > 0
 
 
-    def send_post(self, article_id: int, recommendation_id: int, posts_text: list[str], specific_account: bool = True, general_account: bool = False):
+    def send_post(self, article_id: int, recommendation_id: int, posts_text: list, specific_account: bool = True, general_account: bool = False):
         if general_account and self.has_general_bluesky_config():
             did = self._resolve_handler(self._general_handle)
             token = self._create_session(did, self._general_app_password)
@@ -44,7 +44,7 @@ class Bluesky(SocialNetwork):
             self._bluesky_post(article_id, recommendation_id, posts_text, did, token)
 
 
-    def _bluesky_post(self,  article_id: int, recommendation_id: int, posts_text: list[str], did: str, token: str):
+    def _bluesky_post(self,  article_id: int, recommendation_id: int, posts_text: list, did: str, token: str):
         url = f"{self.BASE_URL}/com.atproto.repo.createRecord"
         collection = "app.bsky.feed.post"
 
