@@ -88,7 +88,7 @@ class Bluesky(SocialNetwork):
                 parent_id = self._save_posts_in_db(post)
                 parent_post = bluesky_post
             else:
-                raise Exception(f"{bluesky_post["error"]}: {bluesky_post["message"]}")
+                raise Exception(f"{bluesky_post['error']}: {bluesky_post['message']}")
 
 
     def _create_session(self, did: str, password: str):
