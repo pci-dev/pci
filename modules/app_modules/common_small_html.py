@@ -882,8 +882,8 @@ def mkArticleCitation(myRecomm):
 ######################################################################################################################################################################
 def mkCoRecommenders(row: Recommendation, goBack: str = URL()):
     db = current.db
-    butts: list[UL | A] = []
-    hrevs: list[LI] = []
+    butts: List[Union[UL, A]] = []
+    hrevs: List[LI] = []
     art = db.t_articles[row.article_id]
     revs = Recommendation.get_co_recommenders(row.id)
     for rev in revs:
@@ -972,7 +972,7 @@ def getRecommAndReviewAuthors(
                             if this_recomm_only else
                         (db.t_recommendations.article_id == article.id))
 
-        mainRecommenders: list[Recommendation] = db(select_recomm).select(
+        mainRecommenders: List[Recommendation] = db(select_recomm).select(
             db.t_recommendations.ALL, distinct=db.t_recommendations.recommender_id)
 
         coRecommenders = Recommendation.get_co_recommenders([reco.id for reco in mainRecommenders])
@@ -1185,7 +1185,7 @@ def group_reviewers(reviews: List[Review]):
 
 ######################################################################################################################################################################
 def mkRecommendersString(recomm: Recommendation):
-    recommenders: list[Any] = [mkUser(recomm.recommender_id).flatten()] # type: ignore
+    recommenders: List[Any] = [mkUser(recomm.recommender_id).flatten()] # type: ignore
     contribsQy = Recommendation.get_co_recommenders(recomm.id)
     n = len(contribsQy)
     i = 0
@@ -1231,7 +1231,7 @@ def mk_reviewer_info(user: User, orcid: bool = False):
     return anchor
 
 ######################################################################################################################################################################
-def mkRecommenderandContributorList(records: list[Recommendation] | list[PressReview]):
+def mkRecommenderandContributorList(records: List[Union[Recommendation, PressReview]]):
     result: List[Dict[str, Any]] = []
     for record in records:
         if hasattr(record, 'recommender_id'):

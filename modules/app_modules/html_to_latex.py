@@ -2,7 +2,7 @@
 
 from functools import partial
 from io import StringIO
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from app_modules.httpClient import HttpClient
 import lxml.html
 from lxml.cssselect import CSSSelector
@@ -199,9 +199,9 @@ class HtmlToLatex:
 
 
     def _element_to_latex(self, el: ..., cascading_style: Dict[str, Any] = {}, selectors: Dict[str, Any] = {}):
-        result: list[str] = []
-        heads: list[Any] = []
-        tails: list[Any] = []
+        result: List[str] = []
+        heads: List[Any] = []
+        tails: List[Any] = []
 
         # and add inline @style if present
         inlinestyle = self._styleattribute(el)

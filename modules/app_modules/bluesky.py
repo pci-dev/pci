@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 from app_modules.httpClient import HttpClient
 from app_modules.mastodon import SocialNetwork
 from models.post import Post, PostTable
@@ -32,7 +32,7 @@ class Bluesky(SocialNetwork):
         return len(self._specific_handle) > 0 and len(self._specific_app_password) > 0
 
 
-    def send_post(self, article_id: int, recommendation_id: int, posts_text: list[str], specific_account: bool = True, general_account: bool = False):
+    def send_post(self, article_id: int, recommendation_id: int, posts_text: list, specific_account: bool = True, general_account: bool = False):
         if general_account and self.has_general_bluesky_config():
             did = self._resolve_handler(self._general_handle)
             token = self._create_session(did, self._general_app_password)
@@ -44,15 +44,15 @@ class Bluesky(SocialNetwork):
             self._bluesky_post(article_id, recommendation_id, posts_text, did, token)
 
 
-    def _bluesky_post(self,  article_id: int, recommendation_id: int, posts_text: list[str], did: str, token: str):
+    def _bluesky_post(self,  article_id: int, recommendation_id: int, posts_text: list, did: str, token: str):
         url = f"{self.BASE_URL}/com.atproto.repo.createRecord"
         collection = "app.bsky.feed.post"
 
         http_client = HttpClient({"Content-Type": "application/json", "Authorization": f"Bearer {token}"})
 
-        parent_id: int | None = None
-        root_post: Any | None = None
-        parent_post: Any | None = None
+        parent_id: Optional[int] = None
+        root_post: Optional[Any] = None
+        parent_post: Optional[Any] = None
 
         for i, post_text in enumerate(posts_text):
             payload: dict[str, Any] = {
@@ -88,7 +88,7 @@ class Bluesky(SocialNetwork):
                 parent_id = self._save_posts_in_db(post)
                 parent_post = bluesky_post
             else:
-                raise Exception(f"{bluesky_post["error"]}: {bluesky_post["message"]}")
+                raise Exception(f"{bluesky_post['error']}: {bluesky_post['message']}")
 
 
     def _create_session(self, did: str, password: str):
