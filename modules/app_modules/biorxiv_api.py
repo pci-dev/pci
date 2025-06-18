@@ -1,6 +1,6 @@
 from time import sleep
 from typing import Any, List, Optional
-from app_modules.httpClient import HttpClient
+from .httpClient import HttpClient
 
 
 class BiorxivAPI:
@@ -19,7 +19,7 @@ class BiorxivAPI:
 
         if not doi.startswith("10.1101/"):
             return
-        
+
         for server in self.servers:
             details = self._get_details(doi, server)
             if not details:
@@ -32,7 +32,7 @@ class BiorxivAPI:
             article_doi = self._get_article_doi(collection)
             if article_doi:
                 return doi_to_url(article_doi)
-            
+
             sleep(0.25)
 
 

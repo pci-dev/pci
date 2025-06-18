@@ -27,6 +27,11 @@ from yatl import DIV, P, SCRIPT
 # from models.suggested_recommender import SuggestedRecommender
 # from models.user import User
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..models.user import User
+
 # from gluon.contrib.appconfig import AppConfig # type: ignore
 
 # myconf = AppConfig(reload=True)
@@ -88,6 +93,14 @@ def CENTER(*args: ..., **kwargs: ...):
 def BR():
     return "<br/>"
 
+
+def B(*args: ..., **kwargs: ...):
+    if "_style" in kwargs:
+        kwargs["_style"] += "; font-weight: bold;"
+    else:
+        kwargs["_style"] = "font-weight: bold";
+    return DIV(*args, **kwargs)
+
 # ######################################################################################################################################################################
 def takePort(p: Optional[str]):
     if p is None:
@@ -127,8 +140,8 @@ def get_script(scriptName: str):
 
 
 # ######################################################################################################################################################################
-# def getDefaultDateFormat():
-#     return "%d %b %Y"
+def getDefaultDateFormat():
+    return "%d %b %Y"
 
 # ######################################################################################################################################################################
 # def pci_redirect(url):
@@ -387,17 +400,17 @@ def sget(dictionary: Dict[Any, Any], *keys: Any) -> Optional[Any]:
 
 # ###################################################################
 
-# def delete_user_from_PCI(user: User):
-#     Membership.remove_all_membership(user.id)
-#     Review.change_reviews_state(user.id,
-#                                 [ReviewState.ASK_FOR_REVIEW,
-#                                 ReviewState.AWAITING_REVIEW,
-#                                 ReviewState.AWAITING_RESPONSE,
-#                                 ReviewState.WILLING_TO_REVIEW,
-#                                 ReviewState.NEED_EXTRA_REVIEW_TIME],
-#                                 ReviewState.DECLINED)
-#     User.empty_user_data(user)
-#     return User.set_deleted(user)
+def delete_user_from_PCI(user: 'User'):
+    Membership.remove_all_membership(user.id)
+    Review.change_reviews_state(user.id,
+                                [ReviewState.ASK_FOR_REVIEW,
+                                ReviewState.AWAITING_REVIEW,
+                                ReviewState.AWAITING_RESPONSE,
+                                ReviewState.WILLING_TO_REVIEW,
+                                ReviewState.NEED_EXTRA_REVIEW_TIME],
+                                ReviewState.DECLINED)
+    User.empty_user_data(user)
+    return User.set_deleted(user)
 
 # ####################################################################
 

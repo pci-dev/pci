@@ -1,6 +1,5 @@
 from typing import Any, List, Optional as _, cast
 from pydal.objects import Row
-from gluon import current
 
 
 class PressReview(Row):

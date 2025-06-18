@@ -2,28 +2,24 @@ from datetime import date, datetime, timedelta
 from enum import Enum
 import re
 from typing import Any, List, NewType, Optional as _, Union, cast, TYPE_CHECKING
-from app_modules.crossref_api import CrossrefAPI
-from app_modules.datacite_api import DataciteAPI
-from app_modules.biorxiv_api import BiorxivAPI
-from app_modules.name_parser import FullId
-from gluon.html import A, SPAN
-from gluon.tools import Auth
-from models.group import Role
+from ..app_modules.crossref_api import CrossrefAPI
+from ..app_modules.datacite_api import DataciteAPI
+from ..app_modules.biorxiv_api import BiorxivAPI
+from ..app_modules.name_parser import FullId
+from .group import Role
 from pydal.objects import Row
-from gluon.contrib.appconfig import AppConfig # type: ignore
-from gluon import current
+from ...common import config
 
-from models.recommendation import Recommendation, RecommendationState
+from .recommendation import Recommendation, RecommendationState
 
-from app_modules.lang import Lang
-from app_modules.translator import TranslatedFieldDict
+from ..app_modules.lang import Lang
+from ..app_modules.translator import TranslatedFieldDict
 
 if TYPE_CHECKING:
-    from models.suggested_recommender import SuggestedRecommender
+    from .suggested_recommender import SuggestedRecommender
 
-myconf = AppConfig(reload=True)
-scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
-pciRRactivated: bool = myconf.get("config.registered_reports", default=False)
+scheduledSubmissionActivated = config.getboolean("config", "scheduled_submissions", fallback=False)
+pciRRactivated: bool = config.getboolean("config", "registered_reports", fallback=False)
 
 StepNumber = NewType('StepNumber', int)
 

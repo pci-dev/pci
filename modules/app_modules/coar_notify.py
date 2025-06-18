@@ -7,13 +7,11 @@ import re
 import typing
 import uuid
 
+from pip._vendor.msgpack import fallback
 import requests
 
-from gluon import current
-from gluon.html import URL
-from gluon.storage import Storage
-from gluon.contrib.appconfig import AppConfig
-from app_modules.common_small_html import mkLinkDOI
+from .common_tools import URL
+from .common_small_html import mkLinkDOI
 
 __all__ = ["COARNotifier"]
 
@@ -47,10 +45,11 @@ class COARNotifier:
     conventions.
     """
     def __init__(self):
-        self.db = current.db
+        from ...common import db, config
 
-        config = AppConfig()
-        self.enabled = config.get("coar_notify.enabled")
+        self.db = db
+
+        self.enabled = config.getboolean("coar_notify", "enabled", fallback=False)
         self.listeners = self.parse_listeners(config)
 
     base_url = URL("|", "|", scheme=True).replace("|/|", "")
@@ -148,7 +147,7 @@ class COARNotifier:
 
 
     def parse_listeners(self, config):
-        listeners = config.get("coar_notify.listeners") or []
+        listeners = config.get("coar_notify", "listeners", fallback=[])
         return [{
             "id": config.get(f"coar_notify.{item}_id"),
             "inbox": config.get(f"coar_notify.{item}_inbox"),

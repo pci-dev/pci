@@ -1,9 +1,9 @@
 from datetime import date, datetime, timedelta
 from enum import Enum
 from typing import Any, List, Optional as _, Tuple, Union, cast, TYPE_CHECKING
-from models.article import is_scheduled_submission
+from .article import is_scheduled_submission
 from pydal.objects import Row, Rows
-from gluon import current
+from ...common import is_rr
 
 if TYPE_CHECKING:
     from models.article import Article
@@ -32,7 +32,7 @@ class ReviewState(Enum):
     DECLINED = 'Declined'
     REVIEW_COMPLETED = 'Review completed'
     NEED_EXTRA_REVIEW_TIME = 'Need extra review time'
-    
+
 
 class Review(Row):
     id: int
@@ -75,7 +75,7 @@ class Review(Row):
             return query.select(orderby=order_by)
         else:
             return query.select()
-    
+
 
     @staticmethod
     def get_by_article_id_and_state(article_id: int, review_states: Union[ReviewState, List[ReviewState]], order_by: _[Any] = None) -> List['Review']:
@@ -93,8 +93,8 @@ class Review(Row):
         else:
             reviews = query.select()
         return reviews
-    
-    
+
+
     @staticmethod
     def get_all_active_reviews(recommendation_id: int, user_id: int):
         db = current.db
@@ -114,15 +114,15 @@ class Review(Row):
             Review.set_review_duration(review, article, review.review_duration)
         review.update_record() # type: ignore
         return review
-    
+
 
     @staticmethod
     def set_suggested_reviewers_send(review: 'Review'):
         review.suggested_reviewers_send = True
         review.update_record() # type: ignore
         return review
-    
-    
+
+
     @staticmethod
     def set_review_duration(review: 'Review', article: 'Article', review_duration: str):
         review.review_duration = review_duration
@@ -132,7 +132,7 @@ class Review(Row):
                 Review.set_due_date(review, due_date)
         review.update_record() # type: ignore
         return review
-    
+
 
     @staticmethod
     def set_review_status(review: 'Review', state: ReviewState):
@@ -159,17 +159,17 @@ class Review(Row):
             raise ValueError(f"Date must be after acceptation date. ({datetime.strftime(review.acceptation_timestamp, '%Y-%m-%d')})")
         review.due_date = due_date
         review.update_record() # type: ignore
-    
+
 
     @staticmethod
     def get_due_date(review: 'Review'):
         if review.due_date:
             return review.due_date
-        
+
         due_date: _[date] = None
         if current.isRR:
             due_date = Review.get_due_date_from_scheduled_submission_date(review)
-        
+
         if not due_date:
             due_date = Review.get_due_date_from_review_duration(review)
 
@@ -183,7 +183,7 @@ class Review(Row):
             return review.acceptation_timestamp + timedelta(nb_days_from_duration)
         else:
             return datetime.today() + timedelta(nb_days_from_duration)
-        
+
 
     @staticmethod
     def get_due_date_from_scheduled_submission_date(review: 'Review'):
@@ -194,21 +194,21 @@ class Review(Row):
         recommendation = Recommendation.get_by_id(review.recommendation_id)
         if not recommendation:
             return None
-        
+
         article = Article.get_by_id(recommendation.article_id)
         if not article:
             return None
-        
+
         if not is_scheduled_submission(article):
             return None
-        
+
         report_survey = ReportSurvey.get_by_article(article.id)
 
         if report_survey and report_survey.q10:
             review_start_date = report_survey.q10 + timedelta(days=7)
             review_due_date = review_start_date + timedelta(days=7)
             return review_due_date
-    
+
 
     @staticmethod
     def get_review_days_from_duration(review: _['Review']):
@@ -236,7 +236,7 @@ class Review(Row):
                 return value
 
         return 21
-    
+
 
     @staticmethod
     def get_review_days_from_due_date(review: _['Review']):
@@ -249,9 +249,9 @@ class Review(Row):
 
     @staticmethod
     def get_default_review_duration():
-        return ReviewDuration.TWO_WEEK.value if current.isRR else ReviewDuration.THREE_WEEK.value
+        return ReviewDuration.TWO_WEEK.value if is_rr else ReviewDuration.THREE_WEEK.value
 
-        
+
     @staticmethod
     def get_all_with_reviewer(reviews_states: List[ReviewState] = []):
         db = current.db
@@ -268,7 +268,7 @@ class Review(Row):
             formatted_result.append((line.t_reviews, line.auth_user))
 
         return formatted_result
-    
+
 
     @staticmethod
     def get_all_by_user(reviewer_id: int, reviews_states: List[ReviewState] = []):
@@ -289,18 +289,18 @@ class Review(Row):
         for review in reviews:
             Review.set_review_status(review, new_review_state)
         return reviews
-        
+
 
     @staticmethod
     def get_reviewer_name(review: 'Review'):
         from models.user import User
-        
+
         reviewer = User.get_by_id(review.reviewer_id)
         if not reviewer:
             return "?"
-        
+
         return User.get_name(reviewer)
-    
+
 
     @staticmethod
     def get_reviewers_name(article_id: int) -> str:
@@ -315,7 +315,7 @@ class Review(Row):
                     names.append(reviewer_name)
                 if review.reviewer_id:
                     user_id.append(review.reviewer_id)
-        
+
         user_id.clear()
 
         for review in reviews:
@@ -323,16 +323,16 @@ class Review(Row):
                 nb_anonymous += 1
                 if review.reviewer_id:
                     user_id.append(review.reviewer_id)
-        
+
         if (nb_anonymous > 0):
             anonymous = str(nb_anonymous) + ' anonymous reviewer'
             if (nb_anonymous > 1):
                 anonymous += 's'
             names.append(anonymous)
-            
+
         formatted_names = ', '.join(names)
 
-        return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1] 
+        return (formatted_names[::-1].replace(',', ' and'[::-1], 1))[::-1]
 
 
     @staticmethod
@@ -342,7 +342,7 @@ class Review(Row):
         for attribute in attributes.keys():
             if attribute == 'last_change':
                 continue
-            
+
             if getattr(review_1, attribute, None) != getattr(review_2, attribute, None):
                 return False
         return True
@@ -360,8 +360,8 @@ class Review(Row):
                         month=due_date.month,
                         day=due_date.day
                     )
-                
+
             if not oldest or due_date < oldest[1]:
                 oldest = (review, due_date)
-        
+
         return oldest

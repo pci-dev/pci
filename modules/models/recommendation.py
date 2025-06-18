@@ -5,15 +5,13 @@ import html
 import re
 import string
 from typing import List, Optional as _, cast
-from gluon.html import TAG
-from models.pdf import PDF
-from models.press_reviews import PressReview
-from models.user import User
+from .pdf import PDF
+from .press_reviews import PressReview
+from .user import User
 from pydal.objects import Row
-from gluon import current
 
 if TYPE_CHECKING:
-    from article import Article
+    from .article import Article
 
 
 class RecommendationState(Enum):

@@ -1,12 +1,11 @@
 from datetime import datetime
 import time
 from typing import Any, Dict, List, Optional as _, cast
+import uuid
 from pydal.validators import CRYPT
 
-from gluon.utils import web2py_uuid # type: ignore
 from pydal.objects import Row
-from gluon import current
-
+from ...common import db
 
 class User(Row):
     id: int
@@ -42,7 +41,6 @@ class User(Row):
 
     @staticmethod
     def get_by_id(id: int):
-        db = current.db
         try: user = db.auth_user[id]
         except: user = None
         return cast(_[User], user)
@@ -50,21 +48,18 @@ class User(Row):
 
     @staticmethod
     def get_by_email(email: str):
-        db = current.db
         user = db(db.auth_user.email == email).select().first()
         return cast(_[User], user)
 
 
     @staticmethod
     def get_by_reset_password_key(reset_password_key: str):
-        db = current.db
         user = db(db.auth_user.reset_password_key == reset_password_key).select().first()
         return cast(_[User], user)
 
 
     @staticmethod
     def get_by_recover_email_key(recover_email_key: str):
-        db = current.db
         user = db(db.auth_user.recover_email_key == recover_email_key).select().first()
         return cast(_[User], user)
 
@@ -198,7 +193,7 @@ class User(Row):
 
     @staticmethod
     def generate_new_reset_password_key():
-        reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + web2py_uuid()
+        reset_password_key = str((15 * 24 * 60 * 60) + int(time.time())) + "-" + uuid.uuid4()
         return reset_password_key
 
 

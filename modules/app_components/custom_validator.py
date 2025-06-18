@@ -1,13 +1,11 @@
 from typing import List, Optional, Union
 
 from urllib.parse import urlparse
-from gluon import STRONG
-from gluon.html import A, P
+from py4web.core import request
 from pydal.validators import IS_HTTP_URL
 from pydal.validators import Validator
-from app_modules.name_parser import NameParser
-
-from gluon import current
+from ..app_modules.name_parser import NameParser
+from yatl import P, STRONG, A
 
 class CUSTOM_VALID_URL(Validator):
 
@@ -53,7 +51,7 @@ class VALID_DOI(Validator):
     def __init__(self, preprint_server: Optional[str] = None):
         if preprint_server is None:
             try:
-                preprint_server = current.request.vars.preprint_server
+                preprint_server = request.query.get("preprint_server")
             except:
                 preprint_server = None
 

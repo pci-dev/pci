@@ -2,10 +2,11 @@ from datetime import datetime
 from enum import Enum
 import re
 from typing import Any, Dict, List, Optional as _, Union, cast
-from app_modules.emailing_tools import build_mail
-from models.review import Review
+
+from yatl import DIV
+from ..app_modules.emailing_tools import build_mail
+from .review import Review
 from pydal.objects import Row
-from gluon import DIV, current
 
 class SendingStatus(Enum):
     SENT = 'sent'
@@ -39,20 +40,20 @@ class MailQueue(Row):
     def get_mail_by_id(id: int):
         db = current.db
         return cast(_[MailQueue], db.mail_queue[id])
-    
+
 
     @staticmethod
     def get_mail_content(mail: 'MailQueue'):
         if not mail.mail_content:
             return ''
-        
+
         content = re.search('<!-- CONTENT START -->(.*?)<!-- CONTENT END -->', mail.mail_content, re.DOTALL)
         if content:
             return content.group(1)
         else:
             return ''
-        
-    
+
+
     @staticmethod
     def get_by_review_for_recommender(hastag_template: str, recommender_mail: str, review: Review):
         db = current.db
@@ -90,7 +91,7 @@ class MailQueue(Row):
             mails = query.select(orderby=order_by)
         else:
             mails = query.select()
-            
+
         return mails
 
 
@@ -118,7 +119,7 @@ class MailQueue(Row):
             mails = query.select(orderby=order_by)
         else:
             mails = query.select()
-            
+
         return mails
 
 
@@ -151,9 +152,9 @@ class MailQueue(Row):
     @staticmethod
     def change_suggested_recommender_button(mail: 'MailQueue', sugg_recommender_buttons: DIV, mail_vars: Dict[str, Any]):
         try:
-            mail_content = build_mail(mail.mail_template_hashtag, 
-                                      mail_vars, 
-                                      sugg_recommender_buttons=sugg_recommender_buttons, 
+            mail_content = build_mail(mail.mail_template_hashtag,
+                                      mail_vars,
+                                      sugg_recommender_buttons=sugg_recommender_buttons,
                                       article_id=mail.article_id)['content']
             mail.update_record(mail_content=mail_content) # type: ignore
         except:

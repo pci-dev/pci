@@ -3,7 +3,6 @@ from typing import Optional as _
 from typing import TYPE_CHECKING
 
 from pydal.objects import Row
-from gluon import current
 
 if TYPE_CHECKING:
     from models.recommendation import Recommendation
@@ -19,7 +18,7 @@ class PDF(Row):
     def get_by_id(id: int) -> _['PDF']:
         db = current.db
         return db.t_pdf[id]
-    
+
 
     @staticmethod
     def get_by_recommendation_id(recommendation_id: int):
@@ -28,7 +27,7 @@ class PDF(Row):
         return pdf
 
     @staticmethod
-    def save_pdf_to_db(recommendation: 'Recommendation', directory: str, filename: str, overwrite: bool = True):        
+    def save_pdf_to_db(recommendation: 'Recommendation', directory: str, filename: str, overwrite: bool = True):
         if overwrite:
             PDF.delete_pdf_to_db(recommendation.id)
 

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from deep_translator import GoogleTranslator
 from deep_translator.base import BaseTranslator
 
-from app_modules.lang import Lang
+from .lang import Lang
 
 @dataclass
 class TranslatedFieldDict(TypedDict):
@@ -19,7 +19,7 @@ class TranslatorConfig:
     params: Dict[str, Any]
 
 class Translator:
-    
+
     DEFAULT_TARGET_LANG = [
         Lang.FR,
         Lang.ES,
@@ -37,7 +37,7 @@ class Translator:
         return [
             TranslatorConfig(GoogleTranslator, dict(source=source.value.code, target=target.value.code)),
         ]
-    
+
 
     def __init__(self, lang: Lang):
         self._lang = lang
@@ -68,7 +68,7 @@ class Translator:
 
         if not data_translated:
             raise Exception('Traduction failed')
-        
+
         return data_translated
 
 
@@ -82,7 +82,7 @@ class Translator:
 
             if not issubclass(engine_class, BaseTranslator):
                 raise Exception(f"Configuration error for translator. {engine_class} is not subclass of BaseTranslator")
-            
+
             try:
                 translator = engine_class(**config.params)
                 if translator.is_language_supported(lang.value.code) or translator.is_language_supported(lang.value.english_name.lower()): # type: ignore
@@ -91,7 +91,7 @@ class Translator:
                 pass
 
         return translators
-    
+
 
     @staticmethod
     def get_all_supported_langs():
@@ -103,7 +103,7 @@ class Translator:
                 if translator.is_language_supported(lang.value.code) or translator.is_language_supported(lang.value.english_name.lower()): # type: ignore
                     supported_langs.append(lang)
                     break
-        
+
         return supported_langs
 
 

@@ -98,7 +98,7 @@ class OrcidTools:
         else:
             return SPAN(user_name, orcid_link)
 
-ORCID_NUMBER_FIELD_TYPE = SQLCustomType("string", "string", OrcidTools.remove_hyphen, OrcidTools.add_hyphen)
+ORCID_NUMBER_FIELD_TYPE = SQLCustomType("string", "varchar(16)", OrcidTools.remove_hyphen, OrcidTools.add_hyphen)
 ORCID_NUMBER_LENGTH = 16
 ORCID_NUMBER_LENGTH_WITH_HYPHEN = ORCID_NUMBER_LENGTH + 3
 

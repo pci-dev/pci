@@ -1,16 +1,15 @@
 from enum import Enum
 import secrets
 from typing import Any, List, Optional as _, cast
-from models.article import Article, ArticleStatus
+from .article import Article, ArticleStatus
 from pydal.objects import Row
-from gluon import current
 
 
 class SuggestedBy(Enum):
     AUTHORS = 'Authors'
     THEMSELVES = 'Themselves'
     MANAGERS = 'Managers'
-    
+
 
 class SuggestedRecommender(Row):
     id: int
@@ -22,7 +21,7 @@ class SuggestedRecommender(Row):
     quick_decline_key: _[str]
     recommender_validated: _[bool]
     suggested_by: _[str]
-    
+
 
     @staticmethod
     def get_by_id(id: int):
@@ -39,7 +38,7 @@ class SuggestedRecommender(Row):
 
         suggested_recommender = db(query).select().first()
         return suggested_recommender
-    
+
 
     @staticmethod
     def delete_sugg_recommender(sugg_recommender_id: int):
@@ -59,14 +58,14 @@ class SuggestedRecommender(Row):
         if recommender_validated_unset:
             query = query & (db.t_suggested_recommenders.recommender_validated == None)
 
-        if declined is not None: 
+        if declined is not None:
             query = query & (db.t_suggested_recommenders.declined == declined)
 
         if suggested_by is not None:
             query = query & (db.t_suggested_recommenders.suggested_by == suggested_by.value)
-        
+
         return db(query).select()
-    
+
 
     @staticmethod
     def get_validated(article_id: int) -> List['SuggestedRecommender']:
@@ -75,22 +74,22 @@ class SuggestedRecommender(Row):
         query = (db.t_suggested_recommenders.article_id == article_id) \
               & (db.t_suggested_recommenders.declined == False) \
               & (db.t_suggested_recommenders.recommender_validated == True)
-        
+
         return db(query).select()
-      
+
 
     @staticmethod
     def least_one_validated(article_id: int):
         sugg_recommender_validated = SuggestedRecommender.get_validated(article_id)
         return len(sugg_recommender_validated) > 0
-    
-    
+
+
     @staticmethod
     def get_all(recommender_validated_unset: bool = False, declined: _[bool] = None, article_status: List[ArticleStatus] = []) -> List['SuggestedRecommender']:
         db = current.db
-        
+
         query: _[Any] = None
-        
+
         if recommender_validated_unset:
             sub_query = (db.t_suggested_recommenders.recommender_validated == None)
             if not query:

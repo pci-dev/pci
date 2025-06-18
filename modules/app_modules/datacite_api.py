@@ -1,4 +1,4 @@
-from app_modules.httpClient import HttpClient
+from .httpClient import HttpClient
 from datetime import datetime
 from typing import Any, List, Optional
 
@@ -27,7 +27,7 @@ class DataciteAPI:
 
         if not response:
             return
-        
+
         linked_article: Optional[Any] = None
 
         articles: List[Any] = response['data']
@@ -35,7 +35,7 @@ class DataciteAPI:
             has_preprint = self._is_preprint_of_article(preprint_doi, article)
             if not has_preprint:
                 continue
-            
+
             linked_article_updated: Optional[str] = None
             linked_article_created: Optional[str] = None
 
@@ -75,11 +75,11 @@ class DataciteAPI:
 
     def _is_preprint_of_article(self, doi: str, article: ...):
         from app_modules.common_tools import sget
-        
+
         related_works: Optional[List[Any]] = sget(article, 'attributes', 'relatedIdentifiers')
         if not related_works:
             return False
-        
+
         for work in related_works:
             type: Optional[str] = work.get('resourceTypeGeneral')
             related_id_type: Optional[str] = work.get('relatedIdentifierType')
@@ -104,6 +104,6 @@ class DataciteAPI:
 
 
 
-        
+
 
 

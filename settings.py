@@ -1,7 +1,4 @@
 import os
-from configparser import ConfigParser
-
-from pluralize import Translator
 from py4web.core import required_folder
 
 # mode (default or development)
@@ -24,9 +21,8 @@ LOGGERS = [
 
 # i18n settings
 T_FOLDER = str(required_folder(APP_FOLDER, "languages"))
-T = Translator(T_FOLDER)
 
-required_folder(APP_FOLDER, "private")
-CONFIG_PATH = os.path.join(APP_FOLDER, "private", "appconfig.ini")
-global_config = ConfigParser()
-global_config.read(CONFIG_PATH)
+CONFIG_FOLDER = str(required_folder(APP_FOLDER, "private"))
+CONFIG_PATH = os.path.join(CONFIG_FOLDER, "appconfig.ini")
+
+DEFAULT_DKIM_KEY_PATH = os.path.join("var", "www", "peercommunityin", "DKIM-peercommunityin.org.key")

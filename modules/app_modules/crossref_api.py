@@ -1,5 +1,5 @@
 from time import sleep
-from app_modules.httpClient import HttpClient
+from .httpClient import HttpClient
 from typing import Any, List, Optional
 
 class CrossrefAPI:
@@ -7,7 +7,7 @@ class CrossrefAPI:
     BASE_URL = "https://api.crossref.org"
 
     _http_client = HttpClient(default_headers={'accept': 'application/json'})
-    
+
     def _get_work(self, doi: str):
         from app_modules.common_tools import url_to_doi_id
 
@@ -22,22 +22,22 @@ class CrossrefAPI:
 
     def get_published_article_doi_method_1(self, preprint_doi: str):
         from app_modules.common_tools import sget, doi_to_url
-        
+
         work = self._get_work(preprint_doi)
         if not work:
             return
-        
+
         relations: Optional[List[Any]] = sget(work, 'message', 'relation', 'is-preprint-of')
         if not relations:
             return
-        
+
         for relation in relations:
             if 'id' not in relation:
                 continue
 
             if 'id-type' not in relation or relation['id-type'] != "doi":
-                continue 
-            
+                continue
+
             doi = str(relation['id'])
             if doi:
                 return doi_to_url(doi)
@@ -56,7 +56,7 @@ class CrossrefAPI:
             journal_doi: Optional[str] = work.get('DOI')
             if not journal_doi:
                 continue
-            
+
             relations: Optional[List[Any]] = sget(work, 'relation', 'has-preprint')
             if not relations:
                 continue
@@ -96,12 +96,12 @@ class CrossrefAPI:
 
             if len(items) != cursor_size:
                 break
-            
+
             cursor = sget(data, 'message', 'next-cursor')
             if not cursor:
                 break
 
             sleep(0.25)
-        
+
         return works
-    
+
