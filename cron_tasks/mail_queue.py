@@ -23,7 +23,7 @@ if (myconf.get("config.use_logger", default=True) is True):
 		log.root.addHandler(hand)
 		log.setLevel(logging.INFO)
 	except:
-		print("systemd logging not available")
+		pass
 else:
 	print("systemd logging not enabled in config")
 

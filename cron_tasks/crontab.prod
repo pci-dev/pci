@@ -15,7 +15,7 @@ RUN=cron_tasks/run
 
 @reboot     $HOME/run-mailqueues.sh --daemon
 
-@reboot     while true; do $BASE/PCIEcology/$RUN import_biorxiv_xml.py; sleep 1m; done
+@reboot     $HOME/run-biorxiv-import.sh --freq 1m
 
 
 # force web2py reload to purge RAM when usage >70%

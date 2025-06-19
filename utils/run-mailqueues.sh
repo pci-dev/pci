@@ -56,7 +56,7 @@ check_running() {
 
 case $1 in
     -d|--daemon)
-        check_running
+        #check_running
         main &>> $0.log &
         ;;
     -r|--run)
