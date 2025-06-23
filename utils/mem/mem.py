@@ -18,18 +18,25 @@ def mem_snapshot():
         return "Mem tracing started.\nPlease reload page to see stats."
 
     top_stats = snapshot.statistics('lineno')
+
+    if request.vars.filter: \
+    top_stats = [ stat for stat in top_stats
+                    if request.vars.filter in stat.traceback[0].filename ]
+
+    if request.vars.sort == "count": \
     top_stats.sort(key=lambda x: x.count, reverse=True)
+
 
     mem_proc = float(mem_use())
     mem_glob = float(mem_free())
 
     return "\n".join(
             [ str(stat) for stat in top_stats[:20]
-                # if "connection" in stat.traceback[0].filename
             ]
         +   [ "",
             f"pid={os.getpid()} mem={mem_proc}% global={mem_glob}%",
             ]
+        + [ f"filter={request.vars.filter}, sort={request.vars.sort}" ]
     )
 
 def mem_use():
