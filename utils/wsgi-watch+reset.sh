@@ -42,7 +42,7 @@ kill_wsgi() {
     zool=wsgi:web2pyzool
 
     pci=$1
-    pid=$(ps -ax -o pid,cmd | grep ${!pci} | grep -v grep | cut -d ' ' -f 1)
+    pid=$(ps -ax -o pid,cmd | grep ${!pci} | grep -v grep | awk '{print $1}')
     sudo -u www-data kill $pid
 }
 
