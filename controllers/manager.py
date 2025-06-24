@@ -272,6 +272,34 @@ def completed_articles():
 
 
 ######################################################################################################################################################################
+def _convert_to_data(data: Tuple[Any, ...]):
+    recommendation = Recommendation()
+    recommendation.id = data[0]
+    recommendation.article_id = data[1]
+    recommendation.recommendation_comments = data[2]
+    recommendation.recommendation_timestamp = data[3]
+    recommendation.doi = data[4]
+    recommendation.recommender_id = data[5]
+    recommendation.last_change = data[6]
+    recommendation.reply = data[7]
+    recommendation.is_closed = data[8]
+    recommendation.is_press_review = data[9]
+    recommendation.auto_nb_agreements = data[10]
+    recommendation.no_conflict_of_interest = data[11]
+    recommendation.recommendation_title = data[12]
+    recommendation.recommendation_doi = data[13]
+    recommendation.recommendation_state = data[14]
+    recommendation.reply_pdf = data[15]
+    recommendation.track_change = data[16]
+    recommendation.track_change_data = data[17]
+    recommendation.ms_version = data[18]
+    recommendation.recommender_file_data = data[19]
+    recommendation.author_last_change = data[20]
+    recommendation.validation_timestamp = data[21]
+    recommendation.recommendation_state_saved = data[22]
+    return recommendation
+
+
 # Common function which allow management of articles filtered by status
 @auth.requires(auth.has_membership(role=Role.MANAGER.value) or is_recommender())
 def _manage_articles(statuses: Optional[List[str]] = None,
@@ -283,11 +311,17 @@ def _manage_articles(statuses: Optional[List[str]] = None,
 
     response.view = "default/myLayout.html"
 
-    last_recomms = db.executesql("select max(id) from t_recommendations group by article_id") if not statuses else \
-                   db.executesql("select max(id) from t_recommendations where article_id in " +
-                       "(select id from t_articles where status in ('" + "','".join(statuses) + "')) " +
-                       "group by article_id")
-    last_recomms = [x[0] for x in last_recomms]
+    if statuses:
+        sql_status = f"'{"', '".join(statuses)}'"
+        sql_response: List[Tuple[Any]] = db.executesql(f"SELECT DISTINCT ON (t_recommendations.article_id) t_recommendations.* \
+                                               FROM t_recommendations, t_articles \
+                                               WHERE t_articles.id = t_recommendations.article_id AND t_articles.status IN ({sql_status}) \
+                                               ORDER BY t_recommendations.article_id ASC, t_recommendations.id DESC;")
+    else:
+        sql_response: List[Tuple[Any]] = db.executesql("SELECT DISTINCT ON (t_recommendations.article_id) t_recommendations.* \
+                                               FROM t_recommendations ORDER BY t_recommendations.article_id ASC, t_recommendations.id DESC;")
+
+    last_recommendations = map(_convert_to_data, sql_response)
 
     # articles
     t_articles = db.t_articles
@@ -315,14 +349,17 @@ def _manage_articles(statuses: Optional[List[str]] = None,
         if not a_field in full_text_search_fields:
             t_articles[a_field].readable = False
 
+    def get_last_recommendation(article_id: int) -> Optional[Recommendation]:
+        return next((x for x in last_recommendations if x.article_id == article_id), None)
+
     def article_row(article_id: int, article: Article):
-        return common_small_html.represent_article_manager_board(article)
+        return common_small_html.represent_article_manager_board(article, get_last_recommendation(article_id))
 
     def alert_date_row(article_last_status_change: int, article: Article):
         return common_small_html.represent_alert_manager_board(article)
 
     def link_body_row(row: Article):
-        return common_small_html.represent_link_column_manager_board(row)
+        return common_small_html.represent_link_column_manager_board(row, get_last_recommendation(row.id))
 
     def represent_rdv_date(rdv_date: Optional[datetime.date], row: Article):
         return common_small_html.represent_rdv_date(row)
@@ -442,14 +479,17 @@ def _manage_articles(statuses: Optional[List[str]] = None,
     columns_to_hide = ['t_articles.user_id', 't_articles.title']
 
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields, columns_to_hide)
+    grid = adjust_grid.adjust_grid_basic_dashboard_manager(original_grid, remove_options, integer_fields, columns_to_hide)
+
+    style = open(os.path.join(request.folder,'static', 'css','manage_article.css')).read()
 
     return dict(
         customText=getText("#ManagerArticlesText"),
         pageTitle=getTitle("#ManagerArticlesTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
-        script=common_tools.get_script("manager.js")
+        script=common_tools.get_script("manager.js"),
+        style=XML(style)
     )
 
 
