@@ -469,17 +469,10 @@ def _manage_articles(statuses: Optional[List[str]] = None,
         _class="web2py_grid manage-article",
     )
 
-    # options to be removed from the search dropdown:
-    remove_options = ['t_articles.upload_timestamp', 't_articles.last_status_change', 't_articles.anonymous_submission',
-                      'v_article_id.id', 'v_article_id.id_str', 'v_article.id', 'v_article.title', 'v_article.authors',
-                      'v_article.abstract', 'v_article.user_id', 'v_article.status', 'v_article.keywords', 'v_article.submission_date',
-                      'v_article.reviewers', 'v_article.thematics', 'v_article.alert_date', 'v_article.rdv_date', 'v_article.current_step',
-                      'v_article.remarks']
-    integer_fields = ['t_articles.id', 't_articles.user_id']
     columns_to_hide = ['t_articles.user_id', 't_articles.title']
 
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic_dashboard_manager(original_grid, remove_options, integer_fields, columns_to_hide)
+    grid = adjust_grid.adjust_grid_basic_dashboard_manager(original_grid, columns_to_hide)
 
     style = open(os.path.join(request.folder,'static', 'css','manage_article.css')).read()
 
@@ -716,22 +709,17 @@ def _manage_articles_rr(statuses: List[str], stats_query: Optional[Any] = None, 
         _class="web2py_grid action-button-absolute",
     )
 
-    # options to be removed from the search dropdown:
-    remove_options = ['t_articles.upload_timestamp', 't_articles.last_status_change', 't_articles.anonymous_submission',
-                      'v_article_id.id', 'v_article_id.id_str', 'v_article.id', 'v_article.title', 'v_article.authors',
-                      'v_article.abstract', 'v_article.user_id', 'v_article.status', 'v_article.keywords', 'v_article.submission_date',
-                      'v_article.reviewers', 'v_article.thematics']
-    integer_fields = ['t_articles.id', 't_articles.user_id']
-
     # the grid is adjusted after creation to adhere to our requirements
-    grid = adjust_grid.adjust_grid_basic(original_grid, 'articles', remove_options, integer_fields)
+    grid = adjust_grid.adjust_grid_basic_dashboard_manager(original_grid)
+    style = open(os.path.join(request.folder,'static', 'css','manage_article.css')).read()
 
     return dict(
         customText=getText("#ManagerArticlesText"),
         pageTitle=getTitle("#ManagerArticlesTitle"),
         grid=grid,
         absoluteButtonScript=common_tools.absoluteButtonScript,
-        script=common_tools.get_script("manager.js")
+        script=common_tools.get_script("manager.js"),
+        style=XML(style)
     )
 
 ######################################################################################################################################################################
