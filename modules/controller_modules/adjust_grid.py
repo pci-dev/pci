@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Any, Dict, List, Optional
+from urllib.parse import parse_qs, urlparse
 from app_modules.helper import OPTION, TR, TD
 from app_modules import common_small_html
 import re
@@ -244,7 +245,7 @@ def remove_in_table(grid: ..., columns_to_hide: List[str]):
     table: ... = grid.components[1].components[0].components[0]
     if not isinstance(table, TABLE):
         return
-    
+
     thead: ... = table.components[1] # type: ignore
 
     column_index_to_hide: List[int] = []
@@ -255,7 +256,9 @@ def remove_in_table(grid: ..., columns_to_hide: List[str]):
         if isinstance(link, A):
             column_id = str(link.attributes['_href']) # type: ignore
         else:
-            column_id = link
+            column_id = str(link)
+
+        column_id = parse_qs(urlparse(column_id).query)
 
         for column in columns_to_hide:
                 if column in column_id:
