@@ -1,0 +1,40 @@
+div#w2p_query_panel {
+    display: none;
+}
+
+/* div#w2p_field_t_articles-id {
+    display: flex;
+} */
+
+input.btn-default[value="+ And"],
+input.btn-default[value="+ Or"],
+input.btn-default[value="Close"],
+form input.btn[value="Clear"] {
+    display: none;
+}
+
+.web2py_console form {
+    display: none;
+}
+
+option[value="t_articles.upload_timestamp"],
+option[value="t_articles.last_status_change"],
+option[value="t_articles.anonymous_submission"],
+option[value="v_article_id.id"],
+option[value="v_article_id.id_str"],
+option[value="v_article.id"],
+option[value="v_article.title"],
+option[value="v_article.authors"],
+option[value="v_article.abstract"],
+option[value="v_article.user_id"],
+option[value="v_article.status"],
+option[value="v_article.keywords"],
+option[value="v_article.submission_date"],
+option[value="v_article.reviewers"],
+option[value="v_article.thematics"],
+option[value="v_article.alert_date"],
+option[value="v_article.rdv_date"],
+option[value="v_article.current_step"],
+option[value="v_article.remarks"] {
+    display: none;
+}

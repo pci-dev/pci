@@ -8,7 +8,7 @@ function showSetNotConsideredDialog(articleId, url) {
         }
 
         window['initNotConsideredDialog' + articleId] = true;
-        div = document.createElement('div', {'id': 'not-considered-dialog-' + articleId});
+        div = document.createElement('div', { 'id': 'not-considered-dialog-' + articleId });
         div.innerHTML = response;
         document.body.appendChild(div);
         initTinyMCE('#mail_templates_contents_' + articleId, '#mail_templates_contents');
@@ -51,7 +51,7 @@ function rdvDateInputChange(articleId, url) {
         const newRdvContainer = document.createElement('div');
         newRdvContainer.innerHTML = response;
         rdvContainer.parentNode.replaceChild(newRdvContainer.firstChild, rdvContainer)
-        
+
     });
 }
 
@@ -88,4 +88,43 @@ function sendRemarks(articleId, url, remarksInput) {
     }).done((response) => {
         remarksInput.style.color = initialColorRemarks;
     });
+}
+
+initStyle();
+function initStyle() {
+    const searchBtn = document.querySelector('input.btn-default[value="New Search"]')
+    searchBtn.classList.add('btn');
+    searchBtn.classList.add('btn-default');
+    searchBtn.classList.add('add-btn');
+    searchBtn.onclick = '';
+    searchBtn.type = 'submit';
+
+    document.querySelectorAll('btn[value="New search"]').forEach((el) => {
+        el.value = 'SEARCH';
+        el.style.backgroundColor = '#93c54b';
+        el.type = 'submit';
+    });
+
+    document.querySelectorAll('#w2p_query_panel .btn').forEach((el) => {
+            if (el.value.toLowerCase() !== 'new search') {
+                el.style.display = 'none';
+            }
+            else if (el.value.toLowerCase() === 'clear') {
+                el.value = 'Reset';
+            }
+            else if (el.value.toLowerCase() === 'reset') {
+
+            } else {
+                console.log(el);
+                el.value = 'SEARCH';
+                el.style.backgroundColor = '#93c54b';
+                el.addEventListener('click', (e) => {
+                    new_search(e);
+                });
+            }
+    });
+
+    const articleIdOption = document.querySelector('option[value="t_articles.id"]');
+    articleIdOption.textContent = 'Article ID';
+    articleIdOption.classList.add('integer-field');
 }

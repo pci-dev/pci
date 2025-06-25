@@ -1,10 +1,14 @@
 {{extend 'layout.html'}}
 <script>window.onload = function() {if ($.cookie('PCiHideHelp') == 'On') $('DIV.pci-helptext').hide(); else $('DIV.pci-helptext').show();}</script>
 
+{{if 'style' in locals():}}
+	<style>{{=style}}</style>
+{{pass}}
+
 {{if 'myBackButton' in locals():}}
 	<div class="pci-backButtonDiv">{{=myBackButton}}</div>
 	{{pass}}
-	
+
 {{if 'customText' in locals():}}
   {{=customText}}
   {{pass}}
