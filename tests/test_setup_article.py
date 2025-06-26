@@ -62,10 +62,11 @@ class User_submits:
         select("#t_articles_codes_doi").send_keys("https://github.com/")
         select("#t_articles_funding").send_keys("The authors declare that they have received no specific funding for this study")
 
-    select('input[name="thematics"]')[0].click() # Must be before the tinymce textarea for the checkbox to be available to click on.
-
     with select("#t_articles_abstract_ifr").frame():
         select("body").send_keys(article.abstract)
+
+    select('input[name="thematics"]')[0].click() # Must be before the tinymce textarea for the checkbox to be available to click on.
+
     select("#t_articles_keywords").send_keys(article.keywords)
     with select("#t_articles_cover_letter_ifr").frame():
         select("body").send_keys(article.cover_letter)
@@ -155,7 +156,7 @@ class Manager_validates:
       select(".pci-status", "SUBMISSION PENDING VALIDATION")
     else:
       select(".pci-status-mini", contains="Submission pending validation")
-   
+
     select("a", "View / Edit".upper()).click()
 
  def validate_suggested_recommender(_):
@@ -165,7 +166,7 @@ class Manager_validates:
 
  def validate_submission(_):
     #select("a", "View / Edit").first().click()  # select(css, text/contains=xxx) should return a list-ish
-    
+
     if not is_rr:
         select("#article_doi_correct").click()
         select("#data_ok").click()
@@ -174,7 +175,7 @@ class Manager_validates:
         select("#information_consistent").click()
         select("#no_plagiarism").click()
         select("#co_authorship_ok").click()
-        
+
     select("#sugg_recommender_ok").click()
     select(".btn-success", "Validate this submission".upper()).click()
     select('#confirm-change-modal .btn-info', 'Yes'.upper()).click()
@@ -193,7 +194,7 @@ class Manager_validates:
     select(".dropdown-toggle", contains="For managers").click()
     select("a", contains="Pending validation").click()
     select.fails("tr", contains=article.title)
-    
+
 
  def logout_manager(_):
     logout(users.manager)
@@ -234,6 +235,7 @@ class Recommender_handles:
     select("#no_table_reviewer_email").send_keys(reviewer.email)
 
     select("input[type=submit]").click()
+
 
  def invite_external_unregistered_reviewer(_):
     select(".dropdown-toggle", contains="For recommenders").click()
