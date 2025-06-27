@@ -6,7 +6,7 @@ PCIs=$(curl -s https://api.peercommunityin.org/all/pci | jq -r 'keys[]')
 
 watch_and_reset() {
     for pci in $PCIs; do
-        curl -s https://$pci.peercommunityin.org/ > /tmp/watch.$pci &
+        curl -s --user-agent "$0" https://$pci.peercommunityin.org/ > /tmp/watch.$pci &
     done
     wait
 
@@ -43,7 +43,7 @@ kill_wsgi() {
 
     pci=$1
     pid=$(ps -ax -o pid,cmd | grep ${!pci} | grep -v grep | awk '{print $1}')
-    sudo -u www-data kill $pid
+    [ "$pid" ] && sudo -u www-data kill $pid
 }
 
 main() {
