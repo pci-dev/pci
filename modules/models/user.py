@@ -275,4 +275,7 @@ class User(Row):
         if user.country:
             affiliation += user.country
 
-        return affiliation
+        if affiliation:
+            return affiliation
+        else:
+            return "(unavailable)"
