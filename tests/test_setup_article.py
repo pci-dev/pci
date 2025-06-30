@@ -236,6 +236,7 @@ class Recommender_handles:
 
     select("input[type=submit]").click()
 
+
  def invite_external_unregistered_reviewer(_):
     select(".dropdown-toggle", contains="For recommenders").click()
     select("a", f"{preprint.capitalize()}(s) you are handling").click()
