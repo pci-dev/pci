@@ -375,7 +375,7 @@ class HtmlToLatex:
         for selector in selectors:
             val = selectors.get(selector)
             cssselector = CSSSelector(selector)
-            matching: Any = cssselector.evaluate(document) # type: ignore
+            matching: Any = cssselector(document) # type: ignore
 
             for element in matching:
                 info = val
