@@ -622,9 +622,8 @@ def represent_article_with_recommendation_info(recommendation_id: int):
     return html
 
 
-def represent_article_manager_board(article: Article):
+def represent_article_manager_board(article: Article, last_recommendation: Optional[Recommendation]):
     html: List[Union[DIV, str]] = []
-    last_recommendation = Article.get_last_recommendation(article.id, True)
 
     title = " ".join((article.title or "").split(" ")[:7])
     if article.title and len(article.title) > len(title):
@@ -659,9 +658,9 @@ def represent_article_manager_board(article: Article):
     return DIV(*html, _style="width: max-content; max-width: 250px;")
 
 
-def represent_link_column_manager_board(article: Article):
+def represent_link_column_manager_board(article: Article, last_recommendation: Optional[Recommendation]):
     actions: List[DIV] = []
-    manager_actions =  ongoing_recommendation.get_recommendation_status_buttons(article)
+    manager_actions =  ongoing_recommendation.get_recommendation_status_buttons(article, last_recommendation)
 
     if article.status == ArticleStatus.PRE_SUBMISSION.value:
         validate_stage_button = ongoing_recommendation.validate_stage_button(article)

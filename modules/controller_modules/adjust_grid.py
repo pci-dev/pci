@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Any, Dict, List, Optional
+from urllib.parse import parse_qs, urlparse
 from app_modules.helper import OPTION, TR, TD
 from app_modules import common_small_html
 import re
@@ -24,9 +25,37 @@ class LazyGridElement:
 
     def get(self, css: str) -> ...:
         return self._queries.setdefault(css, self._grid.element(css))
-    
+
     def gets(self, css: str) -> ...:
         return self._queries.setdefault(css, self._grid.elements(css))
+
+
+
+def adjust_grid_basic_dashboard_manager(grid: ..., columns_to_hide: List[str] = []):
+    '''
+    function that adjusts the grid after its generation
+    '''
+    el = LazyGridElement(grid)
+
+    # # # gather elements
+    panel = 'div#w2p_query_panel'
+    search_field = '.web2py_console form'
+
+    # # # # individual changes
+    # el.get(panel).attributes.update({'_style':'display:flex'})
+    panel_search_field = el.get('div#w2p_field_t_articles-id')
+    panel_search_field.attributes.update({'_style':'display:flex'})
+
+    # # initially, the large search field is hidden
+    el.get(search_field).attributes.update({'_style': 'display:none'})
+
+    # add elements at different positions
+    el.get('div.web2py_console ').insert(0, el.get(panel))
+
+    if columns_to_hide:
+        remove_in_table(grid, columns_to_hide)
+
+    return grid
 
 
 def adjust_grid_basic(grid: ...,
@@ -48,7 +77,7 @@ def adjust_grid_basic(grid: ...,
     search_field = '.web2py_console form'
     panel_query_rows = 'div#w2p_query_panel div'
     input_buttons = 'form input.btn'
-    
+
     add_btn: ... = None
 
     # individual changes
@@ -156,7 +185,7 @@ def adjust_grid_basic(grid: ...,
             if option.attributes['_value'].endswith('articles.id'):
                 option.attributes.update({'_selected':'selected'})
                 title_input_field = el.get('div#w2p_field_t_articles-id')
-                title_input_field.attributes.update({'_style':'display:flex'})                
+                title_input_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'articles2':
         for option in el.get(select_panel):
             if option.attributes['_value'].endswith('.text'):
@@ -168,7 +197,7 @@ def adjust_grid_basic(grid: ...,
             if option.attributes['_value'].endswith('.title'):
                 option.attributes.update({'_selected':'selected'})
                 title_input_field = el.get('div#w2p_field_v_article-title')
-                title_input_field.attributes.update({'_style':'display:flex'})                
+                title_input_field.attributes.update({'_style':'display:flex'})
     elif search_name == 'mail_queue':
         for option in el.get(select_panel):
             if option.attributes['_value'].endswith('.sending_status'):
@@ -203,14 +232,14 @@ def adjust_grid_basic(grid: ...,
                 contains_field_set = True
             elif option.attributes['_value'] == '!=':
                 option.attributes.update({'_class': 'not_contains'})
-                selector.elements('option.not_contains', replace=OPTION('not contains', _class="not_contains"))                
+                selector.elements('option.not_contains', replace=OPTION('not contains', _class="not_contains"))
             elif option.attributes['_value'] in remove_regulators:
                 option.attributes.update({'_style':'display:none'})
         if not contains_field_set:
             for option in options:
                 if option.attributes['_value'] == '=':
                     option.attributes.update({'_class': 'contains'})
-                    selector.elements('option.contains', replace=OPTION('contains', _class="contains"))                
+                    selector.elements('option.contains', replace=OPTION('contains', _class="contains"))
 
     grid.elements('div#w2p_query_panel', replace=None)
     grid.elements('div.web2py_breadcrumbs', replace=None)
@@ -244,7 +273,7 @@ def remove_in_table(grid: ..., columns_to_hide: List[str]):
     table: ... = grid.components[1].components[0].components[0]
     if not isinstance(table, TABLE):
         return
-    
+
     thead: ... = table.components[1] # type: ignore
 
     column_index_to_hide: List[int] = []
@@ -255,7 +284,10 @@ def remove_in_table(grid: ..., columns_to_hide: List[str]):
         if isinstance(link, A):
             column_id = str(link.attributes['_href']) # type: ignore
         else:
-            column_id = link
+            column_id = str(link)
+
+        column_id = parse_qs(urlparse(column_id).query)
+        column_id = column_id['order'] if 'order' in column_id else []
 
         for column in columns_to_hide:
                 if column in column_id:
