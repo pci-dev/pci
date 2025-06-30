@@ -321,7 +321,7 @@ def _manage_articles(statuses: Optional[List[str]] = None,
         sql_response: List[Tuple[Any]] = db.executesql("SELECT DISTINCT ON (t_recommendations.article_id) t_recommendations.* \
                                                FROM t_recommendations ORDER BY t_recommendations.article_id ASC, t_recommendations.id DESC;")
 
-    last_recommendations = map(_convert_to_data, sql_response)
+    last_recommendations = list(map(_convert_to_data, sql_response))
 
     # articles
     t_articles = db.t_articles
