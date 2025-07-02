@@ -414,6 +414,8 @@ def report_survey(article: Article, survey: Optional[ReportSurvey] = None, contr
 
     elif form.errors:
         session.flash = current.T("Form has errors", lazy=False)
+        form.errors.q19 = "Please tick this box before validating the submission"
+
 
     return form
 
@@ -467,6 +469,7 @@ def get_from_fields_report_survey_stage1():
     db.t_report_survey.q15.requires = [IS_NOT_EMPTY(), IS_LENGTH(2000, 0)]
     db.t_report_survey.q16.requires = IS_IN_SET(("MAKE PUBLIC IMMEDIATELY", "UNDER PRIVATE EMBARGO",))
     db.t_report_survey.q17.requires = IS_EMPTY_OR(IS_LENGTH(128, 0))
+    db.t_report_survey.q19.requires = IS_NOT_EMPTY()
     db.t_report_survey.q20.requires = IS_IN_SET(("YES - please alert PCI RR-interested journals in the event of IPA, as described above", "NO",))
     db.t_report_survey.q21.requires = IS_IN_SET(("PUBLISH STAGE 1 REVIEWS AT POINT OF IPA", "PUBLISH STAGE 1 AND 2 REVIEWS TOGETHER FOLLOWING STAGE 2 ACCEPTANCE",))
     db.t_report_survey.q22.requires = IS_IN_SET(("YES - ACCEPT SIGNED REVIEWS ONLY", "NO - ACCEPT SIGNED AND ANONYMOUS REVIEWS",))
