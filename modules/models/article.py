@@ -134,6 +134,7 @@ class Article(Row):
     alert_date: _[date]
     current_step: _[str]
     current_step_number: _[StepNumber]
+    show_all_doi: bool
 
 
     @staticmethod
