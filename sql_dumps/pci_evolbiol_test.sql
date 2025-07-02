@@ -3177,3 +3177,8 @@ CREATE TABLE bluesky_posts(
 );
 
 ALTER TABLE bluesky_posts OWNER TO pci_admin;
+
+--- 2025-07-02 show-all-doi.sql
+
+alter table t_articles add column if not exists show_all_doi bool default true;
+update t_articles set show_all_doi = false;

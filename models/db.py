@@ -650,6 +650,8 @@ db.define_table(
     Field("alert_date", type="date", readable=False, writable=False),
     Field("current_step_number", type="integer", readable=False, writable=False),
     Field("current_step", type="text", readable=False, writable=False),
+    Field("show_all_doi", type="boolean", readable=False, writable=False),
+
 
     format="%(title)s (%(authors)s)",
     singular=T("Article"),

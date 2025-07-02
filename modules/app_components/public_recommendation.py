@@ -233,10 +233,10 @@ def _dublinc_core_meta_tag(article: Article):
 
 
 ######################################################################################################################################################################
-def getPublicReviewRoundsHtml(articleId: int):
+def getPublicReviewRoundsHtml(article: Article):
     db= current.db
 
-    recomms = Recommendation.get_by_article_id(articleId, ~db.t_recommendations.id)
+    recomms = Recommendation.get_by_article_id(article.id, ~db.t_recommendations.id)
 
     recommRound = len(recomms)
     reviewRoundsHtml = DIV()
@@ -301,7 +301,7 @@ def getPublicReviewRoundsHtml(articleId: int):
                                             text=reviewText,
                                             pdfLink=pdfLink,
                                             id=review.id,
-                                            review_doi_url=doi_to_url(review_doi)
+                                            review_doi_url=doi_to_url(review_doi) if article.show_all_doi else ""
                                         ))
 
         authorsReply = None
@@ -371,8 +371,8 @@ def getPublicReviewRoundsHtml(articleId: int):
             recommendationPdfLink=recommendationPdfLink,
             authorsReplyTrackChangeFileLink=authorsReplyTrackChangeFileLink,
             recommendation=recomm,
-            decision_doi_url=doi_to_url(decision_doi),
-            author_reply_doi_url=doi_to_url(author_reply_doi)
+            decision_doi_url=doi_to_url(decision_doi) if article.show_all_doi else "",
+            author_reply_doi_url=doi_to_url(author_reply_doi) if article.show_all_doi else ""
         )
 
         reviewRoundsHtml.append(XML(current.response.render("components/public_review_rounds.html", componentVars))) # type: ignore
