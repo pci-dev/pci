@@ -46,9 +46,20 @@ kill_wsgi() {
     [ "$pid" ] && sudo -u www-data kill $pid
 }
 
+watch_mem_use_and_reset() {
+    ps -ax -o %mem,pid,cmd | grep wsgi: | grep -v grep | awk '
+
+    $1 > 12 {
+        split($3, name, /:web2py|)/)
+        print "'"$(date +'%F %T')"': resetting " name[2] " (mem_use=" $1 ")"
+        system("sudo -u www-data kill " $2)
+    }'
+}
+
 main() {
     while true; do
         watch_and_reset &>> $0.log
+        #watch_mem_use_and_reset &>> $0.log
         sleep 42
     done
 }
