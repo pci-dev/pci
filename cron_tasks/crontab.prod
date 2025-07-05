@@ -21,6 +21,10 @@ RUN=cron_tasks/run
 # force web2py reload to purge RAM when usage >70%
 @reboot     $HOME/mem-watch+reset.sh --max-mem 70
 
+@reboot     $HOME/wsgi-watch+reset.sh
+
+@reboot     $HOME/monitor-ram.sh > /dev/null
+
 
 # force delete session files older than 3 days
 0 2   * * * sudo -u www-data find $BASE/*/sessions -type f -mtime +3 -delete
