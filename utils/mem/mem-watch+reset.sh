@@ -13,11 +13,12 @@ mem_watch_reset() {
 
             echo "$(date '+%F %T'): reload (mem_use=$mem_use)"
             preload
-        }
+
+        } &>> $0.log
+
         sleep ${interval:-30s}
     done
-
-} &>> $0.log
+}
 
 preload() {
     curl -s https://api.peercommunityin.org/all/pci \
