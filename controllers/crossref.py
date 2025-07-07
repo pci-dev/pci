@@ -93,8 +93,13 @@ def _send_article(article: Article,
     recommendation_xml.raise_error()
 
     if check_status:
-        while get_status() == 2: # Wait state skipping QUEUE
+        status = get_status()
+        while status == 2: # Wait state skipping QUEUE
             sleep(2)
+            status = get_status()
+
+        if status == 0:
+            return ""
 
     post_response = crossref.post_and_forget(article, recommendation_xml)
     if not post_response:
