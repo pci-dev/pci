@@ -414,6 +414,8 @@ def report_survey(article: Article, survey: Optional[ReportSurvey] = None, contr
 
     elif form.errors:
         session.flash = current.T("Form has errors", lazy=False)
+        form.errors.q19 = "Please tick this box before validating the submission"
+
 
     return form
 
