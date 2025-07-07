@@ -103,10 +103,11 @@ def _send_article(article: Article,
 
     post_response = crossref.post_and_forget(article, recommendation_xml)
     if not post_response:
-        if clockss:
-            send_to_clockss(article, recommendation)
         article.show_all_doi = True
         article.update_record() # type: ignore
+
+        if clockss:
+            send_to_clockss(article, recommendation)
 
     return post_response
 
