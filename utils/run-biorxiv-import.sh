@@ -5,5 +5,7 @@ RUN=cron_tasks/run
 
 while true; do
     $BASE/PCIEcology/$RUN import_biorxiv_xml.py
+    $BASE/PCIGenomics/$RUN import_biorxiv_xml.py
+    $BASE/PCIEvolBiol/$RUN import_biorxiv_xml.py
     sleep ${2:-1m}
 done
