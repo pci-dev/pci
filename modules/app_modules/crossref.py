@@ -424,8 +424,8 @@ class crossref:
     passwd = str(db.conf.get("crossref.passwd") or "")
     api_url = str(db.conf.get("crossref.api") or "https://doi.crossref.org/servlet")
 
-QUEUED = '<doi_batch_diagnostic status="queued">'
-FAILED = '<record_diagnostic status="Failure">'
+QUEUED = '<doi_batch_diagnostic status="queued"'
+FAILED = '<record_diagnostic status="Failure"'
 
 
 def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None):
