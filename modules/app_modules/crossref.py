@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 import datetime
 import html
+from multiprocessing import Process
 import os
+from time import sleep
 from app_modules.common_tools import extract_doi
 from typing import Dict, List, Optional, Tuple, cast
 from app_modules.httpClient import HttpClient
@@ -371,6 +373,16 @@ class CrossrefXML:
         return response.strip()
 
 
+    def get_status_code(self):
+        status = self.get_status()
+        return (
+        3 if status.startswith("error:") else
+        2 if QUEUED in status else
+        1 if FAILED in status else
+        0
+    )
+
+
     @classmethod
     def from_request(cls, request: ...):
         crossref_xml = cls()
@@ -428,10 +440,30 @@ QUEUED = '<doi_batch_diagnostic status="queued"'
 FAILED = '<record_diagnostic status="Failure"'
 
 
-def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None):
+def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None, check_status: bool = False):
     if not xml:
         xml = CrossrefXML.build(article)
 
+    post_response = _send_xml_to_crossref(xml)
+
+    if check_status:
+        status = xml.get_status_code()
+        while status == 2: # Wait state skipping QUEUE
+            sleep(2)
+            status = xml.get_status_code()
+
+        if status == 0:
+            db(db.t_articles.id == article.id).update(show_all_doi=True)
+            db.commit()
+            return ""
+    else:
+        second_send = Process(target=post_and_forget, args=(article, xml, True))
+        second_send.start()
+
+    return post_response
+
+
+def _send_xml_to_crossref(xml: CrossrefXML):
     try:
         xml.raise_error()
         assert crossref.login, "crossref.login not set"
