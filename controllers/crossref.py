@@ -57,10 +57,9 @@ def post_form():
 
     if not is_empty_form:
         try:
-            # Try send second time after QUEUE state to avoid "Unknown submission error"
-            _send_article(article, recommendation, recommendation_xml, False)
-            second_send = Process(target=_send_article, args=(article, recommendation, recommendation_xml, True, False))
-            second_send.start()
+            post_response = crossref.post_and_forget(article, recommendation_xml)
+            if not post_response:
+                send_to_clockss(article, recommendation)
 
             crossref_status = "Sent to Crossref & Clockss"
             response.flash = "Sent to Crossref & Clockss"
@@ -139,13 +138,7 @@ def get_status():
         return f"error: no such article_id={article_id}"
 
     recommendation_xml = crossref.CrossrefXML.build(article)
-    status = recommendation_xml.get_status()
-    return (
-        3 if status.startswith("error:") else
-        2 if crossref.QUEUED in status else
-        1 if crossref.FAILED in status else
-        0
-    )
+    return recommendation_xml.get_status_code()
 
 
 def error(message: str):
