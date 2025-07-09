@@ -194,7 +194,7 @@ class COARNotifier:
         return {
             "id": PCI_ACTOR_ID,
             "type": ["Person"],
-            "name": f"{user.first_name} {user.last_name}",
+            "name": f"{user.first_name} {user.last_name}" if user else "(anonymous)",
         }
 
     def review_completed(self, review):
@@ -213,8 +213,7 @@ class COARNotifier:
             "type": ["Announce", "coar-notify:ReviewAction"],
             "context": self._article_as_jsonld(article),
             "object": self._review_as_jsonld(review),
-            "actor": {} if review.anonymously else \
-                    self._user_as_jsonld(reviewer),
+            "actor": self._user_as_jsonld(None if review.anonymously else reviewer),
         }
         self.send_notification(notification, article)
 
