@@ -19,6 +19,8 @@ __all__ = ["COARNotifier"]
 
 logger = logging.getLogger(__name__)
 
+PCI_ACTOR_ID = "https://www.peercommunityin.org/coar-notify"
+
 
 @functools.lru_cache()
 def _get_requests_session() -> requests.Session:
@@ -190,9 +192,10 @@ class COARNotifier:
 
     def _user_as_jsonld(self, user):
         return {
-            "id": f"{self.base_url}public/user_public_page?userId={user.id}",
+            "id": PCI_ACTOR_ID,
             "type": ["Person"],
-            "name": f"{user.first_name} {user.last_name}",
+            "name": f"{user.first_name} {user.last_name}" if user else "(anonymous)",
+            "url": f"{self.base_url}public/user_public_page?userId={user.id}" if user else None,
         }
 
     def review_completed(self, review):
@@ -211,8 +214,7 @@ class COARNotifier:
             "type": ["Announce", "coar-notify:ReviewAction"],
             "context": self._article_as_jsonld(article),
             "object": self._review_as_jsonld(review),
-            "actor": {} if review.anonymously else \
-                    self._user_as_jsonld(reviewer),
+            "actor": self._user_as_jsonld(None if review.anonymously else reviewer),
         }
         self.send_notification(notification, article)
 
@@ -324,8 +326,9 @@ def send_ack(self,
               "id": article.doi,
           },
           "actor": {
-            "id": self.base_url,
+            "id": PCI_ACTOR_ID,
             "type": "Service",
+            "url": self.base_url,
           },
     }
 
