@@ -195,6 +195,7 @@ class COARNotifier:
             "id": PCI_ACTOR_ID,
             "type": ["Person"],
             "name": f"{user.first_name} {user.last_name}" if user else "(anonymous)",
+            "url": f"{self.base_url}public/user_public_page?userId={user.id}" if user else None,
         }
 
     def review_completed(self, review):
@@ -327,6 +328,7 @@ def send_ack(self,
           "actor": {
             "id": PCI_ACTOR_ID,
             "type": "Service",
+            "url": self.base_url,
           },
     }
 
