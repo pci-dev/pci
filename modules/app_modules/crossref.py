@@ -102,7 +102,7 @@ class DecisionElementXML:
         if not recommender:
             return DecisionElementXML(round, f"Missing user with id {recommendation.recommender_id}", "")
 
-        timestamp = recommendation.validation_timestamp.strftime("%Y%m%d%H%M%S%f")[:-3]
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")[:-3]
         recommendation_date = recommendation.validation_timestamp.date()
         interwork_type, interwork_ref = _get_identifier(article.doi)
 
@@ -178,7 +178,7 @@ class AuthorReplyElementXML:
 
         batch_id = f"pci={pci.host}:rec={recommendation.id}:ar={recommendation.id}"
 
-        timestamp = next_recommendation.recommendation_timestamp.strftime("%Y%m%d%H%M%S%f")[:-3]
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")[:-3]
         next_recommendation_date = next_recommendation.recommendation_timestamp.date()
         interwork_type, interwork_ref = _get_identifier(article.doi)
 
@@ -224,7 +224,7 @@ class ReviewElementXML:
 
         batch_id = f"pci={pci.host}:rec={recommendation.id}:rev={review.id}"
 
-        timestamp = review.acceptation_timestamp.strftime("%Y%m%d%H%M%S%f")[:-3]
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")[:-3]
         review_date = review.acceptation_timestamp.date()
         interwork_type, interwork_ref = _get_identifier(article.doi)
 
