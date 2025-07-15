@@ -517,7 +517,7 @@ class paginator:
         except: return 0
 
     def controls(page, per_page):
-        nb_pages = round(db(db.t_coar_notification).count() / per_page + .5)
+        nb_pages = round(db(db.t_coar_notification).count() / per_page + .5) or 1
         link = lambda txt, page: f'<a href="?page={page}">{txt}</a>'
         next_ = link(">>", (page + 1) % nb_pages)
         prev_ = link("<<", (page - 1 + nb_pages) % nb_pages)
