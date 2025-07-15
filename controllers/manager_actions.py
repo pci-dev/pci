@@ -142,16 +142,16 @@ def do_recommend_article():
     if not pciRRactivated:
         Hypothesis(art).post_annotation()
 
-        try:
-            if not art.already_published:
-                status = crossref.post_and_forget(art)
-            else:
-                status = None
+    try:
+        if not art.already_published:
+            status = crossref.post_and_forget(art)
+        else:
+            status = None
 
-            if not status:
-                send_to_clockss(art, recomm)
-        except Exception as e:
-            session.flash = f"{e}"
+        if not status:
+            send_to_clockss(art, recomm)
+    except Exception as e:
+        session.flash = f"{e}"
 
     redirect(redir_url)
 
