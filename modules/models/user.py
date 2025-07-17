@@ -302,10 +302,15 @@ class User(Row):
 
 
     @staticmethod
-    def get_all_public_data() -> List['PublicUserData']:
+    def get_all_public_data(deleted_user: bool = True) -> List['PublicUserData']:
         db = current.db
 
-        users: List[User] = db(db.auth_user).select(
+        if deleted_user:
+            query = db(db.auth_user)
+        else:
+            query = db(db.auth_user.deleted == False)
+
+        users: List[User] = query.select(
             db.auth_user.id,
             db.auth_user.first_name,
             db.auth_user.last_name,
