@@ -988,7 +988,7 @@ def extract():
                     "start_year": datetime.datetime.today().year - 1,
                     "end_year": datetime.datetime.today().year - 1,
             }),
-            URL("admin", "extract_user")
+            URL("admin", "extract_user"),
         ]
     ]))
 
@@ -1010,7 +1010,8 @@ def urls():
 
 @auth.requires(auth.has_membership(role="administrator"))
 def extract_user():
-    users = User.get_all_public_data()
+    users = User.get_all_public_data(False)
+
     users = list(map(lambda u: u.__dict__, users))
 
     response.headers['Content-Type'] = 'application/ld+json'

@@ -25,7 +25,6 @@ class PublicUserData:
     website: _[str]
     alerts: _[str]
     registration_datetime: _[datetime]
-    deleted: bool
     ethical_code_approved: bool
 
 class User(Row):
@@ -302,31 +301,15 @@ class User(Row):
 
 
     @staticmethod
-    def get_all_public_data() -> List['PublicUserData']:
+    def get_all_public_data(deleted_user: bool = True) -> List['PublicUserData']:
         db = current.db
 
-        users: List[User] = db(db.auth_user).select(
-            db.auth_user.id,
-            db.auth_user.first_name,
-            db.auth_user.last_name,
-            db.auth_user.email,
-            db.auth_user.orcid,
-            db.auth_user.laboratory,
-            db.auth_user.institution,
-            db.auth_user.city,
-            db.auth_user.country,
-            db.auth_user.thematics,
-            db.auth_user.cv,
-            db.auth_user.keywords,
-            db.auth_user.email_options,
-            db.auth_user.website,
-            db.auth_user.alerts,
-            db.auth_user.last_alert,
-            db.auth_user.registration_datetime,
-            db.auth_user.deleted,
-            db.auth_user.ethical_code_approved,
-            db.auth_user.recover_email
-        )
+        if deleted_user:
+            query = db(db.auth_user)
+        else:
+            query = db(db.auth_user.deleted == False)
+
+        users: List[User] = query.select()
 
         users_data: List[PublicUserData] = []
         for user in users:
