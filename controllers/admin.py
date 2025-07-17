@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 import re
 import random
 import datetime
@@ -21,7 +22,7 @@ from gluon.contrib.appconfig import AppConfig # type: ignore
 from gluon.http import redirect # type: ignore
 from gluon.sqlhtml import SQLFORM
 from models.mail_queue import MailQueue, SendingStatus
-from models.recommendation import Recommendation, RecommendationState
+from models.recommendation import Recommendation, RecommendationState, User
 from pydal.objects import Field
 from pydal.validators import IS_IN_DB
 
@@ -987,6 +988,7 @@ def extract():
                     "start_year": datetime.datetime.today().year - 1,
                     "end_year": datetime.datetime.today().year - 1,
             }),
+            URL("admin", "extract_user")
         ]
     ]))
 
@@ -1004,3 +1006,12 @@ def urls():
             URL("metadata", "recommendation?article_id=XXX"),
         ]
     ]))
+
+
+@auth.requires(auth.has_membership(role="administrator"))
+def extract_user():
+    users = User.get_all_public_data()
+    users = list(map(lambda u: u.__dict__, users))
+
+    response.headers['Content-Type'] = 'application/ld+json'
+    return json.dumps(users, default=str)

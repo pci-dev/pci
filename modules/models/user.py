@@ -8,6 +8,26 @@ from pydal.objects import Row
 from gluon import current
 
 
+class PublicUserData:
+    id: int
+    first_name: _[str]
+    last_name: _[str]
+    email: _[str]
+    orcid: _[str]
+    laboratory: _[str]
+    institution: _[str]
+    city: _[str]
+    country: _[str]
+    thematics: _[List[str]]
+    cv: _[str]
+    keywords: _[str]
+    email_options: List[str]
+    website: _[str]
+    alerts: _[str]
+    registration_datetime: _[datetime]
+    deleted: bool
+    ethical_code_approved: bool
+
 class User(Row):
     id: int
     first_name: _[str]
@@ -279,3 +299,40 @@ class User(Row):
             return affiliation
         else:
             return "(unavailable)"
+
+
+    @staticmethod
+    def get_all_public_data() -> List['PublicUserData']:
+        db = current.db
+
+        users: List[User] = db(db.auth_user).select(
+            db.auth_user.id,
+            db.auth_user.first_name,
+            db.auth_user.last_name,
+            db.auth_user.email,
+            db.auth_user.orcid,
+            db.auth_user.laboratory,
+            db.auth_user.institution,
+            db.auth_user.city,
+            db.auth_user.country,
+            db.auth_user.thematics,
+            db.auth_user.cv,
+            db.auth_user.keywords,
+            db.auth_user.email_options,
+            db.auth_user.website,
+            db.auth_user.alerts,
+            db.auth_user.last_alert,
+            db.auth_user.registration_datetime,
+            db.auth_user.deleted,
+            db.auth_user.ethical_code_approved,
+            db.auth_user.recover_email
+        )
+
+        users_data: List[PublicUserData] = []
+        for user in users:
+            data = PublicUserData()
+            for attr in PublicUserData.__annotations__.keys():
+                value = getattr(user, attr)
+                setattr(data, attr, value)
+            users_data.append(data)
+        return users_data
