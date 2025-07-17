@@ -988,8 +988,7 @@ def extract():
                     "start_year": datetime.datetime.today().year - 1,
                     "end_year": datetime.datetime.today().year - 1,
             }),
-            URL("admin", "extract_user", vars={"show_deleted": False}),
-            URL("admin", "extract_user", vars={"show_deleted": True}),
+            URL("admin", "extract_user"),
         ]
     ]))
 
@@ -1011,12 +1010,7 @@ def urls():
 
 @auth.requires(auth.has_membership(role="administrator"))
 def extract_user():
-    if "show_deleted" in request.vars:
-        show_deleted = bool(request.vars["show_deleted"].lower() == 'true')
-    else:
-        show_deleted = False
-
-    users = User.get_all_public_data(show_deleted)
+    users = User.get_all_public_data(False)
 
     users = list(map(lambda u: u.__dict__, users))
 
