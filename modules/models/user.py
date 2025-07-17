@@ -306,11 +306,20 @@ class User(Row):
     def get_all_public_data(deleted_user: bool = True) -> List['PublicUserData']:
         db = current.db
 
-        query = (db.auth_user.id == db.auth_membership.user_id) & (db.auth_membership.group_id == db.auth_group.id)
+        query = ()
         if not deleted_user:
-            query = query & (db.auth_user.deleted == False)
+            query = (db.auth_user.deleted == False)
 
-        result = db(query).select()
+        result = db(query).select(
+            db.auth_user.ALL,
+            db.auth_membership.ALL,
+            db.auth_group.ALL,
+            left=[
+                db.auth_membership.on(db.auth_user.id == db.auth_membership.user_id),
+                db.auth_group.on(db.auth_membership.group_id == db.auth_group.id)
+            ],
+            orderby=db.auth_user.id
+        )
 
         users_data: dict[int, PublicUserData] = {}
         for r in result:
@@ -328,6 +337,7 @@ class User(Row):
                 data.roles = []
                 users_data[user.id] = data
 
-            users_data[user.id].roles.append(group.role)
+            if group.role:
+                users_data[user.id].roles.append(group.role)
 
         return list(users_data.values())
