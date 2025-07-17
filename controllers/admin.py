@@ -63,7 +63,7 @@ def toggle_silent_mode():
         current.session.flash = "You have left silent mode"
 
     redirect(current.request.vars.previous_url)
-          
+
 
 @auth.requires(auth.has_membership(role="administrator") or auth.has_membership(role="developer"))
 def list_users():
@@ -97,7 +97,7 @@ def list_users():
         if not auth_query:
             db.auth_user.email_options.readable = False
             db.auth_user.email_options.writable = False
-            
+
     fields = [
         db.auth_user.id,
         db.auth_user.registration_key,
@@ -202,7 +202,7 @@ def list_users():
     )
 
     # options to be removed from the search dropdown:
-    remove_options = ['auth_user.registration_key', 'auth_user.alerts', 
+    remove_options = ['auth_user.registration_key', 'auth_user.alerts',
                     'auth_user.last_alert', 'auth_user.registration_datetime',
                     'auth_user.ethical_code_approved', 'auth_user.id',]
 
@@ -295,10 +295,10 @@ def mailing_lists():
     myContents.append(H1(T("Other users (no role, not listed above):")))
     emails = []
     query = db.executesql(
-        """SELECT DISTINCT auth_user.email FROM auth_user 
-				WHERE auth_user.id NOT IN (SELECT DISTINCT auth_membership.user_id FROM auth_membership) 
-				AND auth_user.id NOT IN (SELECT DISTINCT t_articles.user_id FROM t_articles WHERE t_articles.user_id IS NOT NULL) 
-				AND auth_user.id NOT IN (SELECT DISTINCT t_reviews.reviewer_id FROM t_reviews WHERE t_reviews.reviewer_id IS NOT NULL AND review_state IN ('Awaiting review', 'Review completed')) 
+        """SELECT DISTINCT auth_user.email FROM auth_user
+				WHERE auth_user.id NOT IN (SELECT DISTINCT auth_membership.user_id FROM auth_membership)
+				AND auth_user.id NOT IN (SELECT DISTINCT t_articles.user_id FROM t_articles WHERE t_articles.user_id IS NOT NULL)
+				AND auth_user.id NOT IN (SELECT DISTINCT t_reviews.reviewer_id FROM t_reviews WHERE t_reviews.reviewer_id IS NOT NULL AND review_state IN ('Awaiting review', 'Review completed'))
 				AND auth_user.email IS NOT NULL;"""
     )
     for user_email in query:
@@ -484,7 +484,7 @@ def recap_reviews():
         """CREATE OR REPLACE VIEW  _v_%(runId)s AS
 	WITH
 	recom AS (
-		SELECT r.article_id, 
+		SELECT r.article_id,
 			array_to_string(array_agg(DISTINCT coalesce(ru.first_name,'')||' '||coalesce(ru.last_name,'')), ', ') AS recommenders,
 			max(recommendation_doi) AS recommendation_doi
 		FROM t_recommendations AS r
@@ -501,8 +501,8 @@ def recap_reviews():
 	)
 	, recomms0 AS (
 		SELECT r.article_id, r.id AS recom_id,
-			rank() OVER (PARTITION BY r.article_id ORDER BY r.id) AS recomm_round, 
-			r.recommendation_state AS decision, 
+			rank() OVER (PARTITION BY r.article_id ORDER BY r.id) AS recomm_round,
+			r.recommendation_state AS decision,
 			r.recommendation_timestamp::date AS decision_start,
 			r.last_change::date AS decision_last_change
 		FROM t_recommendations AS r
@@ -547,8 +547,8 @@ def recap_reviews():
 		a.status AS article_status, a.last_status_change::date AS article_status_last_change,
 		coalesce(recom.recommendation_doi, '') AS recommendation_doi,
 		''::varchar AS recommendation_info,
-		coalesce(reviews.recomm_round, 1) AS recomm_round, 
-		coalesce(reviews.reviewer_num, ' 01') AS reviewer_num, 
+		coalesce(reviews.recomm_round, 1) AS recomm_round,
+		coalesce(reviews.reviewer_num, ' 01') AS reviewer_num,
 		coalesce(reviews.reviewer, '') AS reviewer
 	FROM t_articles AS a
 	LEFT JOIN auth_user AS au ON a.user_id = au.id
@@ -561,10 +561,10 @@ def recap_reviews():
 
     if pciRRactivated:
         db.executesql(
-            """SELECT colpivot('_t_%(runId)s', 
-	    	'SELECT * FROM _v_%(runId)s', 
+            """SELECT colpivot('_t_%(runId)s',
+	    	'SELECT * FROM _v_%(runId)s',
 	    	array['type_article', 'report_stage', 'title', 'article_doi', 'article_id', 'submitter', 'submission', 'first_outcome', 'recommenders', 'co_recommenders', 'article_status', 'article_status_last_change', 'recommendation_doi', 'recommendation_info'],
-	    	array['recomm_round', 'reviewer_num'], 
+	    	array['recomm_round', 'reviewer_num'],
 	    	'#.reviewer',
 	    	null
 	    );"""
@@ -572,10 +572,10 @@ def recap_reviews():
         )
     else:
         db.executesql(
-            """SELECT colpivot('_t_%(runId)s', 
-	    	'SELECT * FROM _v_%(runId)s', 
+            """SELECT colpivot('_t_%(runId)s',
+	    	'SELECT * FROM _v_%(runId)s',
 	    	array['type_article', 'title', 'article_doi', 'article_id', 'submitter', 'submission', 'first_outcome', 'recommenders', 'co_recommenders', 'article_status', 'article_status_last_change', 'recommendation_doi', 'recommendation_info'],
-	    	array['recomm_round', 'reviewer_num'], 
+	    	array['recomm_round', 'reviewer_num'],
 	    	'#.reviewer',
 	    	null
 	    );"""
@@ -685,13 +685,13 @@ def mailing_queue():
             _class="pci2-flex-column",
             _style="margin: 5px 10px;",
         )
-    
+
     def represent_sending_date(text: str, row: MailQueue):
         return datetime.datetime.strptime(str(text), "%Y-%m-%d %H:%M:%S") if text else None
-    
+
     def represent_mail_content(text: str, row: MailQueue):
         return XML(admin_module.sanitizeHtmlContent(text))
-    
+
     def represent_mail_subject(text: str, row: MailQueue):
         return DIV(B(text), BR(), SPAN(row.mail_template_hashtag), _class="ellipsis-over-500")
 
@@ -751,7 +751,7 @@ def mailing_queue():
         _class="btn btn-default",
         _style=("background-color: #3e3f3a;" if row.removed_from_queue == False else "background-color: #ce4f0c;"),
     ) if row.sending_status == "pending" else (admin_module.mkEditResendButton(row, urlFunction=urlFunction, urlController=urlController) if row.sending_status == "sent" else "")
-    
+
     links = [
         dict(
             header="",
@@ -849,7 +849,7 @@ def edit_and_resend_email():
     if mailId is None:
         session.flash = auth.not_authorized()
         redirect(request.env.http_referer)
-    
+
     mail = db(db.mail_queue.id == mailId).select()[0]
 
     default_replyto = emailing_tools.to_string_addresses(mail.replyto_addresses)
@@ -866,7 +866,7 @@ def edit_and_resend_email():
     form.element(_type="submit")["_value"] = T("Send e-mail")
     form.element("textarea[name=content]")["_style"] = "height:500px;"
     html_string = str(mail.mail_content)
-    
+
     resent = False
     if form.process().accepted:
         try:
