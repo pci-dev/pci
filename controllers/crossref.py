@@ -1,11 +1,8 @@
-from multiprocessing import Process
-from time import sleep
 from app_modules import crossref
 from app_modules.clockss import send_to_clockss
 from app_modules.common_tools import URL
 from gluon import PRE, current
 from models.article import Article, ArticleStage
-from models.recommendation import Recommendation
 from gluon.contrib.appconfig import AppConfig # type: ignore
 
 
@@ -82,33 +79,6 @@ def post_form():
         titleIcon="envelope",
         pageTitle="Crossref post form",
     )
-
-
-def _send_article(article: Article,
-                  recommendation: Recommendation,
-                  recommendation_xml: crossref.CrossrefXML,
-                  check_status: bool = True,
-                  clockss: bool = True):
-    recommendation_xml.raise_error()
-
-    if check_status:
-        status = get_status()
-        while status == 2: # Wait state skipping QUEUE
-            sleep(2)
-            status = get_status()
-
-        if status == 0:
-            return ""
-
-    post_response = crossref.post_and_forget(article, recommendation_xml)
-    if not post_response:
-        article.show_all_doi = True
-        article.update_record() # type: ignore
-
-        if clockss:
-            send_to_clockss(article, recommendation)
-
-    return post_response
 
 
 @auth.requires(is_admin)
