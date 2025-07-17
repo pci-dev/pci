@@ -8,6 +8,25 @@ from pydal.objects import Row
 from gluon import current
 
 
+class PublicUserData:
+    id: int
+    first_name: _[str]
+    last_name: _[str]
+    email: _[str]
+    orcid: _[str]
+    laboratory: _[str]
+    institution: _[str]
+    city: _[str]
+    country: _[str]
+    thematics: _[List[str]]
+    cv: _[str]
+    keywords: _[str]
+    email_options: List[str]
+    website: _[str]
+    alerts: _[str]
+    registration_datetime: _[datetime]
+    ethical_code_approved: bool
+
 class User(Row):
     id: int
     first_name: _[str]
@@ -279,3 +298,24 @@ class User(Row):
             return affiliation
         else:
             return "(unavailable)"
+
+
+    @staticmethod
+    def get_all_public_data(deleted_user: bool = True) -> List['PublicUserData']:
+        db = current.db
+
+        if deleted_user:
+            query = db(db.auth_user)
+        else:
+            query = db(db.auth_user.deleted == False)
+
+        users: List[User] = query.select()
+
+        users_data: List[PublicUserData] = []
+        for user in users:
+            data = PublicUserData()
+            for attr in PublicUserData.__annotations__.keys():
+                value = getattr(user, attr)
+                setattr(data, attr, value)
+            users_data.append(data)
+        return users_data
