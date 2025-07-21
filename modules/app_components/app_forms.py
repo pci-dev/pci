@@ -293,7 +293,7 @@ def article_add_mandatory_checkboxes(form: ..., pciRRactivated: bool):
         "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review."
         ) % (applongname, applongname),
     }
-    checkboxes_std = {
+    checkboxes_std: dict[str, str] = {
         "guide_read":
         "I read the guide for authors",
 
@@ -311,6 +311,9 @@ def article_add_mandatory_checkboxes(form: ..., pciRRactivated: bool):
 
         "no_financial_conflict_of_interest":
         "The authors declare that they have no financial conflict of interest with the content of the manuscript",
+
+        "sample_size":
+        "If applicable (for empirical studies), sample sizes are clearly justified, or not applicable."
     }
 
     checkboxes = checkboxes_min
