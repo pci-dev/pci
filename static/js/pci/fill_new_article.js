@@ -8,8 +8,9 @@ jQuery(document).ready(function() {
     't_articles_lines_numbered',
     't_articles_conflicts_of_interest_indicated',
     't_articles_no_financial_conflict_of_interest',
+    't_articles_sample_size'
   ]
-  
+
   var pciRRactivated = document.querySelector("#t_articles_report_stage__label")
   if (pciRRactivated) {
       prerequisites = [
@@ -23,7 +24,7 @@ jQuery(document).ready(function() {
     } else {
       jQuery("#t_articles_uploaded_picture").prop("disabled", true);
     }
-} 
+}
 
   if (jQuery("#t_articles_already_published").prop("checked")) {
     jQuery("#t_articles_article_source__row").show();
@@ -144,14 +145,14 @@ jQuery(document).ready(function() {
             i_am_author.checked == true & all_prerequisites()) {
             document.querySelector("#submit_record__row input[type=submit]").disabled = false; }
         else {
-          document.querySelector("#submit_record__row input[type=submit]").disabled = true; 
+          document.querySelector("#submit_record__row input[type=submit]").disabled = true;
         }
       }
       else {
         if (not_reviewed_elsewhere.checked == true & i_am_author.checked == true & all_prerequisites()) {
               document.querySelector("#submit_record__row input[type=submit]").disabled = false; }
         else {
-              document.querySelector("#submit_record__row input[type=submit]").disabled = true; 
+              document.querySelector("#submit_record__row input[type=submit]").disabled = true;
         }
       }
     }
@@ -161,7 +162,7 @@ jQuery(document).ready(function() {
 
 
 })
-  
+
 // Crossref API
 function insertAfter(referenceNode, newNode) {
   referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
@@ -408,7 +409,7 @@ function check_checkboxes() {
 
 function initUrlListStringField() {
   document.querySelectorAll('input[name="data_doi"],input[name="scripts_doi"],input[name="codes_doi"]').forEach((input) => {
-    
+
     document.querySelectorAll('.input-group-addon').forEach((button) => {
       button.addEventListener('click', initUrlListStringField)
     });
@@ -416,7 +417,7 @@ function initUrlListStringField() {
     if (input.value != null && input.value.length > 0) {
       return;
     }
-  
+
     input.value = 'https://'
   })
 }
