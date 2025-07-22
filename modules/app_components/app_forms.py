@@ -283,8 +283,8 @@ def process_mail_content(mail, form):
 #########################################################################
 from pydal import Field
 
-def article_add_mandatory_checkboxes(form, pciRRactivated):
-    checkboxes_min = {
+def article_add_mandatory_checkboxes(form: ..., pciRRactivated: bool):
+    checkboxes_min: dict[str, str] = {
         "i_am_an_author":
         "I am an author of the article and I am acting on behalf of all authors",
 
@@ -293,9 +293,12 @@ def article_add_mandatory_checkboxes(form, pciRRactivated):
         "This preprint has not been published or sent for review elsewhere. I agree not to submit this preprint to a journal before the end of the %s evaluation process (i.e. before its rejection or recommendation by %s), if it is sent out for review."
         ) % (applongname, applongname),
     }
-    checkboxes_std = {
+    checkboxes_std: dict[str, str] = {
         "guide_read":
         "I read the guide for authors",
+
+        "sample_size":
+        "If applicable (for empirical studies), sample sizes are clearly justified, or not applicable.",
 
         "approvals_obtained":
         "If applicable, all the necessary approvals have been obtained before submission (or not applicable)",
@@ -312,11 +315,11 @@ def article_add_mandatory_checkboxes(form, pciRRactivated):
         "no_financial_conflict_of_interest":
         "The authors declare that they have no financial conflict of interest with the content of the manuscript",
     }
-    checkboxes = dict(checkboxes_min)
-    checkboxes.update(checkboxes_std)
 
-    if pciRRactivated:
-        checkboxes = checkboxes_min
+    checkboxes = checkboxes_min
+    if not pciRRactivated:
+        checkboxes.update(checkboxes_std)
+
 
     fields = [
         Field(
@@ -327,12 +330,12 @@ def article_add_mandatory_checkboxes(form, pciRRactivated):
         )
         for name, label in checkboxes.items()
     ]
-    extra = SQLFORM.factory(
+    extra = SQLFORM.factory( # type: ignore
         *fields,
         table_name="t_articles",
     )
 
-    for field in extra.elements('.form-group')[:-1]: # discard submit button
+    for field in extra.elements('.form-group')[:-1]: # discard submit button # type: ignore
         form[0].insert(-1, field)
 
 #######################################################################################

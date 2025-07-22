@@ -80,6 +80,7 @@ class User_submits:
         select("#t_articles_lines_numbered").click()
         select("#t_articles_conflicts_of_interest_indicated").click()
         select("#t_articles_no_financial_conflict_of_interest").click()
+        select("#t_articles_sample_size").click()
     select("input[type=submit]").click()
 
     if is_rr:
