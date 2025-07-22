@@ -1295,13 +1295,20 @@ def suggested_recommenders():
         valid_btn = A("Valid", _class="btn btn-success",
                       _href=URL("manager", "do_valid_suggested_recommender",
                                 vars=dict(sugg_recommender_id=row.id, _next=next_url)))
+
+        reject_btn = A("Reject", _class="btn btn-warning",
+                       _href=URL("manager", "do_reject_suggested_recommender",
+                                 vars=dict(sugg_recommender_id=row.id, _next=next_url)))
+
         if is_author:
             valid_btn.attributes.setdefault("_disabled", True) # type: ignore
             valid_btn.attributes["_href"] = None # type: ignore
+            reject_btn.attributes.setdefault("_disabled", True) # type: ignore
+            reject_btn.attributes["_href"] = None # type: ignore
 
         return DIV(
                 valid_btn,
-                A("Reject", _class="btn btn-warning", _href=URL("manager", "do_reject_suggested_recommender", vars=dict(sugg_recommender_id=row.id, _next=next_url))),
+                reject_btn,
             ) if row.recommender_validated is None else ""
 
     links.append(
@@ -2471,18 +2478,21 @@ def manage_suggested_recommenders():
             valid_btn = A("Valid", _class="btn btn-success",
                                    _href=URL("manager", "do_valid_suggested_recommender",
                                              vars=dict(sugg_recommender_id=sugg_recommender.id, _next=next_url)))
+
+            reject_btn = A("Reject", _class="btn btn-warning",
+                                     _href=URL("manager", "do_reject_suggested_recommender",
+                                               vars=dict(sugg_recommender_id=sugg_recommender.id, _next=next_url)))
             if is_author:
                 valid_btn.attributes.setdefault("_disabled", True) # type: ignore
                 valid_btn.attributes["_href"] = None # type: ignore
+                reject_btn.attributes.setdefault("_disabled", True) # type: ignore
+                reject_btn.attributes["_href"] = None # type: ignore
 
             li = TR(
                 TD(mkUser_U(recommender, True, orcid=True)),
                 TD(A(recommender.email, _href=f"mailto:{recommender.email}"), _style="padding-left: 10px; font-style: italic"),
-                TD(valid_btn,
-                              _style="padding-left: 10px;"),
-                TD(A("Reject", _class="btn btn-warning",
-                               _href=URL("manager", "do_reject_suggested_recommender", vars=dict(sugg_recommender_id=sugg_recommender.id, _next=next_url))),
-                               _style="padding-left: 10px"),
+                TD(valid_btn, _style="padding-left: 10px;"),
+                TD(reject_btn, _style="padding-left: 10px"),
             )
 
             list.append(li)
@@ -2543,6 +2553,14 @@ def do_reject_suggested_recommender():
 
     sugg_recommender = SuggestedRecommender.get_by_id(sugg_recommender_id)
     if sugg_recommender:
+        article = Article.get_by_id(sugg_recommender.article_id)
+        if not article:
+            return HTTP(404, "Article not found")
+
+        is_author = article.user_id == auth.user_id
+        if is_author:
+            return HTTP(403, "Author can't reject suggested recommender")
+
         sugg_recommender_name = User.get_name_by_id(sugg_recommender.suggested_recommender_id)
         sugg_recommender.update_record(recommender_validated=False) # type: ignore
     else:
