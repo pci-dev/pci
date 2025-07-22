@@ -1,6 +1,7 @@
 from datetime import datetime
 import time
 from typing import Any, Dict, List, Optional as _, cast
+from models.group import Group
 from pydal.validators import CRYPT
 
 from gluon.utils import web2py_uuid # type: ignore
@@ -26,6 +27,7 @@ class PublicUserData:
     alerts: _[str]
     registration_datetime: _[datetime]
     ethical_code_approved: bool
+    roles: list[str]
 
 class User(Row):
     id: int
@@ -304,18 +306,38 @@ class User(Row):
     def get_all_public_data(deleted_user: bool = True) -> List['PublicUserData']:
         db = current.db
 
-        if deleted_user:
-            query = db(db.auth_user)
-        else:
-            query = db(db.auth_user.deleted == False)
+        query = ()
+        if not deleted_user:
+            query = (db.auth_user.deleted == False)
 
-        users: List[User] = query.select()
+        result = db(query).select(
+            db.auth_user.ALL,
+            db.auth_membership.ALL,
+            db.auth_group.ALL,
+            left=[
+                db.auth_membership.on(db.auth_user.id == db.auth_membership.user_id),
+                db.auth_group.on(db.auth_membership.group_id == db.auth_group.id)
+            ],
+            orderby=db.auth_user.id
+        )
 
-        users_data: List[PublicUserData] = []
-        for user in users:
-            data = PublicUserData()
-            for attr in PublicUserData.__annotations__.keys():
-                value = getattr(user, attr)
-                setattr(data, attr, value)
-            users_data.append(data)
-        return users_data
+        users_data: dict[int, PublicUserData] = {}
+        for r in result:
+            user: User = r['auth_user']
+            group: Group = r['auth_group']
+
+            if not user.id in users_data:
+                data = PublicUserData()
+                for attr in PublicUserData.__annotations__.keys():
+                    if attr == "roles":
+                        continue
+
+                    value = getattr(user, attr)
+                    setattr(data, attr, value)
+                data.roles = []
+                users_data[user.id] = data
+
+            if group.role:
+                users_data[user.id].roles.append(group.role)
+
+        return list(users_data.values())
