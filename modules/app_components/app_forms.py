@@ -314,9 +314,6 @@ def article_add_mandatory_checkboxes(form: ..., pciRRactivated: bool):
 
         "no_financial_conflict_of_interest":
         "The authors declare that they have no financial conflict of interest with the content of the manuscript",
-
-        "sample_size":
-        "If applicable (for empirical studies), sample sizes are clearly justified, or not applicable."
     }
 
     checkboxes = checkboxes_min
