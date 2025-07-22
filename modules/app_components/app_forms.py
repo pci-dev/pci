@@ -297,6 +297,9 @@ def article_add_mandatory_checkboxes(form: ..., pciRRactivated: bool):
         "guide_read":
         "I read the guide for authors",
 
+        "sample_size":
+        "If applicable (for empirical studies), sample sizes are clearly justified, or not applicable.",
+
         "approvals_obtained":
         "If applicable, all the necessary approvals have been obtained before submission (or not applicable)",
 
