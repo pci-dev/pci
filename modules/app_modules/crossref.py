@@ -130,6 +130,7 @@ class DecisionElementXML:
                 status = "major-revision"
 
         item_number = ".".join(decision_doi.split(".")[-2:])
+        last_decision = round == total_round
 
         xml = render( # type: ignore
             filename=os.path.join(CROSSREF_TEMPLATE_DIR, "decision.xml"),
@@ -149,7 +150,8 @@ class DecisionElementXML:
                 interwork_ref=interwork_ref,
                 decision_doi=decision_doi,
                 decision_url=decision_url,
-                item_number=item_number
+                item_number=item_number,
+                add_doi_data=last_decision
             ))
 
         return DecisionElementXML(round, cast(str, xml), batch_id)
