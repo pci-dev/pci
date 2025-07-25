@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 import datetime
 import html
-from multiprocessing import Process
 import os
 from time import sleep
-from app_modules.common_tools import extract_doi
+from app_modules.common_tools import extract_doi, run_web2py_script
 from typing import Dict, List, Optional, Tuple, cast
 from app_modules.httpClient import HttpClient
 from gluon.html import XML
@@ -446,7 +445,7 @@ def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None, check_s
     if not xml:
         xml = CrossrefXML.build(article)
 
-    post_response = _send_xml_to_crossref(xml)
+    post_response = ""
 
     if check_status:
         status = xml.get_status_code()
@@ -454,14 +453,25 @@ def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None, check_s
             sleep(2)
             status = xml.get_status_code()
 
-        if status == 0:
-            db(db.t_articles.id == article.id).update(show_all_doi=True)
-            db.commit()
-            return ""
-    else:
-        second_send = Process(target=post_and_forget, args=(article, None, True))
-        second_send.start()
+        if status != 0:
+            post_response = _send_xml_to_crossref(xml)
 
+            status = xml.get_status_code()
+            while status == 2: # Wait state skipping QUEUE
+                sleep(2)
+                status = xml.get_status_code()
+
+            if status != 0 or post_response:
+                db(db.t_articles.id == article.id).update(show_all_doi=False)
+                db.commit()
+                return post_response
+    else:
+        post_response = _send_xml_to_crossref(xml)
+        run_web2py_script("send_to_crossref.py", str(article.id))
+
+    if not post_response:
+        db(db.t_articles.id == article.id).update(show_all_doi=True)
+        db.commit()
     return post_response
 
 

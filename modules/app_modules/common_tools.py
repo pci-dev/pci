@@ -412,7 +412,7 @@ def run_web2py_script(script_name: str, *args: ..., **kwargs: ...):
 
     encoded_args = [arg.encode('utf-8') if isinstance(arg, str) else arg for arg in args]
 
-    cmd = [
+    cmd: List[Any] = [
             'python3',
             'web2py.py',
             '-M',
