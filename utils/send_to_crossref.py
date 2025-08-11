@@ -1,6 +1,6 @@
 import argparse
 
-from app_modules.crossref import post_and_forget
+from app_modules.crossref import post_to_crossref
 from models.article import Article
 
 
@@ -20,7 +20,7 @@ def main():
         print("Article not found")
         return
 
-    post_response = post_and_forget(article, None, True)
+    post_response = post_to_crossref(article)
     if post_response:
         print(post_response)
         return

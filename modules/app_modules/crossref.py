@@ -441,25 +441,41 @@ QUEUED = '<doi_batch_diagnostic status="queued"'
 FAILED = '<record_diagnostic status="Failure"'
 
 
-def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None, check_status: bool = False):
+def async_post_to_crossref(article: Article, xml: Optional[CrossrefXML] = None):
+    if xml:
+        post_to_crossref(article, xml, False)
+    else:
+        run_web2py_script("send_to_crossref.py", str(article.id))
+
+
+def post_to_crossref(article: Article, xml: Optional[CrossrefXML] = None, check_status: bool = True):
     if not xml:
         xml = CrossrefXML.build(article)
 
     post_response = ""
 
     if check_status:
+        count = 0
         status = xml.get_status_code()
         while status == 2: # Wait state skipping QUEUE
             sleep(2)
             status = xml.get_status_code()
+            count += 1
+            if count == 10:
+                break
+
 
         if status != 0:
             post_response = _send_xml_to_crossref(xml)
 
             status = xml.get_status_code()
+            count = 0
             while status == 2: # Wait state skipping QUEUE
                 sleep(2)
                 status = xml.get_status_code()
+                count += 1
+                if count == 10:
+                    break
 
             if status != 0 or post_response:
                 db(db.t_articles.id == article.id).update(show_all_doi=False)
@@ -467,11 +483,11 @@ def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None, check_s
                 return post_response
     else:
         post_response = _send_xml_to_crossref(xml)
-        run_web2py_script("send_to_crossref.py", str(article.id))
 
     if not post_response:
         db(db.t_articles.id == article.id).update(show_all_doi=True)
         db.commit()
+
     return post_response
 
 
