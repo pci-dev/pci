@@ -457,7 +457,7 @@ def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None, check_s
             db.commit()
             return ""
     else:
-        second_send = Process(target=post_and_forget, args=(article, xml, True))
+        second_send = Process(target=post_and_forget, args=(article, None, True))
         second_send.start()
 
     return post_response
