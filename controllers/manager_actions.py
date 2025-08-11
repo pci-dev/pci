@@ -144,7 +144,7 @@ def do_recommend_article():
 
     try:
         if not art.already_published:
-            status = crossref.post_and_forget(art)
+            status = crossref.async_post_to_crossref(art)
         else:
             status = None
 
