@@ -448,10 +448,7 @@ def async_post_to_crossref(article: Article, xml: Optional[CrossrefXML] = None):
         run_web2py_script("send_to_crossref.py", str(article.id))
 
 
-def post_to_crossref(article: Article, xml: Optional[CrossrefXML] = None, check_status: bool = True):
-    if not xml:
-        xml = CrossrefXML.build(article)
-
+def post_to_crossref(article: Article, xml: CrossrefXML, check_status: bool = True):
     post_response = ""
 
     if check_status:
