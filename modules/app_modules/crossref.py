@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 import datetime
 import html
-from multiprocessing import Process
 import os
 from time import sleep
-from app_modules.common_tools import extract_doi
+from app_modules.common_tools import extract_doi, run_web2py_script
 from typing import Dict, List, Optional, Tuple, cast
 from app_modules.httpClient import HttpClient
 from gluon.html import XML
@@ -130,6 +129,7 @@ class DecisionElementXML:
                 status = "major-revision"
 
         item_number = ".".join(decision_doi.split(".")[-2:])
+        last_decision = round == total_round
 
         xml = render( # type: ignore
             filename=os.path.join(CROSSREF_TEMPLATE_DIR, "decision.xml"),
@@ -149,7 +149,8 @@ class DecisionElementXML:
                 interwork_ref=interwork_ref,
                 decision_doi=decision_doi,
                 decision_url=decision_url,
-                item_number=item_number
+                item_number=item_number,
+                add_doi_data=last_decision
             ))
 
         return DecisionElementXML(round, cast(str, xml), batch_id)
@@ -440,25 +441,52 @@ QUEUED = '<doi_batch_diagnostic status="queued"'
 FAILED = '<record_diagnostic status="Failure"'
 
 
-def post_and_forget(article: Article, xml: Optional[CrossrefXML] = None, check_status: bool = False):
+def async_post_to_crossref(article: Article, xml: Optional[CrossrefXML] = None):
+    if xml:
+        post_to_crossref(article, xml, False)
+    else:
+        run_web2py_script("send_to_crossref.py", str(article.id))
+
+
+def post_to_crossref(article: Article, xml: Optional[CrossrefXML] = None, check_status: bool = True):
     if not xml:
         xml = CrossrefXML.build(article)
 
-    post_response = _send_xml_to_crossref(xml)
+    post_response = ""
 
     if check_status:
+        count = 0
         status = xml.get_status_code()
         while status == 2: # Wait state skipping QUEUE
             sleep(2)
             status = xml.get_status_code()
+            count += 1
+            if count == 10:
+                break
 
-        if status == 0:
-            db(db.t_articles.id == article.id).update(show_all_doi=True)
-            db.commit()
-            return ""
+
+        if status != 0:
+            post_response = _send_xml_to_crossref(xml)
+
+            status = xml.get_status_code()
+            count = 0
+            while status == 2: # Wait state skipping QUEUE
+                sleep(2)
+                status = xml.get_status_code()
+                count += 1
+                if count == 10:
+                    break
+
+            if status != 0 or post_response:
+                db(db.t_articles.id == article.id).update(show_all_doi=False)
+                db.commit()
+                return post_response
     else:
-        second_send = Process(target=post_and_forget, args=(article, None, True))
-        second_send.start()
+        post_response = _send_xml_to_crossref(xml)
+
+    if not post_response:
+        db(db.t_articles.id == article.id).update(show_all_doi=True)
+        db.commit()
 
     return post_response
 

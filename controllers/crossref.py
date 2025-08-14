@@ -54,7 +54,7 @@ def post_form():
 
     if not is_empty_form:
         try:
-            post_response = crossref.post_and_forget(article, recommendation_xml)
+            post_response = crossref.async_post_to_crossref(article, recommendation_xml)
             if not post_response:
                 send_to_clockss(article, recommendation)
 
