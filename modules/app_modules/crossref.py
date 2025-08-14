@@ -2,8 +2,9 @@ from dataclasses import dataclass
 import datetime
 import html
 import os
+import subprocess
 from time import sleep
-from app_modules.common_tools import extract_doi, run_web2py_script
+from app_modules.common_tools import extract_doi
 from typing import Dict, List, Optional, Tuple, cast
 from app_modules.httpClient import HttpClient
 from gluon.html import XML
@@ -445,11 +446,30 @@ def async_post_to_crossref(article: Article, xml: Optional[CrossrefXML] = None):
     if xml:
         post_to_crossref(article, xml, False)
     else:
-        run_web2py_script("send_to_crossref.py", str(article.id))
+        app_name = current.request.application
+
+        python_path = 'python'
+        if os.path.isfile('/var/www/venv/bin/python'):
+            python_path = '/var/www/venv/bin/python'
+
+        cmd: List[str] = [
+            python_path,
+            'web2py.py',
+            '-M',
+            '-S',
+            app_name,
+            '-R',
+            f'applications/{app_name}/utils/send_to_crossref.py',
+            '-A',
+            str(article.id),
+        ]
+
+        p = subprocess.Popen(cmd)
+        del p
 
 
 def post_to_crossref(article: Article, xml: CrossrefXML, check_status: bool = True):
-    post_response = ""
+    post_response = _send_xml_to_crossref(xml)
 
     if check_status:
         count = 0
@@ -478,8 +498,6 @@ def post_to_crossref(article: Article, xml: CrossrefXML, check_status: bool = Tr
                 db(db.t_articles.id == article.id).update(show_all_doi=False)
                 db.commit()
                 return post_response
-    else:
-        post_response = _send_xml_to_crossref(xml)
 
     if not post_response:
         db(db.t_articles.id == article.id).update(show_all_doi=True)
