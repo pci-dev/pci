@@ -41,7 +41,7 @@ def main():
             print(f"Article {article.id}: No recommendation found")
             continue
 
-        status = crossref.post_and_forget(article)
+        status = crossref.async_post_to_crossref(article)
         if status:
             nok_crossref.append(article.id)
             print(f"Error to post to crossref: {status}")
