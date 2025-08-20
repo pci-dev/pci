@@ -21,10 +21,6 @@
                 {{if pci.issn:}}
                 <issn media_type="electronic">{{=pci.issn}}</issn>
                 {{pass}}
-                <doi_data>
-                    <doi>{{=he(pci.doi)}}</doi>
-                    <resource>{{=he(pci.url)}}/</resource>
-                </doi_data>
             </journal_metadata>
 
             <journal_issue>
