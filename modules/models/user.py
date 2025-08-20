@@ -101,7 +101,6 @@ class User(Row):
         user.no_orcid = no_orcid
         return user.update_record() # type: ignore
 
-
     @staticmethod
     def is_profile_completed(user: 'User'):
         return user.first_name != None and len(user.first_name) > 0 \
@@ -233,8 +232,8 @@ class User(Row):
                         orcid: _[str] = None):
         db = current.db
         my_crypt = CRYPT(key=current.auth.settings.hmac_key)
-        crypt_pass = my_crypt(current.auth.random_password())[0] # type: ignore
-
+        crypt_pass = cast(str, my_crypt(current.auth.random_password())[0])
+        
         if not reset_password_key:
             reset_password_key = User.generate_new_reset_password_key()
 
@@ -341,3 +340,10 @@ class User(Row):
                 users_data[user.id].roles.append(group.role)
 
         return list(users_data.values())
+    
+
+    @staticmethod
+    def get_public_page_url(user_id: int):
+        from app_modules.common_tools import URL
+
+        return URL(c="public", f="user_public_page", vars=dict(userId=user_id), scheme=True)

@@ -7,6 +7,9 @@ from app_components import public_recommendation
 
 from app_modules import common_small_html, old_common
 from app_modules import common_tools
+from app_modules import common_small_html
+from gluon import redirect # type: ignore
+from models.article import Article
 
 from gluon import current
 from gluon.http import redirect # type: ignore
@@ -20,6 +23,14 @@ T = current.T
 session = current.session
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+
+request = current.request
+session = current.session
+T = current.T
+db = current.db
+response = current.response
+
+
 ######################################################################################################################################################################
 def index():
     redirect(request.home)
@@ -73,7 +84,7 @@ def rec():
             return redirect(request.env.http_referer)
 
     # Set Page title
-    finalRecomm: Optional[Recommendation] = db((db.t_recommendations.article_id == art.id) & (db.t_recommendations.recommendation_state == ArticleStatus.RECOMMENDED.value)).select(orderby=db.t_recommendations.id).last()
+    finalRecomm = Article.get_final_recommendation(art)
     if not finalRecomm:
         session.flash = T("Item not recommended yet")
         return redirect(request.home)
@@ -93,7 +104,7 @@ def rec():
     recommendationHeader = public_recommendation.getArticleAndFinalRecommendation(art, finalRecomm, printable)
     recommHeaderHtml = recommendationHeader["headerHtml"]
     recommMetadata = recommendationHeader["recommMetadata"]
-    dublin_core = recommendationHeader["dublin_core"]
+    schema_org = recommendationHeader["schema_org"]
 
     if len(recommMetadata) > 0:
         response.meta = recommMetadata
@@ -125,7 +136,7 @@ def rec():
         commentsTreeAndForm=commentsTreeAndForm,
         printableClass=printableClass,
         myBackButton=common_small_html.mkBackButton(),
-        dublinCore=dublin_core
+        metas=[schema_org]
     )
 
 

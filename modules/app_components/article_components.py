@@ -1,30 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import gc
-import os
 from typing import Any, Dict, Optional, cast
-from gluon.globals import Response
 from models.group import Role
 from models.recommendation import Recommendation
 from models.review import ReviewState
-import pytz, datetime
-from re import sub, match
-from copy import deepcopy
-import datetime
-from datetime import timedelta
+from re import sub
 from dateutil.relativedelta import *
-from collections import OrderedDict
 
-import io
-from PIL import Image
-
-from gluon import current, IS_IN_DB
-from gluon.tools import Auth
+from gluon import current
 from gluon.html import *
-from gluon.template import render
-from gluon.contrib.markdown import WIKI
-from gluon.contrib.appconfig import AppConfig
-from gluon.tools import Mail
+from gluon.contrib.markdown import WIKI # type: ignore
+from gluon.contrib.appconfig import AppConfig  # type: ignore
 from gluon.sqlhtml import *
 
 
@@ -34,6 +20,7 @@ from app_modules.common_small_html import md_to_html
 from app_modules.lang import Lang
 from models.article import Article, ArticleStage, ArticleStatus
 
+from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 
@@ -46,10 +33,8 @@ DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
 def getRecommArticleRowCard(article: Article,
                             recomm: Recommendation,
                             withImg: bool = True,
-                            withScore: bool = False,
                             withDate: bool = False,
                             fullURL: bool = False,
-                            withLastRecommOnly: bool = False,
                             orcid_exponant: bool = False):
 
     isStage2 = article.art_stage_1_id is not None
@@ -69,6 +54,8 @@ def getRecommArticleRowCard(article: Article,
 
     if withDate:
         date = common_small_html.mkLastChange(article.last_status_change)
+    else:
+        date = ''
 
     articleImg = ""
     if withImg:
@@ -93,7 +80,7 @@ def getRecommArticleRowCard(article: Article,
       if article.status != "Recommended":
         doi_text = DIV(B("Scheduled submission: ", _style="color: #ffbf00"), B(I(str(article.scheduled_submission_date))), BR())
 
-    componentVars = dict(
+    componentVars: Dict[str, Any] = dict(
         articleDate=date,
         articleUrl=URL(c="articles", f="rec", vars=dict(id=article.id), scheme=fullURL),
         articleTitle=md_to_html(article.title),
@@ -103,7 +90,7 @@ def getRecommArticleRowCard(article: Article,
         articleDoi=doi_text,
         recommendationAuthors=SPAN(recommAuthors),
         recommendationTitle=md_to_html(recomm.recommendation_title),
-        recommendationShortText=WIKI(str(recommShortText), safe_mode=False),
+        recommendationShortText=WIKI(str(recommShortText), safe_mode=''),
         pciRRactivated=pciRRactivated,
         isStage2=isStage2,
         stage1Url=stage1Url,
@@ -122,10 +109,9 @@ def getArticleTrackcRowCard(article: Article):
         & (db.t_reviews.review_state.belongs("Awaiting review", "Review completed"))
     ).count(distinct=db.t_reviews.id)
     if nbReviews > 0:
-        track = DIV(_class="pci-trackItem")
-
-        firstDate = article.upload_timestamp.strftime(DEFAULT_DATE_FORMAT)
-        lastDate = article.last_status_change.strftime(DEFAULT_DATE_FORMAT)
+        
+        firstDate = article.upload_timestamp.strftime(DEFAULT_DATE_FORMAT) if article.upload_timestamp else ''
+        lastDate = article.last_status_change.strftime(DEFAULT_DATE_FORMAT) if article.last_status_change else ''
         title = md_to_html(article.title)
         if article.anonymous_submission:
             authors = "[anonymous submission]"
@@ -176,11 +162,11 @@ def getArticleTrackcRowCard(article: Article):
 
 
 class article_infocard_for_search_screens:
-  def __init__(_):
-    _.printable = False
-    _.keywords = True
-    _.abstract = False
-    _.with_cover_letter = False
+  def __init__(self):
+    self.printable = False
+    self.keywords = True
+    self.abstract = False
+    self.with_cover_letter = False
 
 for_search = article_infocard_for_search_screens().__dict__
 
@@ -367,7 +353,7 @@ def _get_article_translation(article: Article):
         return translations
 
 
-def make_article_source(article):
+def make_article_source(article: Article):
     if pciRRactivated:
         return ""
 

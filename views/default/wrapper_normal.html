@@ -1,9 +1,9 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('panel' in globals())}}
 {{extend 'layout.html'}}
 
-{{ block header }}
-	{{ if 'dublinCore' in locals(): }}
-		{{for meta in dublinCore:}}
+{{ block head }}
+	{{ if 'metas' in locals(): }}
+		{{for meta in metas:}}
 			{{=meta}}
 		{{ pass }}
 	{{ pass }}

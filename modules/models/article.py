@@ -230,14 +230,15 @@ class Article(Row):
 
 
     @staticmethod
-    def get_last_recommendations(article_id: int, order_by: _[Any]):
+    def get_last_recommendations(article_id: int, order_by: _[Any]) -> List[Recommendation]:
         db = current.db
+        query = db(db.t_recommendations.article_id == article_id)
         if order_by:
-            recommendations = db(db.t_recommendations.article_id == article_id).select(orderby=order_by)
+            recommendations = query.select(orderby=order_by)
         else:
-            recommendations = db(db.t_recommendations.article_id == article_id).select()
-        return cast(List[Recommendation], recommendations)
-
+            recommendations = query.select()
+        return recommendations
+    
 
     @staticmethod
     def current_user_has_edit_translation_right(article: 'Article'):
@@ -690,6 +691,20 @@ class Article(Row):
             authors.append(name)
         return authors
 
+    @staticmethod
+    def get_image_url(article: 'Article'):
+        from app_modules.common_tools import URL
+        
+        if article.uploaded_picture:
+            return URL("static", "uploads", args=article.uploaded_picture, scheme=True)
+
+
+    @staticmethod
+    def get_final_recommendation(article: 'Article'):
+        db = current.db
+        query = (db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == RecommendationState.RECOMMENDED.value)
+        recommendation: _[Recommendation] = db(query).select(orderby=db.t_recommendations.id).last()
+        return recommendation
 
 
 def is_scheduled_submission(article: Article) -> bool:
