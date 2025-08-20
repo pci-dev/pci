@@ -238,8 +238,6 @@ VALUES
 (E'#UserEditReplyText',E'default',NULL),
 (E'#UserEditReplyTitle',E'default',E'Edit your reply to recommender'),
 (E'#UserEditReview',E'default',NULL),
-(E'#UserEditReviewText',E'default','<p><strong>Please paste or attach your review below.</strong></p> <ol> <li style="font-weight: 400;" aria-level="1"><strong>Be supportive: </strong><span style="font-weight: 400;">Avoid rude, emotive, and accusatory language and tone.</span></li> <li style="font-weight: 400;" aria-level="1"><strong>Be precise:</strong><span style="font-weight: 400;"> In references to manuscript text, analyses and figures, include the line number and figure panels in question.</span></li> <li style="font-weight: 400;" aria-level="1"><strong>Fully reference</strong><span style="font-weight: 400;"> all of your non-trivial scientific claims (as you would in a manuscript).</span></li> <li style="font-weight: 400;" aria-level="1"><strong>Review the </strong><strong><em>claims</em></strong><span style="font-weight: 400;">: Perceived novelty or impact of the work must not factor into reviewer comments, unless these form part of the specific claims of the manuscript (e.g., a claim of novelty).&nbsp;</span></li> <li style="font-weight: 400;" aria-level="1"><strong>Be constructive:</strong><span style="font-weight: 400;"> Whenever possible, suggest a solution for the problem or concern you raise. Note, this will always only be one of different possible solutions – the authors may choose a different one.</span></li> </ol> <p>In addition, <strong data-renderer-mark="true">we encourage you to copy/paste and answer the following questions</strong> to help recommenders make well-informed and efficient decisions.</p> <p><span style="font-weight: 400;">If you answer “No” to a question, please </span><strong>explain why and list your suggestions for improvement</strong><span style="font-weight: 400;"> by the authors </span><strong>in your free-text review or below each question.</strong><span style="font-weight: 400;">&nbsp;</span></p> <ul> <li><span class="sub-text"><strong>Title and abstract</strong></span> <ul> <li><span class="sub-text"><span style="font-weight: 400;">Does the title clearly reflect the content of the article? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> <li><span class="sub-text"><span style="font-weight: 400;">Does the abstract present the main findings of the study? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> </ul> </li> <li><span class="sub-text"><strong>Introduction</strong></span> <ul> <li><span class="sub-text"><span style="font-weight: 400;">Are the research questions/hypotheses/predictions clearly presented? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> <li><span class="sub-text"><span style="font-weight: 400;">Does the introduction build on relevant research in the field? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> </ul> </li> <li><span class="sub-text"><strong>Materials and methods</strong></span> <ul> <li><span class="sub-text"><span style="font-weight: 400;">Are the methods and analyses sufficiently detailed to allow replication by other researchers? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> <li><span class="sub-text"><span style="font-weight: 400;">Are the methods and statistical analyses appropriate and well described? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> </ul> </li> <li><span class="sub-text"><strong>Results</strong></span> <ul> <li><span class="sub-text"><span style="font-weight: 400;">In the case of negative results, is there a statistical power analysis (or an adequate Bayesian analysis or equivalence testing)? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> <li><span class="sub-text"><span style="font-weight: 400;">Are the results described and interpreted correctly? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> </ul> </li> <li><span class="sub-text"><strong>Discussion</strong></span> <ul> <li><span class="sub-text"><span style="font-weight: 400;">Have the authors appropriately emphasized the strengths and limitations of their study/theory/methods/argument? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> <li><span class="sub-text"><span style="font-weight: 400;">Are the conclusions adequately supported by the results (without overstating the implications of the findings)? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li> </ul> </li> </ul> '),
-(E'#UserEditReviewTitle',E'default',E'Write or edit your review'),
 (E'#UserManageRecommenders',E'default',NULL),
 (E'#UserManageRecommendersText',E'default',NULL),
 (E'#UserManageRecommendersTitle',E'default',E'Manage recommenders for your article'),
@@ -357,3 +355,82 @@ VALUES
 -- 2024-09-02 updates/newsletter-custom.sql
 INSERT INTO help_texts (hashtag,lang,contents) VALUES ('#SendMailSubscribersTitle','default','Send mail to all subscribers');
 INSERT INTO help_texts (hashtag,lang,contents) VALUES ('#SendMailSubscribersText','default','Send a general newsletter to all users that subscribed to the newsletter in their profile.');
+
+INSERT INTO help_texts (hashtag,lang,contents) VALUES ('#UserEditReviewText', 'default', '<p><strong>Please paste or attach your review below.</strong></p>
+<ol>
+    <li style="font-weight: 400;" aria-level="1"><strong>Be supportive: </strong><span style="font-weight: 400;">Avoid
+            rude, emotive, and accusatory language and tone.</span></li>
+    <li style="font-weight: 400;" aria-level="1"><strong>Be precise:</strong><span style="font-weight: 400;"> In
+            references to manuscript text, analyses and figures, include the line number and figure panels in
+            question.</span></li>
+    <li style="font-weight: 400;" aria-level="1"><strong>Fully reference</strong><span style="font-weight: 400;"> all of
+            your non-trivial scientific claims (as you would in a manuscript).</span></li>
+    <li style="font-weight: 400;" aria-level="1"><strong>Review the </strong><strong><em>claims</em></strong><span
+            style="font-weight: 400;">: Perceived novelty or impact of the work must not factor into reviewer comments,
+            unless these form part of the specific claims of the manuscript (e.g., a claim of novelty).&nbsp;</span>
+    </li>
+    <li style="font-weight: 400;" aria-level="1"><strong>Be constructive:</strong><span style="font-weight: 400;">
+            Whenever possible, suggest a solution for the problem or concern you raise. Note, this will always only be
+            one of different possible solutions – the authors may choose a different one.</span></li>
+</ol>
+<p>In addition, <strong data-renderer-mark="true">we encourage you to copy/paste and answer the following
+        questions</strong> to help recommenders make well-informed and efficient decisions.</p>
+<p><span style="font-weight: 400;">If you answer “No” to a question, please </span><strong>explain why and list your
+        suggestions for improvement</strong><span style="font-weight: 400;"> by the authors </span><strong>in your
+        free-text review or below each question.</strong><span style="font-weight: 400;">&nbsp;</span></p>
+<ul>
+    <li><span class="sub-text"><strong>Title and abstract</strong></span>
+        <ul>
+            <li><span class="sub-text"><span style="font-weight: 400;">Does the title clearly reflect the content of the
+                        article? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t
+                        know</span></span></li>
+            <li><span class="sub-text"><span style="font-weight: 400;">Does the abstract present the main findings of
+                        the study? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t
+                        know</span></span></li>
+        </ul>
+    </li>
+    <li><span class="sub-text"><strong>Introduction</strong></span>
+        <ul>
+            <li><span class="sub-text"><span style="font-weight: 400;">Are the research questions/hypotheses/predictions
+                        clearly presented? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ]
+                        I don’t know</span></span></li>
+            <li><span class="sub-text"><span style="font-weight: 400;">Does the introduction build on relevant research
+                        in the field? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I
+                        don’t know</span></span></li>
+        </ul>
+    </li>
+    <li><span class="sub-text"><strong>Materials and methods</strong></span>
+        <ul>
+            <li><span class="sub-text"><span style="font-weight: 400;">Are the methods and analyses sufficiently
+                        detailed to allow replication by other researchers? </span><span style="font-weight: 400;">[ ]
+                        Yes, [ ] No (please explain), [ ] I don’t know</span></span></li>
+            <li><span class="sub-text"><span style="font-weight: 400;">If applicable (for empirical studies), are sample
+                        sizes are clearly justified? </span><span style="font-weight: 400;">[ ]
+                        Yes, [ ] No (please explain), [ ] I don’t know</span></span></li>
+            <li><span class="sub-text"><span style="font-weight: 400;">Are the methods and statistical analyses
+                        appropriate and well described? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please
+                        explain), [ ] I don’t know</span></span></li>
+        </ul>
+    </li>
+    <li><span class="sub-text"><strong>Results</strong></span>
+        <ul>
+            <li><span class="sub-text"><span style="font-weight: 400;">In the case of negative results, is there a
+                        statistical power analysis (or an adequate Bayesian analysis or equivalence testing)?
+                    </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t
+                        know</span></span></li>
+            <li><span class="sub-text"><span style="font-weight: 400;">Are the results described and interpreted
+                        correctly? </span><span style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t
+                        know</span></span></li>
+        </ul>
+    </li>
+    <li><span class="sub-text"><strong>Discussion</strong></span>
+        <ul>
+            <li><span class="sub-text"><span style="font-weight: 400;">Have the authors appropriately emphasized the
+                        strengths and limitations of their study/theory/methods/argument? </span><span
+                        style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li>
+            <li><span class="sub-text"><span style="font-weight: 400;">Are the conclusions adequately supported by the
+                        results (without overstating the implications of the findings)? </span><span
+                        style="font-weight: 400;">[ ] Yes, [ ] No (please explain), [ ] I don’t know</span></span></li>
+        </ul>
+    </li>
+</ul>');
