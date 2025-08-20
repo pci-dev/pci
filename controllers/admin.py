@@ -1003,7 +1003,8 @@ def urls():
             URL("api", " "),
             URL("coar_notify", " "),
             URL("coar_notify", "show?id=XXX"),
-            URL("metadata", "recommendation?article_id=XXX"),
+            URL("metadata", "docmaps?article_id=XXX"),
+            URL("metadata", "crossref?article_id=XXX"),
         ]
     ]))
 
