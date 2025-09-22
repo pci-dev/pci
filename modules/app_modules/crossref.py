@@ -499,9 +499,9 @@ def post_to_crossref(article: Article, xml: CrossrefXML, check_status: bool = Tr
                 db.commit()
                 return post_response
 
-    if not post_response:
-        db(db.t_articles.id == article.id).update(show_all_doi=True)
-        db.commit()
+    
+    db(db.t_articles.id == article.id).update(show_all_doi=True)
+    db.commit()
 
     return post_response
 
