@@ -475,7 +475,7 @@ def post_to_crossref(article: Article, xml: CrossrefXML, check_status: bool = Tr
         count = 0
         status = xml.get_status_code()
         while status == 2: # Wait state skipping QUEUE
-            sleep(2)
+            sleep(3)
             status = xml.get_status_code()
             count += 1
             if count == 10:
@@ -488,7 +488,7 @@ def post_to_crossref(article: Article, xml: CrossrefXML, check_status: bool = Tr
             status = xml.get_status_code()
             count = 0
             while status == 2: # Wait state skipping QUEUE
-                sleep(2)
+                sleep(3)
                 status = xml.get_status_code()
                 count += 1
                 if count == 10:
