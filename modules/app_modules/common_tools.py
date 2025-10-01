@@ -412,8 +412,12 @@ def run_web2py_script(script_name: str, *args: ..., **kwargs: ...):
 
     encoded_args = [arg.encode('utf-8') if isinstance(arg, str) else arg for arg in args]
 
+    python_path = 'python'
+    if os.path.isfile('/var/www/venv/bin/python'):
+        python_path = '/var/www/venv/bin/python'
+
     cmd: List[Any] = [
-            'python3',
+            python_path,
             'web2py.py',
             '-M',
             '-S',

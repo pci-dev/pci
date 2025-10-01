@@ -1,3 +1,4 @@
+import os
 from time import sleep
 from typing import List, Optional, TypedDict
 import subprocess
@@ -128,9 +129,13 @@ class ArticleTranslator(Translator):
     @staticmethod
     def launch_article_translation_for_default_langs_process(article_id: int, force: bool = False, public: Optional[bool] = None):
         app_name = current.request.application
+
+        python_path = 'python'
+        if os.path.isfile('/var/www/venv/bin/python'):
+            python_path = '/var/www/venv/bin/python'
         
         cmd: List[str] = [
-            'python3',
+            python_path,
             'web2py.py',
             '-M', 
             '-S', 
