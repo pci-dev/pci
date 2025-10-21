@@ -733,6 +733,7 @@ def deltaStatus(s: ..., f: Article):
             emailing.create_reminder_for_submitter_new_suggested_recommender_needed(o["id"])
             # emailing.create_reminder_for_submitter_cancel_submission(o["id"])
             emailing.create_reminder_for_suggested_recommenders_invitation(o["id"])
+            emailing.create_reminder_for_submission_could_be_not_considered(o)
             emailing.send_to_managers(o["id"], f["status"])
 
         elif o.status == "Pre-submission" and f["status"] == "Pending":

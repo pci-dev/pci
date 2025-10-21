@@ -3916,3 +3916,17 @@ def send_manager_alert_willing_to_recommend(article_id: int):
                                   scheme=True)
 
     emailing_tools.insertMailInQueue(mail_template, mail_vars, article_id=article_id)
+
+##############################################################################################################"
+
+def create_reminder_for_submission_could_be_not_considered(article: Article):
+    mail_vars = emailing_tools.getMailCommonVars()
+    mail_vars["articleTitle"] = md_to_html(article.title)
+    mail_vars["linkTarget"] = URL(c="manager", f="recommendations", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
+
+    mail_vars["destAddress"] = mail_vars["appContactMail"]
+    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+
+    hashtag_template = "#SubmissionCouldBeClassifiedNotConsidered"
+
+    emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, article.id)
