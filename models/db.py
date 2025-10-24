@@ -772,7 +772,9 @@ def deltaStatus(s: ..., f: Article):
             emailing.delete_reminder_for_submitter("#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
             # emailing.delete_reminder_for_submitter("#ReminderSubmitterCancelSubmission", o["id"])
             emailing.delete_reminder_for_suggested_recommenders("#ReminderSuggestedRecommenderInvitation", o["id"])
-            emailing.delete_reminder_for_managers(["#ValidSuggestedRecommender", "#ReminderValidSuggestedRecommender"],
+            emailing.delete_reminder_for_managers(["#ValidSuggestedRecommender",
+                                                   "#ReminderValidSuggestedRecommender",
+                                                   "#ReminderSubmissionCouldBeClassifiedNotConsidered"],
                                                   article_id=o.id,
                                                   sending_status=[SendingStatus.PENDING])
 

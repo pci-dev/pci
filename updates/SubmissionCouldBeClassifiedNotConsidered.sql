@@ -2,7 +2,7 @@ INSERT INTO
     public.mail_templates (hashtag, lang, subject, description, contents)
 VALUES
     (
-        '#SubmissionCouldBeClassifiedNotConsidered',
+        '#ReminderSubmissionCouldBeClassifiedNotConsidered',
         'default',
         '{{appName}}: Action Required - Cancel or find recommender for preprint {{articleTitle}}',
         'Mail to the managing board to let them know that a preprint is awaiting for a recommender for more than 20 days and that they can classify it as not considered.',

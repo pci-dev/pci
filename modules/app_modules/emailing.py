@@ -3927,6 +3927,6 @@ def create_reminder_for_submission_could_be_not_considered(article: Article):
     mail_vars["destAddress"] = mail_vars["appContactMail"]
     mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
 
-    hashtag_template = "#SubmissionCouldBeClassifiedNotConsidered"
+    hashtag_template = "#ReminderSubmissionCouldBeClassifiedNotConsidered"
 
     emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, None, None, article.id)

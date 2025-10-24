@@ -101,7 +101,7 @@ _reminders = {
     "ReminderRevisionsRequiredToYourSubmission": [2, 10],
     "ReminderValidSuggestedRecommender": [2, 4, 6, 8, 10],
 
-    "SubmissionCouldBeClassifiedNotConsidered": [20],
+    "ReminderSubmissionCouldBeClassifiedNotConsidered": [20],
 }
 
 if pciRRactivated:
