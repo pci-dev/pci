@@ -179,7 +179,7 @@ if (!pciRRactivated) {
             <li>main results and interpretations</li>
             <li>Most importantly, please develop the reasons why you decided to recommend it</li>
           </ul>
-          <p>Here are some questions to help you write your recommendation text:</p>
+          <p>Below are some questions to help you write your recommendation text. You may write or paste your replies directly in the recommendation form below.</p>
           <h5>1- What is the general context of the study in the field?</h5>
           <pre>[The general context of the study is ...]</pre>
           <h5>2- What is your specific interest in the scientific question asked by / the object studied in the article?</h5>
