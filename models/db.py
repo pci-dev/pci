@@ -733,6 +733,7 @@ def deltaStatus(s: ..., f: Article):
             emailing.create_reminder_for_submitter_new_suggested_recommender_needed(o["id"])
             # emailing.create_reminder_for_submitter_cancel_submission(o["id"])
             emailing.create_reminder_for_suggested_recommenders_invitation(o["id"])
+            emailing.create_reminder_for_submission_could_be_not_considered(o)
             emailing.send_to_managers(o["id"], f["status"])
 
         elif o.status == "Pre-submission" and f["status"] == "Pending":
@@ -771,7 +772,9 @@ def deltaStatus(s: ..., f: Article):
             emailing.delete_reminder_for_submitter("#ReminderSubmitterNewSuggestedRecommenderNeeded", o["id"])
             # emailing.delete_reminder_for_submitter("#ReminderSubmitterCancelSubmission", o["id"])
             emailing.delete_reminder_for_suggested_recommenders("#ReminderSuggestedRecommenderInvitation", o["id"])
-            emailing.delete_reminder_for_managers(["#ValidSuggestedRecommender", "#ReminderValidSuggestedRecommender"],
+            emailing.delete_reminder_for_managers(["#ValidSuggestedRecommender",
+                                                   "#ReminderValidSuggestedRecommender",
+                                                   "#ReminderSubmissionCouldBeClassifiedNotConsidered"],
                                                   article_id=o.id,
                                                   sending_status=[SendingStatus.PENDING])
 
