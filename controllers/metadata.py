@@ -1,6 +1,6 @@
 import json
 import datetime
-from app_modules.common_tools import url_to_doi_id, doi_to_url
+from app_modules.common_tools import url_to_doi_id
 from gluon import HTTP
 
 from app_modules import crossref as _crossref
@@ -73,7 +73,7 @@ def docmaps():
 
 def article_as_docmaps(version: Recommendation | Any, 
                        article: Article,
-                       typ: Literal["journal-article", "preprint"] = "preprint") -> dict[str, str]:
+                       typ: Literal["journal-article", "preprint"] = "preprint") -> dict[str, str | None]:
     if typ == Literal["prepint"]:
         doi = article.doi
     else:
@@ -81,14 +81,14 @@ def article_as_docmaps(version: Recommendation | Any,
 
     return {
         "published": publication_date(version.recommendation_timestamp),
-        "doi": doi or "MISSING",
+        "doi": url_to_doi_id(doi) if doi else None,
         "type": typ,
     }
 
 
 def publication_date(timestamp: datetime.datetime | None):
     if timestamp is None:
-        return 'MISSING!'
+        return None
     
     return datetime.datetime.strftime(
             timestamp,
@@ -100,7 +100,7 @@ def recommendation_as_docmaps(version: Recommendation | Any,
                               typ: Literal['editorial-decision', 'review', 'reply'],
                               round: int,
                               no_review: int | None = None,
-                              last_round: bool = False) -> dict[str, str]:
+                              last_round: bool = False) -> dict[str, str | None]:
     round = round + 1
     
     timestamp = version.validation_timestamp if typ != "reply" \
@@ -108,21 +108,21 @@ def recommendation_as_docmaps(version: Recommendation | Any,
 
     if typ == "editorial-decision":
         if last_round:
-            doi = version.doi
+            doi = version.recommendation_doi
         else:
-          doi = doi_to_url(get_decision_doi(version, round))
+          doi = get_decision_doi(version, round)
     elif typ == "review":
         if no_review:
-          doi = doi_to_url(get_review_doi(version, no_review, round))
+          doi = get_review_doi(version, no_review, round)
         else:
             doi = None
     else:
-        doi = doi_to_url(get_author_reply_doi(version, round))
+        doi = get_author_reply_doi(version, round)
         
 
     return {
         "published": publication_date(timestamp),
-        "doi": doi or 'MISSING',
+        "doi": doi or None,
         "type": typ,
     }
 
@@ -199,7 +199,7 @@ def steps(article: Article):
         "assertions": [
           {
             "status": "catalogued",
-            "item": init_r.doi,
+            "item": url_to_doi_id(init_r.doi) if init_r.doi else None,
           }
         ],
         "next-step": "_:b1"
@@ -251,7 +251,7 @@ def steps(article: Article):
         "assertions": [
           {
             "status": "reviewed",
-            "item": rnd.doi,
+            "item": url_to_doi_id(rnd.doi) if rnd.doi else None,
           }
         ],
         "inputs": [],
@@ -287,7 +287,7 @@ def steps(article: Article):
         "assertions": [
           {
             "status": "catalogued",
-            "item": rnd.doi,
+            "item": url_to_doi_id(rnd.doi) if rnd.doi else None,
           }
         ],
         "previous-step": f"_:b{round_nb*2 + 1}",
@@ -299,7 +299,7 @@ def steps(article: Article):
 
     class published_proxy:
         recommendation_timestamp = get_crossref_publication_date(article)
-        doi = article.doi_of_published_article
+        doi = url_to_doi_id(article.doi_of_published_article) if article.doi_of_published_article else None
 
     final: dict[str, Any] = {
             f"_:b{len(rounds)*2}": {
