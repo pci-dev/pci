@@ -1,6 +1,6 @@
 import json
 import datetime
-from app_modules.common_tools import url_to_doi_id
+from app_modules.common_tools import url_to_doi_id, doi_to_url
 from gluon import HTTP
 
 from app_modules import crossref as _crossref
@@ -10,7 +10,8 @@ from app_modules.httpClient import HttpClient
 from models.review import ReviewState, Review
 from models.article import Article
 from models.recommendation import Recommendation
-from typing import cast, Any
+from typing import cast, Any, Literal
+from app_modules.crossref import get_author_reply_doi, get_decision_doi, get_review_doi 
 
 from gluon.storage import Storage
 from gluon import current
@@ -70,10 +71,17 @@ def docmaps():
   }])
 
 
-def article_as_docmaps(version: Recommendation | Any, typ: str = "preprint") -> dict[str, str]:
+def article_as_docmaps(version: Recommendation | Any, 
+                       article: Article,
+                       typ: Literal["journal-article", "preprint"] = "preprint") -> dict[str, str]:
+    if typ == Literal["prepint"]:
+        doi = article.doi
+    else:
+        doi = version.doi
+
     return {
         "published": publication_date(version.recommendation_timestamp),
-        "doi": version.doi or "MISSING",
+        "doi": doi or "MISSING",
         "type": typ,
     }
 
@@ -88,12 +96,33 @@ def publication_date(timestamp: datetime.datetime | None):
     )
 
 
-def recommendation_as_docmaps(version: Recommendation, typ: str) -> dict[str, str]:
+def recommendation_as_docmaps(version: Recommendation | Any,
+                              typ: Literal['editorial-decision', 'review', 'reply'],
+                              round: int,
+                              no_review: int | None = None,
+                              last_round: bool = False) -> dict[str, str]:
+    round = round + 1
+    
     timestamp = version.validation_timestamp if typ != "reply" \
             else version.recommendation_timestamp
+
+    if typ == "editorial-decision":
+        if last_round:
+            doi = version.doi
+        else:
+          doi = doi_to_url(get_decision_doi(version, round))
+    elif typ == "review":
+        if no_review:
+          doi = doi_to_url(get_review_doi(version, no_review, round))
+        else:
+            doi = None
+    else:
+        doi = doi_to_url(get_author_reply_doi(version, round))
+        
+
     return {
         "published": publication_date(timestamp),
-        "doi": version.recommendation_doi or 'MISSING',
+        "doi": doi or 'MISSING',
         "type": typ,
     }
 
@@ -116,7 +145,7 @@ def authors_as_docmaps(article: Article) -> list[dict[str, Any]]:
 
 
 def reviews(version: Recommendation):
-    reviews = Review.get_by_recommendation_id(version.id, review_states=[ReviewState.REVIEW_COMPLETED])
+    reviews = Review.get_by_recommendation_id(version.id, db.t_reviews.id, [ReviewState.REVIEW_COMPLETED])
     return [
         Storage(
             reviewer=mkUser(review.reviewer_id).flatten() # type: ignore
@@ -124,9 +153,10 @@ def reviews(version: Recommendation):
             proxy=Storage(
                 validation_timestamp=review.last_change,
                 recommendation_doi=version.recommendation_doi,
-            )
+            ),
+            no_review = i + 1
         )
-        for review in reviews
+        for i, review in enumerate(reviews)
     ]
 
 
@@ -161,7 +191,7 @@ def steps(article: Article):
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(init_r)
+                article_as_docmaps(init_r, article)
             ],
             "inputs": []
           }
@@ -191,10 +221,10 @@ def steps(article: Article):
               }
             ],
             "outputs": [
-                recommendation_as_docmaps(rnd, "editorial-decision")
+                recommendation_as_docmaps(rnd, "editorial-decision", round_nb, last_round=rnd.id == last_r.id)
             ],
             "inputs": [
-                article_as_docmaps(rnd)
+                article_as_docmaps(rnd, article)
             ]
           },
           ] + [
@@ -209,10 +239,10 @@ def steps(article: Article):
               }
             ],
             "outputs": [
-                recommendation_as_docmaps(review.proxy, "review") # type: ignore
+                recommendation_as_docmaps(review.proxy, "review", round_nb, review.no_review) # type: ignore
             ],
             "inputs": [
-                article_as_docmaps(rnd)
+                article_as_docmaps(rnd, article)
             ]
           }
 
@@ -236,20 +266,20 @@ def steps(article: Article):
             f"_:b{round_nb*2 + 2}": {
 
         "inputs": [
-            article_as_docmaps(rnd)
+            article_as_docmaps(rnd, article)
             ],
         "actions": [
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(rounds[round_nb + 1])
+                article_as_docmaps(rounds[round_nb + 1], article)
             ],
             "inputs": []
           },
           {
             "participants": authors,
             "outputs": [
-                recommendation_as_docmaps(rounds[round_nb + 1], "reply")
+                recommendation_as_docmaps(rounds[round_nb + 1], "reply", round_nb)
             ],
             "inputs": []
           }
@@ -275,13 +305,13 @@ def steps(article: Article):
             f"_:b{len(rounds)*2}": {
 
         "inputs": [
-                article_as_docmaps(last_r)
+                article_as_docmaps(last_r, article)
             ],
         "actions": [
           {
             "participants": authors,
             "outputs": [
-                article_as_docmaps(published_proxy, "journal-article")
+                article_as_docmaps(published_proxy, article, "journal-article")
             ],
             "inputs": []
           }
