@@ -1058,6 +1058,7 @@ def reviews():
         db.t_reviews.emailing.writable = False
         db.t_reviews.emailing.represent = lambda text, row: XML(text) if text else ""
         db.t_reviews.last_change.writable = True
+        db.t_reviews.acceptation_timestamp.writable = auth.has_membership(role="manager")
 
         if pciRRactivated:
             db.t_reviews.review_pdf.label = T("Review files")
