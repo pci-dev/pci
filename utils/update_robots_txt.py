@@ -1,3 +1,33 @@
+import os
+from app_modules.common_tools import takePort
+
+from gluon import current
+from gluon.contrib.appconfig import AppConfig # type: ignore
+
+request = current.request
+
+def main():
+    robot_txt = get_robots_txt()
+    with open(os.path.join(request.folder,'static', 'robots.txt'), "w") as file:
+        file.write(robot_txt)
+
+
+def get_robots_txt():
+    myconf = AppConfig(reload=True)
+
+    scheme = myconf.take("alerts.scheme")
+    host = myconf.take("alerts.host")
+    port = myconf.take("alerts.port", cast=lambda v: takePort(v)) # type: ignore
+
+    sitemap = f"{scheme}://{host}"
+    if port:
+        sitemap = f"{sitemap}:{port}"
+    if not sitemap.endswith('/'):
+        sitemap += '/'
+    sitemap = f"{sitemap}sitemap"
+    print(sitemap)
+
+    return """
 # Disallow IA bots.
 
 User-agent: GPTBot
@@ -63,3 +93,10 @@ Allow: /
 User-agent: *
 Crawl-delay: 4
 Allow: /
+
+Sitemap: {{sitemap}}
+
+""".replace("{{sitemap}}", sitemap)
+
+if __name__ == '__main__':
+    main()
