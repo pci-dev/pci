@@ -250,9 +250,38 @@
 	  	<div class="footer-content">
       {{include 'snippets/footer.html'}}
       
-      {{if response.footer_menu:}}
-        {{=MENU(response.footer_menu, _class='grey-footer footer-sub', ul_class='pci-footer-ul', li_class='pci-footer-li', li_first='pci-footer-li', li_last='pci-footer-li')}}
-      {{pass}}
+        <ul class="grey-footer footer-sub">
+          <li class="pci-footer-li web2py-menu-active">
+            <a href="/default/index"><img src="/static/images/pci-logo.svg"></a>
+            <span style="font-size: 20px; opacity: 0.75;">Inspired and supported by INRAE</span>
+          </li>
+          <li class="pci-footer-li web2py-menu-active"><a href="#"><span><i class="glyphicon glyphicon-info-sign"></i>About</span></a>
+          <ul class="pci-footer-ul">
+            <li><a href="/about/about"><span><i class="pci2-icon-margin-right glyphicon glyphicon-text-color"></i>About</span></a></li>
+            <li><a href="https://peercommunityin.org/current-pcis/" target="_blank"><span><i class="pci2-icon-margin-right glyphicon glyphicon-link"></i>Other PCIs</span></a></li>
+            <li class="divider"></li>
+            <li><a href="https://peercommunityin.org/pci-and-journals/" target="_blank"><span><i class="pci2-icon-margin-right glyphicon glyphicon-link"></i>PCI and journals</span></a></li>
+            <li><a href="https://peercommunityin.org/pc-journal/" target="_blank"><span><i class="pci2-icon-margin-right glyphicon glyphicon-link"></i>Peer Community Journal</span></a></li>
+            <li><a href="/about/pci_friendly_journals"><span><i class="pci2-icon-margin-right glyphicon glyphicon-file"></i>PCI-friendly Journals</span></a></li>
+            <li class="divider"></li><li><a href="/about/recommenders"><span><i class="pci2-icon-margin-right glyphicon glyphicon-thumbs-up"></i>Recommenders</span></a></li>
+            <li><a href="/about/thanks_to_reviewers"><span><i class="pci2-icon-margin-right glyphicon glyphicon-heart"></i>Thanks to Reviewers</span></a></li>
+            <li class="divider"></li><li><a href="/about/ethics"><span><i class="pci2-icon-margin-right glyphicon glyphicon-list-alt"></i>Code of Conduct</span></a></li>
+            <li><a href="/about/contact"><span><i class="pci2-icon-margin-right glyphicon glyphicon-envelope"></i>Contact &amp; Credits</span></a></li>
+            <li><a href="/about/gtu"><span><i class="pci2-icon-margin-right glyphicon glyphicon-wrench"></i>General Terms of Use</span></a></li></ul></li>
+            <li class="pci-footer-li web2py-menu-active"><a href="#"><span><i class="glyphicon glyphicon-question-sign"></i>Help</span></a>
+              <ul class="pci-footer-ul">
+                <li><a href="/help/help_generic"><span><i class="pci2-icon-margin-right glyphicon glyphicon-wrench"></i>How does it work?</span></a></li>
+                <li class="divider"></li><li><a href="/help/guide_for_authors"><span><i class="pci2-icon-margin-right glyphicon glyphicon-book"></i>Guide for Authors</span></a></li>
+                <li><a href="/help/guide_for_reviewers"><span><i class="pci2-icon-margin-right glyphicon glyphicon-book"></i>Guide for Reviewers</span></a></li>
+                <li class="divider"></li><li><a href="/help/guide_for_recommenders"><span><i class="pci2-icon-margin-right glyphicon glyphicon-book"></i>Guide for Recommenders</span></a></li>
+                <li><a href="/help/become_a_recommenders"><span><i class="pci2-icon-margin-right glyphicon glyphicon-user"></i>Become a Recommender</span></a></li>
+                <li class="divider"></li><li><a href="/help/help_practical"><span><i class="pci2-icon-margin-right glyphicon glyphicon-wrench"></i>How to...?</span></a></li>
+                <li><a href="/help/faq"><span><i class="pci2-icon-margin-right glyphicon glyphicon-question-sign"></i>FAQs</span></a></li>
+                <li><a href="/help/cite"><span><i class="pci2-icon-margin-right glyphicon glyphicon-pencil"></i>How should you cite an article?</span></a></li>
+              </ul>
+            </li>
+        </ul>
+        
       <div class="footer-sub-text suffix">
         {{=getText('#NewFooterSubtext')}}
       </div>
