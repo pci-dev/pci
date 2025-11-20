@@ -8,6 +8,7 @@ delete_old_article_mails.py
 delete_accounts.py
 fetch_doi.py
 refresh_dashboard_manager.py
+warn_submitters.py
 "
 
 run_jobs() {
