@@ -632,8 +632,6 @@ def divider():
 
 
 response.menu = _BaseMenu()
-response.footer_menu = _BaseMenu(footerMenu=True)
-
 
 if auth.is_logged_in():
     response.menu += _UserMenu()
@@ -656,9 +654,6 @@ if auth.has_membership(None, None, "administrator") or auth.has_membership(None,
 
 if auth.has_membership(None, None, "developer"):
     response.menu += _DevMenu()
-
-response.footer_menu += _AboutMenu()
-response.footer_menu += _HelpMenu()
 
 response.help_about_menu = _AboutMenu()
 response.help_about_menu += _HelpMenu()
