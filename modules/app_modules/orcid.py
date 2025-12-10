@@ -157,6 +157,7 @@ class OrcidAPI:
 
 
     def get_orcid_html_button(self, style: Optional[str] = None):
+        return ""
         return A(IMG(_alt="ORCID_LOGO", _src=URL(c="static", f="images/ORCID_ID.svg"), _heigth="20px", _width="20px", _style="position: relative; bottom: 2px; right: 6px;"),
                  current.T('Log to your ORCID account to partially fill your profile'), _href=URL("default", "redirect_ORCID_authentication", vars=dict(_next=self.__redirect_url)), _class="btn btn-info", _style=style)
 
