@@ -32,15 +32,10 @@ sec_from() {
     echo "$((now-start))s"
 }
 
-sleep_until() {
-    duration=$(( $1 - `date +%s`))
-    [ $duration -gt 0 ] && sleep $duration
-}
-
 main() {
     while true; do
         run_mailqueues
-        sleep_until $((run_start + 60))
+        sleep 60
     done
 }
 
