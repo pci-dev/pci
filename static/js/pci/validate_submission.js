@@ -32,7 +32,7 @@ function createLinkFromText() {
   var link = document.createTextNode('(ithenticate)');
   a.appendChild(link);
   a.title = 'ithenticate';
-  a.href = 'https://crosscheck.ithenticate.com/en_us/folder';
+  a.href = 'https://crossref-10161.turnitin.com/home/';
   a.target = '_blank';
   plagiarism_label.append(a)
   plagiarism_label.append(' - plagiarism check is not needed for bioRxiv and medRxiv preprints')
