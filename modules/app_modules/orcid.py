@@ -2,6 +2,8 @@ from http.client import HTTPException
 from typing import Any, Dict, List, Optional, cast
 from dataclasses import dataclass
 
+from urllib import parse
+
 from gluon.dal import SQLCustomType
 from gluon.contrib.appconfig import AppConfig
 from gluon.html import A, CENTER, FORM, IMG, URL, SPAN, DIV, STRONG
@@ -152,12 +154,12 @@ class OrcidAPI:
         self.__orcid_keys: Optional[OrcidAPI.OrcidKeys] = None
 
     def go_to_authentication_page(self):
-        authorization_url = f'{self.AUTHORIZE_URL}?client_id={self.__client_id}&response_type=code&scope=/authenticate&redirect_uri={self.__redirect_url}'
+        redirect_url = parse.quote_plus(self.__redirect_url)
+        authorization_url = f'{self.AUTHORIZE_URL}?client_id={self.__client_id}&response_type=code&scope=/authenticate&redirect_uri={redirect_url}'
         redirect(authorization_url)
 
 
     def get_orcid_html_button(self, style: Optional[str] = None):
-        return ""
         return A(IMG(_alt="ORCID_LOGO", _src=URL(c="static", f="images/ORCID_ID.svg"), _heigth="20px", _width="20px", _style="position: relative; bottom: 2px; right: 6px;"),
                  current.T('Log to your ORCID account to partially fill your profile'), _href=URL("default", "redirect_ORCID_authentication", vars=dict(_next=self.__redirect_url)), _class="btn btn-info", _style=style)
 
