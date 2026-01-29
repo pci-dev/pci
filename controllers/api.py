@@ -69,8 +69,13 @@ def all():
     if endpoint is None: return error("usage: api/all/<endpoint>")
     if endpoint == "all": return error("recursive call on all")
 
+    if endpoint == "coar_inbox":
+        hosts = filter(lambda h: h != "rr", pci_hosts())
+    else:
+        hosts = pci_hosts()
+
     return json({
-        host: res for host, res in call_all(pci_hosts(), endpoint)
+        host: res for host, res in call_all(hosts, endpoint)
     })
 
 
