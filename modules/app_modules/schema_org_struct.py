@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import List, Union
+from typing import List, Union, Optional
 
-from serde import Optional, Untagged, dataclass, serde, field
+from serde import Untagged, dataclass, serde, field
 from serde.json import to_json as serde_to_json
 
 
