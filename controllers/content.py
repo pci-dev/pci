@@ -5,7 +5,7 @@ from gluon.contrib.markdown import WIKI
 from gluon.http import HTTP  # type: ignore
 
 from models.recommendation import Recommendation
-from models.review import Review
+from models.review import Review, ReviewState
 
 @dataclass(frozen=True)
 class DecodedDecisionRequest:
@@ -87,7 +87,7 @@ def _get_markdown_content_based_on_evaluation_type(decoded_request: DecodedReque
             if len(recommendations) < decoded_request.round_number:
                 raise HTTP(404, "Requested round does not exist")
             relevant_recommendation = recommendations[decoded_request.round_number - 1]
-            reviews_for_recommendation_descending = Review.get_by_recommendation_id(relevant_recommendation.id)
+            reviews_for_recommendation_descending = Review.get_by_recommendation_id(id=relevant_recommendation.id, review_states=[ReviewState.REVIEW_COMPLETED])
             if len(reviews_for_recommendation_descending) < decoded_request.evaluation_number:
                 raise HTTP(404, "Requested review does not exist")
             review_location_in_the_array = decoded_request.evaluation_number - 1

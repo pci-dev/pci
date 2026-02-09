@@ -1,6 +1,8 @@
 from dataclasses import dataclass
-from typing import Iterator, Optional, Any
-from unittest.mock import MagicMock, patch
+from enum import Enum
+from typing import Iterator, Optional
+from unittest.mock import ANY, MagicMock, patch
+
 
 import pytest
 from gluon.http import HTTP  # type: ignore
@@ -25,6 +27,9 @@ class RecommendationMock:
 @dataclass(frozen=True)
 class ReviewMock:
     review: Optional[str] = None
+
+class ReviewState(Enum):
+    REVIEW_COMPLETED = 'Review completed'
 
 @pytest.fixture(name="recommendation_class_mock")
 def _recommendation_class_mock() -> Iterator[MagicMock]:
@@ -232,7 +237,7 @@ class TestGetMarkdownContentBasedOnEvaluationType:
                     evaluation_number=2,
                 )
             )
-            review_class_mock.get_by_recommendation_id.assert_called_once_with(expected_recommendation.id)
+            review_class_mock.get_by_recommendation_id.assert_called_once_with(id=expected_recommendation.id, review_states=ANY)
 
         def test_should_raise_error_if_requested_round_does_not_exist(
             self,
