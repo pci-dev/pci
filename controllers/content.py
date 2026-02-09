@@ -80,7 +80,7 @@ def _get_markdown_content_based_on_evaluation_type(decoded_request: DecodedReque
             return review_round_decision.recommendation_comments
         case DecodedAuthorResponseRequest():
             if len(recommendations) < decoded_request.round_number:
-                return None
+                raise HTTP(404, "Requested round does not exist")
             review_round_decision = recommendations[decoded_request.round_number - 1]
             return review_round_decision.reply
         case DecodedReviewRequest():
