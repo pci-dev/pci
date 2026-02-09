@@ -121,33 +121,33 @@ class TestGetMarkdownContentBasedOnEvaluationType:
         )
         recommendation_class_mock.get_by_doi.assert_called_once_with("10.1234/xyz")
 
-    def test_should_return_none_if_there_are_no_recommendations_expressed_as_none(
+    def test_should_return_raise_error_if_there_are_no_recommendations_expressed_as_none(
         self,
         recommendation_class_mock: MagicMock,
     ):
         recommendation_class_mock.get_by_doi.return_value = None
-        result = _get_markdown_content_based_on_evaluation_type(
+        with pytest.raises(HTTP):
+            _get_markdown_content_based_on_evaluation_type(
             DecodedReviewRequest(
                 recommendation_doi="10.1234/xyz",
                 round_number=1,
                 evaluation_number=2,
             )
         )
-        assert result is None
 
-    def test_should_return_none_if_there_are_no_recommendations_expressed_as_an_empty_list(
+    def test_should_return_raise_error_if_there_are_no_recommendations_expressed_as_an_empty_list(
         self,
         recommendation_class_mock: MagicMock,
     ):
         recommendation_class_mock.get_by_doi.return_value = []
-        result = _get_markdown_content_based_on_evaluation_type(
+        with pytest.raises(HTTP):
+            _get_markdown_content_based_on_evaluation_type(
             DecodedReviewRequest(
                 recommendation_doi="10.1234/xyz",
                 round_number=1,
                 evaluation_number=2,
             )
         )
-        assert result is None
 
     class TestDecisionType:
         def test_requested_round_does_not_exist(
@@ -168,7 +168,7 @@ class TestGetMarkdownContentBasedOnEvaluationType:
             recommendation_class_mock: MagicMock,
         ):
             recommendation_class_mock.get_by_doi.return_value = [
-                RecommendationMock(), 
+                RecommendationMock(),
                 RecommendationMock(recommendation_comments="Foo bar"),
                 RecommendationMock()
             ]
@@ -179,7 +179,7 @@ class TestGetMarkdownContentBasedOnEvaluationType:
                 )
             )
             assert result == "Foo bar"
-    
+
     class TestAuthorResponseType:
         def test_should_return_none_if_requested_round_does_not_exist(
             self,

@@ -71,7 +71,7 @@ def _decode_evaluation_doi(path: str) -> DecodedRequest:
 def _get_markdown_content_based_on_evaluation_type(decoded_request: DecodedRequest):
     recommendations = Recommendation.get_by_doi(decoded_request.recommendation_doi)
     if not recommendations:
-        return None
+        raise HTTP(404, "No recommendations found for given DOI")
     match decoded_request:
         case DecodedDecisionRequest():
             if len(recommendations) < decoded_request.round_number:
