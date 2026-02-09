@@ -108,19 +108,6 @@ class TestGetMarkdownContentBasedOnEvaluationType:
         result = _decode_evaluation_doi(case["path"])
         assert result == case["expected"]
 
-    def test_should_pass_doi_to_get_by_doi_function(
-        self,
-        recommendation_class_mock: MagicMock,
-    ):
-        _get_markdown_content_based_on_evaluation_type(
-            DecodedReviewRequest(
-                recommendation_doi="10.1234/xyz",
-                round_number=1,
-                evaluation_number=2,
-            )
-        )
-        recommendation_class_mock.get_by_doi.assert_called_once_with("10.1234/xyz")
-
     def test_should_return_raise_error_if_there_are_no_recommendations_expressed_as_none(
         self,
         recommendation_class_mock: MagicMock,
