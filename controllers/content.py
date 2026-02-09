@@ -110,8 +110,7 @@ def doi():
         raise HTTP(400, "Invalid DOI")
 
     markdown_content = _get_markdown_content_based_on_evaluation_type(decodedRequest)
-    if markdown_content is None:
-        raise HTTP(404, "No such review")
+    markdown_content = markdown_content or "Review text not available."
 
     contentAsHtml = WIKI(markdown_content, safe_mode="")
 
