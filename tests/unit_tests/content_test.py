@@ -217,7 +217,7 @@ class TestGetMarkdownContentBasedOnEvaluationType:
             )
             review_class_mock.get_by_recommendation_id.assert_called_once_with(expected_recommendation.id)
 
-        def test_should_return_none_if_requested_round_does_not_exist(
+        def test_should_raise_error_if_requested_round_does_not_exist(
             self,
             recommendation_class_mock: MagicMock,
         ):
