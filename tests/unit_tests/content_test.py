@@ -222,14 +222,15 @@ class TestGetMarkdownContentBasedOnEvaluationType:
             recommendation_class_mock: MagicMock,
         ):
             recommendation_class_mock.get_by_doi.return_value = [{}]
-            result = _get_markdown_content_based_on_evaluation_type(
-                DecodedReviewRequest(
-                    recommendation_doi="10.1234/xyz",
-                    round_number=2,
-                    evaluation_number=1,
+            with pytest.raises(HTTP):
+                _get_markdown_content_based_on_evaluation_type(
+                    DecodedReviewRequest(
+                        recommendation_doi="10.1234/xyz",
+                        round_number=2,
+                        evaluation_number=1,
+                    )
                 )
-            )
-            assert result is None
+
 
         def test_should_return_none_if_requested_evaluation_number_does_not_exist(
             self,
