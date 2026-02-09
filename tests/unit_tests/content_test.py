@@ -237,7 +237,7 @@ class TestGetMarkdownContentBasedOnEvaluationType:
                     evaluation_number=2,
                 )
             )
-            review_class_mock.get_by_recommendation_id.assert_called_once_with(id=expected_recommendation.id, review_states=ANY)
+            review_class_mock.get_by_recommendation_id.assert_called_once_with(id=expected_recommendation.id, order_by=ANY, review_states=ANY)
 
         def test_should_raise_error_if_requested_round_does_not_exist(
             self,
