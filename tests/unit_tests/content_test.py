@@ -111,8 +111,10 @@ class TestGetMarkdownContentBasedOnEvaluationType:
     def test_should_pass_doi_to_get_by_doi_function(
         self,
         recommendation_class_mock: MagicMock,
+        review_class_mock: MagicMock,
     ):
         recommendation_class_mock.get_by_doi.return_value = [RecommendationMock()]
+        review_class_mock.get_by_recommendation_id.return_value = [ReviewMock(), ReviewMock()]
         _get_markdown_content_based_on_evaluation_type(
             DecodedReviewRequest(
                 recommendation_doi="10.1234/xyz",
