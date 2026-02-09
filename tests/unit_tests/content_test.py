@@ -155,13 +155,13 @@ class TestGetMarkdownContentBasedOnEvaluationType:
             recommendation_class_mock: MagicMock,
         ):
             recommendation_class_mock.get_by_doi.return_value = [{}]
-            result = _get_markdown_content_based_on_evaluation_type(
-                DecodedDecisionRequest(
-                    recommendation_doi="10.1234/xyz",
-                    round_number=2
+            with pytest.raises(HTTP):
+                _get_markdown_content_based_on_evaluation_type(
+                    DecodedDecisionRequest(
+                        recommendation_doi="10.1234/xyz",
+                        round_number=2
+                    )
                 )
-            )
-            assert result is None
 
         def test_recommendation_comments_of_rounds_before_the_last_are_the_decision_content(
             self,
