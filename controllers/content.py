@@ -89,7 +89,7 @@ def _get_markdown_content_based_on_evaluation_type(decoded_request: DecodedReque
             relevant_recommendation = recommendations[decoded_request.round_number - 1]
             reviews_for_recommendation_descending = Review.get_by_recommendation_id(relevant_recommendation.id)
             if len(reviews_for_recommendation_descending) < decoded_request.evaluation_number:
-                return None
+                raise HTTP(404, "Requested review does not exist")
             review_location_in_the_array = decoded_request.evaluation_number - 1
             relevant_review = reviews_for_recommendation_descending[review_location_in_the_array]
             return relevant_review.review
