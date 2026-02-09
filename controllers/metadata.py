@@ -124,6 +124,10 @@ def recommendation_as_docmaps(version: Recommendation | Any,
         "published": publication_date(timestamp),
         "doi": doi or None,
         "type": typ,
+        "content": {
+            "web-page": f"https://doi.org/{doi}",
+            "web-content": URL("content", f"doi/{doi}", scheme=True)
+        }
     }
 
 

@@ -58,6 +58,11 @@ class Recommendation(Row):
         return cast(_[Recommendation], db.t_recommendations[id])
 
     @staticmethod
+    def get_by_doi(doi: str):
+        db = current.db
+        return db(db.t_recommendations.recommendation_doi == doi).select(orderby=db.t_recommendations.validation_timestamp)
+
+    @staticmethod
     def get_by_article_id(article_id: int, order_by: ... = None):
         db = current.db
         if order_by:
@@ -176,7 +181,7 @@ class Recommendation(Row):
                     break
 
                 recommendation_text.append(f"\n{sub_line}")
-            
+
             if reference_start:
                 break
 
