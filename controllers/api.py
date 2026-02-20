@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from typing import Any
+from app_modules.common_small_html import doi_to_url
 from app_modules.utils import run
 from app_modules.utils import json
 
@@ -80,27 +82,40 @@ def all():
 
 
 def recommendations():
-    from app_modules.common_small_html import mkLinkDOI
     from models.recommendation import Recommendation, RecommendationState
+    from models.article import Article, ArticleStatus
+    from app_modules.common_tools import URL
+    from models.user import User
+
     recomms = Recommendation.get_all([RecommendationState.RECOMMENDED])
-    return json([
-        {
-            "recommendation": {
-                "url": URL("articles", f"rec?id={recom.article_id}", scheme=True),
-                "doi": mkLinkDOI(recom.recommendation_doi),
-                "recommender": User.get_name(recom.recommender_id),
-                "co-recommenders": [
-                    User.get_name(coreco.contributor_id)
-                        for coreco in Recommendation.get_co_recommenders(recom)
-                ],
-            },
-            "article": {
-                "doi": recom.article_id.doi,
-                "published_doi": recom.article_id.doi_of_published_article,
-            },
-        }
-        for recom in recomms if recom.article_id.status == "Recommended"
-    ])
+    articles = Article.get_by_status([ArticleStatus.RECOMMENDED])
+
+    els: list[Any] = []
+
+    for recom in recomms:
+        article = list(filter(lambda a: a.id == recom.article_id, articles))
+        if len(article) == 1:
+            article = article[0]
+
+            el: Any = {
+                "recommendation": {
+                    "url": URL("articles", f"rec?id={recom.article_id}", scheme=True),
+                    "doi": doi_to_url(recom.recommendation_doi or ""),
+                    "recommender": User.get_name(recom.recommender_id),
+                    "co-recommenders": [
+                        User.get_name(coreco.contributor_id)
+                            for coreco in Recommendation.get_co_recommenders(recom.id)
+                    ],
+                },
+                "article": {
+                    "doi": recom.article_id.doi,
+                    "published_doi": recom.article_id.doi_of_published_article,
+                },
+            }
+
+            els.append(el)
+    
+    return json(els)
 
 
 # internals
@@ -144,6 +159,7 @@ def api_call(host, endpoint):
         return requests.get(
             api_url + endpoint
             , auth=basic_auth
+            , verify=False
         ).json()
 
     except Exception as err:
