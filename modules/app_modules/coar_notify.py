@@ -357,6 +357,13 @@ def get_origin_request(article):
     return json.loads(req.body) if req and req.coar_id else None
 
 
+def fixup_target_origin(article):
+    origin_req = get_origin_request(article)
+    return {
+            "origin": origin_req["target"],
+            "target": origin_req["origin"],
+    } if origin_req else {}
+
 def get_target_inbox(article):
     """note: thread-local caching, assumes single article is processed"""
 
