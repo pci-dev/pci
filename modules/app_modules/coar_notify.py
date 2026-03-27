@@ -68,6 +68,7 @@ class COARNotifier:
         target_inbox = get_target_inbox(article)
 
         notification = self.add_base_notification_properties(notification, target_inbox)
+        notification.update(fixup_target_origin(article))
         if article.coar_notification_id:
             notification.update({
                 "inReplyTo": article.coar_notification_id,
@@ -334,6 +335,7 @@ def send_ack(self,
 
     target_inbox = origin_req["origin"]["inbox"]
     notification = self.add_base_notification_properties(notification, target_inbox)
+    notification.update(fixup_target_origin(article))
     self._send_notification(notification, target_inbox)
 
     return notification
