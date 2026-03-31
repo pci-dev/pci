@@ -68,6 +68,7 @@ class COARNotifier:
         target_inbox = get_target_inbox(article)
 
         notification = self.add_base_notification_properties(notification, target_inbox)
+        notification.update(fixup_target_origin(article))
         if article.coar_notification_id:
             notification.update({
                 "inReplyTo": article.coar_notification_id,
@@ -334,6 +335,7 @@ def send_ack(self,
 
     target_inbox = origin_req["origin"]["inbox"]
     notification = self.add_base_notification_properties(notification, target_inbox)
+    notification.update(fixup_target_origin(article))
     self._send_notification(notification, target_inbox)
 
     return notification
@@ -356,6 +358,13 @@ def get_origin_request(article):
     req = db(db.t_coar_notification.coar_id == article.coar_notification_id).select().first()
     return json.loads(req.body) if req and req.coar_id else None
 
+
+def fixup_target_origin(article):
+    origin_req = get_origin_request(article)
+    return {
+            "origin": origin_req["target"],
+            "target": origin_req["origin"],
+    } if origin_req else {}
 
 def get_target_inbox(article):
     """note: thread-local caching, assumes single article is processed"""
