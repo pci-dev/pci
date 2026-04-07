@@ -69,8 +69,8 @@ def tryToSendMail(mail_item):
                 bcc=mail_item.bcc_mail_addresses,
                 reply_to=mail_item.replyto_addresses,
                 subject=mail_item.mail_subject,
-                message=mail_item.mail_content,
-                sender=sender
+                message=(TAG(mail_item.mail_content).flatten(), mail_item.mail_content),
+                sender=sender,
         )
         #isSent = True
         if isSent is False:
