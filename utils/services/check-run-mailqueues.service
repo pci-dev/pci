@@ -1,0 +1,9 @@
+[Unit]
+Description=Check if run-mailqueues.sh is running, and try to restart it instead.
+
+[Service]
+ExecStart=/home/peercom/check-run-mailqueues.sh
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
