@@ -50,6 +50,7 @@ from app_modules.emailing import isScheduledTrack # type: ignore
 from controller_modules import admin_module
 
 from app_modules.common_tools import URL
+from app_modules.common_tools import doi_to_url
 
 request = current.request
 session = current.session
@@ -1450,7 +1451,7 @@ def send_review_cancellation():
     contact = myconf.take("contacts.managers")
     art_authors = emailing.mkAuthors(art)
     art_title = md_to_html(art.title)
-    art_doi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
+    art_doi = doi_to_url(recomm.doi or art.doi)
     # art_doi = (recomm.doi or art.doi)
 
     # aliases - for some templates
@@ -1582,7 +1583,7 @@ def send_reviewer_generic_mail():
     # template variables, along with all other locals()
     destPerson = common_small_html.mkUser(review.reviewer_id)
     recommenderPerson = common_small_html.mkUser(auth.user_id)
-    articleDoi = common_small_html.mkLinkDOI(recomm.doi or art.doi)
+    articleDoi = doi_to_url(recomm.doi or art.doi)
     articleTitle = md_to_html(art.title)
     articleAuthors = emailing.mkAuthors(art)
 

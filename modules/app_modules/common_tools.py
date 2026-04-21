@@ -448,6 +448,7 @@ def remove_html_tag(html_text: str):
 
 
 def doi_to_url(doi: str):
+        doi = doi.strip()
         if not doi.startswith("http"):
             if "hal-" in doi:
                 doi = f"https://hal.science/{doi}"

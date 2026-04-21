@@ -56,7 +56,7 @@ from models.review import Review, ReviewState
 from models.recommendation import Recommendation
 from models.user import User
 from models.mail_queue import MailQueue, SendingStatus
-from app_modules.common_tools import URL
+from app_modules.common_tools import URL, doi_to_url
 
 myconf = AppConfig(reload=True)
 parallelSubmissionAllowed = myconf.get("config.parallel_submission", default=False)
@@ -204,7 +204,7 @@ def send_to_submitter(articleId: int, newStatus: str):
             mail_vars["linkTarget"] = URL(c="articles", f="rec", vars=dict(id=articleId), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
             if lastRecomm:
-                mail_vars["doiRecomm"] = XML(common_small_html.mkLinkDOI(lastRecomm.recommendation_doi))
+                mail_vars["doiRecomm"] = doi_to_url(lastRecomm.recommendation_doi)
                 mail_vars["recommVersion"] = lastRecomm.ms_version
                 mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
@@ -217,7 +217,7 @@ def send_to_submitter(articleId: int, newStatus: str):
             lastRecomm = db((db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == "Recommended")).select().last()
 
             if lastRecomm:
-                mail_vars["doiRecomm"] = XML(common_small_html.mkLinkDOI(lastRecomm.recommendation_doi))
+                mail_vars["doiRecomm"] = doi_to_url(lastRecomm.recommendation_doi)
                 mail_vars["recommVersion"] = lastRecomm.ms_version
                 mail_vars["recommsList"] = SPAN(common_small_html.getRecommAndReviewAuthors(recomm=lastRecomm, with_reviewers=False, linked=False)).flatten()
 
@@ -322,7 +322,7 @@ def send_to_recommender_postprint_status_changed(articleId, newStatus):
             mail_vars["destAddress"] = db.auth_user[myRecomm.recommender_id]["email"]
             mail_vars["articleAuthors"] = article.authors
             mail_vars["articleTitle"] = md_to_html(article.title)
-            mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+            mail_vars["articleDoi"] = doi_to_url(article.doi)
             mail_vars["tOldStatus"] = current.T(article.status)
             mail_vars["tNewStatus"] = current.T(newStatus)
 
@@ -360,7 +360,7 @@ def send_to_recommender_status_changed(articleId: int, newStatus: str):
         mail_vars["destAddress"] = db.auth_user[recommender_id]["email"]
         mail_vars["articleAuthors"] = article.authors
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["articleDoi"] = XML(common_small_html.mkSimpleDOI(article.doi))
+        mail_vars["articleDoi"] = doi_to_url(article.doi)
         mail_vars["tOldStatus"] = current.T(article.status)
         mail_vars["tNewStatus"] = current.T(newStatus)
 
@@ -383,13 +383,13 @@ def send_to_recommender_status_changed(articleId: int, newStatus: str):
 
         elif newStatus == "Recommended":
             mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
-            mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
+            mail_vars["doiRecomm"] = doi_to_url(myRecomm.recommendation_doi)
             mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
 
             hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderStatusChangedUnderToRecommended", article)
 
         elif newStatus == "Recommended-private":
-            mail_vars["doiRecomm"] = common_small_html.mkLinkDOI(myRecomm.recommendation_doi)
+            mail_vars["doiRecomm"] =doi_to_url(myRecomm.recommendation_doi)
 
             hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderStatusChangedUnderToRecommendedPrivate", article)
 
@@ -452,7 +452,7 @@ def send_to_suggested_recommenders_not_needed_anymore(articleId: int):
             recomm_id = recomm.id
 
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+        mail_vars["articleDoi"] = doi_to_url(article.doi)
         mail_vars["articleAuthors"] = mkAuthors(article)
 
         if pciRRactivated:
@@ -496,7 +496,7 @@ def send_to_suggested_recommenders(articleId: int):
     if article:
 
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+        mail_vars["articleDoi"] = doi_to_url(article.doi)
         mail_vars["articleAuthors"] = mkAuthors(article)
 
         if pciRRactivated:
@@ -596,7 +596,7 @@ def send_to_suggested_recommender(article: Article, recommender_id: int):
     if suggested_recommender and suggested_recommender.email:
 
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+        mail_vars["articleDoi"] = doi_to_url(article.doi)
         mail_vars["articleAuthors"] = mkAuthors(article)
 
         if pciRRactivated:
@@ -692,7 +692,7 @@ def send_to_recommenders_review_considered(reviewId):
         article = db.t_articles[recomm["article_id"]]
         if article:
             mail_vars["articleTitle"] = md_to_html(article.title)
-            mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+            mail_vars["articleDoi"] = doi_to_url(article.doi)
             mail_vars["articleAuthors"] = mkAuthors(article)
             mail_vars["linkTarget"] = URL(
                 c="recommender",
@@ -733,7 +733,7 @@ def send_to_recommenders_review_declined(reviewId):
         article = db.t_articles[recomm["article_id"]]
         if article:
             mail_vars["articleTitle"] = md_to_html(article.title)
-            mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+            mail_vars["articleDoi"] = doi_to_url(article.doi)
             mail_vars["articleAuthors"] = mkAuthors(article)
             mail_vars["linkTarget"] = URL(
                 c="recommender",
@@ -771,7 +771,7 @@ def send_to_recommenders_pending_review_request(reviewId: int):
         article = db.t_articles[recomm["article_id"]]
         if article:
             mail_vars["articleTitle"] = md_to_html(article.title)
-            mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+            mail_vars["articleDoi"] = doi_to_url(article.doi)
             mail_vars["articleAuthors"] = mkAuthors(article)
             mail_vars["linkTarget"] = URL(
                 c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
@@ -833,7 +833,7 @@ def send_to_reviewers_article_cancellation(articleId, newStatus):
     article = db.t_articles[articleId]
     if article:
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+        mail_vars["articleDoi"] = doi_to_url(article.doi)
         mail_vars["articleAuthors"] = mkAuthors(article)
         mail_vars["linkTarget"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=True), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
@@ -878,7 +878,7 @@ def send_to_reviewer_review_request_accepted(reviewId, newForm):
             article = db.t_articles[recomm["article_id"]]
             if article:
                 mail_vars["articleTitle"] = md_to_html(article.title)
-                mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+                mail_vars["articleDoi"] = doi_to_url(article.doi)
                 mail_vars["articleAuthors"] = mkAuthors(article)
                 mail_vars["linkTarget"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
@@ -916,7 +916,7 @@ def send_to_reviewer_review_request_declined(reviewId, newForm):
             article = db.t_articles[recomm["article_id"]]
             if article:
                 mail_vars["articleTitle"] = md_to_html(article.title)
-                mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+                mail_vars["articleDoi"] = doi_to_url(article.doi)
                 mail_vars["articleAuthors"] = mkAuthors(article)
                 mail_vars["linkTarget"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
@@ -961,7 +961,7 @@ def send_to_thank_reviewer_acceptation(reviewId: int):
         return
 
     mail_vars["articleTitle"] = md_to_html(article.title)
-    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleDoi"] = doi_to_url(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
 
     if pciRRactivated:
@@ -1003,7 +1003,7 @@ def send_to_thank_reviewer_done(reviewId, newForm):
             article = db.t_articles[recomm["article_id"]]
             if article:
                 mail_vars["articleTitle"] = md_to_html(article.title)
-                mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+                mail_vars["articleDoi"] = doi_to_url(article.doi)
                 mail_vars["articleAuthors"] = mkAuthors(article)
                 mail_vars["linkTarget"] = URL(c="user", f="my_reviews", vars=dict(pendingOnly=False), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
@@ -1227,7 +1227,7 @@ def send_to_managers(articleId: int, newStatus: str):
 
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["articleAuthors"] = article.authors
-        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+        mail_vars["articleDoi"] = doi_to_url(article.doi)
 
         if article.user_id:
             mail_vars["submitterPerson"] = common_small_html.mkUser(article.user_id)  # submitter
@@ -1326,7 +1326,7 @@ def send_to_thank_recommender_postprint(recommId: int):
         if article:
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = article.authors
-            mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+            mail_vars["articleDoi"] = doi_to_url(article.doi)
             mail_vars["linkTarget"] = URL(
                 c="recommender",
                 f="my_recommendations",
@@ -1362,7 +1362,7 @@ def send_to_thank_recommender_preprint(articleId):
         if article:
             mail_vars["articleTitle"] = md_to_html(article.title)
             mail_vars["articleAuthors"] = article.authors
-            mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+            mail_vars["articleDoi"] = doi_to_url(article.doi)
             mail_vars["linkTarget"] = URL(
                 c="recommender", f="my_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(pressReviews=False)
             )
@@ -1411,7 +1411,7 @@ def send_to_delete_one_corecommender(contribId):
                     if not (recomm.recommender_id and db.auth_user[recomm.recommender_id].email):
                         return
                     mail_vars["articleTitle"] = md_to_html(article.title)
-                    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+                    mail_vars["articleDoi"] = doi_to_url(article.doi)
                     mail_vars["articleAuthors"] = mkAuthors(article)
                     mail_vars["articlePrePost"] = "postprint" if article.already_published else "preprint"
                     mail_vars["linkTarget"] = URL(c="recommender", f="my_co_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
@@ -1445,7 +1445,7 @@ def send_to_one_corecommender(contribId):
                 article = db.t_articles[recomm.article_id]
                 if article:
                     mail_vars["articleTitle"] = md_to_html(article.title)
-                    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+                    mail_vars["articleDoi"] = doi_to_url(article.doi)
                     mail_vars["articleAuthors"] = mkAuthors(article)
                     mail_vars["articlePrePost"] = "postprint" if article.already_published else "preprint"
                     mail_vars["linkTarget"] = URL(c="recommender", f="my_co_recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
@@ -1480,7 +1480,7 @@ def send_to_corecommenders(articleId, newStatus):
     recomm = db(db.t_recommendations.article_id == articleId).select(orderby=db.t_recommendations.id).last()
     if recomm:
         mail_vars["articleTitle"] = md_to_html(article.title)
-        mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+        mail_vars["articleDoi"] = doi_to_url(article.doi)
         mail_vars["articleAuthors"] = mkAuthors(article)
         mail_vars["articlePrePost"] = "postprint" if article.already_published else "preprint"
         mail_vars["tOldStatus"] = current.T(article.status)
@@ -1498,11 +1498,11 @@ def send_to_corecommenders(articleId, newStatus):
                 mail_vars["destAddress"] = ""
 
             if newStatus == "Recommended":
-                mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
+                mail_vars["recommDOI"] = doi_to_url(recomm.recommendation_doi)
                 mail_vars["linkRecomm"] = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
                 hashtag_template = emailing_tools.get_correct_hashtag("#CoRecommendersArticleRecommended", article)
             elif newStatus == "Recommended-private":
-                mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
+                mail_vars["recommDOI"] = doi_to_url(recomm.recommendation_doi)
                 hashtag_template = emailing_tools.get_correct_hashtag("#CoRecommendersArticleRecommendedPrivate", article)
             else:
                 if newStatus == "Cancelled":
@@ -1551,11 +1551,11 @@ def send_decision_to_reviewers(articleId, newStatus):
                 mail_vars["destAddress"] = rev.auth_user.email
 
                 if newStatus == "Recommended":
-                    mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
+                    mail_vars["recommDOI"] = doi_to_url(recomm.recommendation_doi)
                     mail_vars["linkRecomm"] = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
                     hashtag_template = emailing_tools.get_correct_hashtag("#ReviewersArticleRecommended", article)
                 elif newStatus == "Recommended-private":
-                    mail_vars["recommDOI"] = common_small_html.mkLinkDOI(recomm.recommendation_doi)
+                    mail_vars["recommDOI"] = doi_to_url(recomm.recommendation_doi)
                     hashtag_template = emailing_tools.get_correct_hashtag("#ReviewersArticleRecommendedPrivate", article)
                 else:
                     hashtag_template = emailing_tools.get_correct_hashtag("#ReviewersArticleStatusChanged", article)
@@ -3407,7 +3407,7 @@ def create_cancellation_for_reviewer(review_id: int):
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
     mail_vars["destAddress"] = reviewer.email
     mail_vars["sender"] = mkSender(recommendation)
-    mail_vars["art_doi"] = common_small_html.mkLinkDOI(recommendation.doi or article.doi)
+    mail_vars["art_doi"] = doi_to_url(recommendation.doi or article.doi)
     mail_vars["art_title"] = md_to_html(article.title)
     mail_vars["art_authors"] = mkAuthors(article)
 
@@ -3530,7 +3530,7 @@ def send_conditional_acceptation_review_mail(review: Review):
 
     mail_vars["delay"] = review.review_duration.lower()
     mail_vars["articleTitle"] = md_to_html(article.title)
-    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleDoi"] = doi_to_url(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
     mail_vars["linkTarget"] = URL(
         c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
@@ -3605,7 +3605,7 @@ def send_decision_new_delay_review_mail(accept: bool, review: Review):
 
     mail_vars["delay"] = review.review_duration.lower()
     mail_vars["articleTitle"] = md_to_html(article.title)
-    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleDoi"] = doi_to_url(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
     mail_vars["linkTarget"] = URL(c="default", f="invitation_to_review", vars=dict(reviewId=review.id, key=reviewer.reset_password_key), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
@@ -3634,7 +3634,7 @@ def create_reminder_for_conditional_recommender_acceptation_review(review: Revie
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["delay"] = review.review_duration.lower()
     mail_vars["articleTitle"] = md_to_html(article.title)
-    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleDoi"] = doi_to_url(article.doi)
     mail_vars["articleAuthors"] = mkAuthors(article)
     mail_vars["linkTarget"] = URL(
         c="recommender", f="recommendations", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(articleId=article.id),
@@ -3677,7 +3677,7 @@ def send_alert_reviewer_due_date_change(review: Review):
 
     mail_vars["myReviewsLink"] = reviewLink()
     mail_vars["articleTitle"] = md_to_html(article.title)
-    mail_vars["articleDoi"] = common_small_html.mkDOI(article.doi)
+    mail_vars["articleDoi"] = doi_to_url(article.doi)
     mail_vars["dueDate"] = review.due_date.strftime(DEFAULT_DATE_FORMAT)
 
     mail_vars["destPerson"] = common_small_html.mkUser(review.reviewer_id)
@@ -3763,8 +3763,8 @@ def send_message_to_recommender_and_reviewers(article_id: int):
 
         mail_vars["destAddress"] = recommenders_mails[0]
         mail_vars["replytoAddresses"] = mail_vars["appContactMail"]
-        mail_vars["articleDoi"] = common_small_html.mkLinkDOI(article.doi)
-        mail_vars["published_doi"] = common_small_html.mkLinkDOI(article.doi_of_published_article)
+        mail_vars["articleDoi"] = doi_to_url(article.doi)
+        mail_vars["published_doi"] = doi_to_url(article.doi_of_published_article)
         mail_vars["ccAddresses"] = recommenders_mails[1]
         mail_vars["bccAddresses"] = recommenders_mails[2]
 
