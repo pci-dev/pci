@@ -38,7 +38,7 @@ def get_co_recommenders_mails(recommendation_id: int):
 
     contribs_qy = PressReview.get_by_recommendation(recommendation_id)
     for contrib in contribs_qy:
-        if contrib.contributor_id == None:
+        if contrib.contributor_id is None:
             continue
 
         user = User.get_by_id(contrib.contributor_id)

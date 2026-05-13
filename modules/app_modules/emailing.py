@@ -1688,6 +1688,7 @@ def send_to_recommender_preprint_validated(articleId):
         # Set custom variables :
         mail_vars["destAddress"] = db.auth_user[finalRecomm.recommender_id]["email"]
         mail_vars["destPerson"] = common_small_html.mkUser(finalRecomm.recommender_id)
+        mail_vars["bccAddresses"] = emailing_vars.get_co_recommenders_mails(finalRecomm.id)
         # Insert mail in mail_queue :
         hashtag_template = "#RecommenderPreprintValidatedScheduledSubmission"
         emailing_tools.insertMailInQueue(hashtag_template, mail_vars, finalRecomm.id, None, article.id)
