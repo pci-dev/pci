@@ -285,12 +285,12 @@ def set_not_considered():
         redirect(request.env.http_referer, client_side=True)
     article_id = int(request.vars['articleId'])
 
-    if not 'subject' in request.vars:
+    if not 'subject' in request.vars or not request.vars['subject']:
         session.flash = 'Subject missing'
         redirect(request.env.http_referer, client_side=True)
     subject = cast(str, request.vars['subject'])
 
-    if not 'message' in request.vars:
+    if not 'message' in request.vars or not request.vars['message']:
         session.flash = 'Message missing'
         redirect(request.env.http_referer, client_side=True)
     message = cast(str, request.vars['message'])
