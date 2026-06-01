@@ -276,10 +276,6 @@ header {
   font-style: italic;
 }
 
-.doi_url :not(:hover){
-  opacity: 0.5;
-}
-
 .pci-status {
   box-sizing: unset;
   width: 140px;
