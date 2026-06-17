@@ -292,13 +292,14 @@ def exempt_addresses(addresses: List[str], hashtag_template: str):
     return addresses
 
 #######################################################################################################################################################################
-def clean_addresses(dirty_string_adresses):
+def clean_addresses(dirty_string_adresses: list[str] | str):
     '''
     creates a string of clean mail addresses, divided by comma
     '''
-    if dirty_string_adresses == None: return '', ''
-    
-    list_of_contacts = [contact.strip() for contact in list(re.split("[,;]", dirty_string_adresses))]
+    if type(dirty_string_adresses) is str:
+        list_of_contacts = [contact.strip() for contact in list(re.split("[,;]", dirty_string_adresses))]
+    else:
+        list_of_contacts = dirty_string_adresses
     contacts = []
     errors = []
     validator = IS_EMAIL()

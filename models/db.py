@@ -543,15 +543,15 @@ db.define_table(
     Field("picture_rights_ok",  widget=widget(_type="hidden") if not pciRRactivated else "",type="boolean", label=T("Picture right")),
     RequiredField("uploaded_picture", type="upload", label=T("Picture"),
         length=100, # filename max len (ish, see Field.store in sqlhtml.py). Linux extfs has max filename len=255
-        requires=RESIZE(500,500) if pciRRactivated else [RESIZE(500,500), IS_NOT_EMPTY(error_message=T("Please upload a picture"))]) if not pciRRactivated else
+        requires=[] if pciRRactivated else [IS_NOT_EMPTY(error_message=T("Please upload a picture"))]) if not pciRRactivated else
     Field("uploaded_picture", type="upload", label=T("Picture"),
         length=100, # filename max len (ish, see Field.store in sqlhtml.py). Linux extfs has max filename len=255
-        requires=RESIZE(500,500)),
+        ),
     RequiredField("abstract", type="text", length=2097152, label=T("Abstract"), requires=TEXT_CLEANER()),
     Field("results_based_on_data", type="string", label="", requires=IS_IN_SET(db.data_choices), widget=SQLFORM.widgets.radio.widget,),
     RequiredField("data_doi",
         type="list:string",
-        requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
+        requires=IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True)),
         label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these data (if you have any problems with the deposit of your data, please contact "), appContactLink, ").", T(" In case all raw data are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'All or part of the results presented in this preprint are based on data'. URL must start with http:// or https://")
@@ -559,7 +559,7 @@ db.define_table(
     Field("scripts_used_for_result", type="string", label="", requires=IS_IN_SET(db.script_choices), widget=SQLFORM.widgets.radio.widget,),
     RequiredField("scripts_doi",
         type="list:string",
-        requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
+        requires=IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True)),
         label=SPAN(T("Indicate the full web address (DOI or URL) giving public access to these scripts (if you have any problems with the deposit of your scripts, please contact "), appContactLink, ").", T(" In case all raw scripts are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'Scripts were used to obtain or analyze the results'. URL must start with http:// or https://")
@@ -567,7 +567,7 @@ db.define_table(
     Field("codes_used_in_study", type="string", label="", requires=IS_IN_SET(db.code_choices), widget=SQLFORM.widgets.radio.widget,),
     RequiredField("codes_doi",
         type="list:string",
-        requires=IS_LIST_OF(IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True))),
+        requires=IS_EMPTY_OR(CUSTOM_VALID_URL(allow_empty_netloc=True)),
         label=SPAN(T("Indicate the full web address (DOI, SWHID or URL) giving public access to these codes (if you have any problems with the deposit of your codes, please contact "), appContactLink, ").", T(" In case all raw codes are included in the preprint, indicate the DOI or URL of the preprint.")),
         length=512,
         comment=T("You should fill this box only if you chose 'Codes have been used in this study'. URL must start with http:// or https://")
