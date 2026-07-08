@@ -216,6 +216,7 @@ plugins: ... = PluginManager()
 
 auth.settings.expiration = 10800  # 3h in seconds
 auth.settings.host = host
+auth.settings.login_after_password_change = False
 # auth.settings.keep_session_onlogin=False
 # auth.settings.logout_next = ''
 

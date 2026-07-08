@@ -359,19 +359,6 @@ def user():
             if suite:
                 auth.settings.profile_next = suite
 
-        elif request.args[0] == "request_reset_password":
-            titleIcon = "lock"
-            pageTitle = getTitle("#ResetPasswordTitle")
-            pageHelp = getHelp("#ResetPassword")
-            customText = getText("#ResetPasswordText")
-            user = db(db.auth_user.email == request.vars["email"]).select().last()
-            form.element(_type="submit")["_class"] = "btn btn-success"
-            form.element(_name="email")["_value"] = request.vars.email
-            if (fkey is not None) and (user is not None):
-                reset_password_key = str(int(time.time())) + "-" + web2py_uuid()
-                user.update_record(reset_password_key=reset_password_key)
-            if suite:
-                auth.settings.request_reset_password_next = suite
 
         elif request.args[0] == "reset_password":
             titleIcon = "lock"
@@ -399,6 +386,50 @@ def user():
                 pageHelp=pageHelp,
                 form=form,
                 myFinalScript=OrcidTools.get_orcid_formatter_script())
+
+
+def lost_password():
+    response.view = "default/myLayout.html"
+    titleIcon = "lock"
+    pageTitle = getTitle("#ResetPasswordTitle")
+    pageHelp = getHelp("#ResetPassword")
+    customText = getText("#ResetPasswordText")
+    user = db(db.auth_user.email == request.vars["email"]).select().last()
+    form = FORM(DIV(
+                    LABEL(SPAN("E-mail"), SPAN(" *", _style="color: red;"), _class="control-label col-sm-3", _for="email"),
+                    DIV(
+                        INPUT(_value=request.vars.email, _name="email", _type="text", _id="email", _class="form-control string"), _class="col-sm-9"),
+                    _class="form-group"),
+                DIV(DIV(INPUT(_value="Request reset password",_type="submit", _class="btn btn-success"), _class="col-sm-9 col-sm-offset-3"),
+                    _class="form-group", _id="submit_record"),
+                _class="form-horizontal")
+
+    if form.process().accepted:
+        if form.vars.email is None or len(form.vars.email) == 0:
+            session.flash = "E-mail missing"
+            redirect(request.env.http_referer)
+        else:
+            user = db(db.auth_user.email == request.vars["email"]).select().last()
+            if user is None:
+                session.flash = "Bad e-mail"
+                redirect(request.env.http_referer)
+            reset_password_key = str(int(time.time())) + "-" + web2py_uuid()
+            user.update_record(reset_password_key=reset_password_key)
+
+            link = URL("default", "lost_reset_password", scheme=True, vars=dict(
+            _key=reset_password_key,
+            ))
+
+            emailing.send_reset_password(user, link)
+
+            session.flash = "reset password email sent to: " + user.email
+            redirect(request.home)
+
+    return dict(titleIcon=titleIcon,
+                pageTitle=pageTitle,
+                customText=customText,
+                pageHelp=pageHelp,
+                form=form)
 
 
 def captcha_setup(form):
@@ -496,7 +527,7 @@ def get_lost_password_url(user=None):
         return URL("default", "email_reset_password",
                 vars=dict(user_id=user.id, _next=_next))
     else:
-        return URL("default", "user", args=["request_reset_password"])
+        return URL("default", "lost_password")
 
 
 def email_reset_password():
@@ -514,6 +545,31 @@ def email_reset_password():
 
     session.flash = "reset password email sent to: " + user.email
     redirect(request.home)
+
+def lost_reset_password():
+    _key = request.vars._key
+    _next = request.vars._next or request.home
+    request.key = _key
+
+    user = db(db.auth_user.reset_password_key == _key).select().last()
+    if not user:
+        session.flash = "reset_password: invalid _key"
+        redirect(request.home)
+
+    if type(_next) is list: _next = _next.pop()
+
+    session._reset_password_key = _key
+    form = auth.reset_password(_next)
+
+    form.element(_type="submit")["_class"] = "btn btn-success"
+
+    response.view = "default/myLayoutBot.html"
+    return dict(
+            titleIcon="lock",
+            pageTitle=getTitle("#ResetPasswordTitle"),
+            customText=getText("#ResetPasswordText"),
+            pageHelp=getHelp("#ResetPassword"),
+            form=form)
 
 
 def reset_password():
