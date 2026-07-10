@@ -958,6 +958,7 @@ def crossref_status(article: Article):
         (function get_crossref_status(elt) {
             elt = elt || document.currentScript.parentNode
             req = new XMLHttpRequest()
+            req.withCredentials = true;
             req.addEventListener("load", function() {
                 status = this.responseText
                 status_str = "✅,❌,,🏁".split(",")

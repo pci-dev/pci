@@ -342,6 +342,7 @@
         $.ajax({
           type: 'GET',
           url: '{{=URL("default", "show_account_menu_dialog")}}' + '?_next=' + window.location.href,
+          xhrFields: { withCredentials: true },
           success: function(response) {
             const dialogHtml = response;
             if (dialogHtml == null) {

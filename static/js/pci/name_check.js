@@ -22,6 +22,7 @@ function check_database(name_json) {
         url: 'check_reviewer_name',
         type: 'POST',
         contentType: 'application/json',
+        xhrFields: { withCredentials: true },
         data: JSON.stringify(name_json),
         success: function(response) {
             let success = response['success'];

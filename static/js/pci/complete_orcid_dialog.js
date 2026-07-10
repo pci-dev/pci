@@ -60,7 +60,8 @@ function submitForm(url) {
   $.ajax({
     type: "POST",
     url: url,
-    data: payload
+    data: payload,
+    xhrFields: { withCredentials: true }
   });
 
   $('#complete-profile-modal').modal('hide')
