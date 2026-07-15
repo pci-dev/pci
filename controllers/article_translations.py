@@ -23,6 +23,8 @@ request = current.request
 session = current.session
 auth = current.auth
 
+myconf = AppConfig()
+scheme = myconf.take("alerts.scheme")
 
 @auth.requires_login()
 def edit_article_translations():
@@ -323,13 +325,13 @@ def _generate_lang_selector_all_field(article: Article):
                         f="add_or_edit_article_fields_translations",
                         vars=dict(article_id=article.id, action=AddNewLanguageAction.GENERATE.value),
                         user_signature=True,
-                        scheme=True)
+                        scheme=scheme)
 
     url_write = URL(c="article_translations",
                     f="add_or_edit_article_fields_translations",
                     vars=dict(article_id=article.id, action=AddNewLanguageAction.WRITE.value),
                     user_signature=True,
-                    scheme=True)
+                    scheme=scheme)
     
     return FORM(
         LABEL('Add translation - Choose a language', _class="control-label col-sm-3", _for="lang-selector", _style="font-size: 17px"),
@@ -357,13 +359,13 @@ def _generate_lang_selector(article: Article, translated_field: TranslatedFieldT
                         f="add_or_edit_article_field_translation",
                         vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.GENERATE.value),
                         user_signature=True,
-                        scheme=True)
+                        scheme=scheme)
     
     url_write = URL(c="article_translations",
                         f="add_or_edit_article_field_translation",
                         vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value),
                         user_signature=True,
-                        scheme=True)
+                        scheme=scheme)
     
     if is_textarea:
         input = TEXTAREA(_id="new-translation", _class="form-control text", _name="new-translation")

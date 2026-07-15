@@ -25,7 +25,8 @@ function colorHypothesisButton() {
 		data: { article_id: articleId },
 		success: function(response) {
 			$('#hypothesis_button_container').html(response)
-		}
+		},
+		xhrFields: { withCredentials: true }
 	})
 }
 

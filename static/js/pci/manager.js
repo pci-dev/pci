@@ -1,6 +1,7 @@
 function showSetNotConsideredDialog(articleId, url) {
     $.ajax({
-        url: url
+        url: url,
+        xhrFields: { withCredentials: true }
     }).done(function (response) {
         if (window['initNotConsideredDialog' + articleId]) {
             $('#mail-dialog-' + articleId).modal('show');
@@ -45,7 +46,8 @@ function rdvDateInputChange(articleId, url) {
     $.ajax({
         type: 'POST',
         url: url,
-        data: payload
+        data: payload,
+        xhrFields: { withCredentials: true }
     }).done((response) => {
         const rdvContainer = document.getElementById(`container-rdv-date-${articleId}`);
         const newRdvContainer = document.createElement('div');
@@ -84,7 +86,8 @@ function sendRemarks(articleId, url, remarksInput) {
     $.ajax({
         type: 'POST',
         url: url,
-        data: payload
+        data: payload,
+        xhrFields: { withCredentials: true }
     }).done((response) => {
         remarksInput.style.color = initialColorRemarks;
     });

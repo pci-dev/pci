@@ -24,6 +24,8 @@ from models.suggested_recommender import SuggestedRecommender, SuggestedBy
 
 myconf = AppConfig(reload=True)
 
+scheme = myconf.take("alerts.scheme")
+
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
 
@@ -1333,7 +1335,7 @@ def not_considered_button(article: Article, without_style: bool = False):
 
     return A(
                 TAG(current.T('Prepare email informing authors that preprint not considered')),
-                _onclick=f'showSetNotConsideredDialog({article.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=article.id), user_signature=True)}")',
+                _onclick=f'showSetNotConsideredDialog({article.id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=article.id), user_signature=True, scheme=scheme)}")',
                 _class=html_class,
                 _id=f"button-set-not-considered-{article.id}",
                 _title=current.T('Prepare email informing authors that preprint not considered'),
@@ -1371,7 +1373,7 @@ def manager_action_button(action: str, text: str, info_text: str, art: Article, 
 def set_not_considered_tiny_button(article_id: int):
     return A(
         TAG(current.T('Prepare email informing authors that preprint not considered')),
-        _onclick=f'showSetNotConsideredDialog({article_id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=article_id), user_signature=True)}")',
+        _onclick=f'showSetNotConsideredDialog({article_id}, "{URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=article_id), user_signature=True, scheme=scheme)}")',
         _class="buttontext btn btn-danger pci-button pci-manager",
         _id=f"button-set-not-considered-{article_id}",
         _title=current.T('Prepare email informing authors that preprint not considered'),
@@ -1395,7 +1397,7 @@ def set_to_not_considered(art: Article) -> Optional[Any]:
             "Click here to set this article to not considered",
             art,
             style="danger",
-            onclick=f'callNotConsideredDialog(event, {art.id}, "{common_tools.URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=art.id), user_signature=True)}");'
+            onclick=f'callNotConsideredDialog(event, {art.id}, "{common_tools.URL(c="manager_actions", f="get_not_considered_dialog", vars=dict(articleId=art.id), user_signature=True, scheme=scheme)}");'
     )[0] # type: ignore
 
 def send_back_button(art: Article):
