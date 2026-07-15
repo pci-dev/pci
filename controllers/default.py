@@ -151,6 +151,7 @@ def index():
             ],
         orderby=~t_articles.last_status_change,
         _class="web2py_grid action-button-absolute undisplay-records",
+        cache_count=(current.cache.ram, 30),
     )
       # check url arguments passed to grid did not break db
       db.executesql("select 1")

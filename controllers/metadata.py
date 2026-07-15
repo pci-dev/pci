@@ -29,7 +29,7 @@ def parse_args(request: ...):
     except:
         raise HTTP(400, f"no such article: {article_id}")
 
-    recomm = Article.get_final_recommendation(article)
+    recomm = Article.get_final_recommendation(article, True)
 
     if not recomm:
         raise HTTP(400, f"no recommendation for article: {article_id}")
@@ -179,7 +179,7 @@ def get_crossref_publication_date(article: Article):
 
 def steps(article: Article):
     authors = authors_as_docmaps(article)
-    rounds = Recommendation.get_by_article_id(article.id, db.t_recommendations.validation_timestamp)
+    rounds = Recommendation.get_by_article_id(article.id, db.t_recommendations.validation_timestamp, True)
 
     init_r = rounds[0]
     last_r = rounds[-1]

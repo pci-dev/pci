@@ -242,7 +242,7 @@ def _dublinc_core_meta_tag(article: Article):
 def getPublicReviewRoundsHtml(article: Article):
     db= current.db
 
-    recomms = Recommendation.get_by_article_id(article.id, ~db.t_recommendations.id)
+    recomms = Recommendation.get_by_article_id(article.id, ~db.t_recommendations.id, True)
 
     recommRound = len(recomms)
     reviewRoundsHtml = DIV()

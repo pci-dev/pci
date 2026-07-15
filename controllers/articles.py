@@ -84,7 +84,7 @@ def rec():
             return redirect(request.env.http_referer)
 
     # Set Page title
-    finalRecomm = Article.get_final_recommendation(art)
+    finalRecomm = Article.get_final_recommendation(art, True)
     if not finalRecomm:
         session.flash = T("Item not recommended yet")
         return redirect(request.home)
