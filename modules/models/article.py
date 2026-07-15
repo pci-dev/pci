@@ -224,19 +224,27 @@ class Article(Row):
 
         query = db(db.t_recommendations.article_id == article_id)
         if cache:
-            return query.select(orderby=db.t_recommendations.id, cache=(current.cache.ram, 30)).last()
+            return query.select(orderby=db.t_recommendations.id, cache=(current.cache.ram, 30), cacheable=True).last()
         else:
             return query.select(orderby=db.t_recommendations.id).last()
 
 
     @staticmethod
-    def get_last_recommendations(article_id: int, order_by: _[Any]) -> List[Recommendation]:
+    def get_last_recommendations(article_id: int, order_by: _[Any], cache: bool = False) -> List[Recommendation]:
         db = current.db
         query = db(db.t_recommendations.article_id == article_id)
+        
         if order_by:
-            recommendations = query.select(orderby=order_by)
+            if cache:
+                recommendations = query.select(orderby=order_by, cache=(current.cache.ram, 30), cacheable=True)
+            else:
+                recommendations = query.select(orderby=order_by)
         else:
-            recommendations = query.select()
+            if cache:
+                recommendations = query.select(cache=(current.cache.ram, 30), cacheable=True)
+            else:
+                recommendations = query.select()
+
         return recommendations
     
 
@@ -700,10 +708,14 @@ class Article(Row):
 
 
     @staticmethod
-    def get_final_recommendation(article: 'Article'):
+    def get_final_recommendation(article: 'Article', cache: bool = False):
         db = current.db
         query = (db.t_recommendations.article_id == article.id) & (db.t_recommendations.recommendation_state == RecommendationState.RECOMMENDED.value)
-        recommendation: _[Recommendation] = db(query).select(orderby=db.t_recommendations.id).last()
+        if cache:
+            recommendation: _[Recommendation] = db(query).select(orderby=db.t_recommendations.id, cache=(current.cache.ram, 30), cacheable=True).last()
+        else:
+            recommendation: _[Recommendation] = db(query).select(orderby=db.t_recommendations.id).last()
+
         return recommendation
 
 

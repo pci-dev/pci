@@ -63,12 +63,18 @@ class Recommendation(Row):
         return db(db.t_recommendations.recommendation_doi == doi).select(orderby=db.t_recommendations.validation_timestamp)
 
     @staticmethod
-    def get_by_article_id(article_id: int, order_by: ... = None):
+    def get_by_article_id(article_id: int, order_by: ... = None, cache: bool = False):
         db = current.db
         if order_by:
-            recommendations = db(db.t_recommendations.article_id == article_id).select(orderby=order_by)
+            if cache:
+                recommendations = db(db.t_recommendations.article_id == article_id).select(orderby=order_by, cache=(current.cache.ram, 30), cacheable=True)
+            else:
+                recommendations = db(db.t_recommendations.article_id == article_id).select(orderby=order_by)
         else:
-            recommendations = db(db.t_recommendations.article_id == article_id).select()
+            if cache:
+                recommendations = db(db.t_recommendations.article_id == article_id).select(cache=(current.cache.ram, 30), cacheable=True)
+            else:
+                recommendations = db(db.t_recommendations.article_id == article_id).select()
         return cast(List[Recommendation], recommendations)
 
 

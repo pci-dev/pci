@@ -46,7 +46,7 @@ class SchemaOrg:
         self._article = article
         self._authors = {}
 
-        recommendations = Article.get_last_recommendations(article.id, ~current.db.t_recommendations.id)
+        recommendations = Article.get_last_recommendations(article.id, ~current.db.t_recommendations.id, True)
         recommendations = [r for r in recommendations]
         self._recommendations = recommendations
 
