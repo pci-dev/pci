@@ -99,7 +99,8 @@ function generateTranslation(e) {
 
     $.ajax({
         type: 'POST',
-        url: url
+        url: url,
+        xhrFields: { withCredentials: true },
     }).done((response) => {
         insertTranslationForm(response, lang);
     }).always(() => {
@@ -135,6 +136,7 @@ function saveTranslation(e) {
         contentType: 'application/json; charset=utf-8',
         url: url,
         data: JSON.stringify({'translation': translation}),
+        xhrFields: { withCredentials: true }
     }).done((response) => {
         insertTranslationForm(response, lang);
     });
@@ -170,6 +172,7 @@ function saveAllTranslation(e) {
         contentType: 'application/json; charset=utf-8',
         url: url,
         data: JSON.stringify(payload),
+        xhrFields: { withCredentials: true }
     }).done((response) => {
         insertTranslationForm(response, lang);
     });
@@ -202,6 +205,7 @@ function editTranslation(e) {
         contentType: 'application/json; charset=utf-8',
         url: url,
         data: JSON.stringify(payload),
+        xhrFields: { withCredentials: true }
     }).done((response) => {
         insertTranslationForm(response, lang, isTextarea);
     });
@@ -235,6 +239,7 @@ function editAllTranslation(e) {
         contentType: 'application/json; charset=utf-8',
         url: url,
         data: JSON.stringify(payload),
+        xhrFields: { withCredentials: true }
     }).done((response) => {
         insertTranslationForm(response, lang);
     });
@@ -252,6 +257,7 @@ function deleteTranslation(e) {
 			$.ajax({
                 type: 'GET',
                 url: url,
+                xhrFields: { withCredentials: true }
             }).done(() => {
                 const form = document.getElementById(`translation-${lang}`);
                 if (form != null) {
@@ -276,6 +282,7 @@ function deleteAllTranslation(e) {
 			$.ajax({
                 type: 'GET',
                 url: url,
+                xhrFields: { withCredentials: true }
             }).done(() => {
                 const form = document.getElementById(`translation-${lang}`);
                 if (form != null) {

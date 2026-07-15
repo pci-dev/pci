@@ -338,10 +338,14 @@
         if (!document.referrer.includes('{{=URL(c="default", f="user", args=["login"])}}')) {
           return;
         }
+
+        const url = '{{=URL("default", "show_account_menu_dialog")}}' + '?_next=' + window.location.href;
+        const scheme = new URL(window.location.href).protocol;
         
         $.ajax({
           type: 'GET',
-          url: '{{=URL("default", "show_account_menu_dialog")}}' + '?_next=' + window.location.href,
+          url: url.replace('http:', scheme),
+          xhrFields: { withCredentials: true },
           success: function(response) {
             const dialogHtml = response;
             if (dialogHtml == null) {

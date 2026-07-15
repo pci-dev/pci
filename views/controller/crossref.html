@@ -113,6 +113,7 @@
         statusPanel.innerText = "Waiting response from Crossref.."
 
         req = new XMLHttpRequest();
+        req.withCredentials = true;
         req.open("get", '{{=get_status_url}}');
         req.send();
 

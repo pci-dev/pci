@@ -30,7 +30,7 @@ from gluon import current
 from app_modules.common_tools import URL, doi_to_url
 
 myconf = AppConfig(reload=True)
-
+scheme = myconf.take("alerts.scheme")
 
 pciRRactivated = myconf.get("config.registered_reports", default=False)
 scheduledSubmissionActivated = myconf.get("config.scheduled_submissions", default=False)
@@ -735,7 +735,7 @@ def represent_rdv_date(article: Article):
                   _name=f"rdv_date_{article.id}",
                   _value=article.rdv_date,
                   _min=datetime.date.today(),
-                  _onchange=f'rdvDateInputChange({article.id}, "{URL(c="manager", f="edit_rdv_date", scheme=True)}")',
+                  _onchange=f'rdvDateInputChange({article.id}, "{URL(c="manager", f="edit_rdv_date", scheme=scheme)}")',
                   _style="flex")
 
     if not article.rdv_date:
@@ -1341,7 +1341,7 @@ def complete_profile_dialog(next: str):
 def complete_orcid_dialog():
     radio_label_style = "display: inline;"
     radio_container_style = "margin-top: 5px;"
-    url = cast(str, URL("default", "orcid_choice"))
+    url = cast(str, URL("default", "orcid_choice", scheme=scheme))
 
     return DIV(
         OrcidTools.get_orcid_formatter_script(),

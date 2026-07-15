@@ -16,6 +16,7 @@ session = current.session
 config = AppConfig()
 pci_rr_activated = config.get("config.registered_reports", default=False)
 is_admin = auth.has_membership(role="administrator")
+scheme = config.take("alerts.scheme")
 
 
 def index():
@@ -71,9 +72,9 @@ def post_form():
 
     response.view = "controller/crossref.html"
     return dict(
-        get_status_url=URL("crossref", f"get_status_response?article_id={article_id}"),
+        get_status_url=URL("crossref", f"get_status_response?article_id={article_id}", scheme=scheme),
         crossref_status=crossref_status,
-        back_url=URL("manager", f"recommendations?articleId={recommendation.article_id}"),
+        back_url=URL("manager", f"recommendations?articleId={recommendation.article_id}", scheme=scheme),
         disable_form=disable_form,
         recommendation_xml=recommendation_xml,
         titleIcon="envelope",

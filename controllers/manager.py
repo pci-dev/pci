@@ -372,7 +372,7 @@ def _manage_articles(statuses: Optional[List[str]] = None,
                         _id=f"remarks_{row.id}",
                         _name=f"remarks_{row.id}",
                         _style="height: 100px; width: 330px; resize: none; background: transparent; border: 1px #dfd7ca solid; border-radius: 4px",
-                        _oninput=f'remarksInputChange({row.id}, "{URL(c="manager", f="edit_remarks", scheme=True)}")')
+                        _oninput=f'remarksInputChange({row.id}, "{URL(c="manager", f="edit_remarks", scheme=scheme)}")')
 
     t_articles.id.readable = True
     t_articles.id.represent = article_row
@@ -952,12 +952,13 @@ def bluesky_button(article: Article, recommendation: Recommendation):
 
 
 def crossref_status(article: Article):
-    status_url = URL("crossref", f"get_status?article_id={article.id}")
+    status_url = URL("crossref", f"get_status?article_id={article.id}", scheme=scheme)
     return SPAN(
         SCRIPT('''
         (function get_crossref_status(elt) {
             elt = elt || document.currentScript.parentNode
             req = new XMLHttpRequest()
+            req.withCredentials = true;
             req.addEventListener("load", function() {
                 status = this.responseText
                 status_str = "✅,❌,,🏁".split(",")
