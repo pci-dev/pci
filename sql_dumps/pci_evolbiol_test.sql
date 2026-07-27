@@ -1255,9 +1255,9 @@ CREATE TABLE public.t_articles (
     art_stage_1_id integer,
     scheduled_submission_date date,
     report_stage character varying(128),
-    sub_thematics character varying(128),
-    record_url_version character varying(128),
-    record_id_version character varying(128)
+    sub_thematics character varying(512),
+    record_url_version character varying(512),
+    record_id_version character varying(512)
 );
 
 
