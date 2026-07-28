@@ -15,7 +15,7 @@ from gluon.http import redirect # type: ignore
 from gluon.storage import Storage
 from app_modules.common_tools import cancel_decided_article_pending_reviews
 from app_modules import emailing
-from models.article import Article, ArticleStatus
+from models.article import Article, ArticleStatus, ArticleStage
 from models.suggested_recommender import SuggestedRecommender, SuggestedBy
 from models.user import User
 
@@ -143,7 +143,7 @@ def do_recommend_article():
         Hypothesis(art).post_annotation()
 
     try:
-        if not art.already_published:
+        if not art.already_published and art.status != ArticleStage.STAGE_1.value:
             status = crossref.async_post_to_crossref(art)
         else:
             status = None

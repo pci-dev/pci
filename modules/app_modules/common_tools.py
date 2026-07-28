@@ -29,6 +29,7 @@ from gluon.contrib.appconfig import AppConfig # type: ignore
 
 myconf = AppConfig(reload=True)
 pciRRactivated = myconf.get("config.registered_reports", default=False)
+scheme = myconf.take("alerts.scheme")
 
 
 def URL(a: Optional[str] = None,
@@ -44,7 +45,7 @@ def URL(a: Optional[str] = None,
         hash_vars: bool = True,
         salt: Optional[str] = None,
         user_signature: Optional[bool] = None,
-        scheme: Optional[Union[str, bool]] = None,
+        scheme: Optional[Union[str, bool]] = scheme,
         host: Optional[str] = None,
         port: Optional[int] = None,
         encode_embedded_slash: bool = False,

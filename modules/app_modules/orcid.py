@@ -6,7 +6,7 @@ from urllib import parse
 
 from gluon.dal import SQLCustomType
 from gluon.contrib.appconfig import AppConfig
-from gluon.html import A, CENTER, FORM, IMG, URL, SPAN, DIV, STRONG
+from gluon.html import A, CENTER, FORM, IMG, SPAN, DIV, STRONG
 from gluon.http import redirect
 from gluon.sqlhtml import SQLFORM
 from gluon import current
@@ -15,6 +15,7 @@ from app_modules.httpClient import HttpClient
 from app_modules.common_tools import get_next, get_script, sget
 from app_modules.country import Country
 
+from app_modules.common_tools import URL
 
 class OrcidTools:
 
