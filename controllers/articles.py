@@ -15,6 +15,8 @@ from gluon import current
 from gluon.http import redirect # type: ignore
 from models.article import Article, ArticleStatus
 
+from app_modules.common_tools import URL
+
 auth = current.auth
 request = current.request
 db = current.db
@@ -127,7 +129,7 @@ def rec():
         viewToRender=viewToRender,
         withComments=with_comments,
         printableUrl=URL(c="articles", f="rec", vars=dict(id=articleId, printable=True), user_signature=True),
-        currentUrl=URL(c="articles", f="rec", vars=dict(id=articleId), scheme=True),
+        currentUrl=URL(c="articles", f="rec", vars=dict(id=articleId)),
         shareButtons=True,
         nbReviews=nbReviews,
         pciRRactivated=pciRRactivated,
@@ -145,7 +147,7 @@ def handle_rec_signposting(recomm: Recommendation):
         article_id = recomm.article_id
 
         response.headers = { "link": ", ".join([
-            '<' + URL("metadata", f"{target}?article_id={article_id}", scheme=True)
+            '<' + URL("metadata", f"{target}?article_id={article_id}")
             + f'>; rel="describedby" {opts}'
 
             for target, opts in [

@@ -433,14 +433,12 @@ def _generate_all_field_lang_form(article: Article, lang: Lang):
     save_url = URL(c="article_translations",
                         f="add_or_edit_article_fields_translations",
                         vars=dict(article_id=article.id, action=AddNewLanguageAction.WRITE.value, lang=lang.value.code),
-                        user_signature=True,
-                        scheme=True)
+                        user_signature=True)
     
     delete_url = URL(c="article_translations",
                         f="delete_all_translation",
                         vars=dict(article_id=article.id, lang=lang.value.code),
-                        user_signature=True,
-                        scheme=True)
+                        user_signature=True)
     
     checkbox = DIV(
         INPUT(_type="checkbox", _id=f"checkboxpublic-{lang.value.code}", value=abstract['public']),
@@ -483,14 +481,12 @@ def _generate_lang_form(article: Article, translated_field: TranslatedFieldType,
     save_url = URL(c="article_translations",
                     f="add_or_edit_article_field_translation",
                     vars=dict(article_id=article.id, field=translated_field.value, action=AddNewLanguageAction.WRITE.value, lang=lang.value.code, is_textarea=str(is_textarea).lower()),
-                    user_signature=True,
-                    scheme=True)
+                    user_signature=True)
     
     delete_url = URL(c="article_translations",
                     f="delete_translation",
                     vars=dict(article_id=article.id, field=translated_field.value, lang=lang.value.code),
-                    user_signature=True,
-                    scheme=True)
+                    user_signature=True)
     
     checkbox = DIV(
         INPUT(_type="checkbox", _id=f"checkboxpublic-{lang.value.code}", value=translation_value['public']),

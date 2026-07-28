@@ -44,6 +44,8 @@ from models.review import ReviewDuration, ReviewState, Review
 
 from controller_modules import recommender_module
 
+from app_modules.common_tools import URL
+
 request = current.request
 session = current.session
 response = current.response
@@ -396,7 +398,7 @@ This project was driven by a desire to establish a free, transparent and public 
 More information can be found on the website of """
     + myconf.get("app.longname")
     + """: """
-    + URL(c="default", f="index", scheme=True)
+    + URL(c="default", f="index")
 )
 
 

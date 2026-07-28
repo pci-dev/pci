@@ -64,7 +64,7 @@ def loading():
 def index():
     if request.env.request_method == 'HEAD':
         response.headers = { "link": (
-            '<' + URL("coar_notify", "inbox", scheme=True) + '>' +
+            '<' + URL("coar_notify", "inbox") + '>' +
             '; rel="http://www.w3.org/ns/ldp#inbox"'
         )}
         return ""
@@ -334,7 +334,7 @@ def user():
             db.auth_user.ethical_code_approved.requires = IS_IN_SET(["on"])
             form.element(_type="submit")["_class"] = "btn btn-success"
             OrcidTools.add_orcid_auth_user_form(form,
-                    URL(c="default", f="user", args="register", scheme=True, vars={"_next": suite or ""}))
+                    URL(c="default", f="user", args="register", vars={"_next": suite or ""}))
             form.element('#auth_user_password_two__label').components[0] = SPAN(T("Confirm Password")) + SPAN(" * ", _style="color:red;")
 
             captcha_setup(form)
@@ -355,7 +355,7 @@ def user():
             form.element(_name="orcid")["_maxlength"] = 19
 
             OrcidTools.add_orcid_auth_user_form(form,
-                    URL(c="default", f="user", args="profile", scheme=True, vars={"_next": suite or ""}))
+                    URL(c="default", f="user", args="profile", vars={"_next": suite or ""}))
             form.components[1].insert(len(form.components[1]) - 1, unsubscribe_checkbox())
             if suite:
                 auth.settings.profile_next = suite
@@ -417,7 +417,7 @@ def lost_password():
             reset_password_key = str(int(time.time())) + "-" + web2py_uuid()
             user.update_record(reset_password_key=reset_password_key)
 
-            link = URL("default", "lost_reset_password", scheme=True, vars=dict(
+            link = URL("default", "lost_reset_password", vars=dict(
             _key=reset_password_key,
             ))
 
@@ -538,7 +538,7 @@ def email_reset_password():
     reset_password_key = str(int(time.time())) + "-" + web2py_uuid()
     user.update_record(reset_password_key=reset_password_key)
 
-    link = URL("default", "reset_password", scheme=True, vars=dict(
+    link = URL("default", "reset_password", vars=dict(
         _key=reset_password_key,
         _next=request.vars._next,
     ))

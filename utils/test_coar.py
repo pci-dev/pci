@@ -2,6 +2,7 @@ import json
 import requests
 import uuid
 
+from app_modules.common_tools import URL
 
 def index():
     request.function = "post_form" # zap header in layout.html
@@ -54,7 +55,7 @@ def post_form():
 
 
 def post(data):
-    target = URL("coar_notify", "inbox", scheme=True, host=True)
+    target = URL("coar_notify", "inbox", host=True)
     res = requests.post(
             target,
             json=data,

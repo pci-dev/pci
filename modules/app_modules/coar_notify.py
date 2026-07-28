@@ -10,10 +10,11 @@ import uuid
 import requests
 
 from gluon import current
-from gluon.html import URL
 from gluon.storage import Storage
 from gluon.contrib.appconfig import AppConfig
 from app_modules.common_small_html import mkLinkDOI
+
+from app_modules.common_tools import URL
 
 __all__ = ["COARNotifier"]
 
@@ -56,7 +57,7 @@ class COARNotifier:
         self.listeners = self.parse_listeners(config)
         self.inbox_auth = parse_inbox_auth(config)
 
-    base_url = URL("|", "|", scheme=True).replace("|/|", "")
+    base_url = URL("|", "|").replace("|/|", "")
 
 
     def send_notification(self, notification, article):

@@ -9,6 +9,7 @@ from gluon import current
 from models.article import Article
 from models.user import User
 
+from app_modules.common_tools import URL
 
 if typing.TYPE_CHECKING:
     from gluon import HTTP, request, response
@@ -439,7 +440,7 @@ def fail(message=None, status=HTTPStatus.BAD_REQUEST, **headers):
 
 def add_location_header(coar_id):
     response.headers['Location'] = URL(
-            "coar_notify", "show", vars={"coar_id":coar_id}, scheme=True)
+            "coar_notify", "show", vars={"coar_id":coar_id})
 
 
 ##
@@ -694,6 +695,6 @@ def system_description():
 
 def add_describedby_header():
     response.headers.update({
-        "link": '<' + URL("coar_notify", "system_description", scheme=True) + '>' +
+        "link": '<' + URL("coar_notify", "system_description") + '>' +
         '; rel="describedby"; type="application/json"'
     })

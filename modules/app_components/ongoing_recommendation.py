@@ -22,6 +22,8 @@ from models.group import Role
 from models.review import Review, ReviewState
 from models.suggested_recommender import SuggestedRecommender, SuggestedBy
 
+from app_modules.common_tools import URL
+
 myconf = AppConfig(reload=True)
 
 scheme = myconf.take("alerts.scheme")
@@ -50,7 +52,7 @@ def getRecommStatusHeader(art: Article, userDiv: bool, printable: bool, quiet: b
 
 
     myTitle = DIV(
-        IMG(_src=common_tools.URL(r=request, c="static", f="images/small-background.png", scheme=True)),
+        IMG(_src=common_tools.URL(r=request, c="static", f="images/small-background.png")),
         DIV(statusDiv, _class="pci2-flex-grow"),
         _class="pci2-flex-row",
     )
@@ -65,7 +67,7 @@ def getRecommStatusHeader(art: Article, userDiv: bool, printable: bool, quiet: b
     if (lastRecomm or art.status == "Under consideration") and auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (quiet):
         allowManageRecomms = True
 
-    back2 = common_tools.URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=True)
+    back2 = common_tools.URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri))
 
     allowManageRequest = False
     manageRecommendersButton = None
@@ -79,14 +81,14 @@ def getRecommStatusHeader(art: Article, userDiv: bool, printable: bool, quiet: b
     printableUrl = None
     verifyUrl = None
     if auth.has_membership(role="manager"):
-        printableUrl = common_tools.URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True), scheme=True)
+        printableUrl = common_tools.URL(c="manager", f="article_emails", vars=dict(articleId=art.id, printable=True))
 
     if (auth.has_membership(role="recommender") or auth.has_membership(role="manager")) and art.user_id != auth.user_id:
-        verifyUrl = common_tools.URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=art.id, printable=True), scheme=True)
+        verifyUrl = common_tools.URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=art.id, printable=True))
 
     recommenderSurveyButton = None
     if lastRecomm and (auth.user_id == lastRecomm.recommender_id or co_recommender):
-        printableUrl = common_tools.URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=art.id), scheme=True)
+        printableUrl = common_tools.URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=art.id))
         recommenderSurveyButton = True
 
     componentVars = dict(
@@ -129,7 +131,7 @@ def get_recommendation_status_buttons(article: Article, last_recommendation: Opt
     if (last_recommendation or article.status == ArticleStatus.UNDER_CONSIDERATION.value) and auth.has_membership(role=Role.MANAGER.value) and not (article.user_id == auth.user_id):
         allow_manage_recommendations = True
 
-    next_url = common_tools.URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri), scheme=True)
+    next_url = common_tools.URL(re.sub(r".*/([^/]+)$", "\\1", request.env.request_uri))
 
     allow_manage_request = False
     manage_recommendation_button: Optional[Union[A, str]] = None
@@ -146,14 +148,14 @@ def get_recommendation_status_buttons(article: Article, last_recommendation: Opt
     printable_url = None
     verify_url = None
     if auth.has_membership(role="manager"):
-        printable_url = common_tools.URL(c="manager", f="article_emails", vars=dict(articleId=article.id, printable=True), scheme=True)
+        printable_url = common_tools.URL(c="manager", f="article_emails", vars=dict(articleId=article.id, printable=True))
 
     if (auth.has_membership(role="recommender") or auth.has_membership(role="manager")) and article.user_id != auth.user_id:
-        verify_url = common_tools.URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=article.id, printable=True), scheme=True)
+        verify_url = common_tools.URL(c="recommender", f="verify_co_authorship", vars=dict(articleId=article.id, printable=True))
 
     recommender_survey_button = None
     if last_recommendation and (auth.user_id == last_recommendation.recommender_id or co_recommender):
-        printable_url = common_tools.URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=article.id), scheme=True)
+        printable_url = common_tools.URL(c="recommender", f="article_reviews_emails", vars=dict(articleId=article.id))
         recommender_survey_button = True
 
     buttons: List[A] = []
@@ -228,7 +230,7 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
                 A(
                     SPAN(current.T("Yes, I would like to handle the evaluation process"),
                         _class=f"buttontext btn btn-success pci-recommender"),
-                    _href=common_tools.URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id, skip_checkbox=True), scheme=True),
+                    _href=common_tools.URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id, skip_checkbox=True)),
                 ),
             )
 
@@ -237,14 +239,14 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
                 A(
                     SPAN(current.T("Confirm your request to handle the evaluation process"),
                         _class=f"buttontext btn btn-success pci-recommender"),
-                    _href=common_tools.URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id), scheme=True),
+                    _href=common_tools.URL(c="recommender", f="accept_new_article_to_recommend", vars=dict(articleId=art.id)),
                 ),
             )
 
             btsAccDec.append(
                 A(
                     SPAN(current.T("No, I would rather not"), _class="buttontext btn btn-warning pci-recommender"),
-                    _href=common_tools.URL(c="recommender_actions", f="decline_new_article_to_recommend", vars=dict(articleId=art.id), scheme=True),
+                    _href=common_tools.URL(c="recommender_actions", f="decline_new_article_to_recommend", vars=dict(articleId=art.id)),
                     _class="button",
                 ),
             )
@@ -283,7 +285,7 @@ def getRecommendationTopButtons(art: Article, printable: bool = False, quiet: bo
             DIV(
                 A(
                     SPAN(current.T("I wish to cancel my submission"), _class="buttontext btn btn-warning pci-submitter"),
-                    _href=common_tools.URL(c="user_actions", f="do_cancel_article", vars=dict(articleId=art.id), scheme=True),
+                    _href=common_tools.URL(c="user_actions", f="do_cancel_article", vars=dict(articleId=art.id)),
                     _title=current.T("Click here in order to cancel this submission"),
                 ),
                 _class="pci-EditButtons pci2-flex-grow pci2-flex-center",
@@ -528,7 +530,7 @@ def getRecommendationProcessForSubmitter(art: Article, printable: bool, date_for
 
             recommendationLink: Optional[str] = None
             if recommStatus == "Recommended" and managerDecisionDoneClass == "step-done":
-                recommendationLink = common_tools.URL(c="articles", f="rec", vars=dict(id=art.id), scheme=True)
+                recommendationLink = common_tools.URL(c="articles", f="rec", vars=dict(id=art.id))
 
             componentVars = dict(
                 printable=printable,
@@ -724,7 +726,7 @@ def _get_author_reply_link(article: Article, recommendation: Recommendation, pri
     auth = current.auth
 
     if (article.user_id == auth.user_id) and (article.status == ArticleStatus.AWAITING_REVISION.value) and not (printable) and (i_recommendation == 1):
-        return common_tools.URL(c="user", f="edit_reply", vars=dict(recommId=recommendation.id), user_signature=True, scheme=True)
+        return common_tools.URL(c="user", f="edit_reply", vars=dict(recommId=recommendation.id), user_signature=True)
 
 
 def _get_authors_reply_pdf_link(recommendation: Recommendation):
@@ -732,7 +734,7 @@ def _get_authors_reply_pdf_link(recommendation: Recommendation):
         return A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download author's reply (PDF file)"),
-            _href=common_tools.URL("default", "download", args=recommendation.reply_pdf, scheme=True),
+            _href=common_tools.URL("default", "download", args=recommendation.reply_pdf),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
 
@@ -741,7 +743,7 @@ def _is_scheduled_submission_revision(article: Article, printable: bool):
     auth = current.auth
 
     if (article.status == ArticleStatus.SCHEDULED_SUBMISSION_REVISION.value) and (article.user_id == auth.user_id) and not (printable):
-        return common_tools.URL(c="user_actions", f="article_revised", vars=dict(articleId=article.id), user_signature=True, scheme=True)
+        return common_tools.URL(c="user_actions", f="article_revised", vars=dict(articleId=article.id), user_signature=True)
 
 
 def _get_authors_reply_track_change_file_link(recommendation: Recommendation):
@@ -749,7 +751,7 @@ def _get_authors_reply_track_change_file_link(recommendation: Recommendation):
         return A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download tracked changes file"),
-            _href=common_tools.URL("default", "download", args=recommendation.track_change, scheme=True),
+            _href=common_tools.URL("default", "download", args=recommendation.track_change),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
 
@@ -913,7 +915,7 @@ def _build_review_vars(article: Article, recommendation: Recommendation, review:
             pdfLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download the review (PDF file)"),
-                _href=common_tools.URL("default", "download", args=review.review_pdf, scheme=True),
+                _href=common_tools.URL("default", "download", args=review.review_pdf),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
             review_vars.update([("pdfLink", pdfLink)])
@@ -964,7 +966,7 @@ def _get_recommender_buttons(article: Article, recommendation: Recommendation, a
     if not (recommendation.is_closed) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender) and (article.status == ArticleStatus.UNDER_CONSIDERATION.value) and not (printable):
         # recommender's button for recommendation edition
         edit_recommendation_button_text = current.T("Write or edit your decision / recommendation")
-        edit_recommendation_link = common_tools.URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id), scheme=True)
+        edit_recommendation_link = common_tools.URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recommendation.id))
         if pciRRactivated:
             pass
         elif (nb_completed >= 2 and nb_on_going == 0) or nb_round > 1:
@@ -985,7 +987,7 @@ def _get_invite_reviewer_links(article: Article, recommendation: Recommendation,
     invite_reviewer_link = None
     show_remove_searching_for_reviewers_button = None
     if not (recommendation.is_closed) and (recommendation.recommender_id == auth.user_id or am_I_co_recommender or auth.has_membership(role=Role.MANAGER.value)) and (article.status in (ArticleStatus.UNDER_CONSIDERATION.value, ArticleStatus.SCHEDULED_SUBMISSION_UNDER_CONSIDERATION.value)):
-        invite_reviewer_link = common_tools.URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id), scheme=True)
+        invite_reviewer_link = common_tools.URL(c="recommender", f="reviewers", vars=dict(recommId=recommendation.id))
         show_remove_searching_for_reviewers_button = article.is_searching_reviewers
 
     return dict(
@@ -1017,14 +1019,14 @@ def _get_recommendation_pdf_link(recommendation: Recommendation, hide_on_going_r
         recommendation_pdf_link = A(
             I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
             current.T("Download recommender's annotations (PDF)"),
-            _href=common_tools.URL("default", "download", args=recommendation.recommender_file, scheme=True),
+            _href=common_tools.URL("default", "download", args=recommendation.recommender_file),
             _style="font-weight: bold; margin-bottom: 5px; display:block",
         )
     return recommendation_pdf_link
 
 
 def _mk_link(role: Role, action: str, review_item: Dict[Any, Any]):
-    return common_tools.URL(c=role.value+"_actions", f=action+"_review_request", vars=dict(reviewId=review_item["id"]), scheme=True)
+    return common_tools.URL(c=role.value+"_actions", f=action+"_review_request", vars=dict(reviewId=review_item["id"]))
 
 
 def _get_role_current_user():
@@ -1535,12 +1537,12 @@ def getPostprintRecommendation(art: Article, printable: bool = False, quiet: boo
     cancelSubmissionLink = None
     if (recomm.recommender_id == auth.user_id or amICoRecommender) and (art.status in ("Under consideration", "Scheduled submission under consideration")) and not (recomm.is_closed) and not (printable):
         # recommender's button allowing recommendation edition
-        editRecommendationLink = common_tools.URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id), scheme=True)
+        editRecommendationLink = common_tools.URL(c="recommender", f="edit_recommendation", vars=dict(recommId=recomm.id))
 
         minimal_number_of_corecommenders = 0
 
         if len(contributors) >= minimal_number_of_corecommenders:
-            sendRecommendationLink = common_tools.URL(c="recommender_actions", f="recommend_article", vars=dict(recommId=recomm.id), scheme=True)
+            sendRecommendationLink = common_tools.URL(c="recommender_actions", f="recommend_article", vars=dict(recommId=recomm.id))
             if recomm.recommendation_comments is not None:
                 if len(recomm.recommendation_comments) > 50:
                     # recommender's button allowing recommendation submission, provided there are co-recommenders
@@ -1549,10 +1551,10 @@ def getPostprintRecommendation(art: Article, printable: bool = False, quiet: boo
                 isRecommendationTooShort = True
         else:
             # otherwise button for adding co-recommender(s)
-            addContributorLink = common_tools.URL(c="recommender", f="add_contributor", vars=dict(recommId=recomm.id), scheme=True)
+            addContributorLink = common_tools.URL(c="recommender", f="add_contributor", vars=dict(recommId=recomm.id))
 
         # recommender's button allowing cancellation
-        cancelSubmissionLink = common_tools.URL(c="recommender_actions", f="do_cancel_press_review", vars=dict(recommId=recomm.id), scheme=True)
+        cancelSubmissionLink = common_tools.URL(c="recommender_actions", f="do_cancel_press_review", vars=dict(recommId=recomm.id))
 
     recommendationText = ""
     if len(recomm.recommendation_comments or "") > 2:
@@ -1561,7 +1563,7 @@ def getPostprintRecommendation(art: Article, printable: bool = False, quiet: boo
     validateRecommendationLink = None
     if auth.has_membership(role="manager") and not (art.user_id == auth.user_id) and not (printable):
         if art.status == "Pre-recommended":
-            validateRecommendationLink = common_tools.URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id), scheme=True)
+            validateRecommendationLink = common_tools.URL(c="manager_actions", f="do_recommend_article", vars=dict(articleId=art.id))
 
     componentVars = dict(
         printable=printable,
