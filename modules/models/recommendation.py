@@ -243,7 +243,7 @@ class Recommendation(Row):
         from app_modules.common_tools import URL
 
         if recommendation.reply_pdf:
-            return URL("default", "download", args=recommendation.reply_pdf, scheme=True)
+            return URL("default", "download", args=recommendation.reply_pdf)
 
 
     @staticmethod
@@ -251,7 +251,7 @@ class Recommendation(Row):
         from app_modules.common_tools import URL
 
         if recommendation.track_change:
-            return URL("default", "download", args=recommendation.track_change, scheme=True)
+            return URL("default", "download", args=recommendation.track_change)
 
 
 def _get_reference_line_text(line: str):

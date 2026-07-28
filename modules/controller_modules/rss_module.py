@@ -27,6 +27,7 @@ from gluon.sqlhtml import *
 from app_modules import common_small_html
 
 from app_modules import common_tools
+from app_modules.common_tools import URL
 
 myconf = AppConfig(reload=True)
 
@@ -42,10 +43,10 @@ def mkRecommArticleRss(row):
     if recomm is None:
         return None
     if row.uploaded_picture is not None and row.uploaded_picture != "":
-        img = IMG(_alt="article picture", _src=URL("static", "uploads", scheme=True, args=row.uploaded_picture), _style="padding:8px;")
+        img = IMG(_alt="article picture", _src=URL("static", "uploads", args=row.uploaded_picture), _style="padding:8px;")
     else:
         img = None
-    link = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=True)
+    link = URL(c="articles", f="rec", vars=dict(id=row.id))
     whoDidIt = common_small_html.getRecommAndReviewAuthors(recomm=row, with_reviewers=False, linked=False)
     desc = DIV()
     article = DIV(CENTER(I(row.title), BR(), SPAN(row.authors), BR(), common_small_html.mkDOI(row.doi)), _style="border:2px solid #cccccc; margin-bottom:8px; font-size:larger;")
@@ -97,7 +98,7 @@ def mkRecommArticleRss4bioRxiv(row):
     version = recomm.ms_version or ""
     pci = myconf.take("app.description")
     title = "Version %(version)s of this preprint has been peer-reviewed and recommended by %(pci)s" % locals()
-    url = URL(c="articles", f="rec", vars=dict(id=row.id), scheme=True)
+    url = URL(c="articles", f="rec", vars=dict(id=row.id))
 
     recommendersStr = common_small_html.mkRecommendersString(recomm)
     reviewersStr = common_small_html.mkReviewersString(row.id)
@@ -117,7 +118,7 @@ def mkRecommArticleRss4bioRxiv(row):
         recommender=recommendersStr,
         reviewers=reviewersStr,
         date=created_on.strftime(DEFAULT_DATE_FORMAT),
-        logo=XML(URL(c="static", f="images/small-background.png", scheme=True)),
+        logo=XML(URL(c="static", f="images/small-background.png")),
         doi=row.doi,
         recomm_doi=recomm_doi,
     )

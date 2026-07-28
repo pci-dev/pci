@@ -146,7 +146,7 @@ def getArticleTrackcRowCard(article: Article):
 
         componentVars = dict(
             articleId=article.id,
-            articleImg=IMG(_src=URL(c="static", f="images/small-background.png", scheme=True), _class="pci-trackImg",),
+            articleImg=IMG(_src=URL(c="static", f="images/small-background.png"), _class="pci-trackImg"),
             articleTitle=title,
             articleAuthor=authors,
             articleDoi=doi_text,

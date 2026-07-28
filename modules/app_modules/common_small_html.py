@@ -175,7 +175,7 @@ def mkUser_U(user: User, linked: bool = False, reverse: bool = False, orcid: boo
                     _class="cyp-user-profile-link")
     elif linked and not user.deleted:
         result = A(B(name),
-                    _href=URL(c="public", f="user_public_page",scheme=True, vars=dict(userId=user.id)),
+                    _href=URL(c="public", f="user_public_page", vars=dict(userId=user.id)),
                     _class="cyp-user-profile-link")
     else:
         result = SPAN(name)
@@ -231,8 +231,7 @@ def mk_user(theUser: Optional[User], linked: bool = False, reverse: bool = False
                 resu = SPAN(
                     A(
                         name,
-                        _href=URL(c="public", f="user_public_page",
-                            scheme=True, vars=dict(userId=theUser.id)),
+                        _href=URL(c="public", f="user_public_page", vars=dict(userId=theUser.id)),
                     ),
                     SPAN(" [%s]" % theUser.email))
             else:
@@ -1100,7 +1099,7 @@ def build_citation(article: Article, final_recommendation: Recommendation, for_l
     if cite_ref:
         cite_url = cite_ref
     else:
-        cite_url = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=True)
+        cite_url = URL(c="articles", f="rec", vars=dict(id=article.id))
         cite_ref = A(cite_url, _href=cite_url)
 
     if for_latex:

@@ -1097,7 +1097,7 @@ def manage_recommendations():
 ######################################################################################################################################################################
 @auth.requires(auth.has_membership(role="manager"))
 def search_recommenders():
-    whatNext = request.vars["whatNext"] if request.vars["whatNext"] else URL(args=request.args, vars=request.get_vars, scheme=True)
+    whatNext = request.vars["whatNext"] if request.vars["whatNext"] else URL(args=request.args, vars=request.get_vars)
     previous = URL(args=request.args, vars=request.get_vars, host=True)
     articleId = request.vars["articleId"]
     if articleId is None:
@@ -1290,7 +1290,7 @@ def suggested_recommenders():
             ) if not (row.declined) else ""
 
     def make_valid_reject_sugg_recommender_button(row: SuggestedRecommender):
-        next_url = URL(args=request.args, vars=request.get_vars, scheme=True)
+        next_url = URL(args=request.args, vars=request.get_vars)
         is_author = art.user_id == auth.user_id
 
         valid_btn = A("Valid", _class="btn btn-success",
@@ -2467,7 +2467,7 @@ def manage_suggested_recommenders():
             infos_by_article[article.id] = (article, [(recommender, sugg_recommender)])
 
     html: ... = DIV()
-    next_url = URL(args=request.args, vars=request.get_vars, scheme=True)
+    next_url = URL(args=request.args, vars=request.get_vars)
 
     for article, sugg_recommenders in infos_by_article.values():
         is_author = article.user_id == auth.user_id

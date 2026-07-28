@@ -1,3 +1,5 @@
+from app_modules.common_tools import URL
+
 def index():
     return DIV(
             A("COAR outbox", _href=URL("coar_notify", " ")),
@@ -15,9 +17,9 @@ def complete_submission():
 
     from app_modules.emailing_tools import getMailCommonVars
     mail_vars = getMailCommonVars()
-    mail_vars["gtuLink"] = URL("about", "gtu", scheme=True)
-    mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=True)
-    mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=True)
+    mail_vars["gtuLink"] = URL("about", "gtu")
+    mail_vars["aboutEthicsLink"] = URL("about", "ethics")
+    mail_vars["helpGenericLink"] = URL("help", "help_generic")
     mail_vars["completeSubmissionLink"] = URL("user", "edit_my_article",
                 vars=dict(articleId=articleId, key=request.vars.key),
     )

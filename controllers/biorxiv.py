@@ -1,5 +1,5 @@
 from typing import Optional
-from app_modules.common_tools import get_article_id, URL
+from app_modules.common_tools import get_article_id
 from app_modules.emailing_tools import getMailCommonVars
 from gluon import current
 from gluon.html import XML
@@ -7,6 +7,8 @@ from gluon.http import HTTP
 from gluon.http import redirect # type: ignore
 from models.article import Article, ArticleStatus
 from models.group import Role
+
+from app_modules.common_tools import URL
 
 
 @auth.requires_login() # type: ignore
@@ -27,9 +29,9 @@ def complete_submission():
         redirect(URL(c="user", f="recommendations", vars=dict(articleId=article_id)))
 
     mail_vars = getMailCommonVars()
-    mail_vars["gtuLink"] = URL("about", "gtu", scheme=True)
-    mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=True)
-    mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=True)
+    mail_vars["gtuLink"] = URL("about", "gtu")
+    mail_vars["aboutEthicsLink"] = URL("about", "ethics")
+    mail_vars["helpGenericLink"] = URL("help", "help_generic")
     mail_vars["completeSubmissionLink"] = URL("user", "edit_my_article",
                 vars=dict(articleId=article_id, key=current.request.vars.key),
     )

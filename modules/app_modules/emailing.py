@@ -3293,13 +3293,13 @@ def send_to_coar_requester(user, article):
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
     mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
-    mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=True)
-    mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=True)
-    mail_vars["completeSubmissionLink"] = URL("coar", "complete_submission", scheme=True,
+    mail_vars["aboutEthicsLink"] = URL("about", "ethics")
+    mail_vars["helpGenericLink"] = URL("help", "help_generic")
+    mail_vars["completeSubmissionLink"] = URL("coar", "complete_submission",
         vars=dict(articleId=article.id, key=user.reset_password_key,
                     coarId=article.coar_notification_id),
     )
-    mail_vars["cancelSubmissionLink"] = URL("coar", "cancel_submission", scheme=True,
+    mail_vars["cancelSubmissionLink"] = URL("coar", "cancel_submission",
         vars=dict(articleId=article.id, coarId=article.coar_notification_id),
     )
 
@@ -3362,7 +3362,7 @@ def send_report_coar_post_received(req):
 
     mail_vars["destAddress"] = myconf.get("contacts.generic_contact")
     mail_vars["author_email_link"] = f'<a href="{author["id"]}">{author["name"]}</a>'
-    mail_vars["notification_link"] = URL("coar_notify", f"show?id={req['id']}", scheme=True)
+    mail_vars["notification_link"] = URL("coar_notify", f"show?id={req['id']}")
     mail_vars["submission_doi_link"] = f'<a href="{doi}">{doi}</a>'
 
     hashtag_template = "#AdminReportCOARPostReceived"
@@ -3817,7 +3817,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
     if not article:
         return
 
-    next_url = URL(c="manager", f="suggested_recommenders", vars=dict(articleId=article_id), scheme=True)
+    next_url = URL(c="manager", f="suggested_recommenders", vars=dict(articleId=article_id))
 
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destAddress"] = mail_vars["appContactMail"]
@@ -3846,12 +3846,12 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
                 A(f"{recommender.email}", _href=f"mailto:{recommender.email}", _style="display: block"),
                 CENTER(
                     A(SPAN(current.T("Valid"), _style=f"background: #93c54b; margin-right: 5px; {button_style}"),
-                    _href=URL("manager", "do_valid_suggested_recommender",vars=dict(sugg_recommender_id=suggested_recommender.id, _next=next_url), scheme=True),
+                    _href=URL("manager", "do_valid_suggested_recommender",vars=dict(sugg_recommender_id=suggested_recommender.id, _next=next_url)),
                     _style="text-decoration: none;",
                     ),
                     A(
                         SPAN(current.T("Reject"), _style=f"background: #f47c3c; margin-left: 5px; {button_style}"),
-                        _href=URL("manager", "do_reject_suggested_recommender",vars=dict(sugg_recommender_id=suggested_recommender.id, _next=next_url), scheme=True),
+                        _href=URL("manager", "do_reject_suggested_recommender",vars=dict(sugg_recommender_id=suggested_recommender.id, _next=next_url)),
                         _style="text-decoration: none;",
                     ),
                 _style="margin-top: 5px"),
@@ -3913,8 +3913,7 @@ def send_manager_alert_willing_to_recommend(article_id: int):
     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recommender_id, True, orcid=True)
     mail_vars["linkTarget"] = URL(c="manager",
                                   f="suggested_recommenders",
-                                  vars=dict(articleId=article_id),
-                                  scheme=True)
+                                  vars=dict(articleId=article_id))
 
     emailing_tools.insertMailInQueue(mail_template, mail_vars, article_id=article_id)
 

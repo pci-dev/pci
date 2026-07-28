@@ -24,6 +24,8 @@ from gluon.contrib.markmin.markmin2latex import render, latex_escape
 from gluon.contrib.appconfig import AppConfig
 from models.mail_queue import MailQueue
 
+from app_modules.common_tools import URL
+
 myconf = AppConfig(reload=True)
 
 DEFAULT_DATE_FORMAT = common_tools.getDefaultDateFormat()
@@ -291,7 +293,7 @@ Reviews by \reviewers, \href{https://dx.doi.org/\DOI}{DOI: \DOI}
         emailRecomm = ""
     doi = latex_escape(art.doi)
     doiLink = common_small_html.mkLinkDOI(art.doi)
-    siteUrl = URL(c="default", f="index", scheme=True)
+    siteUrl = URL(c="default", f="index")
     bib = recommBibtex(articleId)
     # fd, bibfile = tempfile.mkstemp(suffix='.bib')
     # bibfile = "/tmp/sample.bib"
@@ -592,7 +594,7 @@ dashed=false
     reviewers = ""
     doi = art.doi
     doiLink = common_small_html.mkLinkDOI(art.doi)
-    siteUrl = URL(c="default", f="index", scheme=True)
+    siteUrl = URL(c="default", f="index")
     bib = recommBibtex(articleId)
     # fd, bibfile = tempfile.mkstemp(suffix='.bib')
     # with os.fdopen(fd, 'w') as tmp:

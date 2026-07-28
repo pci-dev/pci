@@ -704,7 +704,7 @@ class Article(Row):
         from app_modules.common_tools import URL
         
         if article.uploaded_picture:
-            return URL("static", "uploads", args=article.uploaded_picture, scheme=True)
+            return URL("static", "uploads", args=article.uploaded_picture)
 
 
     @staticmethod

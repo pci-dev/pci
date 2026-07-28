@@ -5,6 +5,8 @@ from app_modules.common_small_html import doi_to_url
 from app_modules.utils import run
 from app_modules.utils import json
 
+from app_modules.common_tools import URL
+
 response.headers['Content-Type'] = 'application/json'
 
 
@@ -45,7 +47,7 @@ def _pci():
 
 def coar_inbox():
     return json({
-        "url": URL("coar_notify", "inbox", scheme=True),
+        "url": URL("coar_notify", "inbox"),
         "theme": _pci().get("theme"),
     })
 
@@ -99,7 +101,7 @@ def recommendations():
 
             el: Any = {
                 "recommendation": {
-                    "url": URL("articles", f"rec?id={recom.article_id}", scheme=True),
+                    "url": URL("articles", f"rec?id={recom.article_id}"),
                     "doi": doi_to_url(recom.recommendation_doi or ""),
                     "recommender": User.get_name(recom.recommender_id),
                     "co-recommenders": [

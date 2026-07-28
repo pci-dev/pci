@@ -17,9 +17,9 @@ from app_modules.common_small_html import md_to_html
 
 from app_components import article_components
 from app_modules import emailing
-from app_modules.common_tools import URL, doi_to_url
 from models.review import Review
 from app_modules.schema_org import SchemaOrg, SchemaOrgException
+from app_modules.common_tools import URL, doi_to_url
 
 myconf = AppConfig(reload=True)
 
@@ -297,7 +297,7 @@ def getPublicReviewRoundsHtml(article: Article):
                 pdfLink = A(
                     I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                     current.T("Download the review (PDF file)"),
-                    _href=URL("default", "download", args=review.review_pdf, scheme=True),
+                    _href=URL("default", "download", args=review.review_pdf),
                     _style="font-weight: bold; margin-bottom: 5px; display:block",
                 )
 
@@ -320,7 +320,7 @@ def getPublicReviewRoundsHtml(article: Article):
             authorsReplyPdfLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download author's reply (PDF file)"),
-                _href=URL("default", "download", args=recomm.reply_pdf, scheme=True),
+                _href=URL("default", "download", args=recomm.reply_pdf),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
@@ -329,7 +329,7 @@ def getPublicReviewRoundsHtml(article: Article):
             authorsReplyTrackChangeFileLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download tracked changes file"),
-                _href=URL("default", "download", args=recomm.track_change, scheme=True),
+                _href=URL("default", "download", args=recomm.track_change),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 
@@ -345,7 +345,7 @@ def getPublicReviewRoundsHtml(article: Article):
             recommendationPdfLink = A(
                 I(_class="glyphicon glyphicon-save-file", _style="color: #ccc; margin-right: 5px; font-size: 18px"),
                 current.T("Download recommender's annotations (PDF)"),
-                _href=URL("default", "download", args=recomm.recommender_file, scheme=True),
+                _href=URL("default", "download", args=recomm.recommender_file),
                 _style="font-weight: bold; margin-bottom: 5px; display:block",
             )
 

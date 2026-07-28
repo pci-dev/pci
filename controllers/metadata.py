@@ -5,7 +5,7 @@ from gluon import HTTP
 
 from app_modules import crossref as _crossref
 
-from app_modules.common_small_html import mkUser, URL
+from app_modules.common_small_html import mkUser
 from app_modules.httpClient import HttpClient
 from models.review import ReviewState, Review
 from models.article import Article
@@ -15,6 +15,8 @@ from app_modules.crossref import get_author_reply_doi, get_decision_doi, get_rev
 
 from gluon.storage import Storage
 from gluon import current
+
+from app_modules.common_tools import URL
 
 response = current.response
 request = current.request
@@ -58,10 +60,10 @@ def docmaps():
 
     return json.dumps([{
     "type": "docmap",
-    "id": URL("metadata", f"recommendation?article_id={article.id}", scheme=True),
+    "id": URL("metadata", f"recommendation?article_id={article.id}"),
     "publisher": {
       "name": pci_description,
-      "url": URL("about", "|", scheme=True).replace("|", ""),
+      "url": URL("about", "|").replace("|", ""),
     },
     "created": publication_date(recomm.validation_timestamp),
     "updated": publication_date(recomm.validation_timestamp),
@@ -126,7 +128,7 @@ def recommendation_as_docmaps(version: Recommendation | Any,
         "type": typ,
         "content": {
             "web-page": f"https://doi.org/{doi}",
-            "web-content": URL("content", f"doi/{doi}", scheme=True)
+            "web-content": URL("content", f"doi/{doi}")
         }
     }
 

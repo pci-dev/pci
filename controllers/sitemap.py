@@ -1,11 +1,11 @@
 import datetime
 from typing import List
 
-from app_modules.common_tools import URL
 from gluon import current
 
 from models.article import Article, ArticleStatus
 
+from app_modules.common_tools import URL
 
 class SiteMapUrl:
     loc: str
@@ -19,7 +19,7 @@ def index():
 
     for article in articles:
         url = SiteMapUrl()
-        url.loc = URL(c="articles", f="rec", vars=dict(id=article.id), scheme=True)
+        url.loc = URL(c="articles", f="rec", vars=dict(id=article.id))
         url.lastmod = (
                 article.last_status_change or datetime.datetime.today()
         ).strftime(date_format)
