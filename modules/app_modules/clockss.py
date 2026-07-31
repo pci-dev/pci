@@ -556,7 +556,7 @@ def send_to_clockss(article: Article, recommendation: Recommendation):
     try:
         filename = clockss.build_pdf()
     except Exception as e:
-        raise Exception(f"Error building Clockss PDF: Compilation error")
+        raise Exception(f"Error building Clockss PDF: Compilation error: {e}")
     try:
         PDF.save_pdf_to_db(recommendation, attachments_dir, filename)
         clockss.package_and_send()
