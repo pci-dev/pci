@@ -399,6 +399,6 @@ class HtmlToLatex:
         if not size:
             return 5.0
 
-        size = size.strip()
+        size = size.replace("px", "").strip()
         return float(size) * 0.0264583333
 
