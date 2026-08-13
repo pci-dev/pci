@@ -45,6 +45,7 @@ from models.review import Review
 
 from app_modules.common_small_html import md_to_html
 from app_modules.emailing import isScheduledTrack # type: ignore
+from app_modules.co_auth_openAlex import query_semantic_api
 
 # to change to common
 from controller_modules import admin_module
@@ -2860,7 +2861,7 @@ def verify_co_authorship():
     article = Article.get_by_id(article_id)
     recommendation = Recommendation.get_by_id(article_id)
     authors = extract_name_from_author(article.authors)
-    authors = [{"group" : "author", "name" : author} for author in authors]
+    authors = [author for author in authors]
 
     manager_coauthor = common_tools.check_coauthorship(auth.user_id, article)
     if manager_coauthor:
@@ -2879,29 +2880,31 @@ def verify_co_authorship():
 
     report_survey = ReportSurvey.get_by_article(article_id)
     grid = []
-    recommenders: List[Dict[str, str]] = []
+    recommenders: List[str] = []
+    sugg_reviewers: List[str] = []
 
     # List of suggested recommenders
     if is_suggested and not has_recommender:
-        recommenders = [{"group" : "suggested recommender", "name" : User.get_name_by_id(user.suggested_recommender_id)} for user in is_suggested]
+        recommenders = [User.get_name_by_id(user.suggested_recommender_id) for user in is_suggested]
     if has_recommender:
-        recommenders = [{"group" : "recommender", "name" : user.recommender} for user in has_recommender]
+        recommenders = [user.recommender for user in has_recommender]
     if has_co_recommenders:
         for user in has_co_recommenders:
             if user.contributor_id:
-                recommenders += [{"group" : "co-recommender", "name" : User.get_name_by_id(user.contributor_id)}]
+                recommenders += [User.get_name_by_id(user.contributor_id)]
     if has_reviewers:
-        recommenders += common_small_html.group_reviewers(has_reviewers)
+        sugg_reviewers += common_small_html.group_reviewers(has_reviewers)
     if report_survey and report_survey.q8:
         names = report_survey.q8.split(',')
         for name in names:
-            recommenders.append({'group': 'suggested reviewer', 'name': extract_name_without_email(name)})
+            sugg_reviewers.append(extract_name_without_email(name))
     if article.suggest_reviewers:
         for reviewer in article.suggest_reviewers:
-            recommenders.append({'group': 'suggested reviewer', 'name': extract_name_without_email(reviewer)})
+            sugg_reviewers.append(extract_name_without_email(reviewer))
 
 
-    grid = query_semantic_api(authors, recommenders) if len(recommenders) > 0 else SPAN("Submission has no recommender/reviewer assigned yet.")
+    grid = query_semantic_api(authors, recommenders, sugg_reviewers) \
+          if len(recommenders) > 0 or len(sugg_reviewers) > 0  else SPAN("Submission has no recommender/reviewer assigned yet.")
 
     return dict(
         myBackButton = common_small_html.mkBackButton(),
