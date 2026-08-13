@@ -54,7 +54,7 @@
     if (
       jQuery("#no_conflict_of_interest").prop("checked") &&
       (jQuery("#due_time").prop("checked") || '{{=more_delay}}' === 'True') &&
-      (jQuery("#anonymous_agreement").prop("checked") || {{=int(pciRRactivated)}}) &&
+      (jQuery("#anonymous_agreement").prop("checked")) &&
       (jQuery("#cgu_checkbox").prop("checked") || '{{=user.ethical_code_approved}}' === 'True') &&
       (jQuery("#new_delay_agreement").prop("checked") || '{{=more_delay}}' === 'False')
     ) {
