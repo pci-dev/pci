@@ -1739,10 +1739,9 @@ def edit_review():
             "review",
             "review_pdf",
             "no_conflict_of_interest",
-        ]
-        if pciRRactivated: fields += [
             "anonymous_agreement",
         ]
+
         form = SQLFORM(
             db.t_reviews, record=review,
             fields=fields,
