@@ -153,7 +153,7 @@ db.define_table(
 cfg = db.config[1]
 
 cfg.host = host.split(".")[0]
-cfg.description = myconf.get("app.description")
+cfg.description = myconf.take("app.description")
 
 db.cfg = cfg
 db.conf = myconf
@@ -372,31 +372,31 @@ if True:
     auth.settings.retrieve_password_captcha = None
 
 auth.messages.email_sent = "A request of confirmation has been sent to your e-mail address. Please confirm you e-mail address before trying to login."
-auth.messages.verify_email_subject = "%s: validate your registration" % myconf.get("app.longname")
+auth.messages.verify_email_subject = "%s: validate your registration" % myconf.take("app.longname")
 auth.messages.verify_email = (
     """
 Welcome %(username)s!
 
 To complete your registration with the """
-    + myconf.get("app.longname")
+    + myconf.take("app.longname")
     + """ website, please click on the following link and enter your login and password:
 %(link)s
 
 Thanks for signing up!
 Yours sincerely,
 The Managing Board of """
-    + myconf.get("app.longname")
+    + myconf.take("app.longname")
     + """
 
 """
-    + myconf.get("app.longname")
+    + myconf.take("app.longname")
     + """ is one of the communities of the parent project Peer Community In... .
 It is a community of researchers in """
-    + myconf.get("app.thematics")
+    + myconf.take("app.thematics")
     + """ dedicated to both 1) the review and recommendation of preprints publicly available in preprint servers (such as bioRxiv) and 2) the recommendation of postprints published in traditional journals.
 This project was driven by a desire to establish a free, transparent and public recommendation system for reviewing and identifying remarkable articles.
 More information can be found on the website of """
-    + myconf.get("app.longname")
+    + myconf.take("app.longname")
     + """: """
     + URL(c="default", f="index")
 )

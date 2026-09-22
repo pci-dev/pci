@@ -424,8 +424,8 @@ class pci:
     issn = str(db.cfg.issn or "")
     url = f"https://{host}.peercommunityin.org"
     doi = f"10.24072/pci.{host}"
-    long_name = str(db.conf.get("app.description") or "")
-    short_name = str(db.conf.get("app.longname") or "")
+    long_name = str(db.conf.take("app.description") or "")
+    short_name = str(db.conf.take("app.longname") or "")
     email = str(db.conf.get("contacts.contact") or "")
 
 

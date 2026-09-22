@@ -62,7 +62,7 @@ def get_data(start_year: int, end_year: int):
     ).select(distinct=True)
 
     lines: List[Dict[str, str]] = []
-    pci_name: str = myconf.get("app.longname")
+    pci_name: str = myconf.take("app.longname")
 
     for r in result:
         article: Article = r.t_articles
