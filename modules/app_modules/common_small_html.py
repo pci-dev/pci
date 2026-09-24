@@ -1171,14 +1171,14 @@ def getArticleSubmitter(art: Article):
 
 ###########################################################################################################################
 def group_reviewers(reviews: List[Review]):
-    result = []
+    result: list = []
     for review in reviews:
         name = Review.get_reviewer_name(review)
         group = "accepted reviewer"
         if review.review_state == "Awaiting response":
             group = "invited reviewer"
 
-        result.append({"group": group, "name" : name})
+        result.append(name)
     return result
 
 ######################################################################################################################################################################
