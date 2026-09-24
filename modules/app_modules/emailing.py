@@ -1626,7 +1626,7 @@ def mkSender(recomm):
     if auth.user_id == recomm.recommender_id:
         sender = common_small_html.mkUser(recomm.recommender_id).flatten()
     else:
-        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(recomm.recommender_id).flatten()
+        sender = "The Managing Board of " + myconf.take("app.longname") + " on behalf of " + common_small_html.mkUser(recomm.recommender_id).flatten()
 
     return sender
 

@@ -1444,7 +1444,7 @@ def send_review_cancellation():
     if auth.user_id == recomm.recommender_id:
         sender = common_small_html.mkUser(recomm.recommender_id).flatten()
     elif auth.has_membership(role="manager"):
-        sender = "The Managing Board of " + myconf.get("app.longname") + " on behalf of " + common_small_html.mkUser(recomm.recommender_id).flatten()
+        sender = "The Managing Board of " + myconf.take("app.longname") + " on behalf of " + common_small_html.mkUser(recomm.recommender_id).flatten()
 
     description = myconf.take("app.description")
     longname = myconf.take("app.longname")

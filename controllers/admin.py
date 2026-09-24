@@ -953,7 +953,7 @@ def get_data(start_year: int, end_year: int):
         & (db.t_recommendations.recommendation_state == RecommendationState.RECOMMENDED.value)
     ).select(distinct=True)
 
-    pci_name: str = myconf.get("app.longname")
+    pci_name: str = myconf.take("app.longname")
 
     return [ mk_line(row, pci_name) for row in rows ]
 

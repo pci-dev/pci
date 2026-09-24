@@ -31,7 +31,7 @@ class SchemaOrgException(Exception):
 
 class SchemaOrg:
 
-    _periodical = so.Periodical(conf.get("app.description"))
+    _periodical = so.Periodical(conf.take("app.description"))
     _scholarly_article: so.ScholarlyArticle
     _root_recommendation: so.ScholarlyArticle
     _schema: so.Root
