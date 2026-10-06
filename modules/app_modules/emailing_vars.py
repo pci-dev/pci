@@ -56,6 +56,14 @@ def getAdminsMails():
 def getManagersMails():
     return getMails("manager")
 
+def get_managers_mails_without_author(article: Article):
+    managers = User.get_by_role("manager")
+    manager_author = [int(id) for id in article.manager_authors.split(',')] if article.manager_authors else []
+    mails: list[str] = []
+    for manager in managers:
+        if manager.id not in manager_author:
+            mails.append(manager.email)
+    return mails
 
 def getMails(role: str):
     db = current.db
