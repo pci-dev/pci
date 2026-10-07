@@ -10,6 +10,7 @@ def main():
             ArticleStep.SUBMISSION_PENDING_VALIDATION,
             ArticleStep.EVALUATION_AND_DECISION_UNDERWAY,
             ArticleStep.AWAITING_REVISION,
+            ArticleStep.REVIEWS_UNDERWAY,
         ]
     )
 
