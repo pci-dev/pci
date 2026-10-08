@@ -51,6 +51,7 @@ from app_modules.emailing_tools import mkAuthors, replaceMailVars
 from app_modules.emailing_tools import getMailCommonVars
 from app_modules.emailing_tools import replace_mail_vars_set_not_considered_mail
 from app_modules.emailing_tools import exempt_addresses
+from app_modules.emailing_vars import get_managers_mails_without_author
 from models.article import Article, ArticleStatus
 from models.review import Review, ReviewState
 from models.recommendation import Recommendation
@@ -384,7 +385,7 @@ def send_to_recommender_status_changed(articleId: int, newStatus: str):
         elif newStatus == "Recommended":
             mail_vars["linkRecomm"] = URL(c="articles", f="rec", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"], vars=dict(id=article.id))
             mail_vars["doiRecomm"] = doi_to_url(myRecomm.recommendation_doi)
-            mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
+            mail_vars["bccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
 
             hashtag_template = emailing_tools.get_correct_hashtag("#RecommenderStatusChangedUnderToRecommended", article)
 
@@ -1291,7 +1292,7 @@ def send_to_managers(articleId: int, newStatus: str):
             dest_emails = emailing_vars.getAdminsMails()
             dest_role = "admin"
         else:
-            dest_emails = emailing_vars.getManagersMails()
+            dest_emails = emailing_vars.get_managers_mails_without_author(article)
             dest_role = "manager"
         reports = merge_mails(hashtag_template, mail_vars, recomm_id, None, article.id, dest_emails, dest_role)
 
@@ -1419,7 +1420,7 @@ def send_to_delete_one_corecommender(contribId):
                     mail_vars["destAddress"] = db.auth_user[contrib.contributor_id]["email"]
                     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recomm.recommender_id) or ""
                     mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
-                    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
+                    mail_vars["bccAddresses"] = get_managers_mails_without_author(article)
 
                     hashtag_template = emailing_tools.get_correct_hashtag("#CoRecommenderRemovedFromArticle", article)
 
@@ -1455,7 +1456,7 @@ def send_to_one_corecommender(contribId):
 
                     if article.status in ("Under consideration", "Pre-recommended", "Pre-recommended-private"):
                         mail_vars["ccAddresses"] = [db.auth_user[recomm.recommender_id]["email"]]
-                        mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
+                        mail_vars["bccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
 
                         if article.already_published:
                             hashtag_template = emailing_tools.get_correct_hashtag("#CoRecommenderAddedOnArticleAlreadyPublished", article)
@@ -3292,7 +3293,7 @@ def send_to_coar_requester(user, article):
     mail_vars["destPerson"] = common_small_html.mkUser(user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["bccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
     mail_vars["aboutEthicsLink"] = URL("about", "ethics")
     mail_vars["helpGenericLink"] = URL("help", "help_generic")
     mail_vars["completeSubmissionLink"] = URL("coar", "complete_submission",
@@ -3320,7 +3321,7 @@ def send_to_coar_resubmitter(user, article):
     mail_vars["destPerson"] = common_small_html.mkUser(user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["bccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
     mail_vars["linkTarget"] = URL(
         c="user", f="edit_my_article",
         vars=dict(articleId=article.id, key=user.reset_password_key),
@@ -3341,7 +3342,7 @@ def create_reminder_user_complete_submission(article):
 
     mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
     mail_vars["destAddress"] = User.get_by_id(article.user_id).email
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["ccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
 
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["message"] = MailQueue.get_mail_content(
@@ -3450,7 +3451,7 @@ def create_reminder_recommender_could_make_decision(recommId):
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["articleAuthors"] = mkAuthors(article)
 
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["ccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
 
     hashtag_template = "#ReminderRecommender2ReviewsReceivedCouldMakeDecision"
 
@@ -3469,7 +3470,7 @@ def alert_managers_recommender_action_needed(hashtag_template: str, recommId: in
         mail_vars["destAddress"] = mail_vars["appContactMail"]
         mail_vars["articleTitle"] = md_to_html(article.title)
         mail_vars["recommenderPerson"] = mk_recommender(article)
-        mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+        mail_vars["ccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
 
         emailing_tools.insert_reminder_mail_in_queue(hashtag_template, mail_vars, recomm.id, None, article.id)
 
@@ -3716,7 +3717,7 @@ def send_to_biorxiv_requester(user: User, article: Article):
     mail_vars["destPerson"] = common_small_html.mkUser(user.id)
     mail_vars["destAddress"] = user.email
     mail_vars["ccAddresses"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["bccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
     mail_vars["aboutEthicsLink"] = URL("about", "ethics", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     mail_vars["helpGenericLink"] = URL("help", "help_generic", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
     mail_vars["completeSubmissionLink"] = URL("biorxiv", "complete_submission", scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"],
@@ -3740,7 +3741,7 @@ def create_reminder_user_complete_submission_biorxiv(article: Article):
 
     mail_vars["destPerson"] = common_small_html.mkUser(article.user_id)
     mail_vars["destAddress"] = User.get_by_id(article.user_id).email
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["ccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
 
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["message"] = MailQueue.get_mail_content(
@@ -3798,7 +3799,7 @@ def send_new_comment_alert(article_id: int):
 
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destAddress"] = mail_vars["appContactMail"]
-    mail_vars["bccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["bccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["linkTarget"] = URL(c="articles", f="rec", vars=dict(id=article_id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
@@ -3821,7 +3822,7 @@ def send_or_update_mail_manager_valid_suggested_recommender(article_id: int, res
 
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destAddress"] = mail_vars["appContactMail"]
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["ccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
     mail_vars["submitterPerson"] = str(B(common_small_html.mkUser(article.user_id) if article.user_id else "?"))
     mail_vars["linkTarget"] = str(A(next_url, _href=next_url))
     mail_vars["articleTitle"] = str(B(md_to_html(article.title)))
@@ -3908,7 +3909,7 @@ def send_manager_alert_willing_to_recommend(article_id: int):
 
     mail_vars = emailing_tools.getMailCommonVars()
     mail_vars["destAddress"] = mail_vars["appContactMail"]
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["ccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
     mail_vars["articleTitle"] = md_to_html(article.title)
     mail_vars["recommenderPerson"] = common_small_html.mkUserWithMail(recommender_id, True, orcid=True)
     mail_vars["linkTarget"] = URL(c="manager",
@@ -3925,7 +3926,7 @@ def create_reminder_for_submission_could_be_not_considered(article: Article):
     mail_vars["linkTarget"] = URL(c="manager", f="recommendations", vars=dict(articleId=article.id), scheme=mail_vars["scheme"], host=mail_vars["host"], port=mail_vars["port"])
 
     mail_vars["destAddress"] = mail_vars["appContactMail"]
-    mail_vars["ccAddresses"] = emailing_vars.getManagersMails()
+    mail_vars["ccAddresses"] = emailing_vars.get_managers_mails_without_author(article)
 
     hashtag_template = "#ReminderSubmissionCouldBeClassifiedNotConsidered"
 

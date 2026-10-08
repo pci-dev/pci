@@ -75,6 +75,13 @@ class User(Row):
         user = db(db.auth_user.email == email).select().first()
         return cast(_[User], user)
 
+    @staticmethod
+    def get_by_role(role: str) -> list["User"]:
+        db = current.db
+        users = db((db.auth_group.role == role) & (db.auth_group.id == db.auth_membership.group_id) & (db.auth_user.id == db.auth_membership.user_id))\
+                .select(db.auth_user.ALL)
+        return users
+
 
     @staticmethod
     def get_by_reset_password_key(reset_password_key: str):
