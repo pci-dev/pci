@@ -86,6 +86,7 @@ User-agent: Baiduspider
 User-agent: Yandexbot
 User-agent: Qwantify
 
+Crawl-delay: 4
 Allow: /
 
 # Crawl delay for other bots.
