@@ -469,7 +469,8 @@ def url_to_doi_id(doi: str):
             .replace("content/", "") \
             .replace("zenodo.org/record/", "10.5281/zenodo.") \
             .replace("zenodo.org/records/", "10.5281/zenodo.") \
-            .replace("arxiv.org/abs/", "10.48550/arXiv.")
+            .replace("arxiv.org/abs/", "10.48550/arXiv.") \
+            .replace("osf.io/preprints/osf/", "10.31219/osf.io/")
     return doi
 
 
